@@ -4,7 +4,7 @@ import * as https from "https";
 import * as http from "http";
 import * as fs from "fs/promises";
 import * as path from "path";
-import { readFileSync } from "fs";
+import { mkdirSync, readFileSync } from "fs";
 import * as rollup from "rollup";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
@@ -81,6 +81,8 @@ async function rollupProductionBuild() {
   const options = rollupConfig(true);
   const build = await rollup.rollup(options);
   const html = await completeRollupBuild(build);
+
+  mkdirSync(path.join(import.meta.dirname, "dist"), { recursive: true });
   await fs.writeFile(path.join(import.meta.dirname, "dist/iframe.html"), html);
 }
 

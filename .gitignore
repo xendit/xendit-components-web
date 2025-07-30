@@ -30,3 +30,6 @@ dist-ssr
 coverage
 
 .npmrc
+
+temp-dts/
+temp/

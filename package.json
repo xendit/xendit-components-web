@@ -5,22 +5,34 @@
   "type": "module",
   "author": "invoice-team",
   "license": "UNLICENSED",
+  "files": [
+    "./sdk/dist/index.js",
+    "./sdk/dist/index.cjs",
+    "./sdk/dist/index.d.ts"
+  ],
+  "types": "sdk/dist/index.d.ts",
+  "exports": {
+    "import": "./sdk/dist/index.js",
+    "require": "./sdk/dist/index.cjs"
+  },
   "scripts": {
-    "secure-iframe:dev": "./secure-iframe/build.ts dev",
-    "secure-iframe:build": "./secure-iframe/build.ts prod",
+    "dev": "./build dev",
+    "build": "./build prod",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --fix --ext .ts,.tsx",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier . --check --write",
-    "format": "pnpm lint:fix && pnpm prettier:fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "tsc": "tsc"
   },
   "dependencies": {
+    "@microsoft/api-extractor": "^7.52.9",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/node": "^24.0.10",
     "credit-card-type": "^10.0.2",
     "husky": "^9.1.7",
+    "lit-html": "^3.3.1",
     "rollup": "^4.44.2",
     "tslib": "^2.8.1",
     "typescript": "^5.8.3"
