@@ -16,17 +16,17 @@
     "require": "./sdk/dist/index.cjs"
   },
   "scripts": {
-    "dev": "./build dev",
-    "build": "./build prod",
+    "dev": "./build.ts dev",
+    "build": "./build.ts prod",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --fix --ext .ts,.tsx",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier . --check --write",
-    "prepare": "husky install",
-    "tsc": "tsc"
+    "prepare": "husky install"
   },
   "dependencies": {
     "@microsoft/api-extractor": "^7.52.9",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/node": "^24.0.10",

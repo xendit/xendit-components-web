@@ -6,13 +6,19 @@ import { XenditAccordionItemComponent } from "./components/accordion-item";
 import { XenditChannelPickerComponent } from "./components/channel-picker";
 import { XenditChannelPickerGroupComponent } from "./components/channel-picker-group";
 import { XenditIconComponent } from "./components/icon";
+import { XenditSessionContextProvider } from "./components/session-provider";
 import { XenditContextRequestEvent } from "./context";
 import { createCssVariable, registerElement } from "./dom-utils";
+import { colorTokens } from "./style-tokens";
 import { camelCaseToKebabCase } from "./utils";
 
+/**
+ * @public
+ */
 declare global {
   interface HTMLElementTagNameMap {
     // public elements
+    "xendit-session-context-provider": XenditSessionContextProvider;
     "xendit-channel-picker": XenditChannelPickerComponent;
 
     // sub-components
@@ -31,8 +37,11 @@ declare global {
 }
 
 for (const el of [
+  XenditSessionContextProvider,
   XenditAccordionComponent,
+
   XenditAccordionItemComponent,
+
   XenditChannelPickerComponent,
   XenditChannelPickerGroupComponent,
   XenditIconComponent

@@ -10,6 +10,8 @@ import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import { stripTypeScriptTypes } from "module";
 
+const PORT = 4444;
+
 let lastSeenBuildOutput: string | null = null;
 
 async function generateIframeHtml(js: string) {
@@ -168,8 +170,6 @@ async function handleDevServerRequest(
 }
 
 async function startDevServer() {
-  const PORT = 443;
-
   const keyDir = path.join(import.meta.dirname, "..");
   const server = https.createServer(
     {
@@ -184,7 +184,7 @@ async function startDevServer() {
   );
 
   server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}/`);
+    console.log(`Server for secure-iframe at https://localhost:${PORT}/`);
   });
 }
 

@@ -5,27 +5,6 @@ import {
 } from "./accordion";
 import { getContext } from "../context";
 
-const accordionItemTemplate = (props: {
-  iconName: string;
-  title: string;
-  body: Node[];
-  clickHandler: () => void;
-  open: boolean;
-}) => {
-  const containerOpenClass = props.open ? "xendit-accordion-item-open" : "";
-  return html`
-  <div class="xendit-accordion-item-header" @click=${props.clickHandler}>
-    <xendit-icon icon-name="${props.iconName}" size="24" />
-    <div class="xendit-accordion-item-header-title">
-      ${props.title}
-    </div>
-  </div>
-  <div class="xendit-accordion-item-container ${containerOpenClass}">
-    ${props.body}
-  </div>
-`;
-};
-
 /**
  * @example
  * <xendit-accordion-item>
@@ -49,14 +28,24 @@ export class XenditAccordionItemComponent extends HTMLElement {
   render() {
     const openAccordionItem = getContext(this, AccordionSelectedItemContext);
 
+    const containerOpenClass =
+      openAccordionItem === this ? "xendit-accordion-item-open" : "";
+
+    const title = "Temp title";
+    const iconName = "temp-icon";
+
     render(
-      accordionItemTemplate({
-        iconName: "icon-name",
-        title: "Accordion Item Title",
-        body: this.originalChildren,
-        clickHandler: this.onClick,
-        open: openAccordionItem === this
-      }),
+      html`
+      <div class="xendit-accordion-item-header" @click=${this.onClick}>
+        <xendit-icon icon-name="${iconName}" size="24" />
+        <div class="xendit-accordion-item-header-title">
+          ${title}
+        </div>
+      </div>
+      <div class="xendit-accordion-item-container ${containerOpenClass}">
+        ${this.originalChildren}
+      </div>
+      `,
       this
     );
   }

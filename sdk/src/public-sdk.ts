@@ -24,6 +24,7 @@ import {
   XenditPaymentChannelGroup,
   XenditSession
 } from "./public-data-types";
+import { XenditSessionContextProvider } from "./components/session-provider";
 
 async function fetchSessionData(
   sessionClientKey: string
@@ -109,8 +110,13 @@ export class XenditSdkInstance extends EventTarget {
    * ```
    */
   createChannelPickerComponent(): HTMLElement {
-    const el = document.createElement(XenditChannelPickerComponent.tag);
-    return el;
+    const provider = document.createElement(XenditSessionContextProvider.tag);
+    provider.setContextData(this.initData.bff);
+    const channelPicker = document.createElement(
+      XenditChannelPickerComponent.tag
+    );
+    provider.appendChild(channelPicker);
+    return provider;
   }
 
   /**
@@ -132,8 +138,13 @@ export class XenditSdkInstance extends EventTarget {
    * ```
    */
   createPaymentComponentForChannel(channel: XenditPaymentChannel): HTMLElement {
-    const el = document.createElement(XenditPaymentChannelComponent.tag);
-    return el;
+    const provider = document.createElement(XenditSessionContextProvider.tag);
+    provider.setContextData(this.initData.bff);
+    const paymentChannel = document.createElement(
+      XenditPaymentChannelComponent.tag
+    );
+    provider.appendChild(paymentChannel);
+    return provider;
   }
 
   /**

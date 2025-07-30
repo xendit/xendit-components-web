@@ -9,8 +9,8 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function camelCaseToKebabCase(str: string): string {
-  return str
-    .split(/(?=([A-Z]))/gm)
-    .map((part) => part.toLowerCase())
-    .join("-");
+  return str.replace(/[A-Z]/gm, (match, offset) => {
+    if (offset === 0) return match.toLowerCase();
+    return `-${match.toLowerCase()}`;
+  });
 }

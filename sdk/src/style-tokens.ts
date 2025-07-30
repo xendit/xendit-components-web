@@ -1,7 +1,7 @@
 /**
  * These will be converted to kebab-case css variables on init.
  */
-const colorTokens = {
+export const colorTokens = {
   primary: "#1762EE",
   text: "#252525",
   textSecondary: "#585858",

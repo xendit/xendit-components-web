@@ -2,9 +2,9 @@
 This must be a single file with no imports.
 */
 
-document.body.innerHTML = `
-  <div id="channel-picker-container" />
-`;
+const div = document.createElement("div");
+div.id = "channel-picker-container";
+document.body.appendChild(div);
 
 const sdk = (window as any).XenditSdk as typeof import("./src/public-sdk");
 const inst = await sdk.initializeTestSession({
