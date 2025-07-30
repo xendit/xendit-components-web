@@ -32,6 +32,13 @@ export type BffPaymentMethod = {
   pm_type: BffPaymentMethodType;
 };
 
+export type BffPaymentMethodGroup = {
+  pm_type: string;
+  group_label: string;
+  group_icon: string;
+  channels: string[];
+};
+
 export type BffSessionCaptureMethod = "AUTOMATIC" | "MANUAL";
 
 export type BffSessionMode = "PAYMENT_LINK" | "COMPONENT" | "CARDS_SESSION_JS";
@@ -66,5 +73,6 @@ export type BffResponse = {
   business: BffBusiness;
   customer: BffCustomer;
   payment_methods: BffPaymentMethod[];
+  payment_methods_groups: BffPaymentMethodGroup[];
   session: BffSession;
 };

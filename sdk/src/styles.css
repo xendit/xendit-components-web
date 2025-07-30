@@ -1,0 +1,47 @@
+/* Set default font for root components */
+xendit-channel-picker,
+xendit-payment-channel {
+  font-family: var(--xendit-font-family, sans-serif);
+}
+
+/* Icon component */
+
+xendit-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Accordion component */
+
+xendit-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+xendit-accordion > xendit-accordion-item {
+  border: 1px solid var(--xendit-color-border);
+  border-radius: 8px;
+}
+
+xendit-accordion > xendit-accordion-item > .xendit-accordion-item-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  padding: 24px 16px;
+  color: var(--xendit-color-primary);
+  border-radius: 8px;
+}
+
+xendit-accordion > xendit-accordion-item > .xendit-accordion-item-header:hover {
+  border-radius: 8px;
+  box-shadow: 0px 0px 0px 2px
+    color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
+}
+
+xendit-accordion > xendit-accordion-item > .xendit-accordion-item-closed {
+  display: none;
+}

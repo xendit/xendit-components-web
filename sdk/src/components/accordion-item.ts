@@ -3,7 +3,7 @@ import {
   AccordionSelectedItemContext,
   XenditAccordionItemClickedEvent
 } from "./accordion";
-import { getContext } from "../context";
+import { getContext, subscribeContext } from "../context";
 
 /**
  * @example
@@ -26,21 +26,29 @@ export class XenditAccordionItemComponent extends HTMLElement {
   }
 
   render() {
-    const openAccordionItem = getContext(this, AccordionSelectedItemContext);
+    const openAccordionItem = subscribeContext(
+      this,
+      AccordionSelectedItemContext,
+      this.onSelectedItemChange
+    );
 
-    const containerOpenClass =
-      openAccordionItem === this ? "xendit-accordion-item-open" : "";
+    const isOpen = openAccordionItem === this;
+    const containerOpenClass = isOpen
+      ? "xendit-accordion-item-open"
+      : "xendit-accordion-item-closed";
+    const chevronDirection = isOpen ? "down" : "right";
 
     const title = "Temp title";
     const iconName = "temp-icon";
 
     render(
       html`
-      <div class="xendit-accordion-item-header" @click=${this.onClick}>
-        <xendit-icon icon-name="${iconName}" size="24" />
+      <div class="xendit-accordion-item-header" @click="${this.onClick}" role="button">
+        <xendit-icon icon-name="${iconName}" size="24"></xendit-icon>
         <div class="xendit-accordion-item-header-title">
           ${title}
         </div>
+        <xendit-icon icon-name="chevron" size="24" direction="${chevronDirection}"></xendit-icon>
       </div>
       <div class="xendit-accordion-item-container ${containerOpenClass}">
         ${this.originalChildren}
@@ -49,6 +57,10 @@ export class XenditAccordionItemComponent extends HTMLElement {
       this
     );
   }
+
+  onSelectedItemChange = () => {
+    this.render();
+  };
 
   onClick = () => {
     this.dispatchEvent(new XenditAccordionItemClickedEvent());

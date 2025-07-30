@@ -25,6 +25,25 @@ export function makeTestBffData(): BffResponse {
         channel_code: "TEST_CHANNEL_2",
         logo_url: "https://example.com/logo2.png",
         pm_type: "EWALLET"
+      },
+      {
+        channel_code: "TEST_CHANNEL_3",
+        logo_url: "https://example.com/logo3.png",
+        pm_type: "QR_CODE"
+      }
+    ],
+    payment_methods_groups: [
+      {
+        pm_type: "CARDS",
+        group_label: "Test Group",
+        group_icon: "https://example.com/group-icon.png",
+        channels: ["TEST_CHANNEL", "TEST_CHANNEL_2"]
+      },
+      {
+        pm_type: "QR_CODE",
+        group_label: "Test Group 2",
+        group_icon: "https://example.com/group-icon2.png",
+        channels: ["TEST_CHANNEL_3"]
       }
     ],
     session: {

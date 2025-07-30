@@ -17,13 +17,14 @@ export class XenditIconComponent extends HTMLElement {
   }
 
   attributeChangedCallback() {
-    this.render();
+    if (this.isConnected) this.render();
   }
 
   render() {
     const iconName = this.getAttribute("icon-name") || "default-icon";
     const size = parseInt(this.getAttribute("size") || "24", 10);
 
+    // TODO: replace with <use/> element
     render(
       html`<svg
         height="${size}"
@@ -32,7 +33,7 @@ export class XenditIconComponent extends HTMLElement {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <use href="#${iconName}"></use>
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
       </svg>`,
       this
     );

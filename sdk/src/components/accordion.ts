@@ -27,6 +27,7 @@ export class XenditAccordionComponent extends HTMLElement {
       (event: XenditAccordionItemClickedEvent) => {
         this.selectedItem = event.target;
         this.accordionContextProvider.set(this.selectedItem);
+        event.stopPropagation();
       }
     );
   }
@@ -38,6 +39,9 @@ export class XenditAccordionItemClickedEvent extends Event {
   static type = "xendit-accordion-item-clicked" as const;
 
   constructor() {
-    super(XenditAccordionItemClickedEvent.type, { bubbles: true });
+    super(XenditAccordionItemClickedEvent.type, {
+      bubbles: true,
+      composed: true
+    });
   }
 }

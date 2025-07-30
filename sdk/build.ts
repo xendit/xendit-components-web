@@ -10,13 +10,17 @@ import { IncomingMessage, ServerResponse } from "http";
 import { readFile } from "fs/promises";
 import resolve from "@rollup/plugin-node-resolve";
 import { stripTypeScriptTypes } from "module";
+import css from "rollup-plugin-import-css";
 
 const PORT = 4443;
 
 const output: rollup.OutputOptions = {
-  file: path.join(import.meta.dirname, "dist/index.js"),
+  // file: path.join(import.meta.dirname, "dist/index.js"),
   name: "XenditSdk",
-  format: "umd"
+  format: "umd",
+  exports: "named",
+  dir: path.join(import.meta.dirname, "dist"),
+  sourcemap: true
 };
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
@@ -25,6 +29,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
     output,
     plugins: [
       resolve(),
+      css(),
       typescript({
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),
         compilerOptions: {
