@@ -1,62 +1,48 @@
 # xendit-components-web
 
-
-
 ## Ownership
-Team: `p-invoice-dev` 
 
-Slack Channel:  
+Team: `p-invoice-dev`
+
+Slack Channel:
 
 Slack Handle: `@troops-invoice`
 
 ## Getting Started
 
-Prepare a set of instructions to get a copy of the project up and running on a local machine, for both development and testing. 
-
-There will be a separate deployment section for notes on how to deploy the project on a live system.
+The project is divided into two parts: `sdk` and `secure-iframe`.
+Each has a build script, but there's also a top-level build script that runs both.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them. This includes the explanation of configuration values that the service might need in order to run.
+1. Install nodejs. Requires version 22+.
+
+### Install
 
 ```
-Give examples
+pnpm i
 ```
 
-### Installing
+### Development
 
-A step by step series of examples that tell you how to get a development env running.
-
-Say what the step will be
+This commnad starts a server on https://localhost:4443/ that hosts a test interface for the SDK, and another on https://localhost:4444/ that hosts a test UI for the secure-iframe. (Must be https not http!)
 
 ```
-Give the example
+pnpm run dev
 ```
 
-And repeat.
+### Build
+
+This commnad creates production builds at `sdk/dist` and `secure-iframe/dist`.
 
 ```
-until finished
+pnpm run build
 ```
-
-End with an example of getting some data out of the system or using it for a little demo.
 
 ### Testing
 
-Explain how to run the automated tests for this system.
-
-```
-Give an example
-```
+Automated tests TBD.
 
 ## Deployment
 
-Add guides about how to deploy this on a live system.
-
-## Contributing
-
-Add guides about the process of contributing to the service.
-
-## Additional Resource
-
-You can link reading materials related to the service on this section. This may include but not limited to the API documentation, Confluence document, articles, etc.
+Deployment TBD.
