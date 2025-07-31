@@ -26,6 +26,9 @@ export class XenditAccordionComponent extends HTMLElement {
       XenditAccordionItemClickedEvent.type,
       (event: XenditAccordionItemClickedEvent) => {
         this.selectedItem = event.target;
+        if (this.accordionContextProvider.get() === this.selectedItem) {
+          this.selectedItem = null; // Deselect if the same item is clicked
+        }
         this.accordionContextProvider.set(this.selectedItem);
         event.stopPropagation();
       }

@@ -1,6 +1,9 @@
-export function assert<T>(value: T): asserts value is NonNullable<T> {
+export function assert<T>(
+  value: T,
+  msg?: string
+): asserts value is NonNullable<T> {
   if (value === null || value === undefined) {
-    throw new Error("Assertion failure");
+    throw new Error(msg ?? "Assertion failure");
   }
 }
 

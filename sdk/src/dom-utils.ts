@@ -2,10 +2,6 @@ export function emptyElement(element: HTMLElement) {
   element.replaceChildren();
 }
 
-export function createCssVariable(name: string, value: string) {
-  document.documentElement.style.setProperty(name, value);
-}
-
 export function registerElement(
   element: CustomElementConstructor & { tag: string }
 ) {

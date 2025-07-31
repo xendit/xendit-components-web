@@ -1,3 +1,5 @@
+import { ChannelForm } from "./forms-types";
+
 export type BffBusiness = {
   country_of_operation: string;
   name: string;
@@ -30,6 +32,13 @@ export type BffPaymentMethod = {
   channel_code: string;
   logo_url: string;
   pm_type: BffPaymentMethodType;
+  card?: {
+    brands: {
+      name: string;
+      logo_url: string;
+    }[];
+  };
+  form?: ChannelForm;
 };
 
 export type BffPaymentMethodGroup = {
@@ -48,6 +57,8 @@ export type BffSessionType = "SAVE" | "PAY" | "AUTHORIZATION";
 export type BffSessionStatus = "ACTIVE" | "COMPLETED" | "EXPIRED" | "CANCELED";
 
 export type BffSession = {
+  payment_session_id: string;
+  client_key: string;
   amount: number;
   business_id: string;
   cancel_return_url: string;
@@ -61,7 +72,6 @@ export type BffSession = {
   locale: string;
   mode: BffSessionMode;
   payment_link_url: string;
-  payment_session_id: string;
   reference_id: string;
   session_type: BffSessionType;
   status: BffSessionStatus;

@@ -3,7 +3,7 @@ import {
   AccordionSelectedItemContext,
   XenditAccordionItemClickedEvent
 } from "./accordion";
-import { getContext, subscribeContext } from "../context";
+import { subscribeContext } from "../context";
 
 /**
  * @example
@@ -13,6 +13,7 @@ import { getContext, subscribeContext } from "../context";
  */
 export class XenditAccordionItemComponent extends HTMLElement {
   static tag = "xendit-accordion-item" as const;
+  static observedAttributes = ["open", "title", "icon-name"];
 
   private originalChildren: Element[] = [];
 
@@ -32,25 +33,25 @@ export class XenditAccordionItemComponent extends HTMLElement {
       this.onSelectedItemChange
     );
 
-    const isOpen = openAccordionItem === this;
+    const isOpen = openAccordionItem === this || this.hasAttribute("open");
     const containerOpenClass = isOpen
       ? "xendit-accordion-item-open"
       : "xendit-accordion-item-closed";
     const chevronDirection = isOpen ? "down" : "right";
 
-    const title = "Temp title";
-    const iconName = "temp-icon";
+    const title = this.getAttribute("title") || "";
+    const iconName = this.getAttribute("icon-name") || "chevron";
 
     render(
       html`
       <div class="xendit-accordion-item-header" @click="${this.onClick}" role="button">
         <xendit-icon icon-name="${iconName}" size="24"></xendit-icon>
-        <div class="xendit-accordion-item-header-title">
+        <div class="xendit-accordion-item-header-title xendit-text-16">
           ${title}
         </div>
         <xendit-icon icon-name="chevron" size="24" direction="${chevronDirection}"></xendit-icon>
       </div>
-      <div class="xendit-accordion-item-container ${containerOpenClass}">
+      <div class="xendit-accordion-item-content ${containerOpenClass}">
         ${this.originalChildren}
       </div>
       `,

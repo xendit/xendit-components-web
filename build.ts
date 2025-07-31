@@ -9,7 +9,7 @@ await import("./secure-iframe/build.ts");
 // if prod, build .d.ts file for sdk
 if (process.argv[2] === "prod") {
   const cmds = [
-    `pnpm tsc --noEmit false --outDir "./temp-dts" --declaration --emitDeclarationOnly --stripInternal ./sdk/src/index.ts`,
+    `pnpm tsc --noEmit false --outDir "./temp-dts" --declaration --emitDeclarationOnly --stripInternal ./sdk/src/index.ts ./sdk/src/ambient.d.ts`,
     `pnpm api-extractor run --local --verbose`,
     `rm -rf "./temp-dts" "./temp"`
   ];

@@ -10,19 +10,36 @@ import { assertIsSecureInputEvent, createIframeInputElement } from "./ui";
 import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
 import { validate } from "./validation";
 
+function setupCss() {
+  const css = `
+    body {
+      margin: 0;
+    }
+    input {
+      font-size: 14px;
+      line-height: 16px;
+    }
+`;
+
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+setupCss();
+
 function getQueryInputs() {
   const query = new URLSearchParams(location.search);
 
   const inputType = query.get("input_type");
-  assert(inputType);
+  assert(inputType, "Missing query parameter: input_type");
   const embedderOrigin = query.get("embedder");
-  assert(embedderOrigin);
+  assert(embedderOrigin, "Missing query parameter: embedder");
   const sessionId = query.get("session_id");
-  assert(sessionId);
+  assert(sessionId, "Missing query parameter: session_id");
   const serverPublicKeyBase64 = query.get("pk");
-  assert(serverPublicKeyBase64);
+  assert(serverPublicKeyBase64, "Missing query parameter: pk");
   const serverPublicKeySignatureBase64 = query.get("sig");
-  assert(serverPublicKeySignatureBase64);
+  assert(serverPublicKeySignatureBase64, "Missing query parameter: sig");
 
   return {
     inputType: inputType as IframeFieldType,
@@ -37,6 +54,7 @@ function getQueryInputs() {
 const masterPinningKeys: JsonWebKey[] = "### PINNING_KEYS ###" as any;
 
 const queryInputs = getQueryInputs();
+console.log(queryInputs);
 
 function securePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, queryInputs.embedderOrigin);

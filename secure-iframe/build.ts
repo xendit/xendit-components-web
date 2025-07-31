@@ -122,6 +122,7 @@ async function generateTestPage() {
   return `<!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
     <title>Xendit Secure Iframe Test Page</title>
   </head>
   <body>

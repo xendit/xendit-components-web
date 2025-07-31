@@ -3,14 +3,15 @@ import {
   XenditAccordionItemClickedEvent
 } from "./components/accordion";
 import { XenditAccordionItemComponent } from "./components/accordion-item";
+import { XenditChannelFormComponent } from "./components/channel-form";
+import { XenditChannelFormFieldComponent } from "./components/channel-form-field";
 import { XenditChannelPickerComponent } from "./components/channel-picker";
 import { XenditChannelPickerGroupComponent } from "./components/channel-picker-group";
 import { XenditIconComponent } from "./components/icon";
+import { XenditPaymentChannelComponent } from "./components/payment-channel";
 import { XenditSessionContextProvider } from "./components/session-provider";
 import { XenditContextRequestEvent } from "./context";
-import { createCssVariable, registerElement } from "./dom-utils";
-import { colorTokens } from "./style-tokens";
-import { camelCaseToKebabCase } from "./utils";
+import { registerElement } from "./dom-utils";
 
 /**
  * @public
@@ -20,9 +21,12 @@ declare global {
     // public elements
     "xendit-session-context-provider": XenditSessionContextProvider;
     "xendit-channel-picker": XenditChannelPickerComponent;
+    "xendit-payment-channel": XenditPaymentChannelComponent;
 
     // sub-components
     "xendit-channel-picker-group": XenditChannelPickerGroupComponent;
+    "xendit-channel-form": XenditChannelFormComponent;
+    "xendit-channel-form-field": XenditChannelFormFieldComponent;
 
     // ui widgets
     "xendit-accordion": XenditAccordionComponent;
@@ -38,19 +42,18 @@ declare global {
 
 for (const el of [
   XenditSessionContextProvider,
-  XenditAccordionComponent,
-
-  XenditAccordionItemComponent,
-
   XenditChannelPickerComponent,
+  XenditPaymentChannelComponent,
+
   XenditChannelPickerGroupComponent,
+  XenditChannelFormComponent,
+  XenditChannelFormFieldComponent,
+
+  XenditAccordionComponent,
+  XenditAccordionItemComponent,
   XenditIconComponent
 ]) {
   registerElement(el);
-}
-
-for (const [k, v] of Object.entries(colorTokens)) {
-  createCssVariable(`--xendit-color-${camelCaseToKebabCase(k)}`, v);
 }
 
 export {};

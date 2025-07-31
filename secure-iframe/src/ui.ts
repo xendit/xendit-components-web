@@ -65,7 +65,6 @@ class SecureIframeCreditCardInput extends HTMLElement {
   }
 
   onBeforeInput = (event: InputEvent) => {
-    console.log(event);
     const input = event.target as HTMLInputElement;
     const value = input.value;
 

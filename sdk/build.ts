@@ -11,6 +11,7 @@ import { readFile } from "fs/promises";
 import resolve from "@rollup/plugin-node-resolve";
 import { stripTypeScriptTypes } from "module";
 import css from "rollup-plugin-import-css";
+import sourcemaps from "rollup-plugin-sourcemaps";
 
 const PORT = 4443;
 
@@ -36,6 +37,10 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
           module: "esnext"
         }
       }),
+      // this seems to break watch mode, so disable it for now
+      // sourcemaps({
+      //   exclude: ["**/*.css", "**/*.ts"]
+      // }),
       production ? terser() : null
     ].filter(Boolean)
   };
@@ -80,10 +85,11 @@ async function generateTestPage() {
   return `<!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
     <title>Xendit SDK Test Page</title>
   </head>
   <body>
-    <script type="application/javascript" src="./index.js"></script>
+    <script type="application/javascript" src="./index.js" charset="UTF-8"></script>
     <script type="module">${stripTypeScriptTypes(code)}</script>
   </body>
 </html>`;
@@ -109,6 +115,9 @@ async function handleDevServerRequest(
     }
     case "GET /index.js": {
       return await serveFile("./dist/index.js", "application/javascript");
+    }
+    case "GET /index.js.map": {
+      return await serveFile("./dist/index.js.map", "application/json");
     }
     case "GET /favicon.ico": {
       res.writeHead(201, {});
