@@ -18,24 +18,28 @@ export type PaymentMethod = {
   group: string;
 
   /**
-   * Either a single channel configuration if a channel configuration doens't vary by session type,
-   * or an object with different configurations for each session type.
+   * Usually, this contains a single channel configuration: `{always: ChannelConfiguration}`.
    *
-   * Null means the channel is not available for the session type.
+   * Some channels have different configurations based on whether the user has opted to save their payment method.
+   * In this case, it will contain two configurations: `{if_save: ChannelConfiguration, if_not_save: ChannelConfiguration}`.
+   *
+   * Null means the configuration is not available. This happens on sessions where saving is optional, on channels that
+   * don't support saving.
    *
    * @example
    * ```
-   * function pickChannelConfig(session, paymentMethod) {
-   *   return paymentMethod.channel_configuration.always ?? paymentMethod.channel_configuration[session.session_type.toLowerCase()] ?? null;
+   * function pickChannelConfig(saveCheckboxSelected, paymentMethod) {
+   *   if (paymentMethod.channel_configuration.always) return paymentMethod.channel_configuration.always;
+   *   if (saveCheckboxSelected) return paymentMethod.channel_configuration.if_save ?? null;
+   *   else return paymentMethod.channel_configuration.if_not_save ?? null;
    * }
    * ```
    **/
   channel_configuration:
     | { always: ChannelConfiguration }
     | {
-        pay: ChannelConfiguration | null;
-        save: ChannelConfiguration | null;
-        pay_and_save: ChannelConfiguration | null;
+        if_save: ChannelConfiguration | null;
+        if_not_save: ChannelConfiguration | null;
       };
 };
 

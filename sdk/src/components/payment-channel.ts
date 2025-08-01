@@ -46,9 +46,9 @@ export class XenditPaymentChannelComponent extends HTMLElement {
         <div class="xendit-payment-channel-instructions">
           <xendit-icon name="info" size="16"></xendit-icon>
           <div class="xendit-text-14">
-            You’ll be redirected to Standard Chartered Bank’s page
-            <br />
-            Follow the prompts on the page to complete your payment
+            ${channelConfig.instructions.map(
+              (instr) => html`<div>${instr}</div>`
+            )}
           </div>
         </div>
       `,

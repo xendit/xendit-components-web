@@ -62,10 +62,14 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
     let dropdown = null;
     if (paymentMethodsInGroup.length > 1) {
       // Make a list of all valid channel codes
-      const channelCodes = paymentMethodsInGroup
+      const channelOptions = paymentMethodsInGroup
         .map((method) => {
           const channelConfig = pickChannelConfig(method);
-          return channelConfig ? channelConfig.channel_code : null;
+          if (!channelConfig) return null;
+          return {
+            label: method.brand_name,
+            channelCode: channelConfig.channel_code
+          };
         })
         .filter((code) => code !== null);
 
@@ -74,8 +78,8 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
         @change="${this.onSelectedChannelChange}"
       >
         <option value="" disabled selected>Select a channel</option>
-        ${channelCodes.map((channel) => {
-          return html` <option value="${channel}">${channel}</option> `;
+        ${channelOptions.map((ch) => {
+          return html` <option value="${ch.channelCode}">${ch.label}</option> `;
         })}
       </select>`;
     }

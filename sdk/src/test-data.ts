@@ -57,7 +57,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "BRI_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for BRI",
+              "Use this number to make payment through BRI mobile banking or ATM"
+            ],
             form: [
               {
                 label: "Virtual Account Number",
@@ -120,7 +123,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "HANA_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for HANA Bank",
+              "Use this number to make payment through HANA mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -135,7 +141,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "BJB_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for BJB",
+              "Use this number to make payment through BJB mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -150,7 +159,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "BCA_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for BCA",
+              "Use this number to make payment through BCA mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -165,7 +177,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "BNI_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for BNI",
+              "Use this number to make payment through BNI mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -180,7 +195,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "BSI_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for BSI",
+              "Use this number to make payment through BSI mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -195,7 +213,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "MANDIRI_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for Mandiri",
+              "Use this number to make payment through Mandiri mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -210,7 +231,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "CIMB_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for CIMB Niaga",
+              "Use this number to make payment through CIMB mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -225,7 +249,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "BNC_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for BNC",
+              "Use this number to make payment through BNC mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -240,7 +267,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "MUAMALAT_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for Muamalat",
+              "Use this number to make payment through Muamalat mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -255,7 +285,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for Sahabat Sampoerna",
+              "Use this number to make payment through Sahabat Sampoerna mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -270,7 +303,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "PERMATA_VIRTUAL_ACCOUNT",
             pm_type: "VIRTUAL_ACCOUNT",
-            instructions: [],
+            instructions: [
+              "You'll receive a virtual account number for Permata Bank",
+              "Use this number to make payment through Permata mobile banking or ATM"
+            ],
             form: []
           }
         }
@@ -285,7 +321,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "CARDS",
             pm_type: "CARDS",
-            instructions: [],
+            instructions: [
+              "Your payment will be processed securely using your card details",
+              "You may be redirected to your bank's 3D Secure page for verification"
+            ],
             card: {
               brands: [
                 {
@@ -463,7 +502,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "SHOPEEPAY",
             pm_type: "EWALLET",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to ShopeePay's page",
+              "Follow the prompts on the page to complete your payment"
+            ],
             form: [
               {
                 label: "Redeem Points",
@@ -515,7 +557,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "OVO",
             pm_type: "EWALLET",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to OVO's page",
+              "Follow the prompts on the page to complete your payment"
+            ],
             form: [
               {
                 label: "Redeem Points",
@@ -545,7 +590,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "BRI_DIRECT_DEBIT",
             pm_type: "DIRECT_DEBIT",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to BRI's secure authentication page",
+              "Complete the authentication to authorize the direct debit payment"
+            ],
             form: [
               {
                 label: "Account Email",
@@ -610,7 +658,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "QRIS",
             pm_type: "QR_CODE",
-            instructions: [],
+            instructions: [
+              "You'll receive a QR code to scan with any QRIS-enabled app",
+              "Scan the code using your preferred e-wallet or banking app"
+            ],
             form: []
           }
         }
@@ -625,7 +676,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "ASTRAPAY",
             pm_type: "EWALLET",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to AstraPay's page",
+              "Follow the prompts on the page to complete your payment"
+            ],
             form: [
               {
                 label: "Redeem Points",
@@ -655,7 +709,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "LINKAJA",
             pm_type: "EWALLET",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to LinkAja's page",
+              "Follow the prompts on the page to complete your payment"
+            ],
             form: [
               {
                 label: "Redeem Points",
@@ -685,7 +742,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "MANDIRI_DIRECT_DEBIT",
             pm_type: "DIRECT_DEBIT",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to Mandiri's secure authentication page",
+              "Complete the authentication to authorize the direct debit payment"
+            ],
             form: [
               {
                 label: "Account Email",
@@ -750,7 +810,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "CIMB_DIRECT_DEBIT",
             pm_type: "DIRECT_DEBIT",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to CIMB's secure authentication page",
+              "Complete the authentication to authorize the direct debit payment"
+            ],
             form: [
               {
                 label: "Account Email",
@@ -815,7 +878,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "JENIUSPAY",
             pm_type: "EWALLET",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to JENIUSPAY's page",
+              "Follow the prompts on the page to complete your payment"
+            ],
             form: [
               {
                 label: "Redeem Points",
@@ -845,7 +911,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "DANA",
             pm_type: "EWALLET",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to DANA's page",
+              "Follow the prompts on the page to complete your payment"
+            ],
             form: [
               {
                 label: "Redeem Points",
@@ -875,7 +944,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "INDOMARET",
             pm_type: "OVER_THE_COUNTER",
-            instructions: [],
+            instructions: [
+              "You'll receive a payment code to use at Indomaret stores",
+              "Visit any Indomaret store and provide the payment code to complete your payment"
+            ],
             form: [
               {
                 label: "Payment Code",
@@ -935,7 +1007,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "NEXCASH",
             pm_type: "EWALLET",
-            instructions: [],
+            instructions: [
+              "You'll be redirected to NEXCASH's page",
+              "Follow the prompts on the page to complete your payment"
+            ],
             form: [
               {
                 label: "Redeem Points",
@@ -965,7 +1040,10 @@ export function makeTestBffData(): BffResponse {
           always: {
             channel_code: "ALFAMART",
             pm_type: "OVER_THE_COUNTER",
-            instructions: [],
+            instructions: [
+              "You'll receive a payment code to use at Alfamart stores",
+              "Visit any Alfamart store and provide the payment code to complete your payment"
+            ],
             form: [
               {
                 label: "Payment Code",
