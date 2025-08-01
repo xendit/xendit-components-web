@@ -129,14 +129,14 @@ xendit-channel-form-field .xendit-iframe-container {
 }
 
 xendit-channel-form-field .xendit-iframe-container {
-  height: 42px;
+  height: 40px;
   width: 100%;
   padding: 0;
   overflow: hidden;
 }
 
 xendit-channel-form-field .xendit-iframe-container iframe {
-  height: 42px;
+  height: 40px;
   width: 100%;
   border: none;
 }

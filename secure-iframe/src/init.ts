@@ -26,7 +26,7 @@ function setupCss() {
       font-size: 14px;
       line-height: 16px;
       padding: 12px;
-      border: 1px solid transparent;
+      border: none;
       outline: none;
     }
 `;
@@ -64,7 +64,6 @@ function getQueryInputs() {
 const masterPinningKeys: JsonWebKey[] = "### PINNING_KEYS ###" as any;
 
 const queryInputs = getQueryInputs();
-console.log(queryInputs);
 
 function securePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, queryInputs.embedderOrigin);

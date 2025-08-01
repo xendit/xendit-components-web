@@ -16,8 +16,6 @@ import {
   XenditUserActionRequiredEvent,
   XenditWillRedirectEvent
 } from "./public-event-types";
-import { makeTestBffData } from "./test-data";
-import { sleep } from "./utils";
 import { XenditSdkOptions, XenditSdkTestOptions } from "./public-options-types";
 import {
   XenditPaymentChannel,
@@ -328,10 +326,9 @@ export async function initializeSession(
 export async function initializeTestSession(
   options: XenditSdkOptions & XenditSdkTestOptions
 ): Promise<XenditSdkInstance> {
-  await sleep(1000);
   return new XenditSdkInstance({
     options,
-    bff: makeTestBffData(),
+    bff: (await import("./test-data")).makeTestBffData(),
     secret
   });
 }

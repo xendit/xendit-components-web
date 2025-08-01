@@ -11,7 +11,6 @@ import { readFile } from "fs/promises";
 import resolve from "@rollup/plugin-node-resolve";
 import { stripTypeScriptTypes } from "module";
 import css from "rollup-plugin-import-css";
-import sourcemaps from "rollup-plugin-sourcemaps";
 
 const PORT = 4443;
 
@@ -21,7 +20,8 @@ const output: rollup.OutputOptions = {
   format: "umd",
   exports: "named",
   dir: path.join(import.meta.dirname, "dist"),
-  sourcemap: true
+  sourcemap: true,
+  inlineDynamicImports: true // TODO: fix code splitting
 };
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
