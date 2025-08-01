@@ -10,7 +10,8 @@
     "module": "es2022",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "noEmit": true
   },
   "include": ["secure-iframe/**/*", "sdk/**/*", "shared/**/*"]
 }

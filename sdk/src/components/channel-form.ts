@@ -1,5 +1,5 @@
 import { html, render } from "lit-html";
-import { ChannelForm, ChannelFormField } from "../forms-types";
+import { ChannelFormField } from "../forms-types";
 import { classMap } from "lit-html/directives/class-map.js";
 import { XenditChannelFormFieldChanged } from "./channel-form-field";
 import { ref } from "lit-html/directives/ref.js";
@@ -12,7 +12,7 @@ import { ChannelProperties, ChannelProperty } from "../public-data-types";
 export class XenditChannelFormComponent extends HTMLElement {
   static tag = "xendit-channel-form" as const;
 
-  public form: ChannelForm = [];
+  public form: ChannelFormField[] = [];
   public formElement: Element | undefined = undefined;
 
   constructor() {
@@ -52,18 +52,13 @@ export class XenditChannelFormComponent extends HTMLElement {
     {
       "k": "v1",
       "a.b.c": "v2",
-      "a.z__a.y": {z: "v3", y: "v4"},
+      "z.z__a.y": ["v3", "v3"],
     }
     Output:
     {
       k: "v1",
-      a: {
-        b: {
-          c: "v2",
-        },
-        z: "v3",
-        y: "v4",
-      }
+      a: { b: { c: "v2", }, },
+      z: { z: "v3", y: "v4" },
     }
   
     */
@@ -90,6 +85,7 @@ export class XenditChannelFormComponent extends HTMLElement {
             cursor = selected;
           }
         }
+        // TODO: handle array
         cursor[parts[0]] = value;
       }
     }

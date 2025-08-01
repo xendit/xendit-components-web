@@ -136,15 +136,13 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
         return this.renderIframeField(id, session, field);
       case "phone_number":
       case "email":
-      case "street_address":
       case "postal_code":
-      case "generic_numeric":
-      case "generic_text":
+      case "text":
         return this.renderTextField(id, field);
-      case "generic_dropdown":
+      case "dropdown":
         return this.renderDropdownField(
           id,
-          field as ChannelFormField & { type: { name: "generic_dropdown" } }
+          field as ChannelFormField & { type: { name: "dropdown" } }
         );
     }
   }
@@ -172,13 +170,10 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
   }
 
   renderTextField(id: string, field: ChannelFormField) {
-    function isGeneric(field: ChannelFormField): field is ChannelFormField & {
-      type: { name: "generic_text" | "generic_numeric" };
+    function isTextField(field: ChannelFormField): field is ChannelFormField & {
+      type: { name: "text" };
     } {
-      return (
-        field.type.name === "generic_text" ||
-        field.type.name === "generic_numeric"
-      );
+      return field.type.name === "text";
     }
 
     return html`
@@ -188,15 +183,15 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
         placeholder="${field.placeholder}"
         class="xendit-text-14"
         @input="${this.onChange}"
-        minlength=${isGeneric(field) ? field.type.min_length : undefined}
-        maxlength=${isGeneric(field) ? field.type.max_length : undefined}
+        minlength=${isTextField(field) ? field.type.min_length : undefined}
+        maxlength=${isTextField(field) ? field.type.max_length : undefined}
       />
     `;
   }
 
   renderDropdownField(
     id: string,
-    field: ChannelFormField & { type: { name: "generic_dropdown" } }
+    field: ChannelFormField & { type: { name: "dropdown" } }
   ) {
     return html`
       <select name="${id}" @change="${this.onChange}">

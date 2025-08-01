@@ -1,4 +1,4 @@
-import { ChannelForm } from "./forms-types";
+import { PaymentMethod, PaymentMethodGroup } from "./forms-types";
 
 export type BffBusiness = {
   country_of_operation: string;
@@ -28,25 +28,9 @@ export type BffPaymentMethodType =
   | "QR_CODE"
   | "OVER_THE_COUNTER";
 
-export type BffPaymentMethod = {
-  channel_code: string;
-  logo_url: string;
-  pm_type: BffPaymentMethodType;
-  card?: {
-    brands: {
-      name: string;
-      logo_url: string;
-    }[];
-  };
-  form?: ChannelForm;
-};
+export type BffPaymentMethod = PaymentMethod;
 
-export type BffPaymentMethodGroup = {
-  pm_type: string;
-  group_label: string;
-  group_icon: string;
-  channels: string[];
-};
+export type BffPaymentMethodGroup = PaymentMethodGroup;
 
 export type BffSessionCaptureMethod = "AUTOMATIC" | "MANUAL";
 

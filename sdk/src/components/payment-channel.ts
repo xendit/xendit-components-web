@@ -1,14 +1,16 @@
 import { html, render } from "lit-html";
 import { getContext } from "../context";
 import { PaymentMethodsContext } from "./session-provider";
+import { ChannelConfiguration, PaymentMethod } from "../forms-types";
 
 /**
  * @example
- * <xendit-channel-picker/>
+ * <xendit-channel-picker .paymentMethod="${PaymentMethod}" />
  */
 export class XenditPaymentChannelComponent extends HTMLElement {
   static tag = "xendit-payment-channel" as const;
-  static observedAttributes = ["channel-code"];
+
+  public paymentMethod: PaymentMethod | null = null;
 
   constructor() {
     super();
@@ -18,25 +20,23 @@ export class XenditPaymentChannelComponent extends HTMLElement {
     this.render();
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (this.isConnected && oldValue !== newValue) {
-      this.render();
-    }
-  }
-
   render() {
     const paymentMethods = getContext(this, PaymentMethodsContext);
     if (!paymentMethods) return;
 
-    const paymentMethod = paymentMethods.find(
-      (method) => method.channel_code === this.getAttribute("channel-code")
-    );
-    if (!paymentMethod) return;
+    const paymentMethod = this.paymentMethod;
+    if (!paymentMethod) {
+      this.replaceChildren();
+      return;
+    }
+
+    const channelConfig = pickChannelConfig(paymentMethod);
+    if (!channelConfig) return;
 
     let form = null;
-    if (paymentMethod.form) {
+    if (channelConfig.form) {
       form = html`<xendit-channel-form
-        .form="${paymentMethod.form}"
+        .form="${channelConfig.form}"
       ></xendit-channel-form>`;
     }
 
@@ -55,4 +55,11 @@ export class XenditPaymentChannelComponent extends HTMLElement {
       this
     );
   }
+}
+
+export function pickChannelConfig(pm: PaymentMethod) {
+  if ("always" in pm.channel_configuration) {
+    return pm.channel_configuration.always;
+  }
+  // TODO: handle pay, save, pay_and_save
 }

@@ -27,8 +27,8 @@ export class XenditChannelPickerComponent extends HTMLElement {
           ${paymentMethodGroups.map((group) => {
             return html`
               <xendit-accordion-item
-                title="${group.group_label}"
-                icon="${group.group_icon}"
+                title="${group.label}"
+                icon="${group.icon_url}"
               >
                 <xendit-channel-picker-group
                   .group="${group}"

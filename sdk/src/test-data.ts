@@ -48,823 +48,1007 @@ export function makeTestBffData(): BffResponse {
     },
     payment_methods: [
       {
-        channel_code: "BRI_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
+        brand_name: "BRI Virtual Account",
+        brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BRI_VIRTUAL_ACCOUNT.svg",
-        form: [
-          {
-            label: "Virtual Account Number",
-            placeholder: "88696969696988",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 50,
-              regex_validators: []
-            },
-            channel_property: "virtual_account_number",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Payer Name",
-            placeholder: "John Doe",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 100,
-              regex_validators: []
-            },
-            channel_property: "payer_name",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Display Name",
-            placeholder: "John D.",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 100,
-              regex_validators: []
-            },
-            channel_property: "display_name",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Suggested Amount",
-            placeholder: "100000",
-            type: { name: "generic_numeric", min_length: 1, max_length: 15 },
-            channel_property: "suggested_amount",
-            required: false,
-            span: 2
+        brand_color: "#003366",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "BRI_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: [
+              {
+                label: "Virtual Account Number",
+                placeholder: "88696969696988",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 50,
+                  regex_validators: []
+                },
+                channel_property: "virtual_account_number",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Payer Name",
+                placeholder: "John Doe",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 100,
+                  regex_validators: []
+                },
+                channel_property: "payer_name",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Display Name",
+                placeholder: "John D.",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 100,
+                  regex_validators: []
+                },
+                channel_property: "display_name",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Suggested Amount",
+                placeholder: "100000",
+                type: { name: "text", min_length: 1, max_length: 15 },
+                channel_property: "suggested_amount",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "HANA_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/HANA_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "BJB_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/BJB_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "BCA_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/BCA_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "BNI_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/BNI_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "BSI_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/BSI_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "MANDIRI_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/MANDIRI_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "CIMB_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/CIMB_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "BNC_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/BNC_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "MUAMALAT_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/MUAMALAT_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "PERMATA_VIRTUAL_ACCOUNT",
-        pm_type: "VIRTUAL_ACCOUNT",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/PERMATA_VIRTUAL_ACCOUNT.svg"
-      },
-      {
-        channel_code: "CARDS",
-        pm_type: "CARDS",
-        logo_url: "https://assets.xendit.co/payment-session/logos/CARDS.svg",
-        card: {
-          brands: [
-            {
-              name: "VISA",
-              logo_url:
-                "https://assets.xendit.co/payment-session/logos/VISA.svg"
-            },
-            {
-              name: "VISA_ELECTRON",
-              logo_url:
-                "https://assets.xendit.co/payment-session/logos/VISA_ELECTRON.svg"
-            },
-            {
-              name: "MASTERCARD",
-              logo_url:
-                "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg"
-            },
-            {
-              name: "AMEX",
-              logo_url:
-                "https://assets.xendit.co/payment-session/logos/AMEX.svg"
-            },
-            {
-              name: "JCB",
-              logo_url: "https://assets.xendit.co/payment-session/logos/JCB.svg"
-            },
-            {
-              name: "GPN",
-              logo_url: "https://assets.xendit.co/payment-session/logos/GPN.svg"
-            }
-          ]
-        },
-        form: [
-          {
-            label: "Card Number",
-            placeholder: "4111 1111 1111 1111",
-            type: { name: "credit_card_number" },
-            channel_property: "card_details.card_number",
-            required: true,
-            span: 2
-          },
-          {
-            label: "Expiry",
-            placeholder: "12/28",
-            type: { name: "credit_card_expiry" },
-            channel_property: [
-              "card_details.expiry_month",
-              "card_details.expiry_year"
-            ],
-            required: true,
-            span: 1,
-            join: true
-          },
-          {
-            label: "CVN",
-            placeholder: "123",
-            type: { name: "credit_card_cvn" },
-            channel_property: "card_details.cvn",
-            required: true,
-            span: 1,
-            join: true
-          },
-          {
-            label: "Cardholder Name",
-            placeholder: "John Doe",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 50,
-              regex_validators: []
-            },
-            channel_property: "card_details.cardholder_name",
-            required: true,
-            span: 2
-          },
-          {
-            label: "Cardholder Email",
-            placeholder: "john.doe@example.com",
-            type: { name: "email" },
-            channel_property: "card_details.cardholder_email",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Cardholder Phone",
-            placeholder: "+1234567890",
-            type: { name: "phone_number" },
-            channel_property: "card_details.cardholder_phone_number",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Street Address Line 1",
-            placeholder: "123 Main Street",
-            type: { name: "street_address", line: 1 },
-            channel_property: "billing_information.street_line1",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Street Address Line 2",
-            placeholder: "Apt 4B",
-            type: { name: "street_address", line: 2 },
-            channel_property: "billing_information.street_line2",
-            required: false,
-            span: 2
-          },
-          {
-            label: "City",
-            placeholder: "New York",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 255
-            },
-            channel_property: "billing_information.city",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Province/State",
-            placeholder: "NY",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 255,
-              regex_validators: []
-            },
-            channel_property: "billing_information.province_state",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Postal Code",
-            placeholder: "10001",
-            type: { name: "postal_code" },
-            channel_property: "billing_information.postal_code",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Country",
-            placeholder: "United States",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "United States", value: "US" },
-                { label: "Canada", value: "CA" },
-                { label: "United Kingdom", value: "GB" },
-                { label: "Indonesia", value: "ID" },
-                { label: "Singapore", value: "SG" },
-                { label: "Malaysia", value: "MY" },
-                { label: "Thailand", value: "TH" },
-                { label: "Philippines", value: "PH" },
-                { label: "Vietnam", value: "VN" }
-              ]
-            },
-            channel_property: "billing_information.country",
-            required: false,
-            span: 1
+        brand_name: "HANA Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/HANA_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#FF6B35",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "HANA_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
           }
-        ]
+        }
       },
       {
-        channel_code: "SHOPEEPAY",
-        pm_type: "EWALLET",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/SHOPEEPAY.svg",
-        form: [
-          {
-            label: "Redeem Points",
-            placeholder: "No points redemption",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "No points redemption", value: "REDEEM_NONE" },
-                { label: "Redeem all points", value: "REDEEM_ALL" }
-              ]
-            },
-            channel_property: "redeem_points",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Allowed Payment Options",
-            placeholder: "Pay Later Postpaid",
-            type: {
-              name: "generic_dropdown",
-              options: [
+        brand_name: "BJB Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/BJB_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#1E88E5",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "BJB_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "BCA Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/BCA_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#0066CC",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "BCA_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "BNI Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/BNI_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#FF6600",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "BNI_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "BSI Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/BSI_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#00A651",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "BSI_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "Mandiri Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/MANDIRI_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#003366",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "MANDIRI_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "CIMB Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/CIMB_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#DC143C",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "CIMB_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "BNC Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/BNC_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#0066CC",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "BNC_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "Muamalat Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/MUAMALAT_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#00A651",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "MUAMALAT_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "Sahabat Sampoerna Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#FF6B35",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "Permata Virtual Account",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/PERMATA_VIRTUAL_ACCOUNT.svg",
+        brand_color: "#0066CC",
+        group: "virtual_account",
+        channel_configuration: {
+          always: {
+            channel_code: "PERMATA_VIRTUAL_ACCOUNT",
+            pm_type: "VIRTUAL_ACCOUNT",
+            instructions: [],
+            form: []
+          }
+        }
+      },
+      {
+        brand_name: "Cards",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/CARDS.svg",
+        brand_color: "#1976D2",
+        group: "cards",
+        channel_configuration: {
+          always: {
+            channel_code: "CARDS",
+            pm_type: "CARDS",
+            instructions: [],
+            card: {
+              brands: [
                 {
-                  label: "Pay Later Postpaid",
-                  subtitle: "Pay next month",
-                  value: "PAYLATER_POSTPAID"
+                  name: "VISA",
+                  logo_url:
+                    "https://assets.xendit.co/payment-session/logos/VISA.svg"
                 },
                 {
-                  label: "Pay Later Installments",
-                  subtitle: "Pay with installments",
-                  value: "PAYLATER_INSTALLMENTS_4MO"
+                  name: "VISA_ELECTRON",
+                  logo_url:
+                    "https://assets.xendit.co/payment-session/logos/VISA_ELECTRON.svg"
+                },
+                {
+                  name: "MASTERCARD",
+                  logo_url:
+                    "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg"
+                },
+                {
+                  name: "AMEX",
+                  logo_url:
+                    "https://assets.xendit.co/payment-session/logos/AMEX.svg"
+                },
+                {
+                  name: "JCB",
+                  logo_url:
+                    "https://assets.xendit.co/payment-session/logos/JCB.svg"
+                },
+                {
+                  name: "GPN",
+                  logo_url:
+                    "https://assets.xendit.co/payment-session/logos/GPN.svg"
                 }
               ]
             },
-            channel_property: "allowed_payment_options",
-            required: false,
-            span: 2
+            form: [
+              {
+                label: "Card Number",
+                placeholder: "4111 1111 1111 1111",
+                type: { name: "credit_card_number" },
+                channel_property: "card_details.card_number",
+                required: true,
+                span: 2
+              },
+              {
+                label: "Expiry",
+                placeholder: "12/28",
+                type: { name: "credit_card_expiry" },
+                channel_property: [
+                  "card_details.expiry_month",
+                  "card_details.expiry_year"
+                ],
+                required: true,
+                span: 1,
+                join: true
+              },
+              {
+                label: "CVN",
+                placeholder: "123",
+                type: { name: "credit_card_cvn" },
+                channel_property: "card_details.cvn",
+                required: true,
+                span: 1,
+                join: true
+              },
+              {
+                label: "Cardholder Name",
+                placeholder: "John Doe",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 50,
+                  regex_validators: []
+                },
+                channel_property: "card_details.cardholder_name",
+                required: true,
+                span: 2
+              },
+              {
+                label: "Cardholder Email",
+                placeholder: "john.doe@example.com",
+                type: { name: "email" },
+                channel_property: "card_details.cardholder_email",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Cardholder Phone",
+                placeholder: "+1234567890",
+                type: { name: "phone_number" },
+                channel_property: "card_details.cardholder_phone_number",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Street Address Line 1",
+                placeholder: "123 Main Street",
+                type: { name: "text", min_length: 1, max_length: 255 },
+                channel_property: "billing_information.street_line1",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Street Address Line 2",
+                placeholder: "Apt 4B",
+                type: { name: "text", min_length: 0, max_length: 255 },
+                channel_property: "billing_information.street_line2",
+                required: false,
+                span: 2
+              },
+              {
+                label: "City",
+                placeholder: "New York",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 255
+                },
+                channel_property: "billing_information.city",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Province/State",
+                placeholder: "NY",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 255,
+                  regex_validators: []
+                },
+                channel_property: "billing_information.province_state",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Postal Code",
+                placeholder: "10001",
+                type: { name: "postal_code" },
+                channel_property: "billing_information.postal_code",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Country",
+                placeholder: "United States",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "United States", value: "US" },
+                    { label: "Canada", value: "CA" },
+                    { label: "United Kingdom", value: "GB" },
+                    { label: "Indonesia", value: "ID" },
+                    { label: "Singapore", value: "SG" },
+                    { label: "Malaysia", value: "MY" },
+                    { label: "Thailand", value: "TH" },
+                    { label: "Philippines", value: "PH" },
+                    { label: "Vietnam", value: "VN" }
+                  ]
+                },
+                channel_property: "billing_information.country",
+                required: false,
+                span: 1
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "OVO",
-        pm_type: "EWALLET",
-        logo_url: "https://assets.xendit.co/payment-session/logos/OVO.svg",
-        form: [
-          {
-            label: "Redeem Points",
-            placeholder: "No points redemption",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "No points redemption", value: "REDEEM_NONE" },
-                { label: "Redeem all points", value: "REDEEM_ALL" }
-              ]
-            },
-            channel_property: "redeem_points",
-            required: false,
-            span: 2
+        brand_name: "ShopeePay",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/SHOPEEPAY.svg",
+        brand_color: "#EE4D2D",
+        group: "ewallet",
+        channel_configuration: {
+          always: {
+            channel_code: "SHOPEEPAY",
+            pm_type: "EWALLET",
+            instructions: [],
+            form: [
+              {
+                label: "Redeem Points",
+                placeholder: "No points redemption",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "No points redemption", value: "REDEEM_NONE" },
+                    { label: "Redeem all points", value: "REDEEM_ALL" }
+                  ]
+                },
+                channel_property: "redeem_points",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Allowed Payment Options",
+                placeholder: "Pay Later Postpaid",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    {
+                      label: "Pay Later Postpaid",
+                      subtitle: "Pay next month",
+                      value: "PAYLATER_POSTPAID"
+                    },
+                    {
+                      label: "Pay Later Installments",
+                      subtitle: "Pay with installments",
+                      value: "PAYLATER_INSTALLMENTS_4MO"
+                    }
+                  ]
+                },
+                channel_property: "allowed_payment_options",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "LINKAJA_QR_CODE",
-        pm_type: "QR_CODE",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/LINKAJA_QR_CODE.svg"
+        brand_name: "OVO",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/OVO.svg",
+        brand_color: "#4C2C92",
+        group: "ewallet",
+        channel_configuration: {
+          always: {
+            channel_code: "OVO",
+            pm_type: "EWALLET",
+            instructions: [],
+            form: [
+              {
+                label: "Redeem Points",
+                placeholder: "No points redemption",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "No points redemption", value: "REDEEM_NONE" },
+                    { label: "Redeem all points", value: "REDEEM_ALL" }
+                  ]
+                },
+                channel_property: "redeem_points",
+                required: false,
+                span: 2
+              }
+            ]
+          }
+        }
       },
       {
-        channel_code: "BRI_DIRECT_DEBIT",
-        pm_type: "DIRECT_DEBIT",
-        logo_url:
+        brand_name: "BRI Direct Debit",
+        brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BRI_DIRECT_DEBIT.svg",
-        form: [
-          {
-            label: "Account Email",
-            placeholder: "payments@example.com",
-            type: { name: "email" },
-            channel_property: "account_email",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Account Mobile Number",
-            placeholder: "+6281234567890",
-            type: { name: "phone_number" },
-            channel_property: "account_mobile_number",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Card Last Four",
-            placeholder: "1234",
-            type: {
-              name: "generic_numeric",
-              min_length: 4,
-              max_length: 4
-            },
-            channel_property: "card_last_four",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Card Expiry",
-            placeholder: "06/24",
-            type: { name: "credit_card_expiry" },
-            channel_property: "card_expiry",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Account Identity Number",
-            placeholder: "12345678901112",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 50,
-              regex_validators: []
-            },
-            channel_property: "account_identity_number",
-            required: false,
-            span: 2
+        brand_color: "#003366",
+        group: "direct_debit",
+        channel_configuration: {
+          always: {
+            channel_code: "BRI_DIRECT_DEBIT",
+            pm_type: "DIRECT_DEBIT",
+            instructions: [],
+            form: [
+              {
+                label: "Account Email",
+                placeholder: "payments@example.com",
+                type: { name: "email" },
+                channel_property: "account_email",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Account Mobile Number",
+                placeholder: "+6281234567890",
+                type: { name: "phone_number" },
+                channel_property: "account_mobile_number",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Card Last Four",
+                placeholder: "1234",
+                type: {
+                  name: "text",
+                  min_length: 4,
+                  max_length: 4
+                },
+                channel_property: "card_last_four",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Card Expiry",
+                placeholder: "06/24",
+                type: { name: "credit_card_expiry" },
+                channel_property: "card_expiry",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Account Identity Number",
+                placeholder: "12345678901112",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 50,
+                  regex_validators: []
+                },
+                channel_property: "account_identity_number",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "XENDIT_QR_CODE",
-        pm_type: "QR_CODE",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/XENDIT_QR_CODE.svg"
-      },
-      {
-        channel_code: "DANA_QR_CODE",
-        pm_type: "QR_CODE",
-        logo_url:
-          "https://assets.xendit.co/payment-session/logos/DANA_QR_CODE.svg"
-      },
-      {
-        channel_code: "ASTRAPAY",
-        pm_type: "EWALLET",
-        logo_url: "https://assets.xendit.co/payment-session/logos/ASTRAPAY.svg",
-        form: [
-          {
-            label: "Redeem Points",
-            placeholder: "No points redemption",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "No points redemption", value: "REDEEM_NONE" },
-                { label: "Redeem all points", value: "REDEEM_ALL" }
-              ]
-            },
-            channel_property: "redeem_points",
-            required: false,
-            span: 2
+        brand_name: "QRIS",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/QRIS.svg",
+        brand_color: "#000000",
+        group: "qr_code",
+        channel_configuration: {
+          always: {
+            channel_code: "QRIS",
+            pm_type: "QR_CODE",
+            instructions: [],
+            form: []
           }
-        ]
+        }
       },
       {
-        channel_code: "LINKAJA",
-        pm_type: "EWALLET",
-        logo_url: "https://assets.xendit.co/payment-session/logos/LINKAJA.svg",
-        form: [
-          {
-            label: "Redeem Points",
-            placeholder: "No points redemption",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "No points redemption", value: "REDEEM_NONE" },
-                { label: "Redeem all points", value: "REDEEM_ALL" }
-              ]
-            },
-            channel_property: "redeem_points",
-            required: false,
-            span: 2
+        brand_name: "AstraPay",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/ASTRAPAY.svg",
+        brand_color: "#0066CC",
+        group: "ewallet",
+        channel_configuration: {
+          always: {
+            channel_code: "ASTRAPAY",
+            pm_type: "EWALLET",
+            instructions: [],
+            form: [
+              {
+                label: "Redeem Points",
+                placeholder: "No points redemption",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "No points redemption", value: "REDEEM_NONE" },
+                    { label: "Redeem all points", value: "REDEEM_ALL" }
+                  ]
+                },
+                channel_property: "redeem_points",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "MANDIRI_DIRECT_DEBIT",
-        pm_type: "DIRECT_DEBIT",
-        logo_url:
+        brand_name: "LinkAja",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/LINKAJA.svg",
+        brand_color: "#E60012",
+        group: "ewallet",
+        channel_configuration: {
+          always: {
+            channel_code: "LINKAJA",
+            pm_type: "EWALLET",
+            instructions: [],
+            form: [
+              {
+                label: "Redeem Points",
+                placeholder: "No points redemption",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "No points redemption", value: "REDEEM_NONE" },
+                    { label: "Redeem all points", value: "REDEEM_ALL" }
+                  ]
+                },
+                channel_property: "redeem_points",
+                required: false,
+                span: 2
+              }
+            ]
+          }
+        }
+      },
+      {
+        brand_name: "Mandiri Direct Debit",
+        brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/MANDIRI_DIRECT_DEBIT.svg",
-        form: [
-          {
-            label: "Account Email",
-            placeholder: "payments@example.com",
-            type: { name: "email" },
-            channel_property: "account_email",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Account Mobile Number",
-            placeholder: "+6281234567890",
-            type: { name: "phone_number" },
-            channel_property: "account_mobile_number",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Card Last Four",
-            placeholder: "1234",
-            type: {
-              name: "generic_numeric",
-              min_length: 4,
-              max_length: 4
-            },
-            channel_property: "card_last_four",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Card Expiry",
-            placeholder: "06/24",
-            type: { name: "credit_card_expiry" },
-            channel_property: "card_expiry",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Account Identity Number",
-            placeholder: "12345678901112",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 50,
-              regex_validators: []
-            },
-            channel_property: "account_identity_number",
-            required: false,
-            span: 2
+        brand_color: "#003366",
+        group: "direct_debit",
+        channel_configuration: {
+          always: {
+            channel_code: "MANDIRI_DIRECT_DEBIT",
+            pm_type: "DIRECT_DEBIT",
+            instructions: [],
+            form: [
+              {
+                label: "Account Email",
+                placeholder: "payments@example.com",
+                type: { name: "email" },
+                channel_property: "account_email",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Account Mobile Number",
+                placeholder: "+6281234567890",
+                type: { name: "phone_number" },
+                channel_property: "account_mobile_number",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Card Last Four",
+                placeholder: "1234",
+                type: {
+                  name: "text",
+                  min_length: 4,
+                  max_length: 4
+                },
+                channel_property: "card_last_four",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Card Expiry",
+                placeholder: "06/24",
+                type: { name: "credit_card_expiry" },
+                channel_property: "card_expiry",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Account Identity Number",
+                placeholder: "12345678901112",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 50,
+                  regex_validators: []
+                },
+                channel_property: "account_identity_number",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "CIMB_DIRECT_DEBIT",
-        pm_type: "DIRECT_DEBIT",
-        logo_url:
+        brand_name: "CIMB Direct Debit",
+        brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/CIMB_DIRECT_DEBIT.svg",
-        form: [
-          {
-            label: "Account Email",
-            placeholder: "payments@example.com",
-            type: { name: "email" },
-            channel_property: "account_email",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Account Mobile Number",
-            placeholder: "+6281234567890",
-            type: { name: "phone_number" },
-            channel_property: "account_mobile_number",
-            required: false,
-            span: 2
-          },
-          {
-            label: "Card Last Four",
-            placeholder: "1234",
-            type: {
-              name: "generic_numeric",
-              min_length: 4,
-              max_length: 4
-            },
-            channel_property: "card_last_four",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Card Expiry",
-            placeholder: "06/24",
-            type: { name: "credit_card_expiry" },
-            channel_property: "card_expiry",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Account Identity Number",
-            placeholder: "12345678901112",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 50,
-              regex_validators: []
-            },
-            channel_property: "account_identity_number",
-            required: false,
-            span: 2
+        brand_color: "#DC143C",
+        group: "direct_debit",
+        channel_configuration: {
+          always: {
+            channel_code: "CIMB_DIRECT_DEBIT",
+            pm_type: "DIRECT_DEBIT",
+            instructions: [],
+            form: [
+              {
+                label: "Account Email",
+                placeholder: "payments@example.com",
+                type: { name: "email" },
+                channel_property: "account_email",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Account Mobile Number",
+                placeholder: "+6281234567890",
+                type: { name: "phone_number" },
+                channel_property: "account_mobile_number",
+                required: false,
+                span: 2
+              },
+              {
+                label: "Card Last Four",
+                placeholder: "1234",
+                type: {
+                  name: "text",
+                  min_length: 4,
+                  max_length: 4
+                },
+                channel_property: "card_last_four",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Card Expiry",
+                placeholder: "06/24",
+                type: { name: "credit_card_expiry" },
+                channel_property: "card_expiry",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Account Identity Number",
+                placeholder: "12345678901112",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 50,
+                  regex_validators: []
+                },
+                channel_property: "account_identity_number",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "JENIUSPAY",
-        pm_type: "EWALLET",
-        logo_url:
+        brand_name: "JENIUSPAY",
+        brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/JENIUSPAY.svg",
-        form: [
-          {
-            label: "Redeem Points",
-            placeholder: "No points redemption",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "No points redemption", value: "REDEEM_NONE" },
-                { label: "Redeem all points", value: "REDEEM_ALL" }
-              ]
-            },
-            channel_property: "redeem_points",
-            required: false,
-            span: 2
+        brand_color: "#0066CC",
+        group: "ewallet",
+        channel_configuration: {
+          always: {
+            channel_code: "JENIUSPAY",
+            pm_type: "EWALLET",
+            instructions: [],
+            form: [
+              {
+                label: "Redeem Points",
+                placeholder: "No points redemption",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "No points redemption", value: "REDEEM_NONE" },
+                    { label: "Redeem all points", value: "REDEEM_ALL" }
+                  ]
+                },
+                channel_property: "redeem_points",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "DANA",
-        pm_type: "EWALLET",
-        logo_url: "https://assets.xendit.co/payment-session/logos/DANA.svg",
-        form: [
-          {
-            label: "Redeem Points",
-            placeholder: "No points redemption",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "No points redemption", value: "REDEEM_NONE" },
-                { label: "Redeem all points", value: "REDEEM_ALL" }
-              ]
-            },
-            channel_property: "redeem_points",
-            required: false,
-            span: 2
+        brand_name: "DANA",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/DANA.svg",
+        brand_color: "#118EEA",
+        group: "ewallet",
+        channel_configuration: {
+          always: {
+            channel_code: "DANA",
+            pm_type: "EWALLET",
+            instructions: [],
+            form: [
+              {
+                label: "Redeem Points",
+                placeholder: "No points redemption",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "No points redemption", value: "REDEEM_NONE" },
+                    { label: "Redeem all points", value: "REDEEM_ALL" }
+                  ]
+                },
+                channel_property: "redeem_points",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "INDOMARET",
-        pm_type: "OVER_THE_COUNTER",
-        logo_url:
+        brand_name: "Indomaret",
+        brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/INDOMARET.svg",
-        form: [
-          {
-            label: "Payment Code",
-            placeholder: "A1B2C3",
-            type: {
-              name: "generic_text",
-              min_length: 6,
-              max_length: 6,
-              regex_validators: [
-                {
-                  regex: "^[A-Z0-9]{6}$",
-                  message: "Must be 6 alphanumeric characters"
-                }
-              ]
-            },
-            channel_property: "payment_code",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Payer Name",
-            placeholder: "John Doe",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 100,
-              regex_validators: []
-            },
-            channel_property: "payer_name",
-            required: true,
-            span: 2
-          },
-          {
-            label: "Display Name",
-            placeholder: "John D.",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 100,
-              regex_validators: []
-            },
-            channel_property: "display_name",
-            required: false,
-            span: 2
+        brand_color: "#0066CC",
+        group: "over_the_counter",
+        channel_configuration: {
+          always: {
+            channel_code: "INDOMARET",
+            pm_type: "OVER_THE_COUNTER",
+            instructions: [],
+            form: [
+              {
+                label: "Payment Code",
+                placeholder: "A1B2C3",
+                type: {
+                  name: "text",
+                  min_length: 6,
+                  max_length: 6,
+                  regex_validators: [
+                    {
+                      regex: "^[A-Z0-9]{6}$",
+                      message: "Must be 6 alphanumeric characters"
+                    }
+                  ]
+                },
+                channel_property: "payment_code",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Payer Name",
+                placeholder: "John Doe",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 100,
+                  regex_validators: []
+                },
+                channel_property: "payer_name",
+                required: true,
+                span: 2
+              },
+              {
+                label: "Display Name",
+                placeholder: "John D.",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 100,
+                  regex_validators: []
+                },
+                channel_property: "display_name",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "NEXCASH",
-        pm_type: "EWALLET",
-        logo_url: "https://assets.xendit.co/payment-session/logos/NEXCASH.svg",
-        form: [
-          {
-            label: "Redeem Points",
-            placeholder: "No points redemption",
-            type: {
-              name: "generic_dropdown",
-              options: [
-                { label: "No points redemption", value: "REDEEM_NONE" },
-                { label: "Redeem all points", value: "REDEEM_ALL" }
-              ]
-            },
-            channel_property: "redeem_points",
-            required: false,
-            span: 2
+        brand_name: "NEXCASH",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/NEXCASH.svg",
+        brand_color: "#0066CC",
+        group: "ewallet",
+        channel_configuration: {
+          always: {
+            channel_code: "NEXCASH",
+            pm_type: "EWALLET",
+            instructions: [],
+            form: [
+              {
+                label: "Redeem Points",
+                placeholder: "No points redemption",
+                type: {
+                  name: "dropdown",
+                  options: [
+                    { label: "No points redemption", value: "REDEEM_NONE" },
+                    { label: "Redeem all points", value: "REDEEM_ALL" }
+                  ]
+                },
+                channel_property: "redeem_points",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       },
       {
-        channel_code: "ALFAMART",
-        pm_type: "OVER_THE_COUNTER",
-        logo_url: "https://assets.xendit.co/payment-session/logos/ALFAMART.svg",
-        form: [
-          {
-            label: "Payment Code",
-            placeholder: "A1B2C3",
-            type: {
-              name: "generic_text",
-              min_length: 6,
-              max_length: 6,
-              regex_validators: [
-                {
-                  regex: "^[A-Z0-9]{6}$",
-                  message: "Must be 6 alphanumeric characters"
-                }
-              ]
-            },
-            channel_property: "payment_code",
-            required: false,
-            span: 1
-          },
-          {
-            label: "Payer Name",
-            placeholder: "John Doe",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 100,
-              regex_validators: []
-            },
-            channel_property: "payer_name",
-            required: true,
-            span: 2
-          },
-          {
-            label: "Display Name",
-            placeholder: "John D.",
-            type: {
-              name: "generic_text",
-              min_length: 1,
-              max_length: 100,
-              regex_validators: []
-            },
-            channel_property: "display_name",
-            required: false,
-            span: 2
+        brand_name: "Alfamart",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/ALFAMART.svg",
+        brand_color: "#0066CC",
+        group: "over_the_counter",
+        channel_configuration: {
+          always: {
+            channel_code: "ALFAMART",
+            pm_type: "OVER_THE_COUNTER",
+            instructions: [],
+            form: [
+              {
+                label: "Payment Code",
+                placeholder: "A1B2C3",
+                type: {
+                  name: "text",
+                  min_length: 6,
+                  max_length: 6,
+                  regex_validators: [
+                    {
+                      regex: "^[A-Z0-9]{6}$",
+                      message: "Must be 6 alphanumeric characters"
+                    }
+                  ]
+                },
+                channel_property: "payment_code",
+                required: false,
+                span: 1
+              },
+              {
+                label: "Payer Name",
+                placeholder: "John Doe",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 100,
+                  regex_validators: []
+                },
+                channel_property: "payer_name",
+                required: true,
+                span: 2
+              },
+              {
+                label: "Display Name",
+                placeholder: "John D.",
+                type: {
+                  name: "text",
+                  min_length: 1,
+                  max_length: 100,
+                  regex_validators: []
+                },
+                channel_property: "display_name",
+                required: false,
+                span: 2
+              }
+            ]
           }
-        ]
+        }
       }
     ],
     payment_methods_groups: [
       {
-        pm_type: "CARDS",
-        group_label: "Cards",
-        group_icon: "https://assets.xendit.co/payment-session/logos/CARDS.svg",
-        channels: ["CARDS"]
+        id: "cards",
+        label: "Cards",
+        icon_url: "https://assets.xendit.co/payment-session/logos/CARDS.svg"
       },
       {
-        pm_type: "VIRTUAL_ACCOUNT",
-        group_label: "Virtual Account",
-        group_icon:
-          "https://assets.xendit.co/payment-session/logos/VIRTUAL_ACCOUNT.svg",
-        channels: [
-          "BRI_VIRTUAL_ACCOUNT",
-          "HANA_VIRTUAL_ACCOUNT",
-          "BJB_VIRTUAL_ACCOUNT",
-          "BCA_VIRTUAL_ACCOUNT",
-          "BNI_VIRTUAL_ACCOUNT",
-          "BSI_VIRTUAL_ACCOUNT",
-          "MANDIRI_VIRTUAL_ACCOUNT",
-          "CIMB_VIRTUAL_ACCOUNT",
-          "BNC_VIRTUAL_ACCOUNT",
-          "MUAMALAT_VIRTUAL_ACCOUNT",
-          "SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT",
-          "PERMATA_VIRTUAL_ACCOUNT"
-        ]
+        id: "virtual_account",
+        label: "Virtual Account",
+        icon_url:
+          "https://assets.xendit.co/payment-session/logos/VIRTUAL_ACCOUNT.svg"
       },
       {
-        pm_type: "EWALLET",
-        group_label: "E-Wallet",
-        group_icon:
-          "https://assets.xendit.co/payment-session/logos/EWALLET.svg",
-        channels: [
-          "SHOPEEPAY",
-          "OVO",
-          "ASTRAPAY",
-          "LINKAJA",
-          "JENIUSPAY",
-          "DANA",
-          "NEXCASH"
-        ]
+        id: "ewallet",
+        label: "E-Wallet",
+        icon_url: "https://assets.xendit.co/payment-session/logos/EWALLET.svg"
       },
       {
-        pm_type: "QR_CODE",
-        group_label: "QR Code",
-        group_icon:
-          "https://assets.xendit.co/payment-session/logos/QR_CODE.svg",
-        channels: ["LINKAJA_QR_CODE", "XENDIT_QR_CODE", "DANA_QR_CODE"]
+        id: "qr_code",
+        label: "QR Code",
+        icon_url: "https://assets.xendit.co/payment-session/logos/QR_CODE.svg"
       },
       {
-        pm_type: "DIRECT_DEBIT",
-        group_label: "Direct Debit",
-        group_icon:
-          "https://assets.xendit.co/payment-session/logos/DIRECT_DEBIT.svg",
-        channels: [
-          "BRI_DIRECT_DEBIT",
-          "MANDIRI_DIRECT_DEBIT",
-          "CIMB_DIRECT_DEBIT"
-        ]
+        id: "direct_debit",
+        label: "Direct Debit",
+        icon_url:
+          "https://assets.xendit.co/payment-session/logos/DIRECT_DEBIT.svg"
       },
       {
-        pm_type: "OVER_THE_COUNTER",
-        group_label: "Over the Counter",
-        group_icon:
-          "https://assets.xendit.co/payment-session/logos/OVER_THE_COUNTER.svg",
-        channels: ["INDOMARET", "ALFAMART"]
+        id: "over_the_counter",
+        label: "Over the Counter",
+        icon_url:
+          "https://assets.xendit.co/payment-session/logos/OVER_THE_COUNTER.svg"
       }
     ]
   };

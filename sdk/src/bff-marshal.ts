@@ -25,13 +25,11 @@ export function bffSessionToPublicSession(bffSession: BffSession) {
 }
 
 export function bffChannelsToPublicChannelGroups(bffResponse: BffResponse) {
+  // TODO
   return [];
 }
 
 export function bffChannelsToPublicChannels(bffChannels: BffPaymentMethod[]) {
-  return bffChannels.map((channel) => ({
-    channelCode: channel.channel_code,
-    logoUrl: channel.logo_url,
-    pmType: channel.pm_type
-  }));
+  // TODO
+  return bffChannels;
 }

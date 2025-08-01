@@ -18,6 +18,8 @@ export function createInputElement(type: string) {
   input.addEventListener("change", onChange);
   input.addEventListener("input", onInput);
   input.addEventListener("beforeinput", onBeforeInput);
+  input.addEventListener("focus", onFocus);
+  input.addEventListener("blur", onBlur);
 
   function onBeforeInput(event: InputEvent) {
     const input = event.target as HTMLInputElement;
@@ -130,6 +132,14 @@ export function createInputElement(type: string) {
 
   function onInput(event: Event) {
     formatAndSendEvent();
+  }
+
+  function onFocus(event: Event) {
+    input.dispatchEvent(new SecureInputEvent("focus", {}));
+  }
+
+  function onBlur(event: Event) {
+    input.dispatchEvent(new SecureInputEvent("blur", {}));
   }
 
   return input;
