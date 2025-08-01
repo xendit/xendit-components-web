@@ -120,29 +120,29 @@ export class XenditChannelFormComponent extends HTMLElement {
       fieldGroups.push([field]);
     }
 
+    const filteredFieldGroups = fieldGroups.filter((group) => group.length);
+
     render(
       html`
         <form ${ref(this.setFormElement)}>
-          ${fieldGroups
-            .filter((group) => group.length)
-            .map((fieldGroup) => {
-              return html`
-                <div class="xendit-form-field-group">
-                  ${fieldGroup.map((field) => {
-                    const classes = classMap({
-                      [`xendit-form-field-span-${field.span}`]: true
-                    });
+          ${filteredFieldGroups.map((fieldGroup) => {
+            return html`
+              <div class="xendit-form-field-group">
+                ${fieldGroup.map((field) => {
+                  const classes = classMap({
+                    [`xendit-form-field-span-${field.span}`]: true
+                  });
 
-                    return html`
-                      <xendit-channel-form-field
-                        .field="${field}"
-                        class="${classes}"
-                      ></xendit-channel-form-field>
-                    `;
-                  })}
-                </div>
-              `;
-            })}
+                  return html`
+                    <xendit-channel-form-field
+                      .field="${field}"
+                      class="${classes}"
+                    ></xendit-channel-form-field>
+                  `;
+                })}
+              </div>
+            `;
+          })}
         </form>
       `,
       this

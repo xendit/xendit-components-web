@@ -61,6 +61,7 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
       }
       case "change": {
         if (!this.iframeHiddenField) return;
+
         const encrypted = data.encrypted;
         const encryptionVersion = 1;
         const result = [
@@ -70,6 +71,7 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
           encrypted.iv,
           encrypted.value
         ].join("-");
+
         (this.iframeHiddenField as HTMLInputElement).value = result;
         this.dispatchEvent(new XenditChannelFormFieldChanged());
         break;
@@ -170,6 +172,15 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
   }
 
   renderTextField(id: string, field: ChannelFormField) {
+    function isGeneric(field: ChannelFormField): field is ChannelFormField & {
+      type: { name: "generic_text" | "generic_numeric" };
+    } {
+      return (
+        field.type.name === "generic_text" ||
+        field.type.name === "generic_numeric"
+      );
+    }
+
     return html`
       <input
         name="${id}"
@@ -177,7 +188,8 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
         placeholder="${field.placeholder}"
         class="xendit-text-14"
         @input="${this.onChange}"
-        minlength=${10}
+        minlength=${isGeneric(field) ? field.type.min_length : undefined}
+        maxlength=${isGeneric(field) ? field.type.max_length : undefined}
       />
     `;
   }

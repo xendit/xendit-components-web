@@ -1,76 +1,25 @@
-export interface HTMLElementTagNameMap {
-  "secure-iframe-credit-card-input": SecureIframeCreditCardInput;
+import { SecureInputEvent } from "./events";
+
+export function createWrapperDiv() {
+  const wrapper = document.createElement("div");
+  wrapper.className = "input-wrapper";
+  return wrapper;
 }
 
-export interface HTMLElementEventMap {
-  secureinputevent: SecureInputEvent;
-}
+export function createInputElement(type: string) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "Enter credit card number";
+  input.id = "secure-iframe-input";
 
-export class SecureInputEvent extends Event {
-  static type: "secureinputevent";
-  subtype: "change" | "focus" | "blur";
-  detail: {
-    value?: string;
-  };
-  constructor(
-    subtype: "change" | "focus" | "blur",
-    detail: { value?: string } = {}
-  ) {
-    super("secureinputevent", {
-      bubbles: true,
-      composed: true
-    });
-    this.subtype = subtype;
-    this.detail = detail;
-  }
-}
+  input.inputMode = "numeric";
+  input.autocomplete = "cc-number";
 
-export function assertIsSecureInputEvent(
-  event: Event
-): asserts event is SecureInputEvent {
-  if (event.type !== "secureinputevent") {
-    throw new Error("Expected secureinputevent");
-  }
-}
+  input.addEventListener("change", onChange);
+  input.addEventListener("input", onInput);
+  input.addEventListener("beforeinput", onBeforeInput);
 
-export function createIframeInputElement(type: string) {
-  switch (type) {
-    case "credit_card_number":
-      return document.createElement(
-        "secure-iframe-credit-card-input"
-      ) as SecureIframeCreditCardInput;
-    default:
-      // throw new Error(`Unsupported input type: ${type}`);
-      return document.createElement("div");
-  }
-}
-
-class SecureIframeCreditCardInput extends HTMLElement {
-  static tag: string = "secure-iframe-credit-card-input";
-
-  input: HTMLInputElement;
-
-  isDeletingSpace: boolean = false;
-
-  constructor() {
-    super();
-    this.input = document.createElement("input");
-  }
-
-  connectedCallback() {
-    this.input.type = "text";
-    this.input.placeholder = "Enter credit card number";
-
-    this.input.inputMode = "numeric";
-    this.input.autocomplete = "cc-number";
-
-    this.appendChild(this.input);
-    this.input.addEventListener("change", this.onChange);
-    this.input.addEventListener("input", this.onInput as EventListener);
-    this.input.addEventListener("beforeinput", this.onBeforeInput);
-  }
-
-  onBeforeInput = (event: InputEvent) => {
+  function onBeforeInput(event: InputEvent) {
     const input = event.target as HTMLInputElement;
     const value = input.value;
 
@@ -96,7 +45,7 @@ class SecureIframeCreditCardInput extends HTMLElement {
           if (beforeCursor.endsWith(" ")) {
             event.preventDefault();
             input.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
-            this.formatAndSendEvent();
+            formatAndSendEvent();
           }
           break;
         }
@@ -105,16 +54,15 @@ class SecureIframeCreditCardInput extends HTMLElement {
           if (afterCursor.startsWith(" ")) {
             event.preventDefault();
             input.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
-            this.formatAndSendEvent();
+            formatAndSendEvent();
           }
           break;
         }
       }
     }
-  };
+  }
 
-  formatAndSendEvent() {
-    const input = this.input;
+  function formatAndSendEvent() {
     const value = input.value;
 
     const hasCollapsedSelection =
@@ -161,31 +109,28 @@ class SecureIframeCreditCardInput extends HTMLElement {
 
     // update input value
     const newValue = out.join("").trim();
-    this.input.value = newValue;
+    input.value = newValue;
 
     if (hasCollapsedSelection) {
       newCursorPosition = Math.min(newCursorPosition, newValue.length);
-      this.input.setSelectionRange(newCursorPosition, newCursorPosition);
+      input.setSelectionRange(newCursorPosition, newCursorPosition);
     } else {
       // if the selection was not collapsed, we don't change the selection
       // as it would be unexpected for the user
     }
 
-    this.dispatchEvent(
+    input.dispatchEvent(
       new SecureInputEvent("change", { value: value.replace(/\s/g, "") })
     );
   }
 
-  onChange = (event: Event) => {
-    this.formatAndSendEvent();
-  };
+  function onChange(event: Event) {
+    formatAndSendEvent();
+  }
 
-  onInput = (event: InputEvent) => {
-    this.formatAndSendEvent();
-  };
+  function onInput(event: Event) {
+    formatAndSendEvent();
+  }
+
+  return input;
 }
-
-customElements.define(
-  SecureIframeCreditCardInput.tag,
-  SecureIframeCreditCardInput
-);

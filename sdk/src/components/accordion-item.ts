@@ -47,7 +47,9 @@ export class XenditAccordionItemComponent extends HTMLElement {
         <div
           class="xendit-accordion-item-header"
           @click="${this.onClick}"
+          @keypress="${this.onKeyPress}"
           role="button"
+          tabindex="0"
         >
           <xendit-icon icon-name="${iconName}" size="24"></xendit-icon>
           <div class="xendit-accordion-item-header-title xendit-text-16">
@@ -73,6 +75,12 @@ export class XenditAccordionItemComponent extends HTMLElement {
 
   onClick = () => {
     this.dispatchEvent(new XenditAccordionItemClickedEvent());
+  };
+
+  onKeyPress = (event: KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      this.dispatchEvent(new XenditAccordionItemClickedEvent());
+    }
   };
 
   disconnectedCallback() {
