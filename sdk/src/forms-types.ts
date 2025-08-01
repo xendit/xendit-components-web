@@ -45,8 +45,8 @@ export type ChannelFormField = {
   placeholder: string;
   /** Field behavior */
   type: FieldType;
-  /** Where to write the property in the channel properties object. Can be dot-separated to write to a nested object. Can be a map for components that expose multiple values. */
-  channel_property: string | Record<string, string>;
+  /** Where to write the property in the channel properties object. Can be dot-separated to write to a nested object. Can be an array for components that expose multiple values. */
+  channel_property: string | string[];
   /** If true, the field must not be empty. */
   required: boolean;
   /** 2 means full-width, 1 means half-width */

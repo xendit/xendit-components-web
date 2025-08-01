@@ -217,10 +217,10 @@ export function makeTestBffData(): BffResponse {
             label: "Expiry",
             placeholder: "12/28",
             type: { name: "credit_card_expiry" },
-            channel_property: {
-              year: "card_details.expiry_year",
-              month: "card_details.expiry_month"
-            },
+            channel_property: [
+              "card_details.expiry_month",
+              "card_details.expiry_year"
+            ],
             required: true,
             span: 1,
             join: true

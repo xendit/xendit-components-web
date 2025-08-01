@@ -1,9 +1,7 @@
 import { html, render } from "lit-html";
-import { makeTestBffData } from "../test-data";
 import { BffPaymentMethod, BffPaymentMethodGroup } from "../bff-types";
 import { getContext } from "../context";
 import { PaymentMethodsContext } from "./session-provider";
-import { assert } from "../utils";
 
 /**
  * @example
@@ -51,34 +49,25 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
     // Render a dropdown with all channels in the group
     let dropdown = null;
     if (channels.length > 1) {
-      dropdown = html`
-        <select id="xendit-channel-picker" @change="${
-          this.onSelectedChannelChange
-        }">
-          <option value="" disabled selected>Select a channel</option>
-          ${channels.map((channel) => {
-            return html`
-            <option value="${channel}">
-              ${channel}
-            </option>
-            `;
-          })}
-        </select>`;
+      dropdown = html` <select
+        id="xendit-channel-picker"
+        @change="${this.onSelectedChannelChange}"
+      >
+        <option value="" disabled selected>Select a channel</option>
+        ${channels.map((channel) => {
+          return html` <option value="${channel}">${channel}</option> `;
+        })}
+      </select>`;
     }
 
     // render the form if a channel is selected
     let channelComponent = null;
     if (selectedChannel) {
-      channelComponent = html`<xendit-payment-channel channel-code="${selectedChannel.channel_code}"></xendit-payment-channel>`;
+      channelComponent = html`<xendit-payment-channel
+        channel-code="${selectedChannel.channel_code}"
+      ></xendit-payment-channel>`;
     }
 
-    render(
-      html`
-      <div>
-        ${dropdown}
-        ${channelComponent}
-      </div>`,
-      this
-    );
+    render(html` <div>${dropdown} ${channelComponent}</div>`, this);
   }
 }

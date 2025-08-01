@@ -60,7 +60,8 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       typescript({
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),
         compilerOptions: {
-          module: "esnext"
+          module: "esnext",
+          noEmitOnError: false
         }
       }),
       production ? terser() : null

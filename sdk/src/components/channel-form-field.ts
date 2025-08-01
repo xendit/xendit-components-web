@@ -1,10 +1,13 @@
 import { html, render } from "lit-html";
-import { ChannelForm, ChannelFormField } from "../forms-types";
+import { ChannelFormField } from "../forms-types";
 import { SessionContext } from "./session-provider";
 import { getContext } from "../context";
 import { BffSession } from "../bff-types";
+import { ref } from "lit-html/directives/ref.js";
+import { IframeEvent } from "../../../shared/shared";
 
-const IFRAME_FIELD_SRC = "https://localhost:4444/iframe.html";
+const IFRAME_ORIGIN = "https://localhost:4444";
+const IFRAME_FIELD_SRC = `${IFRAME_ORIGIN}/iframe.html`;
 
 /**
  * @example
@@ -15,6 +18,10 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
 
   public field: ChannelFormField | null;
 
+  public iframeRef: Element | undefined;
+  public iframeHiddenField: Element | undefined;
+  public iframeEcdhPublicKey: string | undefined;
+
   constructor() {
     super();
     this.field = null;
@@ -22,7 +29,76 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
 
   connectedCallback() {
     this.render();
+
+    window.addEventListener("message", this.handleEventFromIframe);
   }
+
+  disconnectedCallback() {
+    window.removeEventListener("message", this.handleEventFromIframe);
+  }
+
+  handleEventFromIframe = (event: MessageEvent) => {
+    if (!this.iframeRef) return;
+
+    const expectedSource = (this.iframeRef as HTMLIFrameElement).contentWindow;
+
+    if (event.source !== expectedSource) {
+      // this is normal, we are not the target of this message
+      return;
+    }
+
+    const expectedOrigin = IFRAME_ORIGIN;
+    if (event.origin !== expectedOrigin) {
+      // this is not normal, something fishy is happening
+      return;
+    }
+
+    const data = event.data as IframeEvent;
+    switch (data.type) {
+      case "ready": {
+        this.iframeEcdhPublicKey = data.ecdhPublicKey;
+        break;
+      }
+      case "change": {
+        if (!this.iframeHiddenField) return;
+        const encrypted = data.encrypted;
+        const encryptionVersion = 1;
+        const result = [
+          "xendit-encrypted",
+          encryptionVersion,
+          this.iframeEcdhPublicKey,
+          encrypted.iv,
+          encrypted.value
+        ].join("-");
+        (this.iframeHiddenField as HTMLInputElement).value = result;
+        this.dispatchEvent(new XenditChannelFormFieldChanged());
+        break;
+      }
+      case "focus": {
+        break;
+      }
+      case "blur": {
+        break;
+      }
+      case "failed_init": {
+        break;
+      }
+    }
+  };
+
+  setIframeElement = (element: Element | undefined) => {
+    this.iframeRef = element;
+  };
+
+  setHiddenFieldElement = (element: Element | undefined) => {
+    this.iframeHiddenField = element;
+  };
+
+  onChange = (event: Event) => {
+    if (!this.field) return;
+
+    this.dispatchEvent(new XenditChannelFormFieldChanged());
+  };
 
   render() {
     if (!this.field) {
@@ -35,10 +111,10 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
 
     let id: string;
     if (typeof this.field.channel_property === "string") {
-      id = `xendit-field-${this.field.channel_property ?? ""}`;
+      id = this.field.channel_property;
     } else {
-      const keys = Object.keys(this.field.channel_property);
-      id = `xendit-field-${keys.join("_")}`;
+      const keys = Object.values(this.field.channel_property);
+      id = keys.join("__");
     }
 
     const label = html`
@@ -47,13 +123,7 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
       </label>
     `;
 
-    render(
-      html`
-        ${label}
-        ${this.renderField(id, session, this.field)}
-      `,
-      this
-    );
+    render(html` ${label} ${this.renderField(id, session, this.field)} `, this);
   }
 
   renderField(id: string, session: BffSession, field: ChannelFormField) {
@@ -87,16 +157,29 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
     iframeUrl.searchParams.set("sig", keyParts[3]);
 
     return html`
-    <div class="xendit-iframe-container">
-      <iframe src="${iframeUrl.toString()}" />
-    </div>
-  `;
+      <div class="xendit-iframe-container">
+        <input
+          type="hidden"
+          name="${id}"
+          value=""
+          ${ref(this.setHiddenFieldElement)}
+        />
+        <iframe src="${iframeUrl.toString()}" ${ref(this.setIframeElement)} />
+      </div>
+    `;
   }
 
   renderTextField(id: string, field: ChannelFormField) {
     return html`
-    <input id="${id}" type="text" placeholder="${field.placeholder}" class="xendit-text-14" />
-  `;
+      <input
+        name="${id}"
+        type="text"
+        placeholder="${field.placeholder}"
+        class="xendit-text-14"
+        @input="${this.onChange}"
+        minlength=${10}
+      />
+    `;
   }
 
   renderDropdownField(
@@ -104,12 +187,23 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
     field: ChannelFormField & { type: { name: "generic_dropdown" } }
   ) {
     return html`
-    <select id="${id}">
-      ${field.type.options.map(
-        (option) =>
-          html`<option value="${option.value}">${option.label}</option>`
-      )}
-    </select>
-  `;
+      <select name="${id}" @change="${this.onChange}">
+        ${field.type.options.map(
+          (option) =>
+            html`<option value="${option.value}">${option.label}</option>`
+        )}
+      </select>
+    `;
+  }
+}
+
+export class XenditChannelFormFieldChanged extends Event {
+  static type = "xendit-channel-form-field-changed" as const;
+
+  constructor() {
+    super("xendit-channel-form-field-changed", {
+      bubbles: true,
+      composed: true
+    });
   }
 }

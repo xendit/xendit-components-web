@@ -1,6 +1,9 @@
 import { html, render } from "lit-html";
 import { ChannelForm, ChannelFormField } from "../forms-types";
 import { classMap } from "lit-html/directives/class-map.js";
+import { XenditChannelFormFieldChanged } from "./channel-form-field";
+import { ref } from "lit-html/directives/ref.js";
+import { ChannelProperties, ChannelProperty } from "../public-data-types";
 
 /**
  * @example
@@ -10,13 +13,88 @@ export class XenditChannelFormComponent extends HTMLElement {
   static tag = "xendit-channel-form" as const;
 
   public form: ChannelForm = [];
+  public formElement: Element | undefined = undefined;
 
   constructor() {
     super();
+
+    this.addEventListener(
+      XenditChannelFormFieldChanged.type,
+      this.onAnyFieldChanged
+    );
   }
 
   connectedCallback() {
     this.render();
+  }
+
+  setFormElement = (element: Element | undefined) => {
+    this.formElement = element;
+  };
+
+  onAnyFieldChanged = (event: XenditChannelFormFieldChanged) => {
+    if (!this.formElement) return;
+    this.dispatchEvent(
+      new XenditChannelPropertiesChanged(this.getChannelProperties())
+    );
+  };
+
+  getChannelProperties() {
+    // FormData gives the nodejs version, but we need the browser version
+    const formData = new (FormData as any)(this.formElement as HTMLFormElement);
+
+    const obj: ChannelProperties = {};
+
+    /*
+    Convert form key/value pairs to channel properties
+    .e.g 
+    Input:
+    {
+      "k": "v1",
+      "a.b.c": "v2",
+      "a.z__a.y": {z: "v3", y: "v4"},
+    }
+    Output:
+    {
+      k: "v1",
+      a: {
+        b: {
+          c: "v2",
+        },
+        z: "v3",
+        y: "v4",
+      }
+    }
+  
+    */
+
+    for (const [key, value] of formData.entries()) {
+      const subkeys = key.split("__");
+      // split keys by __
+      for (const subkey of subkeys) {
+        // split key by dot, for each part, traverse the object
+        // and assign the value at the end
+        const parts = subkey.split(".");
+        let cursor = obj;
+        while (parts.length > 1) {
+          const part = parts.shift()!;
+          let selected = cursor[part];
+          if (selected === undefined) {
+            selected = cursor[part] = {};
+          }
+          if (
+            selected &&
+            typeof selected === "object" &&
+            !Array.isArray(selected)
+          ) {
+            cursor = selected;
+          }
+        }
+        cursor[parts[0]] = value;
+      }
+    }
+
+    return obj;
   }
 
   render() {
@@ -44,27 +122,44 @@ export class XenditChannelFormComponent extends HTMLElement {
 
     render(
       html`
-      <form>
-        ${fieldGroups
-          .filter((group) => group.length)
-          .map((fieldGroup) => {
-            return html`
-            <div class="xendit-form-field-group">
-              ${fieldGroup.map((field) => {
-                const classes = classMap({
-                  [`xendit-form-field-span-${field.span}`]: true
-                });
+        <form ${ref(this.setFormElement)}>
+          ${fieldGroups
+            .filter((group) => group.length)
+            .map((fieldGroup) => {
+              return html`
+                <div class="xendit-form-field-group">
+                  ${fieldGroup.map((field) => {
+                    const classes = classMap({
+                      [`xendit-form-field-span-${field.span}`]: true
+                    });
 
-                return html`
-                  <xendit-channel-form-field .field="${field}" class="${classes}"></xendit-channel-form-field>
-                `;
-              })}
-            </div>
-          `;
-          })}
-      </form>
+                    return html`
+                      <xendit-channel-form-field
+                        .field="${field}"
+                        class="${classes}"
+                      ></xendit-channel-form-field>
+                    `;
+                  })}
+                </div>
+              `;
+            })}
+        </form>
       `,
       this
     );
+  }
+}
+
+export class XenditChannelPropertiesChanged extends Event {
+  static type = "xendit-channel-properties-changed" as const;
+
+  public channelProperties: ChannelProperties;
+
+  constructor(channelProperties: ChannelProperties) {
+    super("xendit-channel-properties-changed", {
+      bubbles: true,
+      composed: true
+    });
+    this.channelProperties = channelProperties;
   }
 }

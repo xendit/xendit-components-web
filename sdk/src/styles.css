@@ -88,6 +88,11 @@ xendit-channel-picker-group select {
 /* Payment channel */
 
 xendit-payment-channel .xendit-payment-channel-instructions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-gap: 12px;
+  margin-top: 16px;
+  color: var(--xendit-color-text-secondary);
 }
 
 /* Forms */
@@ -127,10 +132,11 @@ xendit-channel-form-field .xendit-iframe-container {
   height: 42px;
   width: 100%;
   padding: 0;
+  overflow: hidden;
 }
 
 xendit-channel-form-field .xendit-iframe-container iframe {
-  height: 40px;
+  height: 42px;
   width: 100%;
   border: none;
 }

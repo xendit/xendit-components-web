@@ -35,17 +35,22 @@ export class XenditPaymentChannelComponent extends HTMLElement {
 
     let form = null;
     if (paymentMethod.form) {
-      form = html`<xendit-channel-form .form="${paymentMethod.form}"></xendit-channel-form>`;
+      form = html`<xendit-channel-form
+        .form="${paymentMethod.form}"
+      ></xendit-channel-form>`;
     }
 
     render(
       html`
-      ${form}
-      <div class="xendit-payment-channel-instructions xendit-text-14">
-        You’ll be redirected to Standard Chartered Bank’s page
-        <br/>
-        Follow the prompts on the page to complete your payment
-      </div>
+        ${form}
+        <div class="xendit-payment-channel-instructions">
+          <xendit-icon name="info" size="16"></xendit-icon>
+          <div class="xendit-text-14">
+            You’ll be redirected to Standard Chartered Bank’s page
+            <br />
+            Follow the prompts on the page to complete your payment
+          </div>
+        </div>
       `,
       this
     );

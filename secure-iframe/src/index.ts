@@ -15,9 +15,18 @@ function setupCss() {
     body {
       margin: 0;
     }
+    secure-iframe-credit-card-input {
+      width: 100%;
+      height: 100%;
+      display: flex
+    }
     input {
+      width: 100%;
       font-size: 14px;
       line-height: 16px;
+      padding: 12px;
+      border: 1px solid transparent;
+      outline: none;
     }
 `;
 

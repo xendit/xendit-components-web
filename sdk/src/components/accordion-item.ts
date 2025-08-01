@@ -44,16 +44,24 @@ export class XenditAccordionItemComponent extends HTMLElement {
 
     render(
       html`
-      <div class="xendit-accordion-item-header" @click="${this.onClick}" role="button">
-        <xendit-icon icon-name="${iconName}" size="24"></xendit-icon>
-        <div class="xendit-accordion-item-header-title xendit-text-16">
-          ${title}
+        <div
+          class="xendit-accordion-item-header"
+          @click="${this.onClick}"
+          role="button"
+        >
+          <xendit-icon icon-name="${iconName}" size="24"></xendit-icon>
+          <div class="xendit-accordion-item-header-title xendit-text-16">
+            ${title}
+          </div>
+          <xendit-icon
+            icon-name="chevron"
+            size="24"
+            direction="${chevronDirection}"
+          ></xendit-icon>
         </div>
-        <xendit-icon icon-name="chevron" size="24" direction="${chevronDirection}"></xendit-icon>
-      </div>
-      <div class="xendit-accordion-item-content ${containerOpenClass}">
-        ${this.originalChildren}
-      </div>
+        <div class="xendit-accordion-item-content ${containerOpenClass}">
+          ${this.originalChildren}
+        </div>
       `,
       this
     );

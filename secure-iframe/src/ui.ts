@@ -6,12 +6,23 @@ export interface HTMLElementEventMap {
   secureinputevent: SecureInputEvent;
 }
 
-export interface SecureInputEvent extends Event {
-  type: "secureinputevent";
+export class SecureInputEvent extends Event {
+  static type: "secureinputevent";
   subtype: "change" | "focus" | "blur";
   detail: {
     value?: string;
   };
+  constructor(
+    subtype: "change" | "focus" | "blur",
+    detail: { value?: string } = {}
+  ) {
+    super("secureinputevent", {
+      bubbles: true,
+      composed: true
+    });
+    this.subtype = subtype;
+    this.detail = detail;
+  }
 }
 
 export function assertIsSecureInputEvent(
@@ -49,11 +60,6 @@ class SecureIframeCreditCardInput extends HTMLElement {
   connectedCallback() {
     this.input.type = "text";
     this.input.placeholder = "Enter credit card number";
-    this.input.style.width = "100%";
-    this.input.style.padding = "10px";
-    this.input.style.border = "1px solid #ccc";
-    this.input.style.borderRadius = "4px";
-    this.input.style.fontFamily = "monospace";
 
     this.input.inputMode = "numeric";
     this.input.autocomplete = "cc-number";
@@ -155,23 +161,19 @@ class SecureIframeCreditCardInput extends HTMLElement {
 
     // update input value
     const newValue = out.join("").trim();
-    if (newValue !== this.input.value) {
-      this.input.value = newValue;
+    this.input.value = newValue;
 
-      if (hasCollapsedSelection) {
-        newCursorPosition = Math.min(newCursorPosition, newValue.length);
-        this.input.setSelectionRange(newCursorPosition, newCursorPosition);
-      } else {
-        // if the selection was not collapsed, we don't change the selection
-        // as it would be unexpected for the user
-      }
-
-      this.dispatchEvent(
-        new CustomEvent("secureinputevent", {
-          detail: { value: value.replace(/\s/g, "") }
-        })
-      );
+    if (hasCollapsedSelection) {
+      newCursorPosition = Math.min(newCursorPosition, newValue.length);
+      this.input.setSelectionRange(newCursorPosition, newCursorPosition);
+    } else {
+      // if the selection was not collapsed, we don't change the selection
+      // as it would be unexpected for the user
     }
+
+    this.dispatchEvent(
+      new SecureInputEvent("change", { value: value.replace(/\s/g, "") })
+    );
   }
 
   onChange = (event: Event) => {
@@ -179,10 +181,6 @@ class SecureIframeCreditCardInput extends HTMLElement {
   };
 
   onInput = (event: InputEvent) => {
-    console.log(event);
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-
     this.formatAndSendEvent();
   };
 }

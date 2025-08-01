@@ -4,7 +4,10 @@ import {
 } from "./components/accordion";
 import { XenditAccordionItemComponent } from "./components/accordion-item";
 import { XenditChannelFormComponent } from "./components/channel-form";
-import { XenditChannelFormFieldComponent } from "./components/channel-form-field";
+import {
+  XenditChannelFormFieldChanged,
+  XenditChannelFormFieldComponent
+} from "./components/channel-form-field";
 import { XenditChannelPickerComponent } from "./components/channel-picker";
 import { XenditChannelPickerGroupComponent } from "./components/channel-picker-group";
 import { XenditIconComponent } from "./components/icon";
@@ -35,8 +38,9 @@ declare global {
   }
 
   interface HTMLElementEventMap {
-    "xendit-accordion-item-clicked": XenditAccordionItemClickedEvent;
     "xendit-context-request": XenditContextRequestEvent<any>;
+    "xendit-accordion-item-clicked": XenditAccordionItemClickedEvent;
+    "xendit-channel-form-field-changed": XenditChannelFormFieldChanged;
   }
 }
 
