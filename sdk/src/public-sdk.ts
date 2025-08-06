@@ -107,7 +107,7 @@ export class XenditSdkInstance extends EventTarget {
    * use `getAvailablePaymentChannelGroups` instead.
    */
   getAvailablePaymentChannels(): XenditPaymentChannel[] {
-    return bffChannelsToPublicChannels(this.initData.bff.payment_methods);
+    return bffChannelsToPublicChannels(this.initData.bff.channels);
   }
 
   /**

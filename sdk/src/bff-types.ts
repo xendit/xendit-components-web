@@ -66,7 +66,7 @@ export type BffSession = {
 export type BffResponse = {
   business: BffBusiness;
   customer: BffCustomer;
-  payment_methods: BffChannel[];
-  payment_methods_groups: BffChannelUiGroup[];
+  channels: BffChannel[];
+  channel_ui_groups: BffChannelUiGroup[];
   session: BffSession;
 };

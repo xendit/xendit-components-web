@@ -46,7 +46,7 @@ export function makeTestBffData(): BffResponse {
       },
       business_detail: null
     },
-    payment_methods: [
+    channels: [
       {
         always: {
           brand_name: "BRI Virtual Account",
@@ -1042,7 +1042,7 @@ export function makeTestBffData(): BffResponse {
         }
       }
     ],
-    payment_methods_groups: [
+    channel_ui_groups: [
       {
         id: "cards",
         label: "Cards",

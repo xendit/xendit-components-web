@@ -36,11 +36,11 @@ export class XenditSessionContextProvider extends HTMLElement {
     this.providers.business.set(data.business);
     this.providers.customer.set(data.customer);
     this.providers.channels.set(
-      data.payment_methods
+      data.channels
         .map(pickChannelFromChannelWrapper)
         .filter((channel): channel is NonNullable<Channel> => !!channel)
     );
-    this.providers.channelUiGroups.set(data.payment_methods_groups);
+    this.providers.channelUiGroups.set(data.channel_ui_groups);
   }
 }
 
