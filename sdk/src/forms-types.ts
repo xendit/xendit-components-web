@@ -1,26 +1,26 @@
 /**
- * Usually, this contains a single channel configuration: `{always: ChannelConfiguration}`.
+ * Represends one semantic channel. Usually, this is `{always: Channel}`
  *
  * Some channels have different configurations based on whether the user has opted to save their channel.
- * In this case, it will contain two configurations: `{save: ChannelConfiguration, not_save: ChannelConfiguration}`.
+ * In that case, it will contain two configurations: `{if_save: ChannelConfiguration, if_not_save: ChannelConfiguration}`.
  *
- * Null means the configuration is not available. This happens on sessions where saving is optional, on channels that
- * don't support saving.
+ * Null means the channel is not available. e.g. in a session where saving is optional:
+ * `{if_save: null, if_not_save: ChannelConfiguration}` means that this channel only supports one-off payments.
  *
  * @example
  * ```
  * function pickChannelConfig(saveCheckboxSelected, channel) {
  *   if (channel.channel_configuration.always) return channel.channel_configuration.always;
- *   if (saveCheckboxSelected) return channel.channel_configuration.save ?? null;
- *   else return channel.channel_configuration.not_save ?? null;
+ *   if (saveCheckboxSelected) return channel.channel_configuration.if_save ?? null;
+ *   else return channel.channel_configuration.if_not_save ?? null;
  * }
  * ```
  **/
 export type ChannelWrapper =
   | { always: Channel }
   | {
-      save: Channel | null;
-      not_save: Channel | null;
+      if_save: Channel | null;
+      if_not_save: Channel | null;
     };
 
 export type Channel = {
