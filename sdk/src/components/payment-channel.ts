@@ -1,16 +1,16 @@
 import { html, render } from "lit-html";
 import { getContext } from "../context";
 import { ChannelsContext } from "./session-provider";
-import { Channel } from "../forms-types";
+import { Channel, ChannelWrapper } from "../forms-types";
 
 /**
  * @example
- * <xendit-channel-picker .paymentMethod="${Channel}" />
+ * <xendit-channel-picker .channel="${Channel}" />
  */
 export class XenditPaymentChannelComponent extends HTMLElement {
   static tag = "xendit-payment-channel" as const;
 
-  public paymentMethod: Channel | null = null;
+  public channel: Channel | null = null;
 
   constructor() {
     super();
@@ -21,22 +21,19 @@ export class XenditPaymentChannelComponent extends HTMLElement {
   }
 
   render() {
-    const paymentMethods = getContext(this, ChannelsContext);
-    if (!paymentMethods) return;
+    const channels = getContext(this, ChannelsContext);
+    if (!channels) return;
 
-    const paymentMethod = this.paymentMethod;
-    if (!paymentMethod) {
+    const channel = this.channel;
+    if (!channel) {
       this.replaceChildren();
       return;
     }
 
-    const channelConfig = pickChannelConfig(paymentMethod);
-    if (!channelConfig) return;
-
     let form = null;
-    if (channelConfig.form) {
+    if (channel.form) {
       form = html`<xendit-channel-form
-        .form="${channelConfig.form}"
+        .form="${channel.form}"
       ></xendit-channel-form>`;
     }
 
@@ -46,20 +43,11 @@ export class XenditPaymentChannelComponent extends HTMLElement {
         <div class="xendit-payment-channel-instructions">
           <xendit-icon name="info" size="16"></xendit-icon>
           <div class="xendit-text-14">
-            ${channelConfig.instructions.map(
-              (instr) => html`<div>${instr}</div>`
-            )}
+            ${channel.instructions.map((instr) => html`<div>${instr}</div>`)}
           </div>
         </div>
       `,
       this
     );
   }
-}
-
-export function pickChannelConfig(pm: Channel) {
-  if ("always" in pm.channel_configuration) {
-    return pm.channel_configuration.always;
-  }
-  // TODO: handle pay, save, pay_and_save
 }

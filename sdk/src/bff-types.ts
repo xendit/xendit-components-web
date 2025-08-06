@@ -1,4 +1,4 @@
-import { Channel, ChannelUiGroup } from "./forms-types";
+import { ChannelWrapper, ChannelUiGroup } from "./forms-types";
 
 export type BffBusiness = {
   country_of_operation: string;
@@ -28,7 +28,7 @@ export type BffChannelType =
   | "QR_CODE"
   | "OVER_THE_COUNTER";
 
-export type BffChannel = Channel;
+export type BffChannel = ChannelWrapper;
 
 export type BffChannelUiGroup = ChannelUiGroup;
 

@@ -25,7 +25,10 @@ import {
   XenditPaymentChannelGroup,
   XenditSession
 } from "./public-data-types";
-import { XenditSessionContextProvider } from "./components/session-provider";
+import {
+  pickChannelFromChannelWrapper,
+  XenditSessionContextProvider
+} from "./components/session-provider";
 import { internal } from "./internal";
 
 async function fetchSessionData(
@@ -172,7 +175,11 @@ export class XenditSdkInstance extends EventTarget {
     this.activeChannelComponent = document.createElement(
       XenditPaymentChannelComponent.tag
     );
-    this.activeChannelComponent.paymentMethod = channel[internal];
+    const internalChannel = pickChannelFromChannelWrapper(channel[internal]);
+    if (!internalChannel) {
+      throw new Error("Invalid channel provided");
+    }
+    this.activeChannelComponent.channel = internalChannel;
     provider.appendChild(this.activeChannelComponent);
     return provider;
   }

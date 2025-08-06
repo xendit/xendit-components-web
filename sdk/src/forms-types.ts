@@ -1,3 +1,28 @@
+/**
+ * Usually, this contains a single channel configuration: `{always: ChannelConfiguration}`.
+ *
+ * Some channels have different configurations based on whether the user has opted to save their channel.
+ * In this case, it will contain two configurations: `{save: ChannelConfiguration, not_save: ChannelConfiguration}`.
+ *
+ * Null means the configuration is not available. This happens on sessions where saving is optional, on channels that
+ * don't support saving.
+ *
+ * @example
+ * ```
+ * function pickChannelConfig(saveCheckboxSelected, channel) {
+ *   if (channel.channel_configuration.always) return channel.channel_configuration.always;
+ *   if (saveCheckboxSelected) return channel.channel_configuration.save ?? null;
+ *   else return channel.channel_configuration.not_save ?? null;
+ * }
+ * ```
+ **/
+export type ChannelWrapper =
+  | { always: Channel }
+  | {
+      save: Channel | null;
+      not_save: Channel | null;
+    };
+
 export type Channel = {
   /** Human readable name of channel */
   brand_name: string;
@@ -17,30 +42,25 @@ export type Channel = {
    **/
   ui_group: string;
 
-  /**
-   * Usually, this contains a single channel configuration: `{always: ChannelConfiguration}`.
-   *
-   * Some channels have different configurations based on whether the user has opted to save their channel.
-   * In this case, it will contain two configurations: `{if_save: ChannelConfiguration, if_not_save: ChannelConfiguration}`.
-   *
-   * Null means the configuration is not available. This happens on sessions where saving is optional, on channels that
-   * don't support saving.
-   *
-   * @example
-   * ```
-   * function pickChannelConfig(saveCheckboxSelected, channel) {
-   *   if (channel.channel_configuration.always) return channel.channel_configuration.always;
-   *   if (saveCheckboxSelected) return channel.channel_configuration.if_save ?? null;
-   *   else return channel.channel_configuration.if_not_save ?? null;
-   * }
-   * ```
-   **/
-  channel_configuration:
-    | { always: ChannelConfiguration }
-    | {
-        if_save: ChannelConfiguration | null;
-        if_not_save: ChannelConfiguration | null;
-      };
+  /** V3 channel code */
+  channel_code: string;
+
+  /** The type of channel */
+  pm_type: string;
+
+  /** Channel form */
+  form: ChannelFormField[];
+
+  /** Instruction text to show at bottom of form */
+  instructions: string[];
+
+  /** Special properties for cards */
+  card?: {
+    brands: {
+      name: string;
+      logo_url: string;
+    }[];
+  };
 };
 
 export type ChannelUiGroup = {
@@ -50,26 +70,6 @@ export type ChannelUiGroup = {
   label: string;
   /** Group icon */
   icon_url: string;
-  /** Flags for special cases */
-  flags?: { fpx?: true };
-};
-
-export type ChannelConfiguration = {
-  /** V3 channel code */
-  channel_code: string;
-  /** The type of channel */
-  pm_type: string;
-  /** Channel form */
-  form: ChannelFormField[];
-  /** Instruction text to show at bottom of form */
-  instructions: string[];
-  /** Special properties for cards */
-  card?: {
-    brands: {
-      name: string;
-      logo_url: string;
-    }[];
-  };
 };
 
 export type ChannelFormField = {
@@ -110,6 +110,8 @@ export type FieldType =
   | { name: "email" }
   // has postal code validation, possibly address autofill in the future
   | { name: "postal_code" }
+  // has dropdown with flags, and a large list of options
+  | { name: "country" }
 
   // generic fields
   | {

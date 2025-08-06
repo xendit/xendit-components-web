@@ -1,8 +1,8 @@
 import { html, render } from "lit-html";
 import { getContext } from "../context";
-import { pickChannelConfig } from "./payment-channel";
-import { BffChannel, BffChannelUiGroup } from "../bff-types";
+import { BffChannelUiGroup } from "../bff-types";
 import { ChannelsContext } from "./session-provider";
+import { Channel } from "../forms-types";
 
 /**
  * @example
@@ -12,7 +12,7 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
   static tag = "xendit-channel-picker-group" as const;
 
   public group: BffChannelUiGroup | null = null;
-  private selectedPaymentMethod: BffChannel | null = null;
+  private selectedChannel: Channel | null = null;
 
   constructor() {
     super();
@@ -24,51 +24,48 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
 
   onSelectedChannelChange = (event: Event) => {
     const selectElement = event.target as HTMLSelectElement;
-    const paymentMethods = getContext(this, ChannelsContext);
-    if (!paymentMethods) return;
+    const channels = getContext(this, ChannelsContext);
+    if (!channels) return;
 
-    this.selectedPaymentMethod =
-      paymentMethods.find(
-        (method) =>
-          pickChannelConfig(method)?.channel_code === selectElement.value
+    this.selectedChannel =
+      channels.find(
+        (channel) => channel.channel_code === selectElement.value
       ) || null;
     this.render();
   };
 
   render() {
-    const paymentMethods = getContext(this, ChannelsContext);
-    if (!paymentMethods) return;
+    const channels = getContext(this, ChannelsContext);
+    if (!channels) return;
 
-    const paymentMethodsInGroup = paymentMethods.filter(
+    const channelsInGroup = channels.filter(
       (method) => method.ui_group === this.group?.id
     );
 
-    if (paymentMethodsInGroup.length === 0) {
+    if (channelsInGroup.length === 0) {
       this.replaceChildren();
       return;
     }
 
-    let selectedPaymentMethod = this.selectedPaymentMethod;
-    if (paymentMethodsInGroup.length === 1) {
+    let selectedChannel = this.selectedChannel;
+    if (channelsInGroup.length === 1) {
       // If there's only one pm, select it automatically
-      selectedPaymentMethod = paymentMethodsInGroup[0];
+      selectedChannel = channelsInGroup[0];
     }
-    if (paymentMethodsInGroup.length === 0) {
+    if (channelsInGroup.length === 0) {
       this.replaceChildren();
       return;
     }
 
     // Render a dropdown with all channels in the group
     let dropdown = null;
-    if (paymentMethodsInGroup.length > 1) {
+    if (channelsInGroup.length > 1) {
       // Make a list of all valid channel codes
-      const channelOptions = paymentMethodsInGroup
-        .map((method) => {
-          const channelConfig = pickChannelConfig(method);
-          if (!channelConfig) return null;
+      const channelOptions = channelsInGroup
+        .map((channel) => {
           return {
-            label: method.brand_name,
-            channelCode: channelConfig.channel_code
+            label: channel.brand_name,
+            channelCode: channel.channel_code
           };
         })
         .filter((code) => code !== null);
@@ -86,9 +83,9 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
 
     // render the form if a channel is selected
     let channelComponent = null;
-    if (selectedPaymentMethod) {
+    if (selectedChannel) {
       channelComponent = html`<xendit-payment-channel
-        .paymentMethod="${selectedPaymentMethod}"
+        .channel="${selectedChannel}"
       ></xendit-payment-channel>`;
     }
 
