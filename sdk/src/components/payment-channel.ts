@@ -1,7 +1,7 @@
 import { html, render } from "lit-html";
 import { getContext } from "../context";
 import { ChannelsContext } from "./session-provider";
-import { Channel, ChannelWrapper } from "../forms-types";
+import { Channel } from "../forms-types";
 
 /**
  * @example

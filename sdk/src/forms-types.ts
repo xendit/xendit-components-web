@@ -1,30 +1,10 @@
-/**
- * Represends one semantic channel. Usually, this is `{always: Channel}`
- *
- * Some channels have different configurations based on whether the user has opted to save their channel.
- * In that case, it will contain two configurations: `{if_save: ChannelConfiguration, if_not_save: ChannelConfiguration}`.
- *
- * Null means the channel is not available. e.g. in a session where saving is optional:
- * `{if_save: null, if_not_save: ChannelConfiguration}` means that this channel only supports one-off payments.
- *
- * @example
- * ```
- * function pickChannelConfig(saveCheckboxSelected, channel) {
- *   if (channel.channel_configuration.always) return channel.channel_configuration.always;
- *   if (saveCheckboxSelected) return channel.channel_configuration.if_save ?? null;
- *   else return channel.channel_configuration.if_not_save ?? null;
- * }
- * ```
- **/
-export type ChannelWrapper =
-  | { always: Channel }
-  | {
-      if_save: Channel | null;
-      if_not_save: Channel | null;
-    };
-
 export type Channel = {
-  /** Human readable name of channel */
+  /**
+   * Human readable name of channel.
+   *
+   * If two channels have the same brand_name, they appear as the same channel in the UI.
+   * Some channels have different channel_codes and different
+   **/
   brand_name: string;
 
   /** Brand logo */
@@ -47,6 +27,12 @@ export type Channel = {
 
   /** The type of channel */
   pm_type: string;
+
+  /** If true, supports PAY flow. */
+  one_time_payment: boolean;
+
+  /** If true, supports SAVE flow. */
+  save_payment_information: boolean;
 
   /** Channel form */
   form: ChannelFormField[];
