@@ -1,5 +1,8 @@
 import { BffResponse } from "./bff-types";
-import { XenditChannelPickerComponent } from "./components/channel-picker";
+import {
+  XenditChannelPickedEvent,
+  XenditChannelPickerComponent
+} from "./components/channel-picker";
 import { XenditPaymentChannelComponent } from "./components/payment-channel";
 import {
   bffChannelsToPublicChannelGroups,
@@ -23,6 +26,7 @@ import {
   XenditSession
 } from "./public-data-types";
 import { XenditSessionContextProvider } from "./components/session-provider";
+import { internal } from "./internal";
 
 async function fetchSessionData(
   sessionClientKey: string
@@ -51,6 +55,10 @@ type SdkConstructorOptions = {
 export class XenditSdkInstance extends EventTarget {
   private initData: SdkConstructorOptions;
 
+  private activeChannelPickerComponent: XenditChannelPickerComponent | null =
+    null;
+  private activeChannelComponent: XenditPaymentChannelComponent | null = null;
+
   /**
    * @internal
    */
@@ -63,6 +71,11 @@ export class XenditSdkInstance extends EventTarget {
     }
     this.initData = initData;
   }
+
+  private setActiveChannelComponent = (event: Event) => {
+    this.cleanupPaymentChannelComponent();
+    this.activeChannelComponent = event.target as XenditPaymentChannelComponent;
+  };
 
   /**
    * @public
@@ -108,13 +121,30 @@ export class XenditSdkInstance extends EventTarget {
    * ```
    */
   createChannelPickerComponent(): HTMLElement {
+    this.cleanupChannelPickerComponent();
+
     const provider = document.createElement(XenditSessionContextProvider.tag);
     provider.setContextData(this.initData.bff);
-    const channelPicker = document.createElement(
+    this.activeChannelPickerComponent = document.createElement(
       XenditChannelPickerComponent.tag
     );
-    provider.appendChild(channelPicker);
+    this.activeChannelPickerComponent.addEventListener(
+      XenditChannelPickedEvent.type,
+      this.setActiveChannelComponent
+    );
+    provider.appendChild(this.activeChannelPickerComponent);
     return provider;
+  }
+
+  private cleanupChannelPickerComponent(): void {
+    if (this.activeChannelPickerComponent) {
+      this.activeChannelPickerComponent.replaceChildren();
+      this.activeChannelPickerComponent.removeEventListener(
+        XenditChannelPickedEvent.type,
+        this.setActiveChannelComponent
+      );
+      this.activeChannelPickerComponent = null;
+    }
   }
 
   /**
@@ -136,13 +166,21 @@ export class XenditSdkInstance extends EventTarget {
    * ```
    */
   createPaymentComponentForChannel(channel: XenditPaymentChannel): HTMLElement {
+    this.cleanupPaymentChannelComponent();
     const provider = document.createElement(XenditSessionContextProvider.tag);
     provider.setContextData(this.initData.bff);
-    const paymentChannel = document.createElement(
+    this.activeChannelComponent = document.createElement(
       XenditPaymentChannelComponent.tag
     );
-    provider.appendChild(paymentChannel);
+    this.activeChannelComponent.paymentMethod = channel[internal];
+    provider.appendChild(this.activeChannelComponent);
     return provider;
+  }
+
+  private cleanupPaymentChannelComponent(): void {
+    if (this.activeChannelComponent) {
+      this.activeChannelComponent = null;
+    }
   }
 
   /**

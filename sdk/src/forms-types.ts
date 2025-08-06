@@ -1,4 +1,4 @@
-export type PaymentMethod = {
+export type Channel = {
   /** Human readable name of channel */
   brand_name: string;
 
@@ -12,15 +12,15 @@ export type PaymentMethod = {
   brand_color: string;
 
   /**
-   * The group to which this payment method belongs.
-   * A reference to one of the group ids in the payment_method_groups list.
+   * The group to which this channel belongs.
+   * A reference to one of the group ids in the channel_ui_groups list.
    **/
-  group: string;
+  ui_group: string;
 
   /**
    * Usually, this contains a single channel configuration: `{always: ChannelConfiguration}`.
    *
-   * Some channels have different configurations based on whether the user has opted to save their payment method.
+   * Some channels have different configurations based on whether the user has opted to save their channel.
    * In this case, it will contain two configurations: `{if_save: ChannelConfiguration, if_not_save: ChannelConfiguration}`.
    *
    * Null means the configuration is not available. This happens on sessions where saving is optional, on channels that
@@ -28,10 +28,10 @@ export type PaymentMethod = {
    *
    * @example
    * ```
-   * function pickChannelConfig(saveCheckboxSelected, paymentMethod) {
-   *   if (paymentMethod.channel_configuration.always) return paymentMethod.channel_configuration.always;
-   *   if (saveCheckboxSelected) return paymentMethod.channel_configuration.if_save ?? null;
-   *   else return paymentMethod.channel_configuration.if_not_save ?? null;
+   * function pickChannelConfig(saveCheckboxSelected, channel) {
+   *   if (channel.channel_configuration.always) return channel.channel_configuration.always;
+   *   if (saveCheckboxSelected) return channel.channel_configuration.if_save ?? null;
+   *   else return channel.channel_configuration.if_not_save ?? null;
    * }
    * ```
    **/
@@ -43,13 +43,15 @@ export type PaymentMethod = {
       };
 };
 
-export type PaymentMethodGroup = {
+export type ChannelUiGroup = {
   /** Unique identifier for the group */
   id: string;
   /** Human readable group name */
   label: string;
   /** Group icon */
   icon_url: string;
+  /** Flags for special cases */
+  flags?: { fpx?: true };
 };
 
 export type ChannelConfiguration = {

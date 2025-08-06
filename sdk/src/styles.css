@@ -74,6 +74,7 @@ xendit-accordion xendit-accordion-item .xendit-accordion-item-closed {
 
 xendit-accordion xendit-accordion-item .xendit-accordion-item-content {
   padding: 16px;
+  overflow: hidden;
 }
 
 /* Channel picker group */

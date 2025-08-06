@@ -1,3 +1,6 @@
+import { BffChannel } from "./bff-types";
+import { internal } from "./internal";
+
 /**
  * @public
  */
@@ -6,7 +9,9 @@ export interface XenditSession {}
 /**
  * @public
  */
-export interface XenditPaymentChannel {}
+export interface XenditPaymentChannel {
+  [internal]: BffChannel;
+}
 
 /**
  * @public

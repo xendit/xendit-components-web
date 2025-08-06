@@ -52,7 +52,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BRI_VIRTUAL_ACCOUNT.svg",
         brand_color: "#003366",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "BRI_VIRTUAL_ACCOUNT",
@@ -118,7 +118,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/HANA_VIRTUAL_ACCOUNT.svg",
         brand_color: "#FF6B35",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "HANA_VIRTUAL_ACCOUNT",
@@ -136,7 +136,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BJB_VIRTUAL_ACCOUNT.svg",
         brand_color: "#1E88E5",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "BJB_VIRTUAL_ACCOUNT",
@@ -154,7 +154,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BCA_VIRTUAL_ACCOUNT.svg",
         brand_color: "#0066CC",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "BCA_VIRTUAL_ACCOUNT",
@@ -172,7 +172,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BNI_VIRTUAL_ACCOUNT.svg",
         brand_color: "#FF6600",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "BNI_VIRTUAL_ACCOUNT",
@@ -190,7 +190,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BSI_VIRTUAL_ACCOUNT.svg",
         brand_color: "#00A651",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "BSI_VIRTUAL_ACCOUNT",
@@ -208,7 +208,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/MANDIRI_VIRTUAL_ACCOUNT.svg",
         brand_color: "#003366",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "MANDIRI_VIRTUAL_ACCOUNT",
@@ -226,7 +226,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/CIMB_VIRTUAL_ACCOUNT.svg",
         brand_color: "#DC143C",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "CIMB_VIRTUAL_ACCOUNT",
@@ -244,7 +244,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BNC_VIRTUAL_ACCOUNT.svg",
         brand_color: "#0066CC",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "BNC_VIRTUAL_ACCOUNT",
@@ -262,7 +262,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/MUAMALAT_VIRTUAL_ACCOUNT.svg",
         brand_color: "#00A651",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "MUAMALAT_VIRTUAL_ACCOUNT",
@@ -280,7 +280,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT.svg",
         brand_color: "#FF6B35",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "SAHABAT_SAMPOERNA_VIRTUAL_ACCOUNT",
@@ -298,7 +298,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/PERMATA_VIRTUAL_ACCOUNT.svg",
         brand_color: "#0066CC",
-        group: "virtual_account",
+        ui_group: "virtual_account",
         channel_configuration: {
           always: {
             channel_code: "PERMATA_VIRTUAL_ACCOUNT",
@@ -316,7 +316,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/CARDS.svg",
         brand_color: "#1976D2",
-        group: "cards",
+        ui_group: "cards",
         channel_configuration: {
           always: {
             channel_code: "CARDS",
@@ -497,7 +497,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/SHOPEEPAY.svg",
         brand_color: "#EE4D2D",
-        group: "ewallet",
+        ui_group: "ewallet",
         channel_configuration: {
           always: {
             channel_code: "SHOPEEPAY",
@@ -552,7 +552,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/OVO.svg",
         brand_color: "#4C2C92",
-        group: "ewallet",
+        ui_group: "ewallet",
         channel_configuration: {
           always: {
             channel_code: "OVO",
@@ -585,7 +585,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/BRI_DIRECT_DEBIT.svg",
         brand_color: "#003366",
-        group: "direct_debit",
+        ui_group: "direct_debit",
         channel_configuration: {
           always: {
             channel_code: "BRI_DIRECT_DEBIT",
@@ -653,7 +653,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/QRIS.svg",
         brand_color: "#000000",
-        group: "qr_code",
+        ui_group: "qr_code",
         channel_configuration: {
           always: {
             channel_code: "QRIS",
@@ -671,7 +671,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/ASTRAPAY.svg",
         brand_color: "#0066CC",
-        group: "ewallet",
+        ui_group: "ewallet",
         channel_configuration: {
           always: {
             channel_code: "ASTRAPAY",
@@ -704,7 +704,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/LINKAJA.svg",
         brand_color: "#E60012",
-        group: "ewallet",
+        ui_group: "ewallet",
         channel_configuration: {
           always: {
             channel_code: "LINKAJA",
@@ -737,7 +737,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/MANDIRI_DIRECT_DEBIT.svg",
         brand_color: "#003366",
-        group: "direct_debit",
+        ui_group: "direct_debit",
         channel_configuration: {
           always: {
             channel_code: "MANDIRI_DIRECT_DEBIT",
@@ -805,7 +805,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/CIMB_DIRECT_DEBIT.svg",
         brand_color: "#DC143C",
-        group: "direct_debit",
+        ui_group: "direct_debit",
         channel_configuration: {
           always: {
             channel_code: "CIMB_DIRECT_DEBIT",
@@ -873,7 +873,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/JENIUSPAY.svg",
         brand_color: "#0066CC",
-        group: "ewallet",
+        ui_group: "ewallet",
         channel_configuration: {
           always: {
             channel_code: "JENIUSPAY",
@@ -906,7 +906,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/DANA.svg",
         brand_color: "#118EEA",
-        group: "ewallet",
+        ui_group: "ewallet",
         channel_configuration: {
           always: {
             channel_code: "DANA",
@@ -939,7 +939,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/INDOMARET.svg",
         brand_color: "#0066CC",
-        group: "over_the_counter",
+        ui_group: "over_the_counter",
         channel_configuration: {
           always: {
             channel_code: "INDOMARET",
@@ -1002,7 +1002,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/NEXCASH.svg",
         brand_color: "#0066CC",
-        group: "ewallet",
+        ui_group: "ewallet",
         channel_configuration: {
           always: {
             channel_code: "NEXCASH",
@@ -1035,7 +1035,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/ALFAMART.svg",
         brand_color: "#0066CC",
-        group: "over_the_counter",
+        ui_group: "over_the_counter",
         channel_configuration: {
           always: {
             channel_code: "ALFAMART",

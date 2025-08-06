@@ -1,8 +1,8 @@
 import { html, render } from "lit-html";
-import { BffPaymentMethod, BffPaymentMethodGroup } from "../bff-types";
 import { getContext } from "../context";
-import { PaymentMethodsContext } from "./session-provider";
 import { pickChannelConfig } from "./payment-channel";
+import { BffChannel, BffChannelUiGroup } from "../bff-types";
+import { ChannelsContext } from "./session-provider";
 
 /**
  * @example
@@ -11,8 +11,8 @@ import { pickChannelConfig } from "./payment-channel";
 export class XenditChannelPickerGroupComponent extends HTMLElement {
   static tag = "xendit-channel-picker-group" as const;
 
-  public group: BffPaymentMethodGroup | null = null;
-  private selectedPaymentMethod: BffPaymentMethod | null = null;
+  public group: BffChannelUiGroup | null = null;
+  private selectedPaymentMethod: BffChannel | null = null;
 
   constructor() {
     super();
@@ -24,7 +24,7 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
 
   onSelectedChannelChange = (event: Event) => {
     const selectElement = event.target as HTMLSelectElement;
-    const paymentMethods = getContext(this, PaymentMethodsContext);
+    const paymentMethods = getContext(this, ChannelsContext);
     if (!paymentMethods) return;
 
     this.selectedPaymentMethod =
@@ -36,11 +36,11 @@ export class XenditChannelPickerGroupComponent extends HTMLElement {
   };
 
   render() {
-    const paymentMethods = getContext(this, PaymentMethodsContext);
+    const paymentMethods = getContext(this, ChannelsContext);
     if (!paymentMethods) return;
 
     const paymentMethodsInGroup = paymentMethods.filter(
-      (method) => method.group === this.group?.id
+      (method) => method.ui_group === this.group?.id
     );
 
     if (paymentMethodsInGroup.length === 0) {

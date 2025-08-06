@@ -1,16 +1,16 @@
 import { html, render } from "lit-html";
 import { getContext } from "../context";
-import { PaymentMethodsContext } from "./session-provider";
-import { ChannelConfiguration, PaymentMethod } from "../forms-types";
+import { ChannelsContext } from "./session-provider";
+import { Channel } from "../forms-types";
 
 /**
  * @example
- * <xendit-channel-picker .paymentMethod="${PaymentMethod}" />
+ * <xendit-channel-picker .paymentMethod="${Channel}" />
  */
 export class XenditPaymentChannelComponent extends HTMLElement {
   static tag = "xendit-payment-channel" as const;
 
-  public paymentMethod: PaymentMethod | null = null;
+  public paymentMethod: Channel | null = null;
 
   constructor() {
     super();
@@ -21,7 +21,7 @@ export class XenditPaymentChannelComponent extends HTMLElement {
   }
 
   render() {
-    const paymentMethods = getContext(this, PaymentMethodsContext);
+    const paymentMethods = getContext(this, ChannelsContext);
     if (!paymentMethods) return;
 
     const paymentMethod = this.paymentMethod;
@@ -57,7 +57,7 @@ export class XenditPaymentChannelComponent extends HTMLElement {
   }
 }
 
-export function pickChannelConfig(pm: PaymentMethod) {
+export function pickChannelConfig(pm: Channel) {
   if ("always" in pm.channel_configuration) {
     return pm.channel_configuration.always;
   }

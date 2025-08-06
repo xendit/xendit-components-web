@@ -1,6 +1,14 @@
-import { BffPaymentMethod, BffResponse, BffSession } from "./bff-types";
+import { BffChannel, BffResponse, BffSession } from "./bff-types";
+import { internal } from "./internal";
+import {
+  XenditPaymentChannel,
+  XenditPaymentChannelGroup,
+  XenditSession
+} from "./public-data-types";
 
-export function bffSessionToPublicSession(bffSession: BffSession) {
+export function bffSessionToPublicSession(
+  bffSession: BffSession
+): XenditSession {
   return {
     amount: bffSession.amount,
     businessId: bffSession.business_id,
@@ -24,12 +32,20 @@ export function bffSessionToPublicSession(bffSession: BffSession) {
   };
 }
 
-export function bffChannelsToPublicChannelGroups(bffResponse: BffResponse) {
+export function bffChannelsToPublicChannelGroups(
+  bffResponse: BffResponse
+): XenditPaymentChannelGroup[] {
   // TODO
   return [];
 }
 
-export function bffChannelsToPublicChannels(bffChannels: BffPaymentMethod[]) {
+export function bffChannelsToPublicChannels(
+  bffChannels: BffChannel[]
+): XenditPaymentChannel[] {
   // TODO
-  return bffChannels;
+  return bffChannels.map((bffChannel) => {
+    return {
+      [internal]: bffChannel
+    };
+  });
 }

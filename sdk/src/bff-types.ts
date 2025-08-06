@@ -1,4 +1,4 @@
-import { PaymentMethod, PaymentMethodGroup } from "./forms-types";
+import { Channel, ChannelUiGroup } from "./forms-types";
 
 export type BffBusiness = {
   country_of_operation: string;
@@ -20,7 +20,7 @@ export type BffCustomer = {
   } | null;
 };
 
-export type BffPaymentMethodType =
+export type BffChannelType =
   | "CARDS"
   | "EWALLET"
   | "DIRECT_DEBIT"
@@ -28,9 +28,9 @@ export type BffPaymentMethodType =
   | "QR_CODE"
   | "OVER_THE_COUNTER";
 
-export type BffPaymentMethod = PaymentMethod;
+export type BffChannel = Channel;
 
-export type BffPaymentMethodGroup = PaymentMethodGroup;
+export type BffChannelUiGroup = ChannelUiGroup;
 
 export type BffSessionCaptureMethod = "AUTOMATIC" | "MANUAL";
 
@@ -66,7 +66,7 @@ export type BffSession = {
 export type BffResponse = {
   business: BffBusiness;
   customer: BffCustomer;
-  payment_methods: BffPaymentMethod[];
-  payment_methods_groups: BffPaymentMethodGroup[];
+  payment_methods: BffChannel[];
+  payment_methods_groups: BffChannelUiGroup[];
   session: BffSession;
 };
