@@ -192,14 +192,14 @@ async function startDevServer() {
 
 switch (process.argv[2]) {
   case "dev": {
-    Promise.all([rollupWatch(), startDevServer()]).catch((err) => {
+    await Promise.all([rollupWatch(), startDevServer()]).catch((err) => {
       console.error("Error in dev mode:", err);
       process.exit(1);
     });
     break;
   }
   case "prod": {
-    rollupProductionBuild().catch((err) => {
+    await rollupProductionBuild().catch((err) => {
       console.error("Error in production build:", err);
       process.exit(1);
     });

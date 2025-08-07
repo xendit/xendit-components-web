@@ -16,6 +16,7 @@ Each has a build script, but there's also a top-level build script that runs bot
 ### Prerequisites
 
 1. Install nodejs. Requires version 22+.
+2. Trust the dev cert: `sudo security add-certificates -k /Library/Keychains/System.keychain ./test-cert.pem && sudo security add-trusted-cert -k /Library/Keychains/System.keychain ./test-cert.pem`
 
 ### Install
 

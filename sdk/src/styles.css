@@ -30,28 +30,20 @@ xendit-payment-channel {
   letter-spacing: -0.09px;
 }
 
-/* Icon component */
-
-xendit-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* Accordion component */
 
-xendit-accordion {
+.xendit-accordion {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-xendit-accordion xendit-accordion-item {
+.xendit-accordion .xendit-accordion-item {
   border: 1px solid var(--xendit-color-border);
   border-radius: 8px;
 }
 
-xendit-accordion xendit-accordion-item .xendit-accordion-item-header {
+.xendit-accordion .xendit-accordion-item .xendit-accordion-item-header {
   display: grid;
   grid-template-columns: auto 1fr auto;
   grid-gap: 8px;
@@ -62,24 +54,24 @@ xendit-accordion xendit-accordion-item .xendit-accordion-item-header {
   border-radius: 8px;
 }
 
-xendit-accordion xendit-accordion-item .xendit-accordion-item-header:hover {
+.xendit-accordion .xendit-accordion-item .xendit-accordion-item-header:hover {
   border-radius: 8px;
   box-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
 }
 
-xendit-accordion xendit-accordion-item .xendit-accordion-item-closed {
+.xendit-accordion .xendit-accordion-item .xendit-accordion-item-closed {
   display: none;
 }
 
-xendit-accordion xendit-accordion-item .xendit-accordion-item-content {
+.xendit-accordion .xendit-accordion-item .xendit-accordion-item-content {
   padding: 16px;
   overflow: hidden;
 }
 
 /* Channel picker group */
 
-xendit-channel-picker-group select {
+.xendit-channel-picker-group select {
   border: 1px solid var(--xendit-color-border);
   border-radius: 8px;
   padding: 12px;
@@ -88,7 +80,7 @@ xendit-channel-picker-group select {
 
 /* Payment channel */
 
-xendit-payment-channel .xendit-payment-channel-instructions {
+.xendit-payment-channel .xendit-payment-channel-instructions {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-gap: 12px;
@@ -98,54 +90,54 @@ xendit-payment-channel .xendit-payment-channel-instructions {
 
 /* Forms */
 
-xendit-channel-form {
+.xendit-channel-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-xendit-channel-form > form {
+.xendit-channel-form > form {
   display: contents;
 }
 
-xendit-channel-form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-xendit-channel-form .xendit-form-field-group {
+.xendit-channel-form .xendit-form-field-group {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 16px 12px;
 }
 
-xendit-channel-form-field input,
-xendit-channel-form-field select,
-xendit-channel-form-field .xendit-iframe-container {
+.xendit-channel-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.xendit-channel-form-field input,
+.xendit-channel-form-field select,
+.xendit-channel-form-field .xendit-iframe-container {
   border: 1px solid var(--xendit-color-border);
   border-radius: 8px;
   padding: 12px;
   appearance: none;
 }
 
-xendit-channel-form-field .xendit-iframe-container {
+.xendit-channel-form-field .xendit-iframe-container {
   height: 40px;
   width: 100%;
   padding: 0;
   overflow: hidden;
 }
 
-xendit-channel-form-field .xendit-iframe-container iframe {
+.xendit-channel-form-field .xendit-iframe-container iframe {
   height: 40px;
   width: 100%;
   border: none;
 }
 
-xendit-channel-form-field.xendit-form-field-span-1 {
+.xendit-channel-form-field.xendit-form-field-span-1 {
   grid-column: span 1;
 }
 
-xendit-channel-form-field.xendit-form-field-span-2 {
+.xendit-channel-form-field.xendit-form-field-span-2 {
   grid-column: span 2;
 }

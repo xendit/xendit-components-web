@@ -1,4 +1,4 @@
-import "./init";
+import { createIconSet } from "./components/icon";
 import css from "./styles.css";
 
 document.head.appendChild(
@@ -6,6 +6,7 @@ document.head.appendChild(
     textContent: css
   })
 );
+document.head.appendChild(createIconSet());
 
 export * from "./public-sdk";
 export * from "./public-event-types";

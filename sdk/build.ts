@@ -11,6 +11,7 @@ import { readFile } from "fs/promises";
 import resolve from "@rollup/plugin-node-resolve";
 import { stripTypeScriptTypes } from "module";
 import css from "rollup-plugin-import-css";
+import alias from "@rollup/plugin-alias";
 
 const PORT = 4443;
 
@@ -23,6 +24,10 @@ const output: rollup.OutputOptions = {
   sourcemap: true,
   inlineDynamicImports: true // TODO: fix code splitting
 };
+
+function resolveModule(moduleName: string): string {
+  return path.join(import.meta.dirname, "..", "node_modules", moduleName);
+}
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
   return {
@@ -37,6 +42,24 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
           module: "esnext",
           noEmitOnError: false
         }
+      }),
+      alias({
+        entries: [
+          // TODO: read from tsconfig.json
+          { find: "react", replacement: resolveModule("preact/compat") },
+          {
+            find: "react-dom/test-utils",
+            replacement: resolveModule("preact/test-utils")
+          },
+          {
+            find: "react-dom",
+            replacement: resolveModule("preact/compat")
+          },
+          {
+            find: "react/jsx-runtime",
+            replacement: resolveModule("preact/jsx-runtime")
+          }
+        ]
       }),
       // this seems to break watch mode, so disable it for now
       // sourcemaps({
@@ -154,14 +177,14 @@ async function startDevServer() {
 
 switch (process.argv[2]) {
   case "dev": {
-    Promise.all([rollupWatch(), startDevServer()]).catch((err) => {
+    await Promise.all([rollupWatch(), startDevServer()]).catch((err) => {
       console.error("Error in dev mode:", err);
       process.exit(1);
     });
     break;
   }
   case "prod": {
-    rollupProductionBuild().catch((err) => {
+    await rollupProductionBuild().catch((err) => {
       console.error("Error in production build:", err);
       process.exit(1);
     });

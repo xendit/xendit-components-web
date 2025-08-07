@@ -2,14 +2,21 @@
 
 import { execSync } from "node:child_process";
 
+// remove all artifacts
+execSync(`rm -rf "./temp-dts" "./temp" "./sdk/dist" "./secure-iframe/dist"`, {
+  stdio: "inherit"
+});
+
 // run builds for both sub-projects
-await import("./sdk/build.ts");
-await import("./secure-iframe/build.ts");
+await Promise.all([
+  await import("./sdk/build.ts"),
+  await import("./secure-iframe/build.ts")
+]);
 
 // if prod, build .d.ts file for sdk
 if (process.argv[2] === "prod") {
   const cmds = [
-    `pnpm tsc --noEmit false --outDir "./temp-dts" --declaration --emitDeclarationOnly --stripInternal ./sdk/src/index.ts ./sdk/src/ambient.d.ts`,
+    `pnpm tsc --project ./tsconfig.build.json`,
     `pnpm api-extractor run --local --verbose`,
     `rm -rf "./temp-dts" "./temp"`
   ];
