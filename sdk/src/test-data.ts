@@ -445,18 +445,7 @@ export function makeTestBffData(): BffResponse {
             label: "Country",
             placeholder: "United States",
             type: {
-              name: "dropdown",
-              options: [
-                { label: "United States", value: "US" },
-                { label: "Canada", value: "CA" },
-                { label: "United Kingdom", value: "GB" },
-                { label: "Indonesia", value: "ID" },
-                { label: "Singapore", value: "SG" },
-                { label: "Malaysia", value: "MY" },
-                { label: "Thailand", value: "TH" },
-                { label: "Philippines", value: "PH" },
-                { label: "Vietnam", value: "VN" }
-              ]
+              name: "country"
             },
             channel_property: "billing_information.country",
             required: false,

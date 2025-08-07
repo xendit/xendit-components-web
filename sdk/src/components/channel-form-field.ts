@@ -1,4 +1,4 @@
-import { html, render } from "lit-html";
+import { html, render, TemplateResult } from "lit-html";
 import { ChannelFormField } from "../forms-types";
 import { SessionContext } from "./session-provider";
 import { getContext } from "../context";
@@ -128,7 +128,11 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
     render(html` ${label} ${this.renderField(id, session, this.field)} `, this);
   }
 
-  renderField(id: string, session: BffSession, field: ChannelFormField) {
+  renderField(
+    id: string,
+    session: BffSession,
+    field: ChannelFormField
+  ): TemplateResult {
     switch (field.type.name) {
       case "credit_card_number":
       case "credit_card_expiry":
@@ -139,6 +143,8 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
       case "postal_code":
       case "text":
         return this.renderTextField(id, field);
+      case "country":
+        return this.renderCountryField(id, field);
       case "dropdown":
         return this.renderDropdownField(
           id,
@@ -202,7 +208,39 @@ export class XenditChannelFormFieldComponent extends HTMLElement {
       </select>
     `;
   }
+
+  renderCountryField(id: string, field: ChannelFormField) {
+    return html`
+      <select name="${id}" @change="${this.onChange}">
+        ${Object.entries(countries).map(
+          ([code, data]) =>
+            html`<option value="${code}">
+              ${toFlagEmoji(code)} ${data.name}
+            </option>`
+        )}
+      </select>
+    `;
+  }
 }
+
+// TODO: use images instead (flag emojis don't work in windows)
+function toFlagEmoji(countryCode: string): string {
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+// TODO: pull this from a library
+const countries = {
+  ID: { name: "Indonesia", phoneCode: "62" },
+  MY: { name: "Malaysia", phoneCode: "60" },
+  PH: { name: "Philippines", phoneCode: "63" },
+  SG: { name: "Singapore", phoneCode: "65" },
+  TH: { name: "Thailand", phoneCode: "66" },
+  VN: { name: "Vietnam", phoneCode: "84" }
+};
 
 export class XenditChannelFormFieldChanged extends Event {
   static type = "xendit-channel-form-field-changed" as const;
