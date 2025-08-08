@@ -181,6 +181,7 @@ async function startDevServer() {
     (req, res) => {
       handleDevServerRequest(req, res).catch((err) => {
         console.error(err);
+        res.end();
       });
     }
   );

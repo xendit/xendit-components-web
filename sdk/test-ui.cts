@@ -2,6 +2,8 @@
 This must be a single file with no imports.
 */
 
+import type { XenditReadyToSubmitEvent } from "./src/public-event-types";
+
 const outer = document.createElement("div");
 outer.id = "wrapper";
 outer.style.display = "grid";
@@ -30,12 +32,7 @@ const inst = await sdk.initializeTestSession({
 const channelPicker = inst.createChannelPickerComponent();
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 
-document
-  .getElementById("channel-picker-container")!
-  .addEventListener("xendit-channel-properties-changed", (event: Event) => {
-    outputChannelProperties.value = JSON.stringify(
-      (event as any).channelProperties,
-      null,
-      2
-    );
-  });
+inst.addEventListener("ready-to-submit", (event: XenditReadyToSubmitEvent) => {
+  const state = inst.getState();
+  outputChannelProperties.value = JSON.stringify(state, null, 2);
+});

@@ -6,32 +6,24 @@ import { bffChannelToPublicChannel } from "../bff-marshal";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup | null;
+  open: boolean;
 }
 
-export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = ({
-  group
-}) => {
+export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
+  props
+) => {
+  const { group, open } = props;
+
   const sdk = useSdk();
 
+  // container for the selected channel component
   const containerRef = React.useRef<HTMLDivElement>(null);
+  // reference to the selected channel element
   const selectedChannelElementRef = React.useRef<HTMLElement>(null);
 
   const [explicitSelectedChannel, setExplicitSelectedChannel] =
     useState<Channel | null>(null);
   const channels = useChannels();
-
-  const onSelectedChannelChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    if (!channels) return;
-
-    const target = event.target as HTMLSelectElement;
-
-    const selected =
-      channels.find((channel) => channel.channel_code === target.value) || null;
-
-    setExplicitSelectedChannel(selected);
-  };
 
   const channelsInGroup =
     channels?.filter((method) => method.ui_group === group?.id) || [];
@@ -44,14 +36,35 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = ({
   useLayoutEffect(() => {
     if (!containerRef.current) return;
     if (selectedChannel) {
-      selectedChannelElementRef.current = sdk.createPaymentComponentForChannel(
-        bffChannelToPublicChannel(selectedChannel)
-      );
-      containerRef.current.replaceChildren(selectedChannelElementRef.current);
+      if (open) {
+        // create new channel component
+        const el = sdk.createPaymentComponentForChannel(
+          bffChannelToPublicChannel(selectedChannel)
+        );
+        selectedChannelElementRef.current = el;
+        if (el.parentElement !== containerRef.current) {
+          containerRef.current.replaceChildren(el);
+        } else {
+          // it's already in the right place, do nothing.
+          // replaceChildren would cause iframes to reload even if we do a no-op update.
+        }
+      }
     } else {
       containerRef.current.replaceChildren();
     }
-  }, [selectedChannel, sdk]);
+  }, [selectedChannel, sdk, open]);
+
+  // Called on channel dropdown change
+  const onSelectedChannelChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    if (!channels) return;
+
+    const target = event.target as HTMLSelectElement;
+    const selected =
+      channels.find((channel) => channel.channel_code === target.value) || null;
+    setExplicitSelectedChannel(selected);
+  };
 
   // Create channel options for dropdown
   const channelOptions = channelsInGroup.map((channel) => ({

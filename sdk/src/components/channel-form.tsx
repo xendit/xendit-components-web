@@ -1,6 +1,6 @@
 import React, { useRef, useCallback } from "react";
 import { ChannelFormField, ChannelProperties } from "../forms-types";
-import { ChannelFormFieldComponent } from "./channel-form-field";
+import Field from "./field";
 
 interface Props {
   form: ChannelFormField[];
@@ -36,7 +36,7 @@ const ChannelForm: React.FC<Props> = ({ form, onChannelPropertiesChanged }) => {
           <div key={groupIndex} className="xendit-form-field-group">
             {fieldGroup.map((field, fieldIndex) => {
               return (
-                <ChannelFormFieldComponent
+                <Field
                   key={fieldIndex}
                   field={field}
                   onChange={handleFieldChanged}

@@ -21,49 +21,78 @@ export type XenditEventMap = {
 /**
  * @public
  */
-export interface XenditReadyToSubmitEvent extends Event {
-  type: "ready-to-submit";
+export class XenditReadyToSubmitEvent extends Event {
+  static type = "ready-to-submit" as const;
   ready: boolean;
+
+  constructor(ready: boolean) {
+    super(XenditReadyToSubmitEvent.type, {});
+    this.ready = ready;
+  }
 }
 
 /**
  * @public
  */
-export interface XenditSessionCompleteEvent extends Event {
-  type: "session-complete";
+export class XenditSessionCompleteEvent extends Event {
+  static type = "session-complete" as const;
+
+  constructor() {
+    super(XenditSessionCompleteEvent.type, {});
+  }
 }
 
 /**
  * @public
  */
-export interface XenditSessionFailedEvent extends Event {
-  type: "session-failed";
+export class XenditSessionFailedEvent extends Event {
+  static type = "session-failed" as const;
+
+  constructor() {
+    super(XenditSessionFailedEvent.type, {});
+  }
 }
 
 /**
  * @public
  */
-export interface XenditUserActionRequiredEvent extends Event {
-  type: "user-action-required";
+export class XenditUserActionRequiredEvent extends Event {
+  static type = "user-action-required" as const;
+
+  constructor() {
+    super(XenditUserActionRequiredEvent.type, {});
+  }
 }
 
 /**
  * @public
  */
-export interface XenditUserActionCompleteEvent extends Event {
-  type: "user-action-complete";
+export class XenditUserActionCompleteEvent extends Event {
+  static type = "user-action-complete" as const;
+
+  constructor() {
+    super(XenditUserActionCompleteEvent.type, {});
+  }
 }
 
 /**
  * @public
  */
-export interface XenditWillRedirectEvent extends Event {
-  type: "will-redirect";
+export class XenditWillRedirectEvent extends Event {
+  static type = "will-redirect" as const;
+
+  constructor() {
+    super(XenditWillRedirectEvent.type, {});
+  }
 }
 
 /**
  * @public
  */
-export interface XenditErrorEvent extends Event {
-  type: "error";
+export class XenditErrorEvent extends Event {
+  static type = "error" as const;
+
+  constructor() {
+    super(XenditErrorEvent.type, {});
+  }
 }

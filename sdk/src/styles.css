@@ -9,6 +9,8 @@ html {
   --xendit-color-danger: #d1414d;
   --xendit-color-border: rgba(0, 0, 0, 0.05);
   --xendit-color-background: #ffffff;
+  --xendit-focus-shadow: 0px 0px 0px 2px
+    color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
 }
 
 /* Set default font for root components */
@@ -54,10 +56,11 @@ xendit-payment-channel {
   border-radius: 8px;
 }
 
-.xendit-accordion .xendit-accordion-item .xendit-accordion-item-header:hover {
+.xendit-accordion .xendit-accordion-item .xendit-accordion-item-header:focus {
   border-radius: 8px;
   box-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
+  outline: none;
 }
 
 .xendit-accordion .xendit-accordion-item .xendit-accordion-item-closed {
@@ -69,6 +72,10 @@ xendit-payment-channel {
   overflow: hidden;
 }
 
+.xendit-accordion .xendit-accordion-chevron {
+  color: var(--xendit-color-text);
+}
+
 /* Channel picker group */
 
 .xendit-channel-picker-group select {
@@ -76,6 +83,12 @@ xendit-payment-channel {
   border-radius: 8px;
   padding: 12px;
   appearance: none;
+  outline: none;
+}
+
+.xendit-channel-picker-group select:focus {
+  box-shadow: 0px 0px 0px 2px
+    color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
 }
 
 /* Payment channel */
@@ -119,6 +132,14 @@ xendit-payment-channel {
   border-radius: 8px;
   padding: 12px;
   appearance: none;
+}
+
+.xendit-channel-form-field input:focus,
+.xendit-channel-form-field select:focus,
+.xendit-channel-form-field .xendit-iframe-container.xendit-field-focus {
+  border-color: var(--xendit-color-primary);
+  box-shadow: var(--xendit-focus-shadow);
+  outline: none;
 }
 
 .xendit-channel-form-field .xendit-iframe-container {

@@ -66,7 +66,12 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       //   exclude: ["**/*.css", "**/*.ts"]
       // }),
       production ? terser() : null
-    ].filter(Boolean)
+    ].filter(Boolean),
+    onwarn: (warning, warn) => {
+      if (warning.code === "CIRCULAR_DEPENDENCY") {
+        return;
+      }
+    }
   };
 }
 
@@ -166,6 +171,7 @@ async function startDevServer() {
     (req, res) => {
       handleDevServerRequest(req, res).catch((err) => {
         console.error(err);
+        res.end();
       });
     }
   );

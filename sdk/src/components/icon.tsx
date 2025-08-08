@@ -1,5 +1,4 @@
 import { render } from "preact";
-import { FC } from "react-dom/src";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -7,9 +6,10 @@ type Props = {
   name: IconName;
   size: number;
   direction?: Direction;
+  className?: string;
 };
 
-const Icon: FC<Props> = (props) => {
+const Icon: React.FC<Props> = (props) => {
   const { name, size, direction } = props;
 
   let svgTransform = undefined;
@@ -30,7 +30,7 @@ const Icon: FC<Props> = (props) => {
 
   return (
     <svg
-      className={"xendit-icon"}
+      className={`xendit-icon ${props.className ?? ""}`}
       width={size}
       height={size}
       viewBox="0 0 24 24"

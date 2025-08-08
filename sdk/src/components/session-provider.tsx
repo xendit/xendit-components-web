@@ -7,7 +7,7 @@ import {
   BffSession
 } from "../bff-types";
 import { Channel } from "../forms-types";
-import { XenditSdkInstance } from "../public-sdk";
+import { XenditSessionSdk } from "../public-sdk";
 
 // Create contexts
 const SessionContext = createContext<BffSession | undefined>(undefined);
@@ -17,7 +17,7 @@ const ChannelsContext = createContext<Channel[] | undefined>(undefined);
 const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | undefined>(
   undefined
 );
-const SdkContext = createContext<XenditSdkInstance | undefined>(undefined);
+const SdkContext = createContext<XenditSessionSdk | undefined>(undefined);
 
 // Custom hooks for consuming contexts
 export const useSession = () => {
@@ -73,7 +73,7 @@ export const useSdk = () => {
 interface XenditSessionProviderProps {
   children: ReactNode;
   data: BffResponse;
-  sdk: XenditSdkInstance;
+  sdk: XenditSessionSdk;
 }
 
 export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({

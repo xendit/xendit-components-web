@@ -1,13 +1,14 @@
 import { Channel, ChannelProperties } from "../forms-types";
 import Icon from "./icon";
 import ChannelForm from "./channel-form";
-import { useRef } from "preact/hooks";
+import { useImperativeHandle, useRef } from "preact/hooks";
 
 interface Props {
   channel: Channel;
+  active: boolean;
 }
 
-export const PaymentChannel: React.FC<Props> = (props) => {
+export const PaymentChannel: React.FC<Props> = (props, formRef) => {
   const { channel } = props;
 
   const ref = useRef<HTMLDivElement>(null);
@@ -39,12 +40,12 @@ export const PaymentChannel: React.FC<Props> = (props) => {
 };
 
 export class XenditChannelPropertiesChangedEvent extends Event {
-  static readonly type = "xendit-channel-properties-changed";
+  static readonly type = "xendit-channel-properties-changed" as const;
   channel: string;
   channelProperties: ChannelProperties;
 
   constructor(channel: string, channelProperties: ChannelProperties) {
-    super("xendit-channel-properties-changed", {
+    super(XenditChannelPropertiesChangedEvent.type, {
       bubbles: true,
       composed: true
     });

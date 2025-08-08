@@ -1,43 +1,43 @@
-import React, { useContext, useCallback, useId } from "react";
-import { AccordionContext } from "./accordion";
+import React, { useCallback } from "react";
 import Icon from "./icon";
 
 interface Props {
+  id: number;
   title: string;
+  open: boolean;
+  onClick: (id: number) => void;
   children: React.ReactNode;
-  onClick: () => void;
-  open?: boolean;
 }
 
 export const AccordionItem: React.FC<Props> = ({
-  open = false,
-  title = "",
-  children,
-  onClick
+  id,
+  title,
+  open,
+  onClick,
+  children
 }) => {
-  const id = useId();
-  const { selectedItem, setSelectedItem } = useContext(AccordionContext);
-
-  const isOpen = open || selectedItem === id;
-  const containerOpenClass = isOpen
+  const containerOpenClass = open
     ? "xendit-accordion-item-open"
     : "xendit-accordion-item-closed";
-  const chevronDirection = isOpen ? "down" : "up";
+  const chevronDirection = open ? "down" : "up";
+
+  const toggleOpen = useCallback(() => {
+    onClick(id);
+  }, [onClick]);
 
   const handleKeyPress = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key === "Enter" || event.key === " ") {
-        setSelectedItem(id);
-        onClick();
+        toggleOpen();
+        event.preventDefault();
       }
     },
-    [onClick, setSelectedItem]
+    [toggleOpen]
   );
 
   const handleClick = useCallback(() => {
-    setSelectedItem(id);
-    onClick();
-  }, [onClick, setSelectedItem]);
+    toggleOpen();
+  }, [toggleOpen]);
 
   return (
     <div className="xendit-accordion-item">
@@ -52,7 +52,12 @@ export const AccordionItem: React.FC<Props> = ({
         <div className="xendit-accordion-item-header-title xendit-text-16">
           {title}
         </div>
-        <Icon name="chevron" size={24} direction={chevronDirection} />
+        <Icon
+          className="xendit-accordion-chevron"
+          name="chevron"
+          size={24}
+          direction={chevronDirection}
+        />
       </div>
       <div className={`xendit-accordion-item-content ${containerOpenClass}`}>
         {children}

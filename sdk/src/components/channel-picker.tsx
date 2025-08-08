@@ -1,50 +1,67 @@
-import React, { useContext, useCallback } from "react";
-import { Channel } from "../forms-types";
+import React, { useCallback } from "react";
 import { Accordion } from "./accordion";
 import { AccordionItem } from "./accordion-item";
-import { useChannels, useChannelUiGroups } from "./session-provider";
+import { useChannelUiGroups } from "./session-provider";
 import { ChannelPickerGroup } from "./channel-picker-group";
 
-interface Props {
-  onChannelPicked: (channel: Channel, channelElement: HTMLElement) => void;
-}
+interface Props {}
 
-export const XenditChannelPicker: React.FC<Props> = ({ onChannelPicked }) => {
+export const XenditChannelPicker: React.FC<Props> = (props) => {
   const channelUiGroups = useChannelUiGroups();
-  const channels = useChannels();
+
+  const thisRef = React.useRef<HTMLDivElement>(null);
+  const [selectedGroup, setSelectedGroup] = React.useState<number | null>(null);
 
   const handleSelectChannelGroup = useCallback(
-    (index: number) => {
-      if (!channelUiGroups || !channels) return;
-
-      const group = channelUiGroups[index];
-      if (!group) return;
-
-      const channelsInGroup = channels.filter(
-        (method) => method.ui_group === group.id
-      );
-
-      if (channelsInGroup.length === 1) {
-        const channel = channelsInGroup[0];
-        onChannelPicked(channel, document.createElement("div"));
+    (i: number) => {
+      if (selectedGroup === i) {
+        const groupId = channelUiGroups[i].id;
+        // this clears the selected channel if it belongs to this group
+        thisRef.current?.dispatchEvent(
+          new XenditClearActiveChannelEvent(groupId)
+        );
+        setSelectedGroup(null);
+      } else {
+        setSelectedGroup(i);
       }
     },
-    [channelUiGroups, channels, onChannelPicked]
+    [channelUiGroups, selectedGroup]
   );
 
   if (!channelUiGroups) return null;
 
   return (
-    <Accordion>
-      {channelUiGroups.map((group, i) => (
-        <AccordionItem
-          key={i}
-          title={group.label}
-          onClick={() => handleSelectChannelGroup(i)}
-        >
-          <ChannelPickerGroup group={group} />
-        </AccordionItem>
-      ))}
-    </Accordion>
+    // FIXME: make it work without this extra div
+    <div ref={thisRef}>
+      <Accordion>
+        {channelUiGroups.map((group, i) => {
+          const open = selectedGroup === i;
+          return (
+            <AccordionItem
+              key={i}
+              id={i}
+              title={group.label}
+              open={open}
+              onClick={handleSelectChannelGroup}
+            >
+              <ChannelPickerGroup group={group} open={open} />
+            </AccordionItem>
+          );
+        })}
+      </Accordion>
+    </div>
   );
 };
+
+export class XenditClearActiveChannelEvent extends Event {
+  static readonly type = "xendit-clear-active-channel" as const;
+  uiGroup: string;
+
+  constructor(uiGroup: string) {
+    super(XenditClearActiveChannelEvent.type, {
+      bubbles: true,
+      composed: true
+    });
+    this.uiGroup = uiGroup;
+  }
+}

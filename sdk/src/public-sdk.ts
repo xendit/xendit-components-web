@@ -22,9 +22,12 @@ import {
 } from "./public-data-types";
 import { internal } from "./internal";
 import { createElement, render } from "preact";
-import { XenditChannelPicker } from "./components/channel-picker";
+import {
+  XenditChannelPicker,
+  XenditClearActiveChannelEvent
+} from "./components/channel-picker";
 import { XenditSessionProvider } from "./components/session-provider";
-import { Channel, ChannelProperties } from "./forms-types";
+import { ChannelProperties } from "./forms-types";
 import {
   PaymentChannel,
   XenditChannelPropertiesChangedEvent
@@ -46,62 +49,109 @@ const secret = Math.random();
  * @internal
  */
 type SdkConstructorOptions = {
-  options: XenditSdkOptions;
-  bff: BffResponse;
-  secret: number;
+  [internal]: {
+    options: XenditSdkOptions;
+    bff: BffResponse;
+  };
+};
+
+/**
+ * @internal
+ */
+type CachedChannelComponent = {
+  element: HTMLElement;
+  channelProperties: ChannelProperties | null;
 };
 
 /**
  * @public
  */
-export class XenditSdkInstance extends EventTarget {
-  private initData: SdkConstructorOptions;
+export class XenditSessionSdk extends EventTarget {
+  /**
+   * @internal
+   */
+  private [internal]: {
+    /**
+     * Session data from backend.
+     */
+    initData: SdkConstructorOptions[typeof internal];
 
-  private activeChannelPickerComponent: HTMLElement | null = null;
-  private activeChannelComponent: HTMLElement | null = null;
-  private lastChannel: Channel | null = null;
-  private lastChannelProperties: ChannelProperties | null = null;
+    /**
+     * The channel picker element
+     **/
+    activeChannelPickerComponent: HTMLElement | null;
+
+    /**
+     * The most recently created payment channel component's channel code.
+     * This is used as a key into `paymentChannelComponents`.
+     */
+    activeChannelCode: string | null;
+
+    /**
+     * Map of channel code to the channel's respective HTMLElement and form state.
+     */
+    paymentChannelComponents: Map<string, CachedChannelComponent>;
+  };
 
   /**
    * @internal
    */
   constructor(initData: SdkConstructorOptions) {
     super();
-    if (initData.secret !== secret) {
+    if (initData[internal]) {
       throw new Error(
         "Don't construct this class directly, use XenditSdk.initializeSession()"
       );
     }
-    this.initData = initData;
+    this[internal] = {
+      initData: initData[internal],
+      activeChannelPickerComponent: null,
+      activeChannelCode: null,
+      paymentChannelComponents: new Map()
+    };
   }
 
-  private handleUiEvent = (event: Event) => {
-    switch (event.type) {
-      case "xendit-channel-properties-changed": {
-        if (event instanceof XenditChannelPropertiesChangedEvent) {
-          if (this.lastChannel?.channel_code !== event.channel) {
-            // channel properties changed, but not for the last channel
-            return;
-          }
-          this.lastChannelProperties = event.channelProperties;
-        }
-      }
-    }
-  };
+  private setupUiEventsForChannelPicker(container: HTMLElement): void {
+    // clear active channel when the channel picker accordion is closed
+    container.addEventListener(XenditClearActiveChannelEvent.type, (_event) => {
+      const event = _event as XenditClearActiveChannelEvent;
+      const activeChannelCode = this[internal].activeChannelCode;
+      if (!activeChannelCode) return;
+      const channel = this[internal].initData.bff.channels.find(
+        (ch) => ch.channel_code === activeChannelCode
+      );
+      if (!channel || channel.ui_group !== event.uiGroup) return;
 
-  private handleChannelPicked = (
-    channel: Channel,
-    channelElement: HTMLElement
-  ) => {
-    this.lastChannel = channel;
-  };
+      this.cleanupPaymentChannelComponent();
+      this.dispatchEvent(new XenditReadyToSubmitEvent(false));
+    });
+  }
+
+  private setupUiEventsForPaymentChannel(container: HTMLElement): void {
+    // update per-channel channel properties
+    container.addEventListener(
+      XenditChannelPropertiesChangedEvent.type,
+      (_event) => {
+        const event = _event as XenditChannelPropertiesChangedEvent;
+        const channelCode = event.channel;
+        const component =
+          this[internal].paymentChannelComponents.get(channelCode);
+        if (!component) {
+          return;
+        }
+        component.channelProperties = event.channelProperties;
+
+        this.dispatchEvent(new XenditReadyToSubmitEvent(true));
+      }
+    );
+  }
 
   /**
    * @public
    * Retrieve the xendit session object.
    */
   getSession(): XenditSession {
-    return bffSessionToPublicSession(this.initData.bff.session);
+    return bffSessionToPublicSession(this[internal].initData.bff.session);
   }
 
   /**
@@ -112,7 +162,7 @@ export class XenditSdkInstance extends EventTarget {
    * You can use this to render your channel picker UI.
    */
   getAvailablePaymentChannelGroups(): XenditPaymentChannelGroup[] {
-    return bffChannelsToPublicChannelGroups(this.initData.bff);
+    return bffChannelsToPublicChannelGroups(this[internal].initData.bff);
   }
 
   /**
@@ -123,7 +173,7 @@ export class XenditSdkInstance extends EventTarget {
    * use `getAvailablePaymentChannelGroups` instead.
    */
   getAvailablePaymentChannels(): XenditPaymentChannel[] {
-    return bffChannelsToPublicChannels(this.initData.bff.channels);
+    return bffChannelsToPublicChannels(this[internal].initData.bff.channels);
   }
 
   /**
@@ -143,25 +193,26 @@ export class XenditSdkInstance extends EventTarget {
     this.cleanupChannelPickerComponent();
 
     const container = document.createElement("xendit-channel-picker");
+    this.setupUiEventsForChannelPicker(container);
 
     render(
       createElement(XenditSessionProvider, {
-        data: this.initData.bff,
+        data: this[internal].initData.bff,
         sdk: this,
-        children: createElement(XenditChannelPicker, {
-          onChannelPicked: this.handleChannelPicked
-        })
+        children: createElement(XenditChannelPicker, {})
       }),
       container
     );
+
+    this[internal].activeChannelPickerComponent = container;
 
     return container;
   }
 
   private cleanupChannelPickerComponent(): void {
-    if (this.activeChannelPickerComponent) {
-      this.activeChannelPickerComponent.replaceChildren();
-      this.activeChannelPickerComponent = null;
+    if (this[internal].activeChannelPickerComponent) {
+      this[internal].activeChannelPickerComponent.replaceChildren();
+      this[internal].activeChannelPickerComponent = null;
     }
   }
 
@@ -183,33 +234,50 @@ export class XenditSdkInstance extends EventTarget {
    * document.querySelector(".payment-container").appendChild(paymentComponent);
    * ```
    */
-  createPaymentComponentForChannel(channel: XenditPaymentChannel): HTMLElement {
+  createPaymentComponentForChannel(
+    channel: XenditPaymentChannel,
+    active = true
+  ): HTMLElement {
     this.cleanupPaymentChannelComponent();
-    const container = document.createElement("xendit-payment-channel");
-    this.activeChannelComponent = container;
-    this.activeChannelComponent.addEventListener(
-      "xendit-channel-properties-changed",
-      this.handleUiEvent
-    );
+
+    const channelCode = channel[internal].channel_code;
+
+    let cachedComponent =
+      this[internal].paymentChannelComponents.get(channelCode);
+    let container: HTMLElement;
+    if (cachedComponent) {
+      container = cachedComponent.element;
+    } else {
+      container = document.createElement("xendit-payment-channel");
+      this.setupUiEventsForPaymentChannel(container);
+      this[internal].paymentChannelComponents.set(channelCode, {
+        element: container,
+        channelProperties: null
+      });
+    }
 
     render(
       createElement(XenditSessionProvider, {
-        data: this.initData.bff,
+        data: this[internal].initData.bff,
         sdk: this,
         children: createElement(PaymentChannel, {
-          channel: channel[internal]
+          channel: channel[internal],
+          active
         })
       }),
       container
     );
 
+    if (active) {
+      this[internal].activeChannelCode = channel[internal].channel_code;
+      this.dispatchEvent(new XenditReadyToSubmitEvent(true));
+    }
+
     return container;
   }
 
   private cleanupPaymentChannelComponent(): void {
-    if (this.activeChannelComponent) {
-      this.activeChannelComponent = null;
-    }
+    this[internal].activeChannelCode = null;
   }
 
   /**
@@ -223,6 +291,25 @@ export class XenditSdkInstance extends EventTarget {
    * to create a payment request or token, depending on the type of session.
    */
   submit() {}
+
+  /**
+   * @internal
+   * TODO: remove this, it's for debugging
+   */
+  getState() {
+    const channelCode = this[internal].activeChannelCode;
+    if (!channelCode) {
+      return {
+        channelCode: null,
+        channelProperties: null
+      };
+    }
+    const component = this[internal].paymentChannelComponents.get(channelCode);
+    return {
+      channelCode,
+      channelProperties: component?.channelProperties || null
+    };
+  }
 
   /**
    * @public
@@ -322,7 +409,7 @@ export class XenditSdkInstance extends EventTarget {
    */
   addEventListener<K extends keyof XenditEventMap>(
     type: K,
-    listener: (this: XenditSdkInstance, ev: XenditEventMap[K]) => any,
+    listener: (this: XenditSessionSdk, ev: XenditEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions
   ): void;
 
@@ -375,12 +462,13 @@ export class XenditSdkInstance extends EventTarget {
  */
 export async function initializeSession(
   options: XenditSdkOptions
-): Promise<XenditSdkInstance> {
+): Promise<XenditSessionSdk> {
   const bff = await fetchSessionData(options.sessionClientKey);
-  return new XenditSdkInstance({
-    options,
-    bff,
-    secret
+  return new XenditSessionSdk({
+    [internal]: {
+      options,
+      bff
+    }
   });
 }
 
@@ -392,10 +480,11 @@ export async function initializeSession(
  */
 export async function initializeTestSession(
   options: XenditSdkOptions & XenditSdkTestOptions
-): Promise<XenditSdkInstance> {
-  return new XenditSdkInstance({
-    options,
-    bff: (await import("./test-data")).makeTestBffData(),
-    secret
+): Promise<XenditSessionSdk> {
+  return new XenditSessionSdk({
+    [internal]: {
+      options,
+      bff: (await import("./test-data")).makeTestBffData()
+    }
   });
 }
