@@ -32,24 +32,22 @@ import {
   PaymentChannel,
   XenditChannelPropertiesChangedEvent
 } from "./components/payment-channel";
-
-async function fetchSessionData(
-  sessionClientKey: string
-): Promise<BffResponse> {
-  const response = await fetch(`/api/session?clientKey=${sessionClientKey}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch session data");
-  }
-  return response.json() as Promise<BffResponse>;
-}
-
-const secret = Math.random();
+import { fetchSessionData } from "./network";
+import {
+  pickAction,
+  redirectCanBeHandledInIframe,
+  V3Action,
+  V3PaymentRequest,
+  V3PaymentToken
+} from "./v3-types";
+import { makeTestV3PaymentRequest } from "./test-data";
 
 /**
  * @internal
  */
 type SdkConstructorOptions = {
   [internal]: {
+    isTest?: boolean;
     options: XenditSdkOptions;
     bff: BffResponse;
   };
@@ -91,6 +89,16 @@ export class XenditSessionSdk extends EventTarget {
      * Map of channel code to the channel's respective HTMLElement and form state.
      */
     paymentChannelComponents: Map<string, CachedChannelComponent>;
+
+    /**
+     * The payment request that we're currently working on.
+     */
+    paymentRequest: V3PaymentRequest | null;
+
+    /**
+     * The payment request that we're currently working on.
+     */
+    paymentToken: V3PaymentToken | null;
   };
 
   /**
@@ -98,7 +106,7 @@ export class XenditSessionSdk extends EventTarget {
    */
   constructor(initData: SdkConstructorOptions) {
     super();
-    if (initData[internal]) {
+    if (!initData[internal]) {
       throw new Error(
         "Don't construct this class directly, use XenditSdk.initializeSession()"
       );
@@ -107,7 +115,9 @@ export class XenditSessionSdk extends EventTarget {
       initData: initData[internal],
       activeChannelPickerComponent: null,
       activeChannelCode: null,
-      paymentChannelComponents: new Map()
+      paymentChannelComponents: new Map(),
+      paymentRequest: null,
+      paymentToken: null
     };
   }
 
@@ -290,7 +300,76 @@ export class XenditSessionSdk extends EventTarget {
    * This corresponds to the POST /v3/payment_requests or POST /v3/payment_tokens endpoints,
    * to create a payment request or token, depending on the type of session.
    */
-  submit() {}
+  submit() {
+    const channelCode = this[internal].activeChannelCode;
+    if (!channelCode) {
+      throw new Error("No active payment channel component");
+    }
+    const component = this[internal].paymentChannelComponents.get(channelCode);
+    if (!component) {
+      throw new Error("No active payment channel component");
+    }
+
+    if (this[internal].initData.isTest) {
+      setTimeout(() => {
+        if (this[internal].initData.bff.session.session_type === "PAY") {
+          this[internal].paymentRequest = makeTestV3PaymentRequest(
+            this[internal].initData.bff.session,
+            channelCode,
+            component.channelProperties ?? {}
+          );
+        } else {
+          // TODO
+          throw new Error("Not implemented.");
+        }
+        this.handlePrPtStatusChange();
+      });
+    } else {
+      // TODO
+      throw new Error("Not implemented.");
+    }
+  }
+
+  private handlePrPtStatusChange() {
+    const prOrPt = this[internal].paymentRequest ?? this[internal].paymentToken;
+    if (!prOrPt) {
+      throw new Error("No payment request or token created");
+    }
+
+    switch (prOrPt.status) {
+      case "REQUIRES_ACTION":
+        this.dispatchEvent(new XenditUserActionRequiredEvent());
+        this.handleAction(
+          prOrPt.channel_properties,
+          pickAction(prOrPt.actions)
+        );
+        break;
+      case "AUTHORIZED":
+      case "SUCCEEDED":
+        this.dispatchEvent(new XenditSessionCompleteEvent());
+        break;
+      case "CANCELED":
+      case "EXPIRED":
+      case "FAILED":
+        this.dispatchEvent(new XenditSessionFailedEvent());
+        break;
+      default:
+        throw new Error(`Unknown payment request status: ${prOrPt.status}`);
+    }
+  }
+
+  private handleAction(channelProperties: ChannelProperties, action: V3Action) {
+    switch (action.type) {
+      case "PRESENT_TO_CUSTOMER":
+      case "REDIRECT_CUSTOMER":
+        // this.createActionHandlerComponent(action);
+        break;
+      case "API_POST_REQUEST":
+        throw new Error(`Not implemented: ${action.type} ${action.descriptor}`);
+        break;
+    }
+    throw new Error(`Unknown action type: ${action.type}`);
+  }
 
   /**
    * @internal
@@ -483,6 +562,7 @@ export async function initializeTestSession(
 ): Promise<XenditSessionSdk> {
   return new XenditSessionSdk({
     [internal]: {
+      isTest: true,
       options,
       bff: (await import("./test-data")).makeTestBffData()
     }

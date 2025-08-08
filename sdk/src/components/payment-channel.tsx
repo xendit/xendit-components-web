@@ -28,10 +28,12 @@ export const PaymentChannel: React.FC<Props> = (props, formRef) => {
         onChannelPropertiesChanged={onChannelPropertiesChanged}
       />
       <div className="xendit-payment-channel-instructions">
-        <Icon name="instructions" size={16} />
-        <div className="xendit-text-14">
-          {channel.instructions.map((instr, index) => (
-            <div key={index}>{instr}</div>
+        <Icon name="instructions" size={40} />
+        <div className="xendit-payment-channel-instructions-text xendit-text-12">
+          {channel.instructions.map((instr, i) => (
+            <p key={i} className={i === 0 ? "xendit-text-semibold" : undefined}>
+              {instr}
+            </p>
           ))}
         </div>
       </div>

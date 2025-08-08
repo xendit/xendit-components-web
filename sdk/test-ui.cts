@@ -22,17 +22,50 @@ outer.appendChild(controlsDiv);
 const outputChannelProperties = document.createElement("textarea");
 outputChannelProperties.style.width = "100%";
 outputChannelProperties.setAttribute("rows", "20");
-outputChannelProperties.setAttribute("readonly", "");
 controlsDiv.appendChild(outputChannelProperties);
 
-const sdk = (window as any).XenditSdk as typeof import("./src/public-sdk");
-const inst = await sdk.initializeTestSession({
+const clearButton = document.createElement("button");
+clearButton.textContent = "Clear Output";
+controlsDiv.appendChild(clearButton);
+clearButton.addEventListener("click", () => {
+  outputChannelProperties.value = "";
+});
+
+const submitButton = document.createElement("button");
+submitButton.textContent = "Submit";
+controlsDiv.appendChild(submitButton);
+
+const { initializeTestSession } = (window as any)
+  .XenditSdk as typeof import("./src/public-sdk");
+const sdk = await initializeTestSession({
   sessionClientKey: "1234"
 });
-const channelPicker = inst.createChannelPickerComponent();
+const channelPicker = sdk.createChannelPickerComponent();
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 
-inst.addEventListener("ready-to-submit", (event: XenditReadyToSubmitEvent) => {
-  const state = inst.getState();
-  outputChannelProperties.value = JSON.stringify(state, null, 2);
+function logEvent(event: Event) {
+  const { type, isTrusted, ...rest } = event;
+  outputChannelProperties.value += JSON.stringify({
+    type,
+    ...rest
+  });
+  outputChannelProperties.value += "\n";
+}
+
+sdk.addEventListener("ready-to-submit", logEvent);
+sdk.addEventListener("session-complete", logEvent);
+sdk.addEventListener("session-failed", logEvent);
+sdk.addEventListener("user-action-complete", logEvent);
+sdk.addEventListener("user-action-required", logEvent);
+sdk.addEventListener("will-redirect", logEvent);
+sdk.addEventListener("error", logEvent);
+
+sdk.addEventListener("ready-to-submit", (event: XenditReadyToSubmitEvent) => {
+  const state = sdk.getState();
+  outputChannelProperties.value += JSON.stringify(state);
+  outputChannelProperties.value += "\n";
+});
+
+submitButton.addEventListener("click", () => {
+  sdk.submit();
 });

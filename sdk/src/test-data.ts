@@ -1,4 +1,6 @@
-import { BffResponse } from "./bff-types";
+import { BffResponse, BffSession } from "./bff-types";
+import { ChannelProperties } from "./forms-types";
+import { V3PaymentRequest } from "./v3-types";
 
 const examplePublicKey =
   "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEVpIgrkofEwt4eLojVyGHgqTu3DS/kKmzvNf+fS2AdkiSQYrNYdtRjY3Ga+Vif+MR6GE5g3A5r5DXP6RFTel7CoIdZ7tyylAq8pwzYbEyb7Q0KOWcifkH/ZyQVA7Gz11e";
@@ -1064,5 +1066,41 @@ export function makeTestBffData(): BffResponse {
           "https://assets.xendit.co/payment-session/logos/OVER_THE_COUNTER.svg"
       }
     ]
+  };
+}
+
+function makeTestRandomId() {
+  return Math.random().toString(36).substring(2, 15);
+}
+
+export function makeTestV3PaymentRequest(
+  session: BffSession,
+  channelCode: string,
+  channelProperties: ChannelProperties
+): V3PaymentRequest {
+  return {
+    payment_request_id: `pr-${makeTestRandomId()}`,
+    country: session.country,
+    currency: session.currency,
+    business_id: session.business_id,
+    reference_id: session.reference_id,
+    description: session.description,
+    created: Date.now().toString(),
+    updated: Date.now().toString(),
+    status: "REQUIRES_ACTION",
+    capture_method: "AUTOMATIC",
+    channel_code: channelCode,
+    customer_id: session.customer_id,
+    request_amount: session.amount,
+    channel_properties: channelProperties,
+    type: "PAY",
+    actions: [
+      {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "WEB_URL",
+        value: "https://example.com/redirect"
+      }
+    ],
+    session_token_request_id: makeTestRandomId()
   };
 }

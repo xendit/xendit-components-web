@@ -93,8 +93,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
-  console.log("render iframe", iframeUrl.search.toString());
-
   return (
     <div className={`xendit-iframe-container ${focusClass}`}>
       <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />

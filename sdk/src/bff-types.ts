@@ -1,4 +1,5 @@
-import { ChannelUiGroup, Channel } from "./forms-types";
+import { ChannelUiGroup, Channel, ChannelProperties } from "./forms-types";
+import { V3Action } from "./v3-types";
 
 export type BffBusiness = {
   country_of_operation: string;

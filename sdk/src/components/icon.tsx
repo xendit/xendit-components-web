@@ -87,7 +87,7 @@ const iconData = [
   ),
   makeIcon(
     "instructions",
-    <g transform="scale(0.6 0.6)">
+    <>
       <g opacity="0.5">
         <path
           d="M8.79453 10.2303C7.1791 10.2303 5.86953 11.5399 5.86953 13.1553V28.9503C5.86953 31.535 7.96484 33.6303 10.5495 33.6303H26.3445C27.96 33.6303 29.2695 32.3208 29.2695 30.7053"
@@ -123,7 +123,7 @@ const iconData = [
         stroke-linecap="round"
         stroke-linejoin="round"
       />
-    </g>,
+    </>,
     40 / 24
   )
 ];

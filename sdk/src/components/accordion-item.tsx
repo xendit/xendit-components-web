@@ -49,7 +49,7 @@ export const AccordionItem: React.FC<Props> = ({
         tabIndex={0}
       >
         <Icon name="dummy" size={24} />
-        <div className="xendit-accordion-item-header-title xendit-text-16">
+        <div className="xendit-accordion-item-header-title xendit-text-16 xendit-text-bold">
           {title}
         </div>
         <Icon
