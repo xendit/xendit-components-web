@@ -52,7 +52,7 @@ export const AccordionItem: React.FC<Props> = ({
         <div className="xendit-accordion-item-header-title xendit-text-16">
           {title}
         </div>
-        <Icon name="chevron-down" size={24} direction={chevronDirection} />
+        <Icon name="chevron" size={24} direction={chevronDirection} />
       </div>
       <div className={`xendit-accordion-item-content ${containerOpenClass}`}>
         {children}
