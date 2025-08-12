@@ -1,3 +1,4 @@
+import { createElement, render } from "preact";
 import { BffSession } from "./bff-types";
 import { ChannelProperties } from "./forms-types";
 import {
@@ -13,6 +14,7 @@ import {
   V3PaymentRequest,
   V3PaymentToken
 } from "./v3-types";
+import { ActionHandler } from "./components/action-handler";
 
 type DoneCallback = (error?: Error) => void;
 
@@ -35,6 +37,8 @@ class Submitter {
         paymentToken: V3PaymentToken;
       }
     | null = null;
+
+  private actionHandlerElement: HTMLElement | null = null;
 
   constructor(
     sdk: XenditSessionSdk,
@@ -78,6 +82,38 @@ class Submitter {
     }
   }
 
+  pollStatus = () => {
+    if (this.isTest) {
+      switch (this.paymentEntity?.type) {
+        case "request":
+          this.paymentEntity.paymentRequest.actions = [];
+          this.paymentEntity.paymentRequest.status = "SUCCEEDED";
+          break;
+        case "token":
+          this.paymentEntity.paymentToken.actions = [];
+          this.paymentEntity.paymentToken.status = "ACTIVE";
+          break;
+      }
+      this.handlePrPtByStatus();
+    } else {
+      // TODO
+      throw new Error("Not implemented.");
+    }
+  };
+
+  cancel = () => {
+    this.cleanup();
+    // TODO
+  };
+
+  cleanup = () => {
+    if (this.actionHandlerElement) {
+      this.actionHandlerElement.remove();
+      this.actionHandlerElement = null;
+    }
+    this.paymentEntity = null;
+  };
+
   private getPrOrPt(): V3PaymentRequest | V3PaymentToken {
     if (this.paymentEntity) {
       switch (this.paymentEntity.type) {
@@ -96,18 +132,32 @@ class Submitter {
     switch (prOrPt.status) {
       case "REQUIRES_ACTION":
         this.sdk.dispatchEvent(new XenditUserActionRequiredEvent());
-        this.handleAction(
-          prOrPt.channel_properties,
-          pickAction(prOrPt.actions)
-        );
+        const action = pickAction(prOrPt.actions);
+        switch (action.type) {
+          case "PRESENT_TO_CUSTOMER":
+          case "REDIRECT_CUSTOMER":
+            this.actionHandlerElement =
+              this.createActionHandlerComponent(action);
+            document.body.appendChild(this.actionHandlerElement);
+            break;
+          case "API_POST_REQUEST":
+            throw new Error(
+              `Not implemented: ${action.type} ${action.descriptor}`
+            );
+            break;
+        }
+        throw new Error(`Unknown action type: ${action.type}`);
         break;
       case "AUTHORIZED":
       case "SUCCEEDED":
+      case "ACTIVE":
+        this.cleanup();
         this.sdk.dispatchEvent(new XenditSessionCompleteEvent());
         break;
       case "CANCELED":
       case "EXPIRED":
       case "FAILED":
+        this.cleanup();
         this.sdk.dispatchEvent(new XenditSessionFailedEvent());
         break;
       default:
@@ -115,17 +165,26 @@ class Submitter {
     }
   }
 
-  private handleAction(channelProperties: ChannelProperties, action: V3Action) {
-    switch (action.type) {
-      case "PRESENT_TO_CUSTOMER":
-      case "REDIRECT_CUSTOMER":
-        // this.createActionHandlerComponent(action);
-        break;
-      case "API_POST_REQUEST":
-        throw new Error(`Not implemented: ${action.type} ${action.descriptor}`);
-        break;
+  private createActionHandlerComponent(action: V3Action) {
+    if (!this.paymentEntity) {
+      throw new Error("Payment request or token not created yet");
     }
-    throw new Error(`Unknown action type: ${action.type}`);
+
+    const container = document.createElement("xendit-action-handler");
+
+    render(
+      createElement(ActionHandler, {
+        paymentEntity: this.paymentEntity,
+        isTest: this.isTest,
+        channelProperties: this.channelProperties,
+        action,
+        triggerPoll: this.pollStatus,
+        onCancel: this.cancel
+      }),
+      container
+    );
+
+    return container;
   }
 }
 

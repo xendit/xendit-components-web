@@ -15,7 +15,8 @@ html {
 
 /* Set default font for root components */
 xendit-channel-picker,
-xendit-payment-channel {
+xendit-payment-channel,
+xendit-action-handler {
   font-family: var(--xendit-font-family, sans-serif);
 }
 
@@ -192,4 +193,51 @@ xendit-payment-channel {
 
 .xendit-channel-form-field.xendit-form-field-span-2 {
   grid-column: span 2;
+}
+
+/* Dialog */
+
+.xendit-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #00000066;
+  display: flex;
+  padding: 48px;
+  justify-content: center;
+  align-items: center;
+}
+
+.xendit-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--xendit-color-background);
+  padding: 8px 0;
+  gap: 16px;
+  line-height: 24px;
+}
+
+.xendit-dialog-header button {
+  background: none;
+  border: none;
+  color: var(--xendit-color-background);
+  cursor: pointer;
+  padding: 0;
+}
+
+.xendit-dialog-body {
+  display: flex;
+  background-color: var(--xendit-color-background);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.xendit-3ds-iframe {
+  width: 400px;
+  height: 390px;
+  border: none;
+  background-color: var(--xendit-color-background);
 }
