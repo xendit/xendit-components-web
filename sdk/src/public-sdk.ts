@@ -33,14 +33,7 @@ import {
   XenditChannelPropertiesChangedEvent
 } from "./components/payment-channel";
 import { fetchSessionData } from "./network";
-import {
-  pickAction,
-  redirectCanBeHandledInIframe,
-  V3Action,
-  V3PaymentRequest,
-  V3PaymentToken
-} from "./v3-types";
-import { makeTestV3PaymentRequest } from "./test-data";
+import Submitter from "./submitter";
 
 /**
  * @internal
@@ -91,14 +84,9 @@ export class XenditSessionSdk extends EventTarget {
     paymentChannelComponents: Map<string, CachedChannelComponent>;
 
     /**
-     * The payment request that we're currently working on.
+     * Payment submission controller.
      */
-    paymentRequest: V3PaymentRequest | null;
-
-    /**
-     * The payment request that we're currently working on.
-     */
-    paymentToken: V3PaymentToken | null;
+    submitter: Submitter | null;
   };
 
   /**
@@ -116,8 +104,7 @@ export class XenditSessionSdk extends EventTarget {
       activeChannelPickerComponent: null,
       activeChannelCode: null,
       paymentChannelComponents: new Map(),
-      paymentRequest: null,
-      paymentToken: null
+      submitter: null
     };
   }
 
@@ -310,65 +297,18 @@ export class XenditSessionSdk extends EventTarget {
       throw new Error("No active payment channel component");
     }
 
-    if (this[internal].initData.isTest) {
-      setTimeout(() => {
-        if (this[internal].initData.bff.session.session_type === "PAY") {
-          this[internal].paymentRequest = makeTestV3PaymentRequest(
-            this[internal].initData.bff.session,
-            channelCode,
-            component.channelProperties ?? {}
-          );
-        } else {
-          // TODO
-          throw new Error("Not implemented.");
-        }
-        this.handlePrPtStatusChange();
-      });
-    } else {
-      // TODO
-      throw new Error("Not implemented.");
-    }
-  }
-
-  private handlePrPtStatusChange() {
-    const prOrPt = this[internal].paymentRequest ?? this[internal].paymentToken;
-    if (!prOrPt) {
-      throw new Error("No payment request or token created");
-    }
-
-    switch (prOrPt.status) {
-      case "REQUIRES_ACTION":
-        this.dispatchEvent(new XenditUserActionRequiredEvent());
-        this.handleAction(
-          prOrPt.channel_properties,
-          pickAction(prOrPt.actions)
-        );
-        break;
-      case "AUTHORIZED":
-      case "SUCCEEDED":
-        this.dispatchEvent(new XenditSessionCompleteEvent());
-        break;
-      case "CANCELED":
-      case "EXPIRED":
-      case "FAILED":
-        this.dispatchEvent(new XenditSessionFailedEvent());
-        break;
-      default:
-        throw new Error(`Unknown payment request status: ${prOrPt.status}`);
-    }
-  }
-
-  private handleAction(channelProperties: ChannelProperties, action: V3Action) {
-    switch (action.type) {
-      case "PRESENT_TO_CUSTOMER":
-      case "REDIRECT_CUSTOMER":
-        // this.createActionHandlerComponent(action);
-        break;
-      case "API_POST_REQUEST":
-        throw new Error(`Not implemented: ${action.type} ${action.descriptor}`);
-        break;
-    }
-    throw new Error(`Unknown action type: ${action.type}`);
+    this[internal].submitter = new Submitter(
+      this,
+      this[internal].initData.bff.session,
+      channelCode,
+      component.channelProperties || {},
+      this[internal].initData.isTest || false,
+      (error?: Error) => {
+        debugger;
+        this[internal].submitter = null;
+      }
+    );
+    this[internal].submitter.begin();
   }
 
   /**
