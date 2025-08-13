@@ -5,13 +5,14 @@ import {
   bffSessionToPublicSession
 } from "./bff-marshal";
 import {
+  XenditActionBeginEvent,
+  XenditActionEndEvent,
   XenditEventListener,
   XenditEventMap,
-  XenditReadyToSubmitEvent,
+  XenditNotReadyEvent,
+  XenditReadyEvent,
   XenditSessionCompleteEvent,
   XenditSessionFailedEvent,
-  XenditUserActionCompleteEvent,
-  XenditUserActionRequiredEvent,
   XenditWillRedirectEvent
 } from "./public-event-types";
 import { XenditSdkOptions, XenditSdkTestOptions } from "./public-options-types";
@@ -120,7 +121,7 @@ export class XenditSessionSdk extends EventTarget {
       if (!channel || channel.ui_group !== event.uiGroup) return;
 
       this.cleanupPaymentChannelComponent();
-      this.dispatchEvent(new XenditReadyToSubmitEvent(false));
+      this.dispatchEvent(new XenditNotReadyEvent());
     });
   }
 
@@ -138,7 +139,7 @@ export class XenditSessionSdk extends EventTarget {
         }
         component.channelProperties = event.channelProperties;
 
-        this.dispatchEvent(new XenditReadyToSubmitEvent(true));
+        this.dispatchEvent(new XenditReadyEvent());
       }
     );
   }
@@ -267,7 +268,7 @@ export class XenditSessionSdk extends EventTarget {
 
     if (active) {
       this[internal].activeChannelCode = channel[internal].channel_code;
-      this.dispatchEvent(new XenditReadyToSubmitEvent(true));
+      this.dispatchEvent(new XenditReadyEvent());
     }
 
     return container;
@@ -332,22 +333,68 @@ export class XenditSessionSdk extends EventTarget {
 
   /**
    * @public
-   * Event handler for when the user is ready to submit.
-   * This means a payment channel component exists, and any required fields have
-   * been filled.
+   * The `ready` and `not-ready` events let you know when submission should be available.
+   * If ready, you can call `submit()` to begin the payment or token creation process.
    *
-   * Use this to enable your submit button.
+   * "ready" means a channel has been selected, and all required fields are populated and valid.
+   *
+   * Use this to enable/disable your submit button.
    *
    * @example
    * ```
-   * function onReadyToSubmit(event: StatusEvent) {
-   *   submitButton.disabled = event.ready;
-   * }
+   * xenditSdk.addEventListener("ready", () => {
+   *   submitButton.disabled = false;
+   * });
+   * xenditSdk.addEventListener("not-ready", () => {
+   *   submitButton.disabled = true;
+   * });
    * ```
    */
   addEventListener(
-    name: "ready-to-submit",
-    listener: XenditEventListener<XenditReadyToSubmitEvent>,
+    name: "ready",
+    listener: XenditEventListener<XenditReadyEvent>,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+  addEventListener(
+    name: "not-ready",
+    listener: XenditEventListener<XenditReadyEvent>,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+
+  /**
+   * @public
+   * The `action-begin` and `action-end` events let you know when a user action is in progress.
+   *
+   * After submission, an action may be required (e.g. 3DS, redirect, QR code, etc.).
+   * The SDK will control the UI for actions, you don't need to do anything.
+   *
+   * Avoid changing any application state while an action is in progress as that may be
+   * confusing for the user or interrupt their payment attempt.
+   *
+   * `action-end` is fired after the action is done, successfully or not. Note that users can
+   * voluntarily dismiss actions.
+   */
+  addEventListener(
+    name: "action-begin",
+    listener: XenditEventListener<XenditActionBeginEvent>,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+  addEventListener(
+    name: "action-end",
+    listener: XenditEventListener<XenditActionEndEvent>,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+
+  /**
+   * @public
+   * Event handler called just before the user is redirected to a third party site to
+   * complete the payment.
+   *
+   * Since redirects are actions, this will always be preceded by an `action-begin` event.
+   */
+  addEventListener(
+    name: "will-redirect",
+    listener: XenditEventListener<XenditWillRedirectEvent>,
     options?: boolean | AddEventListenerOptions
   ): void;
 
@@ -369,45 +416,6 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "session-failed",
     listener: XenditEventListener<XenditSessionFailedEvent>,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-
-  /**
-   * @public
-   * Event handler called when the a payment request or payemnt token has been created,
-   * but additional user action is required to complete the payment or create the token.
-   *
-   * No action is required.
-   */
-  addEventListener(
-    name: "user-action-required",
-    listener: XenditEventListener<XenditUserActionRequiredEvent>,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-
-  /**
-   * @public
-   * Event handler called when a user action is done, regardless of whether it was successful or not.
-   * Some user actions are modal windows, use this event if you want to know when the modal is closed.
-   *
-   * No action is required.
-   */
-  addEventListener(
-    name: "user-action-complete",
-    listener: XenditEventListener<XenditUserActionCompleteEvent>,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-
-  /**
-   * @public
-   * Event handler called just before the user is redirected to a third party site to
-   * complete the payment.
-   *
-   * No action is required.
-   */
-  addEventListener(
-    name: "will-redirect",
-    listener: XenditEventListener<XenditWillRedirectEvent>,
     options?: boolean | AddEventListenerOptions
   ): void;
 

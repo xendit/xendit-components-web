@@ -2,9 +2,9 @@ import { createElement, render } from "preact";
 import { BffSession } from "./bff-types";
 import { ChannelProperties } from "./forms-types";
 import {
+  XenditActionBeginEvent,
   XenditSessionCompleteEvent,
-  XenditSessionFailedEvent,
-  XenditUserActionRequiredEvent
+  XenditSessionFailedEvent
 } from "./public-event-types";
 import { XenditSessionSdk } from "./public-sdk";
 import { makeTestV3PaymentRequest } from "./test-data";
@@ -131,13 +131,13 @@ class Submitter {
 
     switch (prOrPt.status) {
       case "REQUIRES_ACTION":
-        this.sdk.dispatchEvent(new XenditUserActionRequiredEvent());
+        this.sdk.dispatchEvent(new XenditActionBeginEvent());
         const action = pickAction(prOrPt.actions);
         switch (action.type) {
           case "PRESENT_TO_CUSTOMER":
           case "REDIRECT_CUSTOMER":
             this.actionHandlerElement =
-              this.createActionHandlerComponent(action);
+              this.createModalActionHandlerComponent(action);
             document.body.appendChild(this.actionHandlerElement);
             break;
           case "API_POST_REQUEST":
@@ -165,7 +165,7 @@ class Submitter {
     }
   }
 
-  private createActionHandlerComponent(action: V3Action) {
+  private createModalActionHandlerComponent(action: V3Action) {
     if (!this.paymentEntity) {
       throw new Error("Payment request or token not created yet");
     }

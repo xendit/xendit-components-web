@@ -2,7 +2,7 @@
 This must be a single file with no imports.
 */
 
-import type { XenditReadyToSubmitEvent } from "./src/public-event-types";
+import { XenditReadyEvent } from "./src";
 
 const outer = document.createElement("div");
 outer.id = "wrapper";
@@ -52,15 +52,19 @@ function logEvent(event: Event) {
   outputChannelProperties.value += "\n";
 }
 
-sdk.addEventListener("ready-to-submit", logEvent);
+sdk.addEventListener("ready", logEvent);
+sdk.addEventListener("not-ready", logEvent);
+
+sdk.addEventListener("action-begin", logEvent);
+sdk.addEventListener("action-end", logEvent);
+sdk.addEventListener("will-redirect", logEvent);
+
 sdk.addEventListener("session-complete", logEvent);
 sdk.addEventListener("session-failed", logEvent);
-sdk.addEventListener("user-action-complete", logEvent);
-sdk.addEventListener("user-action-required", logEvent);
-sdk.addEventListener("will-redirect", logEvent);
+
 sdk.addEventListener("error", logEvent);
 
-sdk.addEventListener("ready-to-submit", (event: XenditReadyToSubmitEvent) => {
+sdk.addEventListener("ready", (event: XenditReadyEvent) => {
   const state = sdk.getState();
   outputChannelProperties.value += JSON.stringify(state);
   outputChannelProperties.value += "\n";

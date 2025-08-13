@@ -9,74 +9,71 @@ export type XenditEventListener<T extends Event> =
  * @public
  */
 export type XenditEventMap = {
-  "ready-to-submit": XenditReadyToSubmitEvent;
+  ready: XenditReadyEvent;
+  "not-ready": XenditReadyEvent;
+
+  "action-begin": XenditActionBeginEvent;
+  "action-end": XenditActionEndEvent;
+
+  "will-redirect": XenditWillRedirectEvent;
+
   "session-complete": XenditSessionCompleteEvent;
   "session-failed": XenditSessionFailedEvent;
-  "user-action-required": XenditUserActionRequiredEvent;
-  "user-action-complete": XenditUserActionCompleteEvent;
-  "will-redirect": XenditWillRedirectEvent;
+
   error: XenditErrorEvent;
 };
 
 /**
  * @public
+ * Event fired when the SDK is ready to submit.
  */
-export class XenditReadyToSubmitEvent extends Event {
-  static type = "ready-to-submit" as const;
-  ready: boolean;
-
-  constructor(ready: boolean) {
-    super(XenditReadyToSubmitEvent.type, {});
-    this.ready = ready;
-  }
-}
-
-/**
- * @public
- */
-export class XenditSessionCompleteEvent extends Event {
-  static type = "session-complete" as const;
+export class XenditReadyEvent extends Event {
+  static type = "ready" as const;
 
   constructor() {
-    super(XenditSessionCompleteEvent.type, {});
+    super(XenditReadyEvent.type, {});
   }
 }
 
 /**
  * @public
+ * Event fired when the SDK is not ready to submit.
  */
-export class XenditSessionFailedEvent extends Event {
-  static type = "session-failed" as const;
+export class XenditNotReadyEvent extends Event {
+  static type = "not-ready" as const;
 
   constructor() {
-    super(XenditSessionFailedEvent.type, {});
+    super(XenditNotReadyEvent.type, {});
   }
 }
 
 /**
  * @public
+ * Event sometimes fired after submission, if an action is required.
  */
-export class XenditUserActionRequiredEvent extends Event {
-  static type = "user-action-required" as const;
+export class XenditActionBeginEvent extends Event {
+  static type = "action-begin" as const;
 
   constructor() {
-    super(XenditUserActionRequiredEvent.type, {});
+    super(XenditActionBeginEvent.type, {});
   }
 }
 
 /**
  * @public
+ * Event fired when an action ends, success or fail.
  */
-export class XenditUserActionCompleteEvent extends Event {
-  static type = "user-action-complete" as const;
+export class XenditActionEndEvent extends Event {
+  static type = "action-end" as const;
 
   constructor() {
-    super(XenditUserActionCompleteEvent.type, {});
+    super(XenditActionEndEvent.type, {});
   }
 }
 
 /**
  * @public
+ * Event fired when the a redirect action is about to happen.
  */
 export class XenditWillRedirectEvent extends Event {
   static type = "will-redirect" as const;
@@ -88,6 +85,33 @@ export class XenditWillRedirectEvent extends Event {
 
 /**
  * @public
+ * Event fired when the session is complete, meaning the payment has been processed
+ * or the token has been created.
+ */
+export class XenditSessionCompleteEvent extends Event {
+  static type = "session-complete" as const;
+
+  constructor() {
+    super(XenditSessionCompleteEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Event fired when the session has failed, meaning expired or cancelled.
+ */
+export class XenditSessionFailedEvent extends Event {
+  static type = "session-failed" as const;
+
+  constructor() {
+    super(XenditSessionFailedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Event fired when an error occurs within the SDK and it should be
+ * re-initialized or the page should be reloaded.
  */
 export class XenditErrorEvent extends Event {
   static type = "error" as const;
