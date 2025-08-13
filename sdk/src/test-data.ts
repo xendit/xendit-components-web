@@ -585,7 +585,7 @@ export function makeTestBffData(): BffResponse {
           {
             label: "Card Expiry",
             placeholder: "06/24",
-            type: { name: "credit_card_expiry" },
+            type: { name: "text", max_length: 5 },
             channel_property: "card_expiry",
             required: false,
             span: 1
@@ -729,7 +729,7 @@ export function makeTestBffData(): BffResponse {
           {
             label: "Card Expiry",
             placeholder: "06/24",
-            type: { name: "credit_card_expiry" },
+            type: { name: "text", max_length: 5 },
             channel_property: "card_expiry",
             required: false,
             span: 1
@@ -795,7 +795,7 @@ export function makeTestBffData(): BffResponse {
           {
             label: "Card Expiry",
             placeholder: "06/24",
-            type: { name: "credit_card_expiry" },
+            type: { name: "text", max_length: 5 },
             channel_property: "card_expiry",
             required: false,
             span: 1
