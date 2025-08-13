@@ -48,15 +48,23 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
-          const result = [
-            "xendit-encrypted",
-            encryptionVersion,
-            iframeEcdhPublicKey,
-            encrypted.iv,
-            encrypted.value
-          ].join("-");
+          const resultData = encrypted.map((enc) => {
+            return [
+              "xendit-encrypted",
+              encryptionVersion,
+              iframeEcdhPublicKey,
+              enc.iv,
+              enc.value
+            ].join("-");
+          });
 
-          hiddenFieldRef.current.value = result;
+          if (resultData.length === 0) {
+            break; // should never happen
+          }
+
+          // fields expecting a single value are normal strings, fields expecting multiple values are json arrays
+          hiddenFieldRef.current.value =
+            resultData.length > 1 ? JSON.stringify(resultData) : resultData[0];
           onChange?.();
           break;
         }

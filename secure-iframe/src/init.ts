@@ -119,17 +119,43 @@ export async function init() {
   async function handleChangeEvent(value: string) {
     const inputValue = value;
     const validationResult = validate(queryInputs.inputType, inputValue);
-    const { ivBytes, cipherTextBytes } = await encryptText(
-      inputValue,
-      sharedKey,
-      sessionIdHashBytes
+
+    let extractedInputValues: string[];
+    switch (queryInputs.inputType) {
+      case "credit_card_number":
+        extractedInputValues = [inputValue];
+        break;
+      case "credit_card_cvn":
+        extractedInputValues = [inputValue];
+        break;
+      case "credit_card_expiry":
+        const parts = inputValue.split("/");
+        extractedInputValues = [
+          (parts[0] ?? "").trim(),
+          (parts[1] ?? "").trim()
+        ];
+        break;
+      default:
+        throw new Error(`Unsupported input type: ${queryInputs.inputType}`);
+    }
+
+    const encrypted = await Promise.all(
+      extractedInputValues.map(async (value) => {
+        const { ivBytes, cipherTextBytes } = await encryptText(
+          value,
+          sharedKey,
+          sessionIdHashBytes
+        );
+        return {
+          iv: arrayBufferToBase64(ivBytes),
+          value: arrayBufferToBase64(cipherTextBytes)
+        };
+      })
     );
+
     securePostMessage({
       type: "change",
-      encrypted: {
-        iv: arrayBufferToBase64(ivBytes),
-        value: arrayBufferToBase64(cipherTextBytes)
-      },
+      encrypted,
       empty: value.length === 0,
       valid: validationResult.valid,
       validationErrorCodes: validationResult.errorCodes,

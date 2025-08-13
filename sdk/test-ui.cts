@@ -66,7 +66,7 @@ sdk.addEventListener("error", logEvent);
 type XenditReadyEvent = import("./src").XenditReadyEvent;
 sdk.addEventListener("ready", (event: XenditReadyEvent) => {
   const state = sdk.getState();
-  outputChannelProperties.value += JSON.stringify(state);
+  outputChannelProperties.value += JSON.stringify(state, null, 2);
   outputChannelProperties.value += "\n";
 });
 

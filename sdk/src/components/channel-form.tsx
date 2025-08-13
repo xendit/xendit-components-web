@@ -104,6 +104,9 @@ function formKvToChannelProperties(
     }
 
     const subkeys = key.split("__");
+    const expectsArray = subkeys.length > 1;
+    const valueArr = expectsArray ? JSON.parse(value) : [value];
+
     // split keys by __
     for (const subkey of subkeys) {
       // split key by dot, for each part, traverse the object
@@ -114,6 +117,7 @@ function formKvToChannelProperties(
         const part = parts.shift()!;
         let selected = cursor[part];
         if (selected === undefined) {
+          // child object doesn't exist, create it
           selected = cursor[part] = {};
         }
         if (
@@ -121,11 +125,13 @@ function formKvToChannelProperties(
           typeof selected === "object" &&
           !Array.isArray(selected)
         ) {
+          // traverse into child object
           cursor = selected;
         }
       }
-      // TODO: handle array
-      cursor[parts[0]] = value;
+
+      // done - assign next value to channel properties
+      cursor[parts[0]] = valueArr.shift();
     }
   }
 

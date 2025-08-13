@@ -5,7 +5,7 @@ type IframeChangeEvent = {
   encrypted: {
     iv: string;
     value: string;
-  };
+  }[];
   empty: boolean;
   valid: boolean;
   validationErrorCodes: string[];
@@ -37,9 +37,9 @@ export type IframeEvent =
   | IframeFailedInitEvent;
 
 export type IframeFieldType =
-  | "CREDIT_CARD_NUMBER"
-  | "CREDIT_CARD_CVV"
-  | "CREDIT_CARD_EXPIRY";
+  | "credit_card_number"
+  | "credit_card_cvn"
+  | "credit_card_expiry";
 
 export type IframeValidationError =
   | "CREDIT_CARD_NUMBER_TOO_SHORT"
