@@ -98,19 +98,23 @@ function formKvToChannelProperties(
 ): ChannelProperties {
   const obj: ChannelProperties = {};
 
-  for (const [key, value] of iter) {
-    if (value instanceof Blob) {
+  for (const [key, rawValue] of iter) {
+    if (rawValue instanceof Blob) {
       continue;
     }
 
+    // keys with __ represent multiple k/v pairs
+    // e.g. `{"a__b": ["1", "2"]}` becomes `{a: "1", b: "2"}`
     const subkeys = key.split("__");
-    const expectsArray = subkeys.length > 1;
-    const valueArr = expectsArray ? JSON.parse(value) : [value];
 
-    // split keys by __
-    for (const subkey of subkeys) {
+    // if there are multiple subkeys, assume the value is a JSON array of strings
+    const valueAsArray = formValueToStringArray(subkeys, rawValue);
+
+    outer: for (const subkey of subkeys) {
       // split key by dot, for each part, traverse the object
       // and assign the value at the end
+      // e.g. { "branch.leaf": "value" } becomes { branch: { leaf: "value" } }
+      // cursor will be the leaf object
       const parts = subkey.split(".");
       let cursor = obj;
       while (parts.length > 1) {
@@ -120,22 +124,36 @@ function formKvToChannelProperties(
           // child object doesn't exist, create it
           selected = cursor[part] = {};
         }
-        if (
-          selected &&
-          typeof selected === "object" &&
-          !Array.isArray(selected)
-        ) {
+        if (selected && typeof selected === "object") {
+          if (Array.isArray(selected)) {
+            continue outer; // should never happen
+          }
           // traverse into child object
           cursor = selected;
         }
       }
 
-      // done - assign next value to channel properties
-      cursor[parts[0]] = valueArr.shift();
+      // assign next value to channel properties
+      const nextValue = valueAsArray.length ? valueAsArray.shift() : "";
+      cursor[parts[0]] = nextValue;
     }
   }
 
   return obj;
+}
+
+/**
+ * Parse a json string[] with error handling.
+ */
+function formValueToStringArray(subkeys: string[], value: string): string[] {
+  if (subkeys.length === 0) return [];
+  if (subkeys.length === 1) return [value];
+  if (value === "") return [];
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    return [value];
+  }
 }
 
 export default ChannelForm;

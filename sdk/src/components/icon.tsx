@@ -160,7 +160,7 @@ export function createIconSet() {
   iconSet.id = "xendit-icon-set";
   iconSet.style.display = "none";
   render(<defs>{iconData.map((icon) => icon.node)}</defs>, iconSet);
-  return iconSet;
+  document.head.appendChild(iconSet);
 }
 
 export default Icon;

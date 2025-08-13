@@ -1,12 +1,8 @@
 import { createIconSet } from "./components/icon";
-import css from "./styles.css";
+import { createStyles } from "./styles";
 
-document.head.appendChild(
-  Object.assign(document.createElement("style"), {
-    textContent: css
-  })
-);
-document.head.appendChild(createIconSet());
+createStyles();
+createIconSet();
 
 export * from "./public-sdk";
 export * from "./public-event-types";
