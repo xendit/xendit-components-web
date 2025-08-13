@@ -336,7 +336,8 @@ export class XenditSessionSdk extends EventTarget {
    * The `ready` and `not-ready` events let you know when submission should be available.
    * If ready, you can call `submit()` to begin the payment or token creation process.
    *
-   * "ready" means a channel has been selected, and all required fields are populated and valid.
+   * "ready" means a channel has been selected, and all required fields are populated,
+   * and all fields are valid.
    *
    * Use this to enable/disable your submit button.
    *
@@ -368,7 +369,7 @@ export class XenditSessionSdk extends EventTarget {
    * After submission, an action may be required (e.g. 3DS, redirect, QR code, etc.).
    * The SDK will control the UI for actions, you don't need to do anything.
    *
-   * Avoid changing any application state while an action is in progress as that may be
+   * Avoid changing any application state while an action is in progress as it may be
    * confusing for the user or interrupt their payment attempt.
    *
    * `action-end` is fired after the action is done, successfully or not. Note that users can
