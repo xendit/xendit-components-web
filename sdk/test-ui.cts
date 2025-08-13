@@ -2,8 +2,6 @@
 This must be a single file with no imports.
 */
 
-import { XenditReadyEvent } from "./src";
-
 const outer = document.createElement("div");
 outer.id = "wrapper";
 outer.style.display = "grid";
@@ -64,6 +62,8 @@ sdk.addEventListener("session-failed", logEvent);
 
 sdk.addEventListener("error", logEvent);
 
+// Use the instance type, not the constructor type
+type XenditReadyEvent = import("./src").XenditReadyEvent;
 sdk.addEventListener("ready", (event: XenditReadyEvent) => {
   const state = sdk.getState();
   outputChannelProperties.value += JSON.stringify(state);

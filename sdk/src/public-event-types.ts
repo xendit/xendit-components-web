@@ -1,9 +1,7 @@
 /**
  * @public
  */
-export type XenditEventListener<T extends Event> =
-  | ((this: EventTarget, event: T) => void)
-  | null;
+export type XenditEventListener<T extends Event> = ((event: T) => void) | null;
 
 /**
  * @public
