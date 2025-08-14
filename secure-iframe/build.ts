@@ -31,7 +31,13 @@ async function generateIframeHtml(js: string) {
     };
   });
 
-  js = js.replace(`"### PINNING_KEYS ###"`, JSON.stringify(testPinningKeys));
+  const jsWithPinningKeys = js.replace(
+    /PINNING_KEYS_MACRO/,
+    JSON.stringify(testPinningKeys)
+  );
+  if (js === jsWithPinningKeys) {
+    throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
+  }
 
   // generate html
   return `<!DOCTYPE html>
@@ -40,7 +46,7 @@ async function generateIframeHtml(js: string) {
     <title>Xendit Secure Iframe</title>
   </head>
   <body>
-    <script type="application/javascript">${js}</script>
+    <script type="application/javascript">${jsWithPinningKeys}</script>
   </body>
 </html>
 `;

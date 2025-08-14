@@ -60,8 +60,9 @@ function getQueryInputs() {
   };
 }
 
-// replaced by build script
-const masterPinningKeys: JsonWebKey[] = "### PINNING_KEYS ###" as any;
+// This macro is replaced with a JSON array by the build script
+// @ts-expect-error
+const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO as any;
 
 const queryInputs = getQueryInputs();
 

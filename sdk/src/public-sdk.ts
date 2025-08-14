@@ -240,6 +240,7 @@ export class XenditSessionSdk extends EventTarget {
 
     const channelCode = channel[internal].channel_code;
 
+    // return previously created component if it exists
     let cachedComponent =
       this[internal].paymentChannelComponents.get(channelCode);
     let container: HTMLElement;
@@ -252,6 +253,17 @@ export class XenditSessionSdk extends EventTarget {
         element: container,
         channelProperties: null
       });
+    }
+
+    // ensure all other components are inert and this one is not
+    for (const [code, component] of this[internal].paymentChannelComponents) {
+      if (code === channelCode) {
+        if (component.element.hasAttribute("inert")) {
+          component.element.removeAttribute("inert");
+        }
+      } else {
+        component.element.setAttribute("inert", "");
+      }
     }
 
     render(

@@ -130,6 +130,10 @@ xendit-action-handler {
 
 /* Payment channel */
 
+xendit-payment-channel[inert] {
+  filter: opacity(0.5) grayscale(1);
+}
+
 .xendit-payment-channel .xendit-payment-channel-instructions {
   display: grid;
   grid-template-columns: auto 1fr;

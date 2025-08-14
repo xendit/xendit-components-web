@@ -101,7 +101,7 @@ async function checkDecryptionWorks(
     iframePublicKeyBytes,
     sessionId
   );
-  await crypto.subtle.decrypt(
+  const buf = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
       iv: base64ToArrayBuffer(encrypted.iv),
@@ -110,6 +110,8 @@ async function checkDecryptionWorks(
     aesKey,
     base64ToArrayBuffer(encrypted.value)
   );
+  const decryptedText = new TextDecoder().decode(buf);
+  return decryptedText;
 }
 
 async function initPinningKeys() {
@@ -160,7 +162,7 @@ async function createTestCase(testCaseName: string, inputType: string) {
   let iframePublicKeyBytes: ArrayBuffer | null = null;
 
   // make iframe url
-  const embedderOrigin = "https://localhost";
+  const embedderOrigin = "https://localhost:4444";
   const search = new URLSearchParams({
     embedder: embedderOrigin,
     pk: arrayBufferToBase64(ecdhPublicKeyBytes),
@@ -194,14 +196,20 @@ async function createTestCase(testCaseName: string, inputType: string) {
         }
         case "change": {
           const encrypted = event.data.encrypted;
-          checkDecryptionWorks(
-            ecdhKeyPair,
-            iframePublicKeyBytes,
-            encrypted,
-            sessionIdHashBytes
-          ).catch((error) => {
-            console.error("Decryption failed:", error);
-          });
+          for (const enc of encrypted) {
+            checkDecryptionWorks(
+              ecdhKeyPair,
+              iframePublicKeyBytes,
+              enc,
+              sessionIdHashBytes
+            )
+              .then((str) => {
+                console.log("Decryption result", str);
+              })
+              .catch((error) => {
+                console.error("Decryption failed:", error);
+              });
+          }
         }
       }
     }
@@ -214,7 +222,7 @@ async function init() {
   await initPinningKeys();
   await createTestCase("Credit card input", "credit_card_number");
   await createTestCase("Expiry date input", "credit_card_expiry");
-  await createTestCase("Credit card csc input", "credit_card_csc");
+  await createTestCase("Credit card cvn input", "credit_card_cvn");
 }
 
 init().catch((error) => {
