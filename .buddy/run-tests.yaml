@@ -1,0 +1,40 @@
+- pipeline: 'Build and test on every commit'
+  trigger_mode: 'ON_EVERY_PUSH'
+  ref_name: 'refs/heads/*'
+  ref_type: 'WILDCARD'
+  no_skip_to_most_recent: true
+  priority: 'NORMAL'
+  fetch_all_refs: true
+  trigger_condition: 'ALWAYS'
+  folder: 'Tests'
+  actions:
+
+    - action: 'Execute: install dependencies'
+      type: 'BUILD'
+      working_directory: '/buddy/xendit-components-web'
+      docker_image_name: 'library/node'
+      docker_image_tag: '22'
+      execute_commands:
+        - 'npx pnpm@latest-9 config set @xendit:registry https://npm.pkg.github.com/ --location=project'
+        - 'npx pnpm@latest-9 config set //npm.pkg.github.com/:_authToken=$GITHUB_REGISTRY_TOKEN --location=project'
+        - 'npx pnpm@latest-9 i --frozen-lockfile'
+        - 'rm -f .npmrc'
+      volume_mappings:
+        - '/:/buddy/xendit-components-web'
+      trigger_condition: 'ALWAYS'
+      shell: 'BASH'
+
+    - action: "Execute: lint, typescript, prettier, build"
+      type: "BUILD"
+      working_directory: '/buddy/xendit-components-web'
+      docker_image_name: 'library/node'
+      docker_image_tag: '22'
+      execute_commands:
+        - "npx pnpm@latest-9 tsc"
+        - "npx pnpm@latest-9 lint"
+        - "npx pnpm@latest-9 prettier"
+        - "npx pnpm@latest-9 build"
+      volume_mappings:
+        - '/:/buddy/xendit-components-web'
+      trigger_condition: "ALWAYS"
+      shell: "BASH"
