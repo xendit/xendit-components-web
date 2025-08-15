@@ -15,9 +15,9 @@
       docker_image_name: 'library/node'
       docker_image_tag: '22'
       execute_commands:
-        - 'npx pnpm@latest-9 config set @xendit:registry https://npm.pkg.github.com/ --location=project'
-        - 'npx pnpm@latest-9 config set //npm.pkg.github.com/:_authToken=$GITHUB_REGISTRY_TOKEN --location=project'
-        - 'npx pnpm@latest-9 i --frozen-lockfile'
+        - 'npx pnpm@latest-10 config set @xendit:registry https://npm.pkg.github.com/ --location=project'
+        - 'npx pnpm@latest-10 config set //npm.pkg.github.com/:_authToken=$GITHUB_REGISTRY_TOKEN --location=project'
+        - 'npx pnpm@latest-10 i --frozen-lockfile'
         - 'rm -f .npmrc'
       volume_mappings:
         - '/:/buddy/xendit-components-web'
@@ -30,10 +30,10 @@
       docker_image_name: 'library/node'
       docker_image_tag: '22'
       execute_commands:
-        - "npx pnpm@latest-9 tsc"
-        - "npx pnpm@latest-9 lint"
-        - "npx pnpm@latest-9 prettier"
-        - "npx pnpm@latest-9 build"
+        - "npx pnpm@latest-10 tsc"
+        - "npx pnpm@latest-10 lint"
+        - "npx pnpm@latest-10 prettier"
+        - "npx pnpm@latest-10 build"
       volume_mappings:
         - '/:/buddy/xendit-components-web'
       trigger_condition: "ALWAYS"
