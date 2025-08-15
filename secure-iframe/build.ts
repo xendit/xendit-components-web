@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-transform-types
+#!/usr/bin/env -S node --experimental-transform-types
 
 import * as https from "https";
 import * as http from "http";

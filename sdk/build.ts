@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-transform-types
+#!/usr/bin/env -S node --experimental-transform-types
 
 import typescript from "@rollup/plugin-typescript";
 import path from "path";
