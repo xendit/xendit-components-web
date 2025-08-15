@@ -7,7 +7,7 @@ const textEncoder = new TextEncoder();
 export async function pin(
   masterPinningKeys: JsonWebKey[],
   signature: ArrayBuffer,
-  signee: ArrayBuffer
+  signee: ArrayBuffer,
 ) {
   for (const key of masterPinningKeys) {
     const pinningKey = await crypto.subtle.importKey(
@@ -15,19 +15,19 @@ export async function pin(
       key,
       {
         name: "ECDSA",
-        namedCurve: "P-384"
+        namedCurve: "P-384",
       },
       false,
-      ["verify"]
+      ["verify"],
     );
     const valid = await crypto.subtle.verify(
       {
         name: "ECDSA",
-        hash: "SHA-256"
+        hash: "SHA-256",
       },
       pinningKey,
       signature,
-      signee
+      signee,
     );
     if (valid) {
       return;
@@ -43,10 +43,10 @@ export async function generateOwnKeys() {
   return await crypto.subtle.generateKey(
     {
       name: "ECDH",
-      namedCurve: "P-384"
+      namedCurve: "P-384",
     },
     true,
-    ["deriveKey", "deriveBits"]
+    ["deriveKey", "deriveBits"],
   );
 }
 
@@ -59,47 +59,47 @@ export async function generateOwnKeys() {
 export async function deriveSharedKey(
   ownKeyPair: CryptoKeyPair,
   counterpartyPublicKeyBytes: ArrayBuffer,
-  info: string
+  info: string,
 ) {
   const serverPublicKey = await crypto.subtle.importKey(
     "spki",
     counterpartyPublicKeyBytes,
     {
       name: "ECDH",
-      namedCurve: "P-384"
+      namedCurve: "P-384",
     },
     false,
-    [] // must be empty for public key (this is not documented smh)
+    [], // must be empty for public key (this is not documented smh)
   );
   const keyMaterialBytes = await crypto.subtle.deriveBits(
     {
       name: "ECDH",
-      public: serverPublicKey
+      public: serverPublicKey,
     },
     ownKeyPair.privateKey,
-    384
+    384,
   );
   const keyMaterialKey = await crypto.subtle.importKey(
     "raw",
     keyMaterialBytes,
     "HKDF",
     false,
-    ["deriveKey"]
+    ["deriveKey"],
   );
   return await crypto.subtle.deriveKey(
     {
       name: "HKDF",
       hash: "SHA-256",
       salt: new Uint8Array(0),
-      info: new TextEncoder().encode(info)
+      info: new TextEncoder().encode(info),
     },
     keyMaterialKey,
     {
       name: "AES-GCM",
-      length: 256
+      length: 256,
     },
     false,
-    ["encrypt"]
+    ["encrypt"],
   );
 }
 
@@ -110,9 +110,9 @@ export async function hashText(value: string) {
   const bytes = textEncoder.encode(value).buffer;
   const hashBytes = await crypto.subtle.digest(
     {
-      name: "SHA-256"
+      name: "SHA-256",
     },
-    bytes
+    bytes,
   );
 
   return hashBytes;
@@ -124,7 +124,7 @@ export async function hashText(value: string) {
 export async function encryptText(
   value: string,
   key: CryptoKey,
-  additionalData: ArrayBuffer
+  additionalData: ArrayBuffer,
 ) {
   const ivBytes = crypto.getRandomValues(new Uint32Array(12)).buffer;
   const plainTextBytes = textEncoder.encode(value).buffer;
@@ -133,10 +133,10 @@ export async function encryptText(
       name: "AES-GCM",
       iv: ivBytes,
       additionalData: additionalData,
-      tagLength: 128
+      tagLength: 128,
     },
     key,
-    plainTextBytes
+    plainTextBytes,
   );
 
   return { ivBytes, cipherTextBytes };

@@ -73,7 +73,7 @@ export function createInputElement(type: string) {
 
     const cursorPosition = input.selectionStart ?? 0;
 
-    const raw = value.replace(/\s/g, "");
+    const _raw = value.replace(/\s/g, "");
 
     // FIXME: module resolution issue
     // const cardType: CreditCardType | undefined = creditCardType(raw)[0];
@@ -85,7 +85,7 @@ export function createInputElement(type: string) {
     const spacePositions: Record<number, boolean> = {
       4: true,
       8: true,
-      12: true
+      12: true,
     };
 
     const out: string[] = [];
@@ -122,7 +122,7 @@ export function createInputElement(type: string) {
     }
 
     input.dispatchEvent(
-      new SecureInputEvent("change", { value: value.replace(/\s/g, "") })
+      new SecureInputEvent("change", { value: value.replace(/\s/g, "") }),
     );
   }
 

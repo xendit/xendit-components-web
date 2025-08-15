@@ -10,7 +10,7 @@ interface ChannelPickerGroupProps {
 }
 
 export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
-  props
+  props,
 ) => {
   const { group, open } = props;
 
@@ -39,7 +39,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
       if (open) {
         // create new channel component
         const el = sdk.createPaymentComponentForChannel(
-          bffChannelToPublicChannel(selectedChannel)
+          bffChannelToPublicChannel(selectedChannel),
         );
         selectedChannelElementRef.current = el;
         if (el.parentElement !== containerRef.current) {
@@ -56,7 +56,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
 
   // Called on channel dropdown change
   const onSelectedChannelChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     if (!channels) return;
 
@@ -69,7 +69,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   // Create channel options for dropdown
   const channelOptions = channelsInGroup.map((channel) => ({
     label: channel.brand_name,
-    channelCode: channel.channel_code
+    channelCode: channel.channel_code,
   }));
 
   return (

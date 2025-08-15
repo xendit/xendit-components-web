@@ -9,13 +9,9 @@ interface Props {
   children: React.ReactNode;
 }
 
-export const AccordionItem: React.FC<Props> = ({
-  id,
-  title,
-  open,
-  onClick,
-  children
-}) => {
+export const AccordionItem: React.FC<Props> = (props) => {
+  const { id, title, open, onClick, children } = props;
+
   const containerOpenClass = open
     ? "xendit-accordion-item-open"
     : "xendit-accordion-item-closed";
@@ -23,7 +19,7 @@ export const AccordionItem: React.FC<Props> = ({
 
   const toggleOpen = useCallback(() => {
     onClick(id);
-  }, [onClick]);
+  }, [onClick, id]);
 
   const handleKeyPress = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -32,7 +28,7 @@ export const AccordionItem: React.FC<Props> = ({
         event.preventDefault();
       }
     },
-    [toggleOpen]
+    [toggleOpen],
   );
 
   const handleClick = useCallback(() => {

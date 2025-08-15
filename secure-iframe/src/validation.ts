@@ -1,7 +1,7 @@
 import {
   CardBrand,
   IframeFieldType,
-  IframeValidationError
+  IframeValidationError,
 } from "../../shared/shared";
 
 export type ValidationResult = {
@@ -16,11 +16,11 @@ export type ValidationResult = {
  */
 export function validate(
   inputType: IframeFieldType,
-  value: string
+  value: string,
 ): ValidationResult {
   return {
     empty: true,
     valid: true,
-    errorCodes: []
+    errorCodes: [],
   };
 }

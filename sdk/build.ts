@@ -22,7 +22,7 @@ const output: rollup.OutputOptions = {
   exports: "named",
   dir: path.join(import.meta.dirname, "dist"),
   sourcemap: true,
-  inlineDynamicImports: true // TODO: fix code splitting
+  inlineDynamicImports: true, // TODO: fix code splitting
 };
 
 function resolveModule(moduleName: string): string {
@@ -40,8 +40,8 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),
         compilerOptions: {
           module: "esnext",
-          noEmitOnError: false
-        }
+          noEmitOnError: false,
+        },
       }),
       alias({
         entries: [
@@ -49,29 +49,29 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
           { find: "react", replacement: resolveModule("preact/compat") },
           {
             find: "react-dom/test-utils",
-            replacement: resolveModule("preact/test-utils")
+            replacement: resolveModule("preact/test-utils"),
           },
           {
             find: "react-dom",
-            replacement: resolveModule("preact/compat")
+            replacement: resolveModule("preact/compat"),
           },
           {
             find: "react/jsx-runtime",
-            replacement: resolveModule("preact/jsx-runtime")
-          }
-        ]
+            replacement: resolveModule("preact/jsx-runtime"),
+          },
+        ],
       }),
       // this seems to break watch mode, so disable it for now
       // sourcemaps({
       //   exclude: ["**/*.css", "**/*.ts"]
       // }),
-      production ? terser() : null
+      production ? terser() : null,
     ].filter(Boolean),
     onwarn: (warning, warn) => {
       if (warning.code === "CIRCULAR_DEPENDENCY") {
         return;
       }
-    }
+    },
   };
 }
 
@@ -109,7 +109,7 @@ async function rollupWatch() {
 async function generateTestPage() {
   const code = await readFile(
     path.join(import.meta.dirname, "test-ui.cts"),
-    "utf-8"
+    "utf-8",
   );
   return `<!DOCTYPE html>
 <html>
@@ -126,7 +126,7 @@ async function generateTestPage() {
 
 async function handleDevServerRequest(
   req: IncomingMessage,
-  res: ServerResponse
+  res: ServerResponse,
 ) {
   const pathname = new URL(`http://example.com${req.url}`).pathname;
 
@@ -166,14 +166,14 @@ async function startDevServer() {
   const server = createServer(
     {
       key: readFileSync(path.join(keyDir, "test-key.pem")),
-      cert: readFileSync(path.join(keyDir, "test-cert.pem"))
+      cert: readFileSync(path.join(keyDir, "test-cert.pem")),
     },
     (req, res) => {
       handleDevServerRequest(req, res).catch((err) => {
         console.error(err);
         res.end();
       });
-    }
+    },
   );
 
   server.listen(PORT, () => {
@@ -200,7 +200,7 @@ switch (process.argv[2]) {
     console.error(
       `Usage: ${process.argv[1]} dev|prod\n` +
         "  dev - start development server (rebuilds when you change any file)\n" +
-        "  prod - build production version"
+        "  prod - build production version",
     );
     process.exit(1);
   }

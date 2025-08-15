@@ -54,7 +54,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
               encryptionVersion,
               iframeEcdhPublicKey,
               enc.iv,
-              enc.value
+              enc.value,
             ].join("-");
           });
 
@@ -81,7 +81,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
       }
     },
-    [iframeEcdhPublicKey, onChange]
+    [iframeEcdhPublicKey, onChange],
   );
 
   useEffect(() => {

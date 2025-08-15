@@ -31,5 +31,5 @@ const countries = {
   PH: { name: "Philippines", phoneCode: "63" },
   SG: { name: "Singapore", phoneCode: "65" },
   TH: { name: "Thailand", phoneCode: "66" },
-  VN: { name: "Vietnam", phoneCode: "84" }
+  VN: { name: "Vietnam", phoneCode: "84" },
 };

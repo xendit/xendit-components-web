@@ -29,9 +29,13 @@ export interface XenditSdkTestOptions {
 /**
  * @public
  */
-export interface XenditChannelPickerComponentOptions {}
+export interface XenditChannelPickerComponentOptions {
+  todo: string;
+}
 
 /**
  * @public
  */
-export interface XenditPaymentChannelComponentOptions {}
+export interface XenditPaymentChannelComponentOptions {
+  todo: string;
+}

@@ -1,4 +1,4 @@
-export function assert<T>(arg: any): asserts arg is NonNullable<T> {
+export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   if (arg === null || arg === undefined) {
     throw new Error("Assertion failed: argument is null or undefined");
   }

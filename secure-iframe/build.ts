@@ -19,21 +19,21 @@ async function generateIframeHtml(js: string) {
   const testPinningKeys = JSON.parse(
     await fs.readFile(
       path.join(import.meta.dirname, "../test-pinning-keys.json"),
-      "utf-8"
-    )
+      "utf-8",
+    ),
   ).map((key: JsonWebKey) => {
     // convert private keys to public keys
     return {
       kty: key.kty,
       crv: key.crv,
       x: key.x,
-      y: key.y
+      y: key.y,
     };
   });
 
   const jsWithPinningKeys = js.replace(
     /PINNING_KEYS_MACRO/,
-    JSON.stringify(testPinningKeys)
+    JSON.stringify(testPinningKeys),
   );
   if (js === jsWithPinningKeys) {
     throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
@@ -57,21 +57,21 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
     input: path.join(import.meta.dirname, "src/index.ts"),
     output: {
       file: "dist/not-a-real-file.js",
-      format: "cjs"
+      format: "cjs",
     },
     watch: {
-      skipWrite: true
+      skipWrite: true,
     },
     plugins: [
       typescript({
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),
         compilerOptions: {
           module: "esnext",
-          noEmitOnError: false
-        }
+          noEmitOnError: false,
+        },
       }),
-      production ? terser() : null
-    ].filter(Boolean)
+      production ? terser() : null,
+    ].filter(Boolean),
   };
 }
 
@@ -79,7 +79,7 @@ async function completeRollupBuild(build: rollup.RollupBuild) {
   const bundleSource = await build.generate({});
   if (bundleSource.output.length !== 1) {
     throw new Error(
-      `Expected single output from rollup, got ${bundleSource.output.length}`
+      `Expected single output from rollup, got ${bundleSource.output.length}`,
     );
   }
   const code = bundleSource.output[0].code;
@@ -124,7 +124,7 @@ async function rollupWatch() {
 async function generateTestPage() {
   const code = await fs.readFile(
     path.join(import.meta.dirname, "test-ui.cts"),
-    "utf-8"
+    "utf-8",
   );
   return `<!DOCTYPE html>
 <html>
@@ -140,7 +140,7 @@ async function generateTestPage() {
 
 async function handleDevServerRequest(
   req: http.IncomingMessage,
-  res: http.ServerResponse
+  res: http.ServerResponse,
 ) {
   const pathname = new URL(`http://example.com${req.url}`).pathname;
 
@@ -182,14 +182,14 @@ async function startDevServer() {
   const server = https.createServer(
     {
       key: readFileSync(path.join(keyDir, "test-key.pem")),
-      cert: readFileSync(path.join(keyDir, "test-cert.pem"))
+      cert: readFileSync(path.join(keyDir, "test-cert.pem")),
     },
     (req, res) => {
       handleDevServerRequest(req, res).catch((err) => {
         console.error(err);
         res.end();
       });
-    }
+    },
   );
 
   server.listen(PORT, () => {
@@ -216,7 +216,7 @@ switch (process.argv[2]) {
     console.error(
       `Usage: ${process.argv[1]} dev|prod\n` +
         "  dev - start development server (rebuilds when you change any file)\n" +
-        "  prod - build production version"
+        "  prod - build production version",
     );
     process.exit(1);
   }

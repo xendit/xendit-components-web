@@ -37,7 +37,7 @@ export const Dialog: React.FC<Props> = (props) => {
     backdropRef.current.animate(backdropFadeOutKeyframes, animationOptions);
     const animation = dialogRef.current.animate(
       foregroundFadeOutKeyframes,
-      animationOptions
+      animationOptions,
     );
     animation.onfinish = onCloseSafe;
   }, [onCloseSafe]);
@@ -49,7 +49,7 @@ export const Dialog: React.FC<Props> = (props) => {
         onCloseWithAnimation();
       }
     },
-    [onCloseWithAnimation]
+    [onCloseWithAnimation],
   );
 
   // play fade-in animation
@@ -79,27 +79,27 @@ export const Dialog: React.FC<Props> = (props) => {
 
 const animationOptions: EffectTiming = {
   duration: 200,
-  easing: "ease-in-out"
+  easing: "ease-in-out",
 };
 
 const backdropFadeKeyframes: Keyframe[] = [
   {
-    backgroundColor: "rgba(0, 0, 0, 0)"
+    backgroundColor: "rgba(0, 0, 0, 0)",
   },
   {
-    backgroundColor: "rgba(0, 0, 0, 0.5)"
-  }
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
 ];
 const backdropFadeOutKeyframes = backdropFadeKeyframes.slice().reverse();
 
 const foregroundFadeKeyframes: Keyframe[] = [
   {
     opacity: 0,
-    transform: `scale(0.9) translateY(-20px)`
+    transform: `scale(0.9) translateY(-20px)`,
   },
   {
     opacity: 1,
-    transform: ""
-  }
+    transform: "",
+  },
 ];
 const foregroundFadeOutKeyframes = foregroundFadeKeyframes.slice().reverse();

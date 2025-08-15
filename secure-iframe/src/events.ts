@@ -6,11 +6,11 @@ export class SecureInputEvent extends Event {
   };
   constructor(
     subtype: "change" | "focus" | "blur",
-    detail: { value?: string } = {}
+    detail: { value?: string } = {},
   ) {
     super("secureinputevent", {
       bubbles: true,
-      composed: true
+      composed: true,
     });
     this.subtype = subtype;
     this.detail = detail;
@@ -18,7 +18,7 @@ export class SecureInputEvent extends Event {
 }
 
 export function assertIsSecureInputEvent(
-  event: Event
+  event: Event,
 ): asserts event is SecureInputEvent {
   if (event.type !== "secureinputevent") {
     throw new Error("Expected secureinputevent");

@@ -1,12 +1,6 @@
-import {
-  redirectCanBeHandledInIframe,
-  V3Action,
-  V3PaymentRequest,
-  V3PaymentToken
-} from "../v3-types";
+import { redirectCanBeHandledInIframe, V3Action } from "../v3-types";
 import { ChannelProperties } from "../forms-types";
 import Submitter from "../submitter";
-import Icon from "./icon";
 import { useCallback, useEffect, useRef } from "preact/hooks";
 import { Dialog } from "./dialog";
 
@@ -28,7 +22,7 @@ export const ActionHandler: React.FC<Props> = (props) => {
     triggerPoll,
     isTest,
     paymentEntity,
-    onCancel
+    onCancel,
   } = props;
 
   switch (action.type) {
@@ -85,7 +79,7 @@ export const IframeActionHandler: React.FC<{
 
       triggerPoll();
     },
-    [triggerPoll]
+    [triggerPoll],
   );
 
   useEffect(() => {
@@ -146,6 +140,7 @@ export const RedirectActionHandler: React.FC<{ url: string }> = (props) => {
 
   useEffect(() => {
     window.location.href = url;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <FullscreenSpinner />;

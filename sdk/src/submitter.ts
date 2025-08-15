@@ -4,7 +4,7 @@ import { ChannelProperties } from "./forms-types";
 import {
   XenditActionBeginEvent,
   XenditSessionCompleteEvent,
-  XenditSessionFailedEvent
+  XenditSessionFailedEvent,
 } from "./public-event-types";
 import { XenditSessionSdk } from "./public-sdk";
 import { makeTestV3PaymentRequest } from "./test-data";
@@ -12,7 +12,7 @@ import {
   pickAction,
   V3Action,
   V3PaymentRequest,
-  V3PaymentToken
+  V3PaymentToken,
 } from "./v3-types";
 import { ActionHandler } from "./components/action-handler";
 
@@ -46,7 +46,7 @@ class Submitter {
     channelCode: string,
     channelProperties: ChannelProperties,
     isTest: boolean,
-    onDone: DoneCallback
+    onDone: DoneCallback,
   ) {
     this.sdk = sdk;
     this.session = session;
@@ -65,8 +65,8 @@ class Submitter {
             paymentRequest: makeTestV3PaymentRequest(
               this.session,
               this.channelCode,
-              this.channelProperties
-            )
+              this.channelProperties,
+            ),
           };
         } else if (this.session.session_type === "SAVE") {
           // TODO
@@ -130,7 +130,7 @@ class Submitter {
     const prOrPt = this.getPrOrPt();
 
     switch (prOrPt.status) {
-      case "REQUIRES_ACTION":
+      case "REQUIRES_ACTION": {
         this.sdk.dispatchEvent(new XenditActionBeginEvent());
         const action = pickAction(prOrPt.actions);
         switch (action.type) {
@@ -142,26 +142,30 @@ class Submitter {
             break;
           case "API_POST_REQUEST":
             throw new Error(
-              `Not implemented: ${action.type} ${action.descriptor}`
+              `Not implemented: ${action.type} ${action.descriptor}`,
             );
             break;
         }
         throw new Error(`Unknown action type: ${action.type}`);
         break;
+      }
       case "AUTHORIZED":
       case "SUCCEEDED":
-      case "ACTIVE":
+      case "ACTIVE": {
         this.cleanup();
         this.sdk.dispatchEvent(new XenditSessionCompleteEvent());
         break;
+      }
       case "CANCELED":
       case "EXPIRED":
-      case "FAILED":
+      case "FAILED": {
         this.cleanup();
         this.sdk.dispatchEvent(new XenditSessionFailedEvent());
         break;
-      default:
+      }
+      default: {
         throw new Error(`Unknown payment request status: ${prOrPt.status}`);
+      }
     }
   }
 
@@ -179,9 +183,9 @@ class Submitter {
         channelProperties: this.channelProperties,
         action,
         triggerPoll: this.pollStatus,
-        onCancel: this.cancel
+        onCancel: this.cancel,
       }),
-      container
+      container,
     );
 
     return container;

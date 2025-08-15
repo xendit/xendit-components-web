@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: xendit-components-web
-  description: 
+  description:
   x-cortex-git:
     github:
       repository: xendit/xendit-components-web
@@ -15,4 +15,3 @@ info:
       email: simon.paris@xendit.co
     - type: GROUP
       name: p-invoice-dev
-    

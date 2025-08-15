@@ -4,7 +4,9 @@ import { internal } from "./internal";
 /**
  * @public
  */
-export interface XenditSession {}
+export interface XenditSession {
+  todo: string;
+}
 
 /**
  * @public
@@ -17,4 +19,6 @@ export interface XenditPaymentChannel {
 /**
  * @public
  */
-export interface XenditPaymentChannelGroup {}
+export interface XenditPaymentChannelGroup {
+  todo: string;
+}

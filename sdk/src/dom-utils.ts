@@ -3,7 +3,7 @@ export function emptyElement(element: HTMLElement) {
 }
 
 export function registerElement(
-  element: CustomElementConstructor & { tag: string }
+  element: CustomElementConstructor & { tag: string },
 ) {
   customElements.define(element.tag, element);
 }
@@ -15,10 +15,10 @@ type RemoveIndex<T> = {
   [K in keyof T as string extends K
     ? never
     : number extends K
-    ? never
-    : symbol extends K
-    ? never
-    : K]: T[K];
+      ? never
+      : symbol extends K
+        ? never
+        : K]: T[K];
 };
 
 /**
@@ -40,7 +40,7 @@ type CSSProperties = RemoveIndex<
 
 export function setInlineStyles(
   element: HTMLElement,
-  styles: Partial<CSSProperties>
+  styles: Partial<CSSProperties>,
 ) {
   for (const [key, value] of Object.entries(styles)) {
     element.style.setProperty(key, value);

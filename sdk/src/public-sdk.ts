@@ -2,36 +2,37 @@ import { BffResponse } from "./bff-types";
 import {
   bffChannelsToPublicChannelGroups,
   bffChannelsToPublicChannels,
-  bffSessionToPublicSession
+  bffSessionToPublicSession,
 } from "./bff-marshal";
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
+  XenditErrorEvent,
   XenditEventListener,
   XenditEventMap,
   XenditNotReadyEvent,
   XenditReadyEvent,
   XenditSessionCompleteEvent,
   XenditSessionFailedEvent,
-  XenditWillRedirectEvent
+  XenditWillRedirectEvent,
 } from "./public-event-types";
 import { XenditSdkOptions, XenditSdkTestOptions } from "./public-options-types";
 import {
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
-  XenditSession
+  XenditSession,
 } from "./public-data-types";
 import { internal } from "./internal";
 import { createElement, render } from "preact";
 import {
   XenditChannelPicker,
-  XenditClearActiveChannelEvent
+  XenditClearActiveChannelEvent,
 } from "./components/channel-picker";
 import { XenditSessionProvider } from "./components/session-provider";
 import { ChannelProperties } from "./forms-types";
 import {
   PaymentChannel,
-  XenditChannelPropertiesChangedEvent
+  XenditChannelPropertiesChangedEvent,
 } from "./components/payment-channel";
 import { fetchSessionData } from "./network";
 import Submitter from "./submitter";
@@ -97,7 +98,7 @@ export class XenditSessionSdk extends EventTarget {
     super();
     if (!initData[internal]) {
       throw new Error(
-        "Don't construct this class directly, use XenditSdk.initializeSession()"
+        "Don't construct this class directly, use XenditSdk.initializeSession()",
       );
     }
     this[internal] = {
@@ -105,7 +106,7 @@ export class XenditSessionSdk extends EventTarget {
       activeChannelPickerComponent: null,
       activeChannelCode: null,
       paymentChannelComponents: new Map(),
-      submitter: null
+      submitter: null,
     };
   }
 
@@ -116,7 +117,7 @@ export class XenditSessionSdk extends EventTarget {
       const activeChannelCode = this[internal].activeChannelCode;
       if (!activeChannelCode) return;
       const channel = this[internal].initData.bff.channels.find(
-        (ch) => ch.channel_code === activeChannelCode
+        (ch) => ch.channel_code === activeChannelCode,
       );
       if (!channel || channel.ui_group !== event.uiGroup) return;
 
@@ -140,7 +141,7 @@ export class XenditSessionSdk extends EventTarget {
         component.channelProperties = event.channelProperties;
 
         this.dispatchEvent(new XenditReadyEvent());
-      }
+      },
     );
   }
 
@@ -197,9 +198,9 @@ export class XenditSessionSdk extends EventTarget {
       createElement(XenditSessionProvider, {
         data: this[internal].initData.bff,
         sdk: this,
-        children: createElement(XenditChannelPicker, {})
+        children: createElement(XenditChannelPicker, {}),
       }),
-      container
+      container,
     );
 
     this[internal].activeChannelPickerComponent = container;
@@ -234,14 +235,14 @@ export class XenditSessionSdk extends EventTarget {
    */
   createPaymentComponentForChannel(
     channel: XenditPaymentChannel,
-    active = true
+    active = true,
   ): HTMLElement {
     this.cleanupPaymentChannelComponent();
 
     const channelCode = channel[internal].channel_code;
 
     // return previously created component if it exists
-    let cachedComponent =
+    const cachedComponent =
       this[internal].paymentChannelComponents.get(channelCode);
     let container: HTMLElement;
     if (cachedComponent) {
@@ -251,7 +252,7 @@ export class XenditSessionSdk extends EventTarget {
       this.setupUiEventsForPaymentChannel(container);
       this[internal].paymentChannelComponents.set(channelCode, {
         element: container,
-        channelProperties: null
+        channelProperties: null,
       });
     }
 
@@ -272,10 +273,10 @@ export class XenditSessionSdk extends EventTarget {
         sdk: this,
         children: createElement(PaymentChannel, {
           channel: channel[internal],
-          active
-        })
+          active,
+        }),
       }),
-      container
+      container,
     );
 
     if (active) {
@@ -317,9 +318,8 @@ export class XenditSessionSdk extends EventTarget {
       component.channelProperties || {},
       this[internal].initData.isTest || false,
       (error?: Error) => {
-        debugger;
         this[internal].submitter = null;
-      }
+      },
     );
     this[internal].submitter.begin();
   }
@@ -333,13 +333,13 @@ export class XenditSessionSdk extends EventTarget {
     if (!channelCode) {
       return {
         channelCode: null,
-        channelProperties: null
+        channelProperties: null,
       };
     }
     const component = this[internal].paymentChannelComponents.get(channelCode);
     return {
       channelCode,
-      channelProperties: component?.channelProperties || null
+      channelProperties: component?.channelProperties || null,
     };
   }
 
@@ -366,12 +366,12 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "ready",
     listener: XenditEventListener<XenditReadyEvent>,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
   addEventListener(
     name: "not-ready",
     listener: XenditEventListener<XenditReadyEvent>,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
@@ -390,12 +390,12 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "action-begin",
     listener: XenditEventListener<XenditActionBeginEvent>,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
   addEventListener(
     name: "action-end",
     listener: XenditEventListener<XenditActionEndEvent>,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
@@ -408,7 +408,7 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "will-redirect",
     listener: XenditEventListener<XenditWillRedirectEvent>,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
@@ -419,7 +419,7 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "session-complete",
     listener: XenditEventListener<XenditSessionCompleteEvent>,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
@@ -429,7 +429,7 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "session-failed",
     listener: XenditEventListener<XenditSessionFailedEvent>,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
@@ -439,8 +439,8 @@ export class XenditSessionSdk extends EventTarget {
    */
   addEventListener(
     name: "error",
-    listener: XenditEventListener<ErrorEvent>,
-    options?: boolean | AddEventListenerOptions
+    listener: XenditEventListener<XenditErrorEvent>,
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
@@ -449,8 +449,8 @@ export class XenditSessionSdk extends EventTarget {
    */
   addEventListener<K extends keyof XenditEventMap>(
     type: K,
-    listener: (this: XenditSessionSdk, ev: XenditEventMap[K]) => any,
-    options?: boolean | AddEventListenerOptions
+    listener: (this: XenditSessionSdk, ev: XenditEventMap[K]) => void,
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
@@ -460,10 +460,10 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     type: string,
     listener:
-      | XenditEventListener<any>
+      | XenditEventListener<Event>
       | EventListenerOrEventListenerObject
       | null,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void {
     return super.addEventListener(type, listener, options);
   }
@@ -501,14 +501,14 @@ export class XenditSessionSdk extends EventTarget {
  * ```
  */
 export async function initializeSession(
-  options: XenditSdkOptions
+  options: XenditSdkOptions,
 ): Promise<XenditSessionSdk> {
   const bff = await fetchSessionData(options.sessionClientKey);
   return new XenditSessionSdk({
     [internal]: {
       options,
-      bff
-    }
+      bff,
+    },
   });
 }
 
@@ -519,13 +519,13 @@ export async function initializeSession(
  * The sessionClientKey is ignored, and a set of test data is used instead.
  */
 export async function initializeTestSession(
-  options: XenditSdkOptions & XenditSdkTestOptions
+  options: XenditSdkOptions & XenditSdkTestOptions,
 ): Promise<XenditSessionSdk> {
   return new XenditSessionSdk({
     [internal]: {
       isTest: true,
       options,
-      bff: (await import("./test-data")).makeTestBffData()
-    }
+      bff: (await import("./test-data")).makeTestBffData(),
+    },
   });
 }

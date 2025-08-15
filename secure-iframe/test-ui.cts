@@ -32,9 +32,9 @@ async function hashText(value: string) {
   const bytes = new TextEncoder().encode(value).buffer;
   const hashBytes = await crypto.subtle.digest(
     {
-      name: "SHA-256"
+      name: "SHA-256",
     },
-    bytes
+    bytes,
   );
 
   return hashBytes;
@@ -43,47 +43,47 @@ async function hashText(value: string) {
 async function deriveSharedKey(
   ownKeyPair: CryptoKeyPair,
   counterpartyPublicKeyBytes: ArrayBuffer,
-  info: string
+  info: string,
 ) {
   const serverPublicKey = await crypto.subtle.importKey(
     "spki",
     counterpartyPublicKeyBytes,
     {
       name: "ECDH",
-      namedCurve: "P-384"
+      namedCurve: "P-384",
     },
     false,
-    [] // must be empty for public key (this is not documented smh)
+    [], // must be empty for public key (this is not documented smh)
   );
   const keyMaterialBytes = await crypto.subtle.deriveBits(
     {
       name: "ECDH",
-      public: serverPublicKey
+      public: serverPublicKey,
     },
     ownKeyPair.privateKey,
-    384
+    384,
   );
   const keyMaterialKey = await crypto.subtle.importKey(
     "raw",
     keyMaterialBytes,
     "HKDF",
     false,
-    ["deriveKey"]
+    ["deriveKey"],
   );
   return await crypto.subtle.deriveKey(
     {
       name: "HKDF",
       hash: "SHA-256",
       salt: new Uint8Array(0),
-      info: new TextEncoder().encode(info)
+      info: new TextEncoder().encode(info),
     },
     keyMaterialKey,
     {
       name: "AES-GCM",
-      length: 256
+      length: 256,
     },
     false,
-    ["decrypt"]
+    ["decrypt"],
   );
 }
 
@@ -91,7 +91,7 @@ async function checkDecryptionWorks(
   ecdhKeyPair: CryptoKeyPair,
   iframePublicKeyBytes: ArrayBuffer | null,
   encrypted: { iv: string; value: string },
-  sessionIdHashBytes: ArrayBuffer
+  sessionIdHashBytes: ArrayBuffer,
 ) {
   if (!iframePublicKeyBytes) {
     throw new Error("Iframe public key not set");
@@ -99,16 +99,16 @@ async function checkDecryptionWorks(
   const aesKey = await deriveSharedKey(
     ecdhKeyPair,
     iframePublicKeyBytes,
-    sessionId
+    sessionId,
   );
   const buf = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
       iv: base64ToArrayBuffer(encrypted.iv),
-      additionalData: sessionIdHashBytes
+      additionalData: sessionIdHashBytes,
     },
     aesKey,
-    base64ToArrayBuffer(encrypted.value)
+    base64ToArrayBuffer(encrypted.value),
   );
   const decryptedText = new TextDecoder().decode(buf);
   return decryptedText;
@@ -125,12 +125,12 @@ async function initPinningKeys() {
         jwk,
         {
           name: "ECDSA",
-          namedCurve: "P-384"
+          namedCurve: "P-384",
         },
         true,
-        ["sign"]
+        ["sign"],
       );
-    })
+    }),
   );
 }
 
@@ -140,23 +140,23 @@ async function createTestCase(testCaseName: string, inputType: string) {
   const ecdhKeyPair = await crypto.subtle.generateKey(
     {
       name: "ECDH",
-      namedCurve: "P-384"
+      namedCurve: "P-384",
     },
     true,
-    ["deriveKey", "deriveBits"]
+    ["deriveKey", "deriveBits"],
   );
   const ecdhPublicKeyBytes = await crypto.subtle.exportKey(
     "spki",
-    ecdhKeyPair.publicKey
+    ecdhKeyPair.publicKey,
   );
 
   const signature = await crypto.subtle.sign(
     {
       name: "ECDSA",
-      hash: { name: "SHA-256" }
+      hash: { name: "SHA-256" },
     },
     pinningKeys[1],
-    ecdhPublicKeyBytes
+    ecdhPublicKeyBytes,
   );
 
   let iframePublicKeyBytes: ArrayBuffer | null = null;
@@ -168,7 +168,7 @@ async function createTestCase(testCaseName: string, inputType: string) {
     pk: arrayBufferToBase64(ecdhPublicKeyBytes),
     sig: arrayBufferToBase64(signature),
     session_id: sessionId,
-    input_type: inputType
+    input_type: inputType,
   });
   const url = `./iframe.html?${search}`;
 
@@ -201,7 +201,7 @@ async function createTestCase(testCaseName: string, inputType: string) {
               ecdhKeyPair,
               iframePublicKeyBytes,
               enc,
-              sessionIdHashBytes
+              sessionIdHashBytes,
             )
               .then((str) => {
                 console.log("Decryption result", str);

@@ -68,7 +68,7 @@ export type V3PaymentToken = {
 
 export function redirectCanBeHandledInIframe(
   channelProperties: ChannelProperties,
-  action: V3Action
+  action: V3Action,
 ): boolean {
   return true;
 }

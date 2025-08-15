@@ -33,10 +33,11 @@ const submitButton = document.createElement("button");
 submitButton.textContent = "Submit";
 controlsDiv.appendChild(submitButton);
 
-const { initializeTestSession } = (window as any)
-  .XenditSdk as typeof import("./src/public-sdk");
+const { initializeTestSession } = (
+  window as unknown as { XenditSdk: typeof import("./src/public-sdk") }
+).XenditSdk;
 const sdk = await initializeTestSession({
-  sessionClientKey: "1234"
+  sessionClientKey: "1234",
 });
 const channelPicker = sdk.createChannelPickerComponent();
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
@@ -45,7 +46,7 @@ function logEvent(event: Event) {
   const { type, isTrusted, ...rest } = event;
   outputChannelProperties.value += JSON.stringify({
     type,
-    ...rest
+    ...rest,
   });
   outputChannelProperties.value += "\n";
 }

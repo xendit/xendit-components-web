@@ -4,7 +4,7 @@ import { AccordionItem } from "./accordion-item";
 import { useChannelUiGroups } from "./session-provider";
 import { ChannelPickerGroup } from "./channel-picker-group";
 
-interface Props {}
+type Props = object;
 
 export const XenditChannelPicker: React.FC<Props> = (props) => {
   const channelUiGroups = useChannelUiGroups();
@@ -18,14 +18,14 @@ export const XenditChannelPicker: React.FC<Props> = (props) => {
         const groupId = channelUiGroups[i].id;
         // this clears the selected channel if it belongs to this group
         thisRef.current?.dispatchEvent(
-          new XenditClearActiveChannelEvent(groupId)
+          new XenditClearActiveChannelEvent(groupId),
         );
         setSelectedGroup(null);
       } else {
         setSelectedGroup(i);
       }
     },
-    [channelUiGroups, selectedGroup]
+    [channelUiGroups, selectedGroup],
   );
 
   if (!channelUiGroups) return null;
@@ -60,7 +60,7 @@ export class XenditClearActiveChannelEvent extends Event {
   constructor(uiGroup: string) {
     super(XenditClearActiveChannelEvent.type, {
       bubbles: true,
-      composed: true
+      composed: true,
     });
     this.uiGroup = uiGroup;
   }

@@ -2,7 +2,7 @@ import { BffResponse } from "./bff-types";
 import { V3PaymentRequest } from "./v3-types";
 
 export async function fetchSessionData(
-  sessionClientKey: string
+  sessionClientKey: string,
 ): Promise<BffResponse> {
   const response = await fetch(`/api/session?clientKey=${sessionClientKey}`);
   if (!response.ok) {
@@ -12,11 +12,11 @@ export async function fetchSessionData(
 }
 
 export async function createPaymentRequest(
-  sessionClientKey: string
+  sessionClientKey: string,
 ): Promise<V3PaymentRequest> {
   const response = await fetch(
     `/api/session/payment_requests?clientKey=${sessionClientKey}`,
-    { method: "POST" }
+    { method: "POST" },
   );
   if (!response.ok) {
     throw new Error("Failed to create payment request");

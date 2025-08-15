@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
 import {
   BffBusiness,
   BffChannelUiGroup,
   BffCustomer,
   BffResponse,
-  BffSession
+  BffSession,
 } from "../bff-types";
 import { Channel } from "../forms-types";
 import { XenditSessionSdk } from "../public-sdk";
@@ -15,7 +15,7 @@ const BusinessContext = createContext<BffBusiness | undefined>(undefined);
 const CustomerContext = createContext<BffCustomer | undefined>(undefined);
 const ChannelsContext = createContext<Channel[] | undefined>(undefined);
 const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | undefined>(
-  undefined
+  undefined,
 );
 const SdkContext = createContext<XenditSessionSdk | undefined>(undefined);
 
@@ -56,7 +56,7 @@ export const useChannelUiGroups = () => {
   const context = useContext(ChannelUiGroupsContext);
   if (context === undefined) {
     throw new Error(
-      "useChannelUiGroups must be used within a XenditSessionProvider"
+      "useChannelUiGroups must be used within a XenditSessionProvider",
     );
   }
   return context;
@@ -79,14 +79,14 @@ interface XenditSessionProviderProps {
 export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
   children,
   data,
-  sdk
+  sdk,
 }) => {
   const {
     session,
     business,
     customer,
     channels,
-    channel_ui_groups: channelUiGroups
+    channel_ui_groups: channelUiGroups,
   } = data;
 
   return (

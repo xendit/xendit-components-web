@@ -4,7 +4,7 @@ import {
   encryptText,
   generateOwnKeys,
   hashText,
-  pin
+  pin,
 } from "./crypto";
 import { assertIsSecureInputEvent } from "./events";
 import { createInputElement, createWrapperDiv } from "./ui";
@@ -56,13 +56,12 @@ function getQueryInputs() {
     embedderOrigin,
     sessionId,
     serverPublicKeyBase64,
-    serverPublicKeySignatureBase64
+    serverPublicKeySignatureBase64,
   };
 }
 
-// This macro is replaced with a JSON array by the build script
-// @ts-expect-error
-const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO as any;
+// @ts-expect-error This macro is replaced with a JSON array by the build script
+const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
 const queryInputs = getQueryInputs();
 
@@ -76,17 +75,17 @@ function insecurePostMessage<T extends IframeEvent>(message: T) {
 
 export async function init() {
   const serverPublicKeyBytes = base64ToArrayBuffer(
-    queryInputs.serverPublicKeyBase64
+    queryInputs.serverPublicKeyBase64,
   );
   const serverPublicKeySignatureBytes = base64ToArrayBuffer(
-    queryInputs.serverPublicKeySignatureBase64
+    queryInputs.serverPublicKeySignatureBase64,
   );
 
   // pin public key
   await pin(
     masterPinningKeys,
     serverPublicKeySignatureBytes,
-    serverPublicKeyBytes
+    serverPublicKeyBytes,
   );
 
   // create keys
@@ -94,11 +93,11 @@ export async function init() {
   const sharedKey = await deriveSharedKey(
     ownKeyPair,
     serverPublicKeyBytes,
-    queryInputs.sessionId
+    queryInputs.sessionId,
   );
   const ownPublicKeyBytes = await crypto.subtle.exportKey(
     "spki",
-    ownKeyPair.publicKey
+    ownKeyPair.publicKey,
   );
 
   // generate additionalData for gcm
@@ -107,7 +106,7 @@ export async function init() {
   // tell parent frame about our public key
   securePostMessage({
     type: "ready",
-    ecdhPublicKey: arrayBufferToBase64(ownPublicKeyBytes)
+    ecdhPublicKey: arrayBufferToBase64(ownPublicKeyBytes),
   });
 
   // create input element
@@ -123,21 +122,25 @@ export async function init() {
 
     let extractedInputValues: string[];
     switch (queryInputs.inputType) {
-      case "credit_card_number":
+      case "credit_card_number": {
         extractedInputValues = [inputValue];
         break;
-      case "credit_card_cvn":
+      }
+      case "credit_card_cvn": {
         extractedInputValues = [inputValue];
         break;
-      case "credit_card_expiry":
+      }
+      case "credit_card_expiry": {
         const parts = inputValue.split("/");
         extractedInputValues = [
           (parts[0] ?? "").trim(),
-          (parts[1] ?? "").trim()
+          (parts[1] ?? "").trim(),
         ];
         break;
-      default:
+      }
+      default: {
         throw new Error(`Unsupported input type: ${queryInputs.inputType}`);
+      }
     }
 
     const encrypted = await Promise.all(
@@ -145,13 +148,13 @@ export async function init() {
         const { ivBytes, cipherTextBytes } = await encryptText(
           value,
           sharedKey,
-          sessionIdHashBytes
+          sessionIdHashBytes,
         );
         return {
           iv: arrayBufferToBase64(ivBytes),
-          value: arrayBufferToBase64(cipherTextBytes)
+          value: arrayBufferToBase64(cipherTextBytes),
         };
-      })
+      }),
     );
 
     securePostMessage({
@@ -160,7 +163,7 @@ export async function init() {
       empty: value.length === 0,
       valid: validationResult.valid,
       validationErrorCodes: validationResult.errorCodes,
-      cardBrand: validationResult.cardBrand ?? null
+      cardBrand: validationResult.cardBrand ?? null,
     });
   }
 
@@ -173,14 +176,15 @@ export async function init() {
           throw new Error("Input value is undefined");
         }
         handleChangeEvent(event.detail.value).catch(fatalError);
+        return;
       case "focus":
         securePostMessage({
-          type: "focus"
+          type: "focus",
         });
         return;
       case "blur":
         securePostMessage({
-          type: "blur"
+          type: "blur",
         });
         return;
     }
@@ -190,6 +194,6 @@ export async function init() {
 export function fatalError(err: Error) {
   console.error(`Xendit secure iframe`, err);
   insecurePostMessage({
-    type: "failed_init"
+    type: "failed_init",
   });
 }

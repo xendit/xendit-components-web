@@ -94,7 +94,7 @@ function groupFields(fields: ChannelFormField[]): ChannelFormField[][] {
  * }
  **/
 function formKvToChannelProperties(
-  iter: IterableIterator<[string, string | Blob]>
+  iter: IterableIterator<[string, string | Blob]>,
 ): ChannelProperties {
   const obj: ChannelProperties = {};
 
@@ -151,7 +151,7 @@ function formValueToStringArray(subkeys: string[], value: string): string[] {
   if (value === "") return [];
   try {
     return JSON.parse(value);
-  } catch (e) {
+  } catch (_e) {
     return [value];
   }
 }
