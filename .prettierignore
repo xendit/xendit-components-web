@@ -1,7 +1,8 @@
-node_modules/
-dist/
-coverage/
-.prettierrc.js
 .buddy/
-.deployment/
+.husky/
+.pnpm-store/
+node_modules/
+sdk/dist/
+secure-iframe/dist/
 pnpm-lock.yaml
+pnpm-workspace.yaml
