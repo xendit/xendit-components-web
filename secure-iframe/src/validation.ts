@@ -126,10 +126,6 @@ export function validate(
     case "credit_card_expiry":
       return validateCreditCardExpiry(value);
     default:
-      return {
-        empty: value.length === 0,
-        valid: true,
-        errorCodes: [],
-      };
+      throw new Error(`Unsupported input type: ${inputType}`);
   }
 }
