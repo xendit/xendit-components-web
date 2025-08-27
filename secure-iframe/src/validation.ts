@@ -108,6 +108,85 @@ const validateCreditCardExpiry = (value: string): ValidationResult => {
   };
 };
 
+const validatePhoneNumber = (value: string): ValidationResult => {
+  const trimmedValue = value.replace(/\s+/g, "");
+  const errorCodes: IframeValidationError[] = [];
+  // Very basic validation: must be digits and between 7 and 15 characters
+  if (!/^\d+$/.test(trimmedValue)) {
+    errorCodes.push("NOT_A_NUMBER");
+  }
+  // TODO: Validate using https://www.npmjs.com/package/libphonenumber-js
+
+  return {
+    empty: trimmedValue.length === 0,
+    valid: errorCodes.length === 0,
+    errorCodes,
+  };
+};
+
+const validateEmail = (value: string): ValidationResult => {
+  const trimmedValue = value.trim();
+  const errorCodes: IframeValidationError[] = [];
+  // Basic email regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (trimmedValue.length > 0 && !emailRegex.test(trimmedValue)) {
+    errorCodes.push("INVALID_EMAIL_FORMAT");
+  }
+  return {
+    empty: trimmedValue.length === 0,
+    valid: errorCodes.length === 0,
+    errorCodes,
+  };
+};
+
+const validatePostalCode = (value: string): ValidationResult => {
+  const trimmedValue = value.trim();
+  const errorCodes: IframeValidationError[] = [];
+  // Basic validation: non-empty
+  if (trimmedValue.length === 0) {
+    errorCodes.push("INVALID_POSTAL_CODE");
+  }
+  // TODO: Validate using https://www.npmjs.com/package/postcode-validator
+  return {
+    empty: trimmedValue.length === 0,
+    valid: errorCodes.length === 0,
+    errorCodes,
+  };
+};
+
+const validateCountry = (value: string): ValidationResult => {
+  const trimmedValue = value.trim();
+  const errorCodes: IframeValidationError[] = [];
+  // Basic validation: must be 2-letter country code
+  if (!/^[A-Z]{2}$/.test(trimmedValue)) {
+    errorCodes.push("INVALID_COUNTRY");
+  }
+  // TODO: Validate using a list of country codes (json?)
+
+  return {
+    empty: trimmedValue.length === 0,
+    valid: errorCodes.length === 0,
+    errorCodes,
+  };
+};
+
+const validateText = (value: string): ValidationResult => {
+  const trimmedValue = value.trim();
+  const errorCodes: IframeValidationError[] = [];
+  // Basic validation: non-empty
+  if (trimmedValue.length === 0) {
+    errorCodes.push("TEXT_TOO_SHORT");
+  }
+
+  // TODO: Validate against a list of to be defined requirements
+
+  return {
+    empty: trimmedValue.length === 0,
+    valid: errorCodes.length === 0,
+    errorCodes,
+  };
+};
+
 /**
  * Returns an array of validation errors.
  */
@@ -117,14 +196,28 @@ export function validate(
 ): ValidationResult {
   console.log("Validating", inputType, value);
   switch (inputType) {
-    case "credit_card_number": {
+    case "credit_card_number":
       return validateCreditCardNumber(value);
-    }
     case "credit_card_cvn":
       return validateCreditCardCVN(value);
-
     case "credit_card_expiry":
       return validateCreditCardExpiry(value);
+
+    case "phone_number":
+      return validatePhoneNumber(value);
+
+    case "email":
+      return validateEmail(value);
+
+    case "postal_code":
+      return validatePostalCode(value);
+
+    case "country":
+      return validateCountry(value);
+
+    case "text":
+      return validateText(value);
+
     default:
       throw new Error(`Unsupported input type: ${inputType}`);
   }
