@@ -63,12 +63,12 @@ xendit-action-handler {
   gap: 8px;
 }
 
-.xendit-accordion .xendit-accordion-item {
+.xendit-accordion-item {
   border: 1px solid var(--xendit-color-border);
   border-radius: 8px;
 }
 
-.xendit-accordion .xendit-accordion-item-header {
+.xendit-accordion-item-header {
   display: grid;
   grid-template-columns: auto 1fr auto;
   grid-gap: 8px;
@@ -79,37 +79,37 @@ xendit-action-handler {
   border-radius: 8px;
 }
 
-.xendit-accordion .xendit-accordion-chevron {
+.xendit-accordion-item-chevron {
   color: var(--xendit-color-text);
 }
 
-.xendit-accordion .xendit-accordion-chevron g {
+.xendit-accordion-item-chevron g {
   transition: transform var(--xendit-animation-duration)
     var(--xendit-animation-ease);
 }
 
-.xendit-accordion .xendit-accordion-item-header:focus {
+.xendit-accordion-item-header:focus {
   border-radius: 8px;
   box-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
   outline: none;
 }
 
-.xendit-accordion .xendit-accordion-item-content {
+.xendit-accordion-item-content {
   overflow: hidden;
   transition: height var(--xendit-animation-duration)
     var(--xendit-animation-ease);
 }
 
-.xendit-accordion .xendit-accordion-item-content.xendit-accordion-item-closed {
+.xendit-accordion-item-content.xendit-accordion-item-closed {
   height: 0;
 }
 
-.xendit-accordion .xendit-accordion-item-content.xendit-accordion-item-open {
+.xendit-accordion-item-content.xendit-accordion-item-open {
   height: calc-size(auto, size);
 }
 
-.xendit-accordion .xendit-accordion-item-padding {
+.xendit-accordion-item-padding {
   padding: 16px;
 }
 
@@ -134,7 +134,7 @@ xendit-payment-channel[inert] {
   filter: opacity(0.5) grayscale(1);
 }
 
-.xendit-payment-channel .xendit-payment-channel-instructions {
+.xendit-payment-channel-instructions {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-gap: 12px;
@@ -142,14 +142,14 @@ xendit-payment-channel[inert] {
   color: var(--xendit-color-text-secondary);
 }
 
-.xendit-payment-channel .xendit-payment-channel-instructions-text {
+.xendit-payment-channel-instructions-text {
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 4px;
 }
 
-.xendit-payment-channel .xendit-payment-channel-instructions-text p {
+.xendit-payment-channel-instructions-text p {
   margin: 0;
 }
 
@@ -165,7 +165,7 @@ xendit-payment-channel[inert] {
   display: contents;
 }
 
-.xendit-channel-form .xendit-form-field-group {
+.xendit-form-field-group {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 16px 12px;
