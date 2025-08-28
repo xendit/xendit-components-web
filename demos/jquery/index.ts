@@ -1,4 +1,4 @@
-import "jquery";
+import $ from "jquery";
 import { initializeTestSession } from "../../sdk/dist/index.esm.js";
 
 const cart: [string, string][] = [];

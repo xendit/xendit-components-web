@@ -14,6 +14,7 @@ body {
 h1 {
   font-size: 18px;
   margin: 0;
+  cursor: pointer;
 }
 h2 {
   border-bottom: 1px solid #ddd;
