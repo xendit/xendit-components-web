@@ -12,7 +12,7 @@ export function makeTestBffData(): BffResponse {
   return {
     session: {
       payment_session_id: "ps-688adc58e506c45fd2b7f049",
-      client_key: `pss-12345678901234567890-${examplePublicKey}-${exampleSignature}-${exampleEnvironment}`,
+      client_key: `psck-12345678901234567890-${examplePublicKey}-${exampleSignature}-${exampleEnvironment}`,
       created: "2025-07-31T03:00:41.122Z",
       updated: "2025-07-31T03:00:41.122Z",
       status: "ACTIVE",
