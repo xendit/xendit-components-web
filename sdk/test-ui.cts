@@ -39,6 +39,8 @@ const { initializeTestSession } = (
 const sdk = await initializeTestSession({
   sessionClientKey: "1234",
 });
+sdk.env = "local";
+
 const channelPicker = sdk.createChannelPickerComponent();
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 

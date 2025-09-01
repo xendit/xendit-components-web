@@ -44,12 +44,16 @@ export const AccordionItem: React.FC<Props> = (props) => {
         role="button"
         tabIndex={0}
       >
-        <Icon name="dummy" size={24} />
+        <Icon
+          className="xendit-accordion-item-header-icon"
+          name="dummy"
+          size={24}
+        />
         <div className="xendit-accordion-item-header-title xendit-text-16 xendit-text-bold">
           {title}
         </div>
         <Icon
-          className="xendit-accordion-chevron"
+          className="xendit-accordion-item-chevron"
           name="chevron"
           size={24}
           direction={chevronDirection}

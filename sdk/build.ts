@@ -13,17 +13,7 @@ import { stripTypeScriptTypes } from "module";
 import css from "rollup-plugin-import-css";
 import alias from "@rollup/plugin-alias";
 
-const PORT = 4443;
-
-const output: rollup.OutputOptions = {
-  // file: path.join(import.meta.dirname, "dist/index.js"),
-  name: "XenditSdk",
-  format: "umd",
-  exports: "named",
-  dir: path.join(import.meta.dirname, "dist"),
-  sourcemap: true,
-  inlineDynamicImports: true, // TODO: fix code splitting
-};
+const SDK_PORT = 4443;
 
 function resolveModule(moduleName: string): string {
   return path.join(import.meta.dirname, "..", "node_modules", moduleName);
@@ -32,7 +22,24 @@ function resolveModule(moduleName: string): string {
 function rollupConfig(production: boolean): rollup.RollupOptions {
   return {
     input: path.join(import.meta.dirname, "./src/index.ts"),
-    output,
+    output: [
+      {
+        file: path.join(import.meta.dirname, "dist", "index.esm.js"),
+        name: "XenditSdk",
+        format: "esm",
+        exports: "named",
+        sourcemap: true,
+        inlineDynamicImports: true,
+      },
+      {
+        file: path.join(import.meta.dirname, "dist", "index.umd.js"),
+        name: "XenditSdk",
+        format: "umd",
+        exports: "named",
+        sourcemap: true,
+        inlineDynamicImports: true,
+      },
+    ],
     plugins: [
       resolve(),
       css(),
@@ -78,7 +85,9 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
 async function rollupProductionBuild() {
   const options = rollupConfig(true);
   const build = await rollup.rollup(options);
-  await build.write(output);
+  for (const o of options.output as rollup.OutputOptions[]) {
+    await build.write(o);
+  }
 }
 
 async function rollupWatch() {
@@ -89,7 +98,9 @@ async function rollupWatch() {
     switch (event.code) {
       case "BUNDLE_END": {
         if (event.result) {
-          await event.result.write(output);
+          for (const o of options.output as rollup.OutputOptions[]) {
+            await event.result.write(o);
+          }
           await event.result.close();
         }
         break;
@@ -118,7 +129,7 @@ async function generateTestPage() {
     <title>Xendit SDK Test Page</title>
   </head>
   <body>
-    <script type="application/javascript" src="./index.js" charset="UTF-8"></script>
+    <script type="application/javascript" src="./index.umd.js" charset="UTF-8"></script>
     <script type="module">${stripTypeScriptTypes(code)}</script>
   </body>
 </html>`;
@@ -142,11 +153,11 @@ async function handleDevServerRequest(
       res.end(await generateTestPage());
       return;
     }
-    case "GET /index.js": {
-      return await serveFile("./dist/index.js", "application/javascript");
+    case "GET /index.umd.js": {
+      return await serveFile("./dist/index.umd.js", "application/javascript");
     }
-    case "GET /index.js.map": {
-      return await serveFile("./dist/index.js.map", "application/json");
+    case "GET /index.umd.js.map": {
+      return await serveFile("./dist/index.umd.js.map", "application/json");
     }
     case "GET /favicon.ico": {
       res.writeHead(201, {});
@@ -176,8 +187,8 @@ async function startDevServer() {
     },
   );
 
-  server.listen(PORT, () => {
-    console.log(`Server for sdk running at https://localhost:${PORT}/`);
+  server.listen(SDK_PORT, () => {
+    console.log(`Server for sdk running at https://localhost:${SDK_PORT}/`);
   });
 }
 

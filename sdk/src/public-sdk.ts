@@ -89,6 +89,11 @@ export class XenditSessionSdk extends EventTarget {
      * Payment submission controller.
      */
     submitter: Submitter | null;
+
+    /**
+     * If true, we are done, either successfully or not.
+     */
+    terminal: boolean;
   };
 
   /**
@@ -107,7 +112,13 @@ export class XenditSessionSdk extends EventTarget {
       activeChannelCode: null,
       paymentChannelComponents: new Map(),
       submitter: null,
+      terminal: false,
     };
+
+    // on next tick, emit "not-ready" event
+    setTimeout(() => {
+      this.dispatchEvent(new XenditNotReadyEvent());
+    }, 0);
   }
 
   private setupUiEventsForChannelPicker(container: HTMLElement): void {
@@ -144,6 +155,12 @@ export class XenditSessionSdk extends EventTarget {
       },
     );
   }
+
+  /**
+   * @public
+   * Environment name. Affects which version of the secure iframe is used.
+   */
+  public env = "production";
 
   /**
    * @public
@@ -189,6 +206,10 @@ export class XenditSessionSdk extends EventTarget {
    * ```
    */
   createChannelPickerComponent(): HTMLElement {
+    if (this[internal].terminal) {
+      throw new Error("Session is in terminal state, cannot create components");
+    }
+
     this.cleanupChannelPickerComponent();
 
     const container = document.createElement("xendit-channel-picker");
@@ -237,6 +258,10 @@ export class XenditSessionSdk extends EventTarget {
     channel: XenditPaymentChannel,
     active = true,
   ): HTMLElement {
+    if (this[internal].terminal) {
+      throw new Error("Session is in terminal state, cannot create components");
+    }
+
     this.cleanupPaymentChannelComponent();
 
     const channelCode = channel[internal].channel_code;
@@ -281,6 +306,8 @@ export class XenditSessionSdk extends EventTarget {
 
     if (active) {
       this[internal].activeChannelCode = channel[internal].channel_code;
+
+      // TODO: emit this on channel properties changed, if the form is valid
       this.dispatchEvent(new XenditReadyEvent());
     }
 
@@ -319,9 +346,28 @@ export class XenditSessionSdk extends EventTarget {
       this[internal].initData.isTest || false,
       (error?: Error) => {
         this[internal].submitter = null;
+        if (!error) {
+          // session complete
+          this.dispatchEvent(new XenditSessionCompleteEvent());
+          this.enterTerminalState();
+        }
       },
     );
     this[internal].submitter.begin();
+  }
+
+  /**
+   * @internal
+   * Clean up everything, don't do anything else from now on, we are done.
+   */
+  private enterTerminalState() {
+    this[internal].terminal = true;
+    this.cleanupChannelPickerComponent();
+    for (const component of this[internal].paymentChannelComponents.values()) {
+      component.element.replaceChildren();
+    }
+    this[internal].paymentChannelComponents.clear();
+    this[internal].activeChannelCode = null;
   }
 
   /**

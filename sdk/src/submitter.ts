@@ -1,11 +1,7 @@
 import { createElement, render } from "preact";
 import { BffSession } from "./bff-types";
 import { ChannelProperties } from "./forms-types";
-import {
-  XenditActionBeginEvent,
-  XenditSessionCompleteEvent,
-  XenditSessionFailedEvent,
-} from "./public-event-types";
+import { XenditActionBeginEvent } from "./public-event-types";
 import { XenditSessionSdk } from "./public-sdk";
 import { makeTestV3PaymentRequest } from "./test-data";
 import {
@@ -153,14 +149,14 @@ class Submitter {
       case "SUCCEEDED":
       case "ACTIVE": {
         this.cleanup();
-        this.sdk.dispatchEvent(new XenditSessionCompleteEvent());
+        this.onDone();
         break;
       }
       case "CANCELED":
       case "EXPIRED":
       case "FAILED": {
         this.cleanup();
-        this.sdk.dispatchEvent(new XenditSessionFailedEvent());
+        this.onDone(new Error(`Payment ${prOrPt.status}`));
         break;
       }
       default: {
