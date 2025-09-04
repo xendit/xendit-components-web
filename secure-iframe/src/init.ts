@@ -1,4 +1,4 @@
-import { IframeEvent, IframeFieldType } from "../../shared/shared";
+import { IframeEvent, IframeFieldType } from "../../shared/types";
 import {
   deriveSharedKey,
   encryptText,
@@ -9,7 +9,7 @@ import {
 import { assertIsSecureInputEvent } from "./events";
 import { createInputElement, createWrapperDiv } from "./ui";
 import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
-import { validate } from "./validation";
+import { validate } from "./validator";
 
 function setupCss() {
   const css = `

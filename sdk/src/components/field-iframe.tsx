@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { FieldProps, formFieldName } from "./field";
 import { useSession } from "./session-provider";
-import { IframeEvent } from "../../../shared/shared";
+import { IframeEvent } from "../../../shared/types";
 
 const IFRAME_ORIGIN = "https://localhost:4444";
 const IFRAME_FIELD_SRC = `${IFRAME_ORIGIN}/iframe.html`;

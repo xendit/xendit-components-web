@@ -1,4 +1,12 @@
-type CardBrand = "VISA" | "MASTERCARD";
+type CardBrand =
+  | "VISA"
+  | "MASTERCARD"
+  | "AMEX"
+  | "JCB"
+  | "DISCOVER"
+  | "DINERS"
+  | "UNIONPAY"
+  | "UNKNOWN";
 
 type IframeChangeEvent = {
   type: "change";
@@ -49,7 +57,11 @@ export type IframeFieldType =
 export type IframeValidationError =
   | "CREDIT_CARD_NUMBER_TOO_SHORT"
   | "CREDIT_CARD_NUMBER_TOO_LONG"
+  | "CREDIT_CARD_UNKNOWN_BRAND"
   | "CREDIT_CARD_NUMBER_LUHN"
+  | "CREDIT_CARD_NUMBER_INVALID"
+  | "CREDIT_CARD_NUMBER_INVALID_LENGTH"
+  | "NOT_A_STRING"
   | "NOT_A_NUMBER"
   | "CREDIT_CARD_CVN_TOO_SHORT"
   | "CREDIT_CARD_CVN_TOO_LONG"
