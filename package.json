@@ -6,14 +6,16 @@
   "author": "invoice-team",
   "license": "UNLICENSED",
   "files": [
-    "./sdk/dist/index.js",
-    "./sdk/dist/index.cjs",
+    "./sdk/dist/index.umd.js",
+    "./sdk/dist/index.umd.js.map",
+    "./sdk/dist/index.esm.js",
+    "./sdk/dist/index.esm.js.map",
     "./sdk/dist/index.d.ts"
   ],
-  "types": "sdk/dist/index.d.ts",
+  "types": "./sdk/dist/index.d.ts",
   "exports": {
-    "import": "./sdk/dist/index.js",
-    "require": "./sdk/dist/index.cjs"
+    "import": "./sdk/dist/index.esm.js",
+    "require": "./sdk/dist/index.udm.js"
   },
   "scripts": {
     "dev": "./build.ts dev",
@@ -28,6 +30,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-replace": "^6.0.2",
     "credit-card-type": "^10.0.2",
     "preact": "^10.27.0",
     "tslib": "^2.8.1"

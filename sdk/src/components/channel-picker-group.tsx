@@ -76,7 +76,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     <div className="xendit-channel-picker-group">
       {channelsInGroup.length > 1 ? (
         <select onChange={onSelectedChannelChange}>
-          <option value="" disabled>
+          <option value="" disabled selected>
             Select a channel
           </option>
           {channelOptions.map((ch) => (

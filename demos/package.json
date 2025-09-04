@@ -1,0 +1,17 @@
+{
+  "name": "xendit-components-demos",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/jquery": "^3.5.33",
+    "jquery": "^3.7.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.1"
+  }
+}

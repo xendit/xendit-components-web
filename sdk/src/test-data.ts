@@ -6,12 +6,13 @@ const examplePublicKey =
   "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEVpIgrkofEwt4eLojVyGHgqTu3DS/kKmzvNf+fS2AdkiSQYrNYdtRjY3Ga+Vif+MR6GE5g3A5r5DXP6RFTel7CoIdZ7tyylAq8pwzYbEyb7Q0KOWcifkH/ZyQVA7Gz11e";
 const exampleSignature =
   "1WJcUIskN1a7MXUF6ddsjSlpQ7PXk5X47bIExisXmzxXqKColRYXVwjVVguyYiHwUyeuB908L+tEf7xbxbzDcs+0/EJGL2loKV/fyv6iWDM72+Sv5SvfOBImhfT38yB7";
+const exampleEnvironment = "TEST";
 
 export function makeTestBffData(): BffResponse {
   return {
     session: {
       payment_session_id: "ps-688adc58e506c45fd2b7f049",
-      client_key: `pss-1234567890-${examplePublicKey}-${exampleSignature}`,
+      client_key: `psck-12345678901234567890-${examplePublicKey}-${exampleSignature}-${exampleEnvironment}`,
       created: "2025-07-31T03:00:41.122Z",
       updated: "2025-07-31T03:00:41.122Z",
       status: "ACTIVE",
@@ -395,65 +396,6 @@ export function makeTestBffData(): BffResponse {
             channel_property: "card_details.cardholder_phone_number",
             required: false,
             span: 2,
-          },
-          {
-            label: "Street Address Line 1",
-            placeholder: "123 Main Street",
-            type: { name: "text", min_length: 1, max_length: 255 },
-            channel_property: "billing_information.street_line1",
-            required: false,
-            span: 2,
-          },
-          {
-            label: "Street Address Line 2",
-            placeholder: "Apt 4B",
-            type: { name: "text", min_length: 0, max_length: 255 },
-            channel_property: "billing_information.street_line2",
-            required: false,
-            span: 2,
-          },
-          {
-            label: "City",
-            placeholder: "New York",
-            type: {
-              name: "text",
-              min_length: 1,
-              max_length: 255,
-            },
-            channel_property: "billing_information.city",
-            required: false,
-            span: 1,
-          },
-          {
-            label: "Province/State",
-            placeholder: "NY",
-            type: {
-              name: "text",
-              min_length: 1,
-              max_length: 255,
-              regex_validators: [],
-            },
-            channel_property: "billing_information.province_state",
-            required: false,
-            span: 1,
-          },
-          {
-            label: "Postal Code",
-            placeholder: "10001",
-            type: { name: "postal_code" },
-            channel_property: "billing_information.postal_code",
-            required: false,
-            span: 1,
-          },
-          {
-            label: "Country",
-            placeholder: "United States",
-            type: {
-              name: "country",
-            },
-            channel_property: "billing_information.country",
-            required: false,
-            span: 1,
           },
         ],
       },

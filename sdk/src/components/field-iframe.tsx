@@ -1,13 +1,41 @@
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { FieldProps, formFieldName } from "./field";
-import { useSession } from "./session-provider";
+import { useSdk, useSession } from "./session-provider";
 import { IframeEvent } from "../../../shared/types";
 
-const IFRAME_ORIGIN = "https://localhost:4444";
-const IFRAME_FIELD_SRC = `${IFRAME_ORIGIN}/iframe.html`;
+function getIframeByEnv(env: string) {
+  switch (env) {
+    case "production": {
+      // TODO
+      throw new Error("Production iframe not implemented yet");
+    }
+    case "local": {
+      return {
+        origin: "https://localhost:4444",
+        src: `https://localhost:4444/iframe.html`,
+      };
+    }
+    case "demo": {
+      return {
+        origin: "https://localhost:4442",
+        src: `https://localhost:4442/secure-iframe/iframe.html`,
+      };
+    }
+  }
+  throw new Error(`Unknown env: ${env}`);
+}
 
 export const IframeField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
+
+  const sdk = useSdk();
+  const iframeData = useMemo(() => getIframeByEnv(sdk.env), [sdk.env]);
 
   const id = formFieldName(field);
   const session = useSession();
@@ -31,7 +59,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         return;
       }
 
-      const expectedOrigin = IFRAME_ORIGIN;
+      const expectedOrigin = iframeData.origin;
       if (event.origin !== expectedOrigin) {
         // this is not normal, something fishy is happening
         return;
@@ -81,7 +109,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
       }
     },
-    [iframeEcdhPublicKey, onChange],
+    [iframeData.origin, iframeEcdhPublicKey, onChange],
   );
 
   useEffect(() => {
@@ -91,7 +119,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     };
   }, [handleEventFromIframe]);
 
-  const iframeUrl = new URL(IFRAME_FIELD_SRC);
+  const iframeUrl = new URL(iframeData.src);
   iframeUrl.searchParams.set("input_type", field.type.name);
   iframeUrl.searchParams.set("embedder", window.location.origin);
   iframeUrl.searchParams.set("session_id", session.payment_session_id);
