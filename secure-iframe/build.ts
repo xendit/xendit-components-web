@@ -9,6 +9,8 @@ import * as rollup from "rollup";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import { stripTypeScriptTypes } from "module";
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 
 const PORT = 4444;
 
@@ -63,6 +65,12 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       skipWrite: true,
     },
     plugins: [
+      resolve({
+        browser: true,
+      }),
+      commonjs({
+        include: ["**/node_modules/**"],
+      }),
       typescript({
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),
         compilerOptions: {

@@ -81,27 +81,16 @@ export const validateCreditCardCVN = (value: string): ValidationResult => {
 export const validateCreditCardExpiry = (value: string): ValidationResult => {
   const trimmedValue = value.replace(/\s+/g, "");
   const errorCodes: IframeValidationError[] = [];
-  if (trimmedValue.length === 0) {
-    errorCodes.push("CREDIT_CARD_EXPIRY_EMPTY");
-  } else {
-    const expiryInfo = cardValidator.expirationDate(trimmedValue);
 
-    if (!expiryInfo.isPotentiallyValid) {
-      errorCodes.push("CREDIT_CARD_EXPIRY_INVALID_FORMAT");
-    } else if (!expiryInfo.isValid) {
-      // Parse month as number for comparison
-      const monthNum = expiryInfo.month ? parseInt(expiryInfo.month, 10) : NaN;
-      if (!isNaN(monthNum) && (monthNum < 1 || monthNum > 12)) {
-        errorCodes.push("CREDIT_CARD_EXPIRY_INVALID_DATE");
-      } else {
-        errorCodes.push("CREDIT_CARD_EXPIRY_IN_PAST");
-      }
-    }
+  const expiryInfo = cardValidator.expirationDate(trimmedValue);
+  const { isPotentiallyValid, isValid, month, year } = expiryInfo;
+  if (!isPotentiallyValid || month === null || year === null) {
+    errorCodes.push("CREDIT_CARD_EXPIRY_INVALID");
   }
 
   return {
     empty: trimmedValue.length === 0,
-    valid: errorCodes.length === 0,
+    valid: isValid,
     errorCodes,
   };
 };

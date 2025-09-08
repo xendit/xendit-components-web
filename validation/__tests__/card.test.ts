@@ -120,42 +120,49 @@ describe("validateCreditCardCVN", () => {
   });
 });
 
+it("returns valid=true for valid input", () => {
+  const result = validateCreditCardExpiry(
+    `12/${(new Date().getFullYear() + 5).toString().slice(-2)}`,
+  );
+  expect(result.valid).toBe(true);
+});
+
 describe("validateCreditCardExpiry", () => {
-  it("returns empty=true for empty input", () => {
+  it("returns CREDIT_CARD_EXPIRY_INVALID for empty input", () => {
     const result = validateCreditCardExpiry("");
     expect(result.empty).toBe(true);
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toEqual(["CREDIT_CARD_EXPIRY_EMPTY"]);
+    expect(result.errorCodes).toEqual(["CREDIT_CARD_EXPIRY_INVALID"]);
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID_FORMAT for non-numeric input", () => {
+  it("returns CREDIT_CARD_EXPIRY_INVALID for non-numeric input", () => {
     const result = validateCreditCardExpiry("abcd");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID_FORMAT");
+    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID_FORMAT for incomplete input", () => {
+  it("returns CREDIT_CARD_EXPIRY_INVALID for incomplete input", () => {
     const result = validateCreditCardExpiry("12");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID_FORMAT");
+    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID_DATE for month 00", () => {
+  it("returns CREDIT_CARD_EXPIRY_INVALID for month 00", () => {
     const result = validateCreditCardExpiry("00/30");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID_DATE");
+    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID_DATE for month 13", () => {
+  it("returns CREDIT_CARD_EXPIRY_INVALID for month 13", () => {
     const result = validateCreditCardExpiry("13/30");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID_DATE");
+    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
   });
 
-  it("returns CREDIT_CARD_EXPIRY_IN_PAST for past date", () => {
+  it("returns CREDIT_CARD_EXPIRY_INVALID for past date", () => {
     // Use a date far in the past
     const result = validateCreditCardExpiry("01/20");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_IN_PAST");
+    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
   });
 });
