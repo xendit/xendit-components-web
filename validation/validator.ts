@@ -2,16 +2,16 @@ import {
   CardBrand,
   IframeFieldType,
   IframeValidationError,
-} from "../../shared/types";
+} from "../shared/types";
 import {
   validateCreditCardCVN,
   validateCreditCardExpiry,
   validateCreditCardNumber,
-} from "./validation/card";
-import { validatePostalCode, validateCountry } from "./validation/country";
-import { validateEmail } from "./validation/email";
-import { validatePhoneNumber } from "./validation/phone";
-import { validateText } from "./validation/text";
+} from "./card";
+import { validateCountry, validatePostalCode } from "./country";
+import { validateEmail } from "./email";
+import { validatePhoneNumber } from "./phone";
+import { validateText } from "./text";
 
 export type ValidationResult = {
   empty: boolean;

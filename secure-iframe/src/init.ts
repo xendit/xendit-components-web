@@ -9,7 +9,7 @@ import {
 import { assertIsSecureInputEvent } from "./events";
 import { createInputElement, createWrapperDiv } from "./ui";
 import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
-import { validate } from "./validator";
+import { validate } from "../../validation/validator";
 
 function setupCss() {
   const css = `

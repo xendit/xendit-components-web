@@ -1,5 +1,5 @@
-import { IframeValidationError } from "../../../shared/types";
-import { ValidationResult } from "../validator";
+import { IframeValidationError } from "../shared/types";
+import { ValidationResult } from "./validator";
 
 export const validateEmail = (value: string): ValidationResult => {
   const trimmedValue = value.trim();

@@ -2,5 +2,11 @@
   "schema": "http://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.common.json",
   "compilerOptions": {},
-  "include": ["secure-iframe/**/*", "sdk/**/*", "shared/**/*"]
+  "include": [
+    "secure-iframe/**/*",
+    "sdk/**/*",
+    "shared/**/*",
+    "__tests__",
+    "validation"
+  ]
 }
