@@ -9,7 +9,10 @@ export const validateText = (value: string): ValidationResult => {
     errorCodes.push("TEXT_TOO_SHORT");
   }
 
-  // TODO: Validate against a list of to be defined requirements
+  if (trimmedValue.length > 255) {
+    // Arbitrary max length
+    errorCodes.push("TEXT_TOO_LONG");
+  }
 
   return {
     empty: trimmedValue.length === 0,

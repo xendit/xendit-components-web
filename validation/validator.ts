@@ -8,7 +8,8 @@ import {
   validateCreditCardExpiry,
   validateCreditCardNumber,
 } from "./card";
-import { validateCountry, validatePostalCode } from "./country";
+import { validateCountry } from "./country";
+import { validatePostalCode } from "./postal-code";
 import { validateEmail } from "./email";
 import { validatePhoneNumber } from "./phone";
 import { validateText } from "./text";

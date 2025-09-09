@@ -397,6 +397,16 @@ export function makeTestBffData(): BffResponse {
             required: false,
             span: 2,
           },
+          {
+            label: "Postal/ZIP Code",
+            placeholder: "",
+            type: {
+              name: "postal_code",
+            },
+            channel_property: "card_details.postal_code",
+            required: true,
+            span: 1,
+          },
         ],
       },
       {
