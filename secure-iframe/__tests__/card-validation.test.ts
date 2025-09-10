@@ -3,7 +3,7 @@ import {
   validateCreditCardNumber,
   validateCreditCardCVN,
   validateCreditCardExpiry,
-} from "../../validation/card";
+} from "../src/validation";
 
 // Test numbers are valid and public test numbers for each brand
 const cards = [

@@ -46,7 +46,9 @@ export type IframeEvent =
 export type IframeFieldType =
   | "credit_card_number"
   | "credit_card_cvn"
-  | "credit_card_expiry"
+  | "credit_card_expiry";
+
+export type FormFieldType =
   | "phone_number"
   | "email"
   | "postal_code"
@@ -65,11 +67,18 @@ export type IframeValidationError =
   | "CREDIT_CARD_EXPIRY_INVALID_DATE"
   | "CREDIT_CARD_EXPIRY_IN_PAST"
   | "NOT_A_STRING"
-  | "NOT_A_NUMBER"
+  | "NOT_A_NUMBER";
+
+export type FormFieldValidationError =
   | "INVALID_EMAIL_FORMAT"
   | "INVALID_POSTAL_CODE"
   | "INVALID_COUNTRY"
   | "INVALID_PHONE_NUMBER"
   | "TEXT_TOO_SHORT"
   | "TEXT_TOO_LONG"
-  | "TEXT_REGEX_MISMATCH";
+  | "TEXT_REGEX_MISMATCH"
+  | "NOT_A_STRING"
+  | "NOT_A_NUMBER"
+  | "PHONE_NUMBER_TOO_SHORT"
+  | "PHONE_NUMBER_TOO_LONG"
+  | "NOT_A_VALID_PHONE_NUMBER";

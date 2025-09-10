@@ -1,6 +1,16 @@
-import { CardBrand, IframeValidationError } from "../shared/types";
-import { ValidationResult } from "./validator";
+import {
+  CardBrand,
+  IframeFieldType,
+  IframeValidationError,
+} from "../../shared/types";
 import cardValidator from "card-validator";
+
+export type ValidationResult = {
+  empty: boolean;
+  valid: boolean;
+  errorCodes: IframeValidationError[];
+  cardBrand?: CardBrand;
+};
 
 export const validateCreditCardNumber = (value: string): ValidationResult => {
   const trimmedValue = value.replace(/\s+/g, "");
@@ -94,3 +104,23 @@ export const validateCreditCardExpiry = (value: string): ValidationResult => {
     errorCodes,
   };
 };
+
+/**
+ * Returns an array of validation errors.
+ */
+export function validate(
+  inputType: IframeFieldType,
+  value: string,
+): ValidationResult {
+  switch (inputType) {
+    case "credit_card_number":
+      return validateCreditCardNumber(value);
+    case "credit_card_cvn":
+      return validateCreditCardCVN(value);
+    case "credit_card_expiry":
+      return validateCreditCardExpiry(value);
+
+    default:
+      throw new Error(`Unsupported input type: ${inputType}`);
+  }
+}
