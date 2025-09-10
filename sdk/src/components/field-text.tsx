@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { ChannelFormField } from "../forms-types";
 import { FieldProps, formFieldName } from "./field";
+import {
+  validateEmail,
+  validatePhoneNumber,
+  validatePostalCode,
+  validateText,
+} from "../validation";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -11,23 +17,43 @@ export const TextField: React.FC<FieldProps> = (props) => {
     throw new Error("TextField expects field.type.name to be 'text'");
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = (e.target as HTMLInputElement).value;
+  function validateTextField(value: string): void {
     const errorMessages: string[] = [];
 
-    if (Array.isArray(field.type.regex_validators)) {
-      field.type.regex_validators.every((pattern) => {
-        const regex = new RegExp(pattern.regex);
-        if (!regex.test(value)) {
-          errorMessages.push(pattern.message);
+    switch (field.type.name) {
+      case "phone_number":
+        errorMessages.push(validatePhoneNumber(value).errorCode ?? "");
+        break;
+      case "email":
+        errorMessages.push(validateEmail(value).errorCode ?? "");
+        break;
+      case "postal_code":
+        errorMessages.push(validatePostalCode(value).errorCode ?? "");
+        break;
+      case "text":
+        if (Array.isArray(field.type.regex_validators)) {
+          field.type.regex_validators.every((pattern) => {
+            const regex = new RegExp(pattern.regex);
+            if (!regex.test(value)) {
+              errorMessages.push(pattern.message);
+            }
+            return regex.test(value);
+          });
         }
-        return regex.test(value);
-      });
+        errorMessages.push(validateText(value).errorCode ?? "");
+        break;
+      default:
+        break;
     }
 
     setErrors(errorMessages);
+  }
+
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    const value = (event.target as HTMLInputElement).value;
+    validateTextField(value);
     onChange();
-  };
+  }
 
   return (
     <>
@@ -39,6 +65,7 @@ export const TextField: React.FC<FieldProps> = (props) => {
         onChange={handleChange}
         minLength={isTextField(field) ? field.type.min_length : undefined}
         maxLength={isTextField(field) ? field.type.max_length : undefined}
+        required={field.required}
       />
       {errors &&
         errors.map((error, index) => (

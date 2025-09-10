@@ -43,7 +43,7 @@ export const validatePhoneNumber = (
 
   if (trimmedValue.length === 0) {
     return {
-      errorCode: "PHONE_NUMBER_TOO_SHORT",
+      errorCode: "FIELD_REQUIRED",
     };
   }
 
@@ -63,10 +63,9 @@ export const validatePostalCode = (value: string): ValidationResult => {
   let errorCode: FormFieldValidationError | undefined;
 
   // Basic validation: must be non-empty and contain only letters, numbers, spaces, or hyphens
-  if (
-    trimmedValue.length === 0 ||
-    !/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)
-  ) {
+  if (trimmedValue.length === 0) {
+    errorCode = "FIELD_REQUIRED";
+  } else if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)) {
     errorCode = "INVALID_POSTAL_CODE";
   }
 
