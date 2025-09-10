@@ -261,3 +261,7 @@ xendit-payment-channel[inert] {
   border: none;
   background-color: var(--xendit-color-background);
 }
+
+.xendit-error-message {
+  color: var(--xendit-color-danger);
+}
