@@ -5,7 +5,7 @@ import {
   validatePhoneNumber,
   validatePostalCode,
   validateText,
-} from "../src/validation";
+} from "../validation";
 
 import type { CountryCode } from "libphonenumber-js";
 
