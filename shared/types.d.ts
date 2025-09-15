@@ -48,13 +48,6 @@ export type IframeFieldType =
   | "credit_card_cvn"
   | "credit_card_expiry";
 
-export type FormFieldType =
-  | "phone_number"
-  | "email"
-  | "postal_code"
-  | "country"
-  | "text";
-
 export type IframeValidationError =
   | "CREDIT_CARD_NUMBER_INVALID_LENGTH"
   | "CREDIT_CARD_NUMBER_INVALID"
@@ -82,4 +75,4 @@ export type FormFieldValidationError =
   | "PHONE_NUMBER_TOO_SHORT"
   | "PHONE_NUMBER_TOO_LONG"
   | "NOT_A_VALID_PHONE_NUMBER"
-  | "FIELD_REQUIRED";
+  | "FIELD_IS_REQUIRED";

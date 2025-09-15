@@ -1,58 +1,34 @@
 import { useState } from "react";
 import { ChannelFormField } from "../forms-types";
 import { FieldProps, formFieldName } from "./field";
-import {
-  validateEmail,
-  validatePhoneNumber,
-  validatePostalCode,
-  validateText,
-} from "../validation";
+import { validate } from "../validation";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
   const id = formFieldName(field);
-  const [errors, setErrors] = useState<string[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isTouched, setIsTouched] = useState(false);
 
-  if (!isTextField(field)) {
-    throw new Error("TextField expects field.type.name to be 'text'");
+  if (!isSupportedField(field)) {
+    throw new Error(`Field type '${field.type.name}' not supported!`);
   }
 
-  function validateTextField(value: string): void {
-    const errorMessages: string[] = [];
-
-    switch (field.type.name) {
-      case "phone_number":
-        errorMessages.push(validatePhoneNumber(value).errorCode ?? "");
-        break;
-      case "email":
-        errorMessages.push(validateEmail(value).errorCode ?? "");
-        break;
-      case "postal_code":
-        errorMessages.push(validatePostalCode(value).errorCode ?? "");
-        break;
-      case "text":
-        if (Array.isArray(field.type.regex_validators)) {
-          field.type.regex_validators.every((pattern) => {
-            const regex = new RegExp(pattern.regex);
-            if (!regex.test(value)) {
-              errorMessages.push(pattern.message);
-            }
-            return regex.test(value);
-          });
-        }
-        errorMessages.push(validateText(value).errorCode ?? "");
-        break;
-      default:
-        break;
-    }
-
-    setErrors(errorMessages);
+  function validateField(value: string): void {
+    const errorMessage = validate(field, value).errorCode?.toString() ?? "";
+    setError(errorMessage);
+    setIsTouched(true);
   }
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    const value = (event.target as HTMLInputElement).value;
-    validateTextField(value);
     onChange();
+    if (!isTouched) return;
+    const value = (event.target as HTMLInputElement).value;
+    validateField(value);
+  }
+
+  function handleBlur(event: React.FocusEvent<HTMLInputElement>): void {
+    const value = (event.target as HTMLInputElement).value;
+    validateField(value);
   }
 
   return (
@@ -62,24 +38,35 @@ export const TextField: React.FC<FieldProps> = (props) => {
         type="text"
         placeholder={field.placeholder}
         className="xendit-text-14"
+        onBlur={handleBlur}
         onChange={handleChange}
-        minLength={isTextField(field) ? field.type.min_length : undefined}
-        maxLength={isTextField(field) ? field.type.max_length : undefined}
-        required={field.required}
+        minLength={
+          field.type.name === "text" ? field.type.min_length : undefined
+        }
+        maxLength={
+          field.type.name === "text" ? field.type.max_length : undefined
+        }
       />
-      {errors &&
-        errors.map((error, index) => (
-          <span key={index} className="xendit-error-message">
-            {error}
-          </span>
-        ))}
+      {error && <span className="xendit-error-message">{error}</span>}
     </>
   );
 };
 
-function isTextField(field: ChannelFormField): field is ChannelFormField & {
-  type: { name: "text" };
-} {
+function isSupportedField(field: ChannelFormField): field is ChannelFormField &
+  (
+    | {
+        type: { name: "text" };
+      }
+    | {
+        type: { name: "phone_number" };
+      }
+    | {
+        type: { name: "email" };
+      }
+    | {
+        type: { name: "postal_code" };
+      }
+  ) {
   return ["text", "phone_number", "email", "postal_code"].includes(
     field.type.name,
   );

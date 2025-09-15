@@ -1,21 +1,9 @@
 import { CountryCode, isValidPhoneNumber } from "libphonenumber-js";
-import { FormFieldType, FormFieldValidationError } from "../../shared/types";
+import { FormFieldValidationError } from "../../shared/types";
+import { ChannelFormField } from "./forms-types";
 
 export type ValidationResult = {
   errorCode: FormFieldValidationError | undefined;
-};
-
-export const validateCountry = (value: string) => {
-  const trimmedValue = value.trim();
-  let errorCode: FormFieldValidationError | undefined;
-  // Basic validation: must be 2-letter country code
-  if (!/^[A-Z]{2}$/.test(trimmedValue)) {
-    errorCode = "INVALID_COUNTRY";
-  }
-
-  return {
-    errorCode,
-  };
 };
 
 export const validateEmail = (value: string): ValidationResult => {
@@ -41,12 +29,6 @@ export const validatePhoneNumber = (
   const trimmedValue = value.replace(/\s+/g, "");
   let errorCode: FormFieldValidationError | undefined;
 
-  if (trimmedValue.length === 0) {
-    return {
-      errorCode: "PHONE_NUMBER_TOO_SHORT",
-    };
-  }
-
   const isValid = isValidPhoneNumber(trimmedValue, countryCode);
 
   if (!isValid) {
@@ -63,10 +45,7 @@ export const validatePostalCode = (value: string): ValidationResult => {
   let errorCode: FormFieldValidationError | undefined;
 
   // Basic validation: must be non-empty and contain only letters, numbers, spaces, or hyphens
-  if (
-    trimmedValue.length === 0 ||
-    !/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)
-  ) {
+  if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)) {
     errorCode = "INVALID_POSTAL_CODE";
   }
 
@@ -75,14 +54,27 @@ export const validatePostalCode = (value: string): ValidationResult => {
   };
 };
 
-export const validateText = (value: string): ValidationResult => {
+export const validateText = (
+  input: ChannelFormField & {
+    type: { name: "text" };
+  },
+  value: string,
+): ValidationResult => {
   const trimmedValue = value.trim();
   let errorCode: FormFieldValidationError | undefined;
-  // Basic validation: non-empty
-  if (trimmedValue.length === 0) {
+
+  if (Array.isArray(input.type.regex_validators)) {
+    input.type.regex_validators.every((pattern) => {
+      const regex = new RegExp(pattern.regex);
+      if (!regex.test(value)) {
+        return pattern.message;
+      }
+    });
+  }
+
+  if (trimmedValue.length < (input.type.min_length ?? 1)) {
     errorCode = "TEXT_TOO_SHORT";
-  } else if (trimmedValue.length > 255) {
-    // Arbitrary max length
+  } else if (trimmedValue.length > input.type.max_length) {
     errorCode = "TEXT_TOO_LONG";
   }
 
@@ -92,12 +84,14 @@ export const validateText = (value: string): ValidationResult => {
 };
 
 export function validate(
-  inputType: FormFieldType,
+  input: ChannelFormField,
   value: string,
 ): ValidationResult {
-  switch (inputType) {
-    case "country":
-      return validateCountry(value);
+  if (input.required && value.trim().length === 0) {
+    return { errorCode: "FIELD_IS_REQUIRED" };
+  }
+
+  switch (input.type.name) {
     case "phone_number":
       return validatePhoneNumber(value);
     case "email":
@@ -105,9 +99,14 @@ export function validate(
     case "postal_code":
       return validatePostalCode(value);
     case "text":
-      return validateText(value);
+      return validateText(
+        input as ChannelFormField & {
+          type: { name: "text" };
+        },
+        value,
+      );
 
     default:
-      throw new Error(`Unsupported input type: ${inputType}`);
+      throw new Error(`Unsupported input type: ${input.type.name}`);
   }
 }

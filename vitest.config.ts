@@ -12,11 +12,6 @@ export default defineConfig({
         },
       },
     ],
-    server: {
-      deps: {
-        inline: ["vitest-canvas-mock"],
-      },
-    },
     css: false,
     testTimeout: 10000,
   },

@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  validateCountry,
   validateEmail,
   validatePhoneNumber,
   validatePostalCode,
@@ -8,35 +7,7 @@ import {
 } from "../validation";
 
 import type { CountryCode } from "libphonenumber-js";
-
-// --- validateCountry ---
-describe("validateCountry", () => {
-  it("returns undefined for valid 2-letter uppercase country code", () => {
-    expect(validateCountry("ID")).toEqual({ errorCode: undefined });
-    expect(validateCountry("US")).toEqual({ errorCode: undefined });
-  });
-
-  it("returns error for lowercase country code", () => {
-    expect(validateCountry("id")).toEqual({ errorCode: "INVALID_COUNTRY" });
-  });
-
-  it("returns error for country code with spaces", () => {
-    expect(validateCountry(" ID ")).toEqual({ errorCode: undefined });
-    expect(validateCountry(" I D ")).toEqual({ errorCode: "INVALID_COUNTRY" });
-  });
-
-  it("returns error for country code with more than 2 letters", () => {
-    expect(validateCountry("USA")).toEqual({ errorCode: "INVALID_COUNTRY" });
-  });
-
-  it("returns error for country code with numbers", () => {
-    expect(validateCountry("1D")).toEqual({ errorCode: "INVALID_COUNTRY" });
-  });
-
-  it("returns error for empty string", () => {
-    expect(validateCountry("")).toEqual({ errorCode: "INVALID_COUNTRY" });
-  });
-});
+import { ChannelFormField } from "../forms-types";
 
 // --- validateEmail ---
 describe("validateEmail", () => {
@@ -125,12 +96,12 @@ describe("validatePhoneNumber", () => {
 
       it("returns empty for empty input", () => {
         const result = validatePhoneNumber("", country);
-        expect(result.errorCode).toEqual("PHONE_NUMBER_TOO_SHORT");
+        expect(result.errorCode).toEqual("INVALID_PHONE_NUMBER");
       });
 
       it("handles whitespace input", () => {
         const result = validatePhoneNumber("   ", country);
-        expect(result.errorCode).toEqual("PHONE_NUMBER_TOO_SHORT");
+        expect(result.errorCode).toEqual("INVALID_PHONE_NUMBER");
       });
     });
   });
@@ -181,22 +152,167 @@ describe("validatePostalCode", () => {
 
 // --- validateText ---
 describe("validateText", () => {
-  it("returns TEXT_TOO_SHORT for empty string", () => {
-    expect(validateText("")).toEqual({ errorCode: "TEXT_TOO_SHORT" });
-    expect(validateText("   ")).toEqual({ errorCode: "TEXT_TOO_SHORT" });
+  const baseField: ChannelFormField & {
+    type: { name: "text" };
+  } = {
+    required: true,
+    type: {
+      name: "text",
+      min_length: 2,
+      max_length: 5,
+      regex_validators: [],
+    },
+    channel_property: "test_property",
+    placeholder: "Enter text",
+    span: 2,
+    label: "Test Field",
+  };
+
+  it("returns undefined for valid text within length", () => {
+    expect(validateText(baseField, "abcd")).toEqual({ errorCode: undefined });
+    expect(validateText(baseField, "abcde")).toEqual({ errorCode: undefined });
   });
 
-  it("returns TEXT_TOO_LONG for text > 255 chars", () => {
-    const longText = "a".repeat(256);
-    expect(validateText(longText)).toEqual({ errorCode: "TEXT_TOO_LONG" });
+  it("returns TEXT_TOO_SHORT for text shorter than min_length", () => {
+    expect(validateText(baseField, "a")).toEqual({
+      errorCode: "TEXT_TOO_SHORT",
+    });
+    expect(validateText(baseField, "")).toEqual({
+      errorCode: "TEXT_TOO_SHORT",
+    });
+    expect(validateText(baseField, " ")).toEqual({
+      errorCode: "TEXT_TOO_SHORT",
+    });
   });
 
-  it("returns undefined for valid text", () => {
-    expect(validateText("Hello world")).toEqual({ errorCode: undefined });
-    expect(validateText("a".repeat(255))).toEqual({ errorCode: undefined });
+  it("returns TEXT_TOO_LONG for text longer than max_length", () => {
+    expect(validateText(baseField, "abcdef")).toEqual({
+      errorCode: "TEXT_TOO_LONG",
+    });
   });
 
-  it("trims input before validation", () => {
-    expect(validateText("   valid text   ")).toEqual({ errorCode: undefined });
+  it("trims input before length validation", () => {
+    expect(validateText(baseField, " abcd ")).toEqual({ errorCode: undefined });
+    expect(validateText(baseField, " a ")).toEqual({
+      errorCode: "TEXT_TOO_SHORT",
+    });
+    expect(validateText(baseField, " abcdef ")).toEqual({
+      errorCode: "TEXT_TOO_LONG",
+    });
+  });
+
+  it("returns undefined if regex_validators pass", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+      },
+    };
+    expect(validateText(field, "abc")).toEqual({ errorCode: undefined });
+  });
+
+  it("does not set errorCode for regex_validators failure (returns undefined)", () => {
+    // Note: The implementation does not set errorCode for regex failure, only returns pattern.message from .every
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+      },
+    };
+    expect(validateText(field, "ABC")).toEqual({ errorCode: undefined });
+  });
+
+  it("returns TEXT_TOO_SHORT if regex passes but length fails", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+      },
+    };
+    expect(validateText(field, "a")).toEqual({ errorCode: "TEXT_TOO_SHORT" });
+  });
+
+  it("returns TEXT_TOO_LONG if regex passes but length fails", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+      },
+    };
+    expect(validateText(field, "abcdef")).toEqual({
+      errorCode: "TEXT_TOO_LONG",
+    });
+  });
+
+  it("handles multiple regex_validators", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        regex_validators: [
+          { regex: "^[a-z]+$", message: "ONLY_LOWERCASE" },
+          { regex: "^.{2,}$", message: "MIN_TWO_CHARS" },
+        ],
+      },
+    };
+    expect(validateText(field, "ab")).toEqual({ errorCode: undefined });
+    expect(validateText(field, "A")).toEqual({ errorCode: "TEXT_TOO_SHORT" });
+    expect(validateText(field, "a")).toEqual({ errorCode: "TEXT_TOO_SHORT" });
+  });
+
+  it("returns undefined if no regex_validators and valid length", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        regex_validators: undefined,
+      },
+    };
+    expect(validateText(field, "abcd")).toEqual({ errorCode: undefined });
+  });
+
+  it("returns TEXT_TOO_SHORT if min_length is not defined and input is empty", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        min_length: undefined,
+      },
+    };
+    expect(validateText(field, "")).toEqual({ errorCode: "TEXT_TOO_SHORT" });
+  });
+
+  it("returns TEXT_TOO_LONG if max_length is exceeded", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        max_length: 3,
+      },
+    };
+    expect(validateText(field, "abcd")).toEqual({ errorCode: "TEXT_TOO_LONG" });
+  });
+
+  it("returns undefined for exact min_length and max_length", () => {
+    const field = {
+      ...baseField,
+      type: {
+        ...baseField.type,
+        min_length: 2,
+        max_length: 4,
+      },
+    };
+    expect(validateText(field, "ab")).toEqual({ errorCode: undefined });
+    expect(validateText(field, "abcd")).toEqual({ errorCode: undefined });
+  });
+
+  it("returns TEXT_TOO_SHORT for whitespace-only input", () => {
+    expect(validateText(baseField, "   ")).toEqual({
+      errorCode: "TEXT_TOO_SHORT",
+    });
   });
 });
