@@ -52,22 +52,19 @@ export const TextField: React.FC<FieldProps> = (props) => {
   );
 };
 
-function isSupportedField(field: ChannelFormField): field is ChannelFormField &
-  (
-    | {
-        type: { name: "text" };
-      }
-    | {
-        type: { name: "phone_number" };
-      }
-    | {
-        type: { name: "email" };
-      }
-    | {
-        type: { name: "postal_code" };
-      }
-  ) {
-  return ["text", "phone_number", "email", "postal_code"].includes(
-    field.type.name,
-  );
+type SupportedFieldType = "text" | "phone_number" | "email" | "postal_code";
+
+const supportedFieldTypes: SupportedFieldType[] = [
+  "text",
+  "phone_number",
+  "email",
+  "postal_code",
+];
+
+function isSupportedField(
+  field: ChannelFormField,
+): field is ChannelFormField & {
+  type: { name: SupportedFieldType };
+} {
+  return supportedFieldTypes.includes(field.type.name as SupportedFieldType);
 }
