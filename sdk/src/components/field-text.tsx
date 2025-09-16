@@ -9,12 +9,8 @@ export const TextField: React.FC<FieldProps> = (props) => {
   const [error, setError] = useState<string | null>(null);
   const [isTouched, setIsTouched] = useState(false);
 
-  if (!isSupportedField(field)) {
-    throw new Error(`Field type '${field.type.name}' not supported!`);
-  }
-
   function validateField(value: string): void {
-    const errorMessage = validate(field, value).errorCode?.toString() ?? "";
+    const errorMessage = validate(field, value) ?? null;
     setError(errorMessage);
     setIsTouched(true);
   }
@@ -40,31 +36,16 @@ export const TextField: React.FC<FieldProps> = (props) => {
         className="xendit-text-14"
         onBlur={handleBlur}
         onChange={handleChange}
-        minLength={
-          field.type.name === "text" ? field.type.min_length : undefined
-        }
-        maxLength={
-          field.type.name === "text" ? field.type.max_length : undefined
-        }
+        minLength={isTextField(field) ? field.type.min_length : undefined}
+        maxLength={isTextField(field) ? field.type.max_length : undefined}
       />
       {error && <span className="xendit-error-message">{error}</span>}
     </>
   );
 };
 
-type SupportedFieldType = "text" | "phone_number" | "email" | "postal_code";
-
-const supportedFieldTypes: SupportedFieldType[] = [
-  "text",
-  "phone_number",
-  "email",
-  "postal_code",
-];
-
-function isSupportedField(
-  field: ChannelFormField,
-): field is ChannelFormField & {
-  type: { name: SupportedFieldType };
+function isTextField(field: ChannelFormField): field is ChannelFormField & {
+  type: { name: "text" };
 } {
-  return supportedFieldTypes.includes(field.type.name as SupportedFieldType);
+  return field.type.name === "text";
 }

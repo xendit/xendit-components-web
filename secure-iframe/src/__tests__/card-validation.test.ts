@@ -44,7 +44,7 @@ describe("validateCreditCardNumber - card brand detection", () => {
     expect(result.errorCodes).toContain("NOT_A_NUMBER");
   });
 
-  it("returns CREDIT_CARD_NUM`BER_TOO_SHORT for short input", () => {
+  it("returns CREDIT_CARD_NUMBER_INVALID_LENGTH for short input", () => {
     const result = validateCreditCardNumber("4111");
     expect(result.valid).toBe(false);
     expect(result.errorCodes).toContain("CREDIT_CARD_NUMBER_INVALID_LENGTH");

@@ -6,52 +6,40 @@ export type ValidationResult = {
   errorCode: FormFieldValidationError | undefined;
 };
 
-export const validateEmail = (value: string): ValidationResult => {
+export const validateEmail = (
+  value: string,
+): FormFieldValidationError | undefined => {
   const trimmedValue = value.trim();
-  let errorCode: FormFieldValidationError | undefined;
   // Allows letters, numbers, dots, underscores, hyphens before the @
   // Domain must be letters, numbers, hyphens (no leading/trailing hyphen)
   // TLD must be at least 2 letters
   const emailRegex =
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[A-Za-z]{2,}$/;
-  if (trimmedValue.length > 0 && !emailRegex.test(trimmedValue)) {
-    errorCode = "INVALID_EMAIL_FORMAT";
-  }
-  return {
-    errorCode,
-  };
+
+  if (trimmedValue.length > 0 && !emailRegex.test(trimmedValue))
+    return "INVALID_EMAIL_FORMAT";
 };
 
 export const validatePhoneNumber = (
   value: string,
   countryCode?: CountryCode | undefined,
-): ValidationResult => {
+): FormFieldValidationError | undefined => {
   const trimmedValue = value.replace(/\s+/g, "");
-  let errorCode: FormFieldValidationError | undefined;
 
   const isValid = isValidPhoneNumber(trimmedValue, countryCode);
 
-  if (!isValid) {
-    errorCode = "INVALID_PHONE_NUMBER";
-  }
-
-  return {
-    errorCode,
-  };
+  if (!isValid) return "INVALID_PHONE_NUMBER";
 };
 
-export const validatePostalCode = (value: string): ValidationResult => {
+export const validatePostalCode = (
+  value: string,
+): FormFieldValidationError | undefined => {
   const trimmedValue = value.trim();
-  let errorCode: FormFieldValidationError | undefined;
 
   // Basic validation: must be non-empty and contain only letters, numbers, spaces, or hyphens
   if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)) {
-    errorCode = "INVALID_POSTAL_CODE";
+    return "INVALID_POSTAL_CODE";
   }
-
-  return {
-    errorCode,
-  };
 };
 
 export const validateText = (
@@ -59,9 +47,8 @@ export const validateText = (
     type: { name: "text" };
   },
   value: string,
-): ValidationResult => {
+): FormFieldValidationError | undefined => {
   const trimmedValue = value.trim();
-  let errorCode: FormFieldValidationError | undefined;
 
   if (Array.isArray(input.type.regex_validators)) {
     input.type.regex_validators.every((pattern) => {
@@ -73,22 +60,18 @@ export const validateText = (
   }
 
   if (trimmedValue.length < (input.type.min_length ?? 1)) {
-    errorCode = "TEXT_TOO_SHORT";
+    return "TEXT_TOO_SHORT";
   } else if (trimmedValue.length > input.type.max_length) {
-    errorCode = "TEXT_TOO_LONG";
+    return "TEXT_TOO_LONG";
   }
-
-  return {
-    errorCode,
-  };
 };
 
 export function validate(
   input: ChannelFormField,
   value: string,
-): ValidationResult {
+): FormFieldValidationError | undefined {
   if (input.required && value.trim().length === 0) {
-    return { errorCode: "FIELD_IS_REQUIRED" };
+    return "FIELD_IS_REQUIRED";
   }
 
   switch (input.type.name) {
