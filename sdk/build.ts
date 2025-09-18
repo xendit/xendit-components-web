@@ -15,6 +15,8 @@ import alias from "@rollup/plugin-alias";
 
 const SDK_PORT = 4443;
 
+let lastSeenBuildOutput: Map<string, Buffer> | null = null;
+
 function resolveModule(moduleName: string): string {
   return path.join(import.meta.dirname, "..", "node_modules", moduleName);
 }
@@ -99,6 +101,16 @@ async function rollupWatch() {
       case "BUNDLE_END": {
         if (event.result) {
           for (const o of options.output as rollup.OutputOptions[]) {
+            lastSeenBuildOutput = new Map(
+              (await event.result.generate(o)).output.map((chunkOrAsset) => [
+                chunkOrAsset.fileName,
+                Buffer.from(
+                  chunkOrAsset.type === "chunk"
+                    ? chunkOrAsset.code
+                    : chunkOrAsset.source,
+                ),
+              ]),
+            );
             await event.result.write(o);
           }
           await event.result.close();
@@ -141,10 +153,15 @@ async function handleDevServerRequest(
 ) {
   const pathname = new URL(`http://example.com${req.url}`).pathname;
 
-  async function serveFile(filename: string, mime: string) {
-    const file = await readFile(path.join(import.meta.dirname, filename));
-    res.writeHead(200, { "Content-Type": mime });
-    res.end(file);
+  async function serveFileFromBundle(filename: string, mime: string) {
+    if (!lastSeenBuildOutput) {
+      res
+        .writeHead(503, { "Content-Type": "text/plain" })
+        .end("Build not ready");
+      return;
+    }
+    const file = lastSeenBuildOutput.get(filename);
+    res.writeHead(200, { "Content-Type": mime }).end(file);
   }
 
   switch (`${req.method} ${pathname}`) {
@@ -154,19 +171,20 @@ async function handleDevServerRequest(
       return;
     }
     case "GET /index.umd.js": {
-      return await serveFile("./dist/index.umd.js", "application/javascript");
+      return await serveFileFromBundle(
+        "index.umd.js",
+        "application/javascript",
+      );
     }
     case "GET /index.umd.js.map": {
-      return await serveFile("./dist/index.umd.js.map", "application/json");
+      return await serveFileFromBundle("index.umd.js.map", "application/json");
     }
     case "GET /favicon.ico": {
-      res.writeHead(201, {});
-      res.end();
+      res.writeHead(201, {}).end();
       return;
     }
     default: {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("404 Not Found");
+      res.writeHead(404, { "Content-Type": "text/plain" }).end("404 Not Found");
       return;
     }
   }

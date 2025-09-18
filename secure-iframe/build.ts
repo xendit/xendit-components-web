@@ -152,7 +152,7 @@ async function handleDevServerRequest(
 ) {
   const pathname = new URL(`http://example.com${req.url}`).pathname;
 
-  async function serveFile(filename: string, mime: string) {
+  async function serveFileFromDisk(filename: string, mime: string) {
     const file = await fs.readFile(path.join(import.meta.dirname, filename));
     res.writeHead(200, { "Content-Type": mime });
     res.end(file);
@@ -160,26 +160,35 @@ async function handleDevServerRequest(
 
   switch (`${req.method} ${pathname}`) {
     case "GET /": {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(await generateTestPage());
+      res
+        .writeHead(200, { "Content-Type": "text/html" })
+        .end(await generateTestPage());
       return;
     }
     case "GET /iframe.html": {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(lastSeenBuildOutput ?? "Build not finished");
+      if (!lastSeenBuildOutput) {
+        res
+          .writeHead(503, { "Content-Type": "text/plain" })
+          .end("Build not ready");
+        return;
+      }
+      res
+        .writeHead(200, { "Content-Type": "text/html" })
+        .end(lastSeenBuildOutput);
       return;
     }
     case "GET /pinning-keys.json": {
-      return await serveFile("../test-pinning-keys.json", "application/json");
+      return await serveFileFromDisk(
+        "../test-pinning-keys.json",
+        "application/json",
+      );
     }
     case "GET /favicon.ico": {
-      res.writeHead(201, {});
-      res.end();
+      res.writeHead(201, {}).end();
       return;
     }
     default: {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("404 Not Found");
+      res.writeHead(404, { "Content-Type": "text/plain" }).end("404 Not Found");
       return;
     }
   }
