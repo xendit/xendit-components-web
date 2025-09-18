@@ -333,7 +333,21 @@ export class XenditSessionSdk extends EventTarget {
     if (!channelCode) {
       throw new Error("No active payment channel component");
     }
+
     const component = this[internal].paymentChannelComponents.get(channelCode);
+
+    const form = component?.element.querySelector(
+      ".xendit-channel-form form",
+    ) as HTMLFormElement | null;
+
+    if (form) {
+      const validationResults = this.validateFormData(form);
+
+      if (Object.keys(validationResults).length > 0) {
+        return;
+      }
+    }
+
     if (!component) {
       throw new Error("No active payment channel component");
     }
@@ -354,6 +368,34 @@ export class XenditSessionSdk extends EventTarget {
       },
     );
     this[internal].submitter.begin();
+  }
+
+  private validateFormData(
+    form: HTMLFormElement,
+  ): Record<string, string | null> {
+    const validationResults: Record<string, string | null> = {};
+    const inputs = Array.from(form.elements).filter(
+      (el) => el instanceof HTMLInputElement,
+    ) as HTMLInputElement[];
+
+    inputs.forEach((input) => {
+      input.addEventListener(
+        "onValidateInput",
+        (e: Event) => {
+          const detail = (e as CustomEvent).detail;
+          validationResults[detail.name] = detail.error;
+        },
+        { once: true },
+      );
+
+      input.dispatchEvent(
+        new CustomEvent("validate", {
+          detail: { value: input.value },
+        }),
+      );
+    });
+
+    return validationResults;
   }
 
   /**

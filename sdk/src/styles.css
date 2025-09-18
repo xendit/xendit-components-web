@@ -194,6 +194,10 @@ xendit-payment-channel[inert] {
   outline: none;
 }
 
+.xendit-channel-form-field input.invalid {
+  border-color: var(--xendit-color-danger);
+}
+
 .xendit-channel-form-field .xendit-iframe-container {
   height: 40px;
   width: 100%;
