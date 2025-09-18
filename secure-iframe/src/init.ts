@@ -167,6 +167,18 @@ export async function init() {
     });
   }
 
+  async function handleBlurEvent(value: string) {
+    if (value.length === 0) return;
+    const validationResult = validate(queryInputs.inputType, value);
+    securePostMessage({
+      type: "blur",
+      empty: value.length === 0,
+      valid: validationResult.valid,
+      validationErrorCodes: validationResult.errorCodes,
+      cardBrand: validationResult.cardBrand ?? null,
+    });
+  }
+
   // input change event
   input.addEventListener("secureinputevent", async (event) => {
     assertIsSecureInputEvent(event);
@@ -183,9 +195,7 @@ export async function init() {
         });
         return;
       case "blur":
-        securePostMessage({
-          type: "blur",
-        });
+        handleBlurEvent(event.detail.value ?? "").catch(fatalError);
         return;
     }
   });

@@ -16,7 +16,11 @@ export function createInputElement(type: IframeFieldType) {
     input.dispatchEvent(new SecureInputEvent("focus", {}));
   }
   function onBlur(event: Event) {
-    input.dispatchEvent(new SecureInputEvent("blur", {}));
+    input.dispatchEvent(
+      new SecureInputEvent("blur", {
+        value: input.value,
+      }),
+    );
   }
   input.addEventListener("focus", onFocus);
   input.addEventListener("blur", onBlur);
@@ -43,6 +47,7 @@ export function createInputElement(type: IframeFieldType) {
       input.inputMode = "numeric";
       input.autocomplete = "cc-csc";
       input.maxLength = 4;
+      creditCardCvnEvents(input);
       break;
     }
   }
@@ -250,6 +255,19 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
 
   function onInput(event: Event) {
     formatAndSendEvent();
+  }
+}
+
+function creditCardCvnEvents(input: HTMLInputElement) {
+  input.addEventListener("change", onChange);
+  input.addEventListener("input", onInput);
+
+  function onChange(event: Event) {
+    input.dispatchEvent(new SecureInputEvent("change", { value: input.value }));
+  }
+
+  function onInput(event: Event) {
+    input.dispatchEvent(new SecureInputEvent("change", { value: input.value }));
   }
 }
 

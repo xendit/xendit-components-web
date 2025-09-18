@@ -19,7 +19,7 @@ export const TextField: React.FC<FieldProps> = (props) => {
 
   function handleBlur(event: React.FocusEvent<HTMLInputElement>): void {
     const value = (event.target as HTMLInputElement).value;
-    validateField(value);
+    if (value) validateField(value);
   }
 
   const validateField = useCallback(

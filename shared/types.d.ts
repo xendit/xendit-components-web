@@ -30,6 +30,10 @@ type IframeFocusEvent = {
 
 type IframeBlurEvent = {
   type: "blur";
+  empty: boolean;
+  valid: boolean;
+  validationErrorCodes: string[];
+  cardBrand: CardBrand | null;
 };
 
 type IframeFailedInitEvent = {

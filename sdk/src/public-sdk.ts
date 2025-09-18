@@ -335,7 +335,6 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     const component = this[internal].paymentChannelComponents.get(channelCode);
-
     const form = component?.element.querySelector(
       ".xendit-channel-form form",
     ) as HTMLFormElement | null;

@@ -47,6 +47,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   >();
 
   const [focusWithin, setFocusWithin] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
@@ -73,6 +74,8 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
         case "change": {
           if (!hiddenFieldRef.current) return;
+
+          if (data.validationErrorCodes.length === 0) setError(null);
 
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
@@ -101,6 +104,11 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           break;
         }
         case "blur": {
+          if (data.validationErrorCodes.length > 0) {
+            setError(data.validationErrorCodes[0]);
+          } else {
+            setError(null);
+          }
           setFocusWithin(false);
           break;
         }
@@ -130,9 +138,14 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
   return (
-    <div className={`xendit-iframe-container ${focusClass}`}>
-      <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
-      <iframe src={iframeUrl.toString()} ref={iframeRef} />
-    </div>
+    <>
+      <div className={`xendit-iframe-container ${focusClass}`}>
+        <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
+        <iframe src={iframeUrl.toString()} ref={iframeRef} />
+      </div>
+      {error && (
+        <span className="xendit-error-message xendit-text-14">{error}</span>
+      )}
+    </>
   );
 };
