@@ -47,7 +47,7 @@ export function createInputElement(type: IframeFieldType) {
       input.inputMode = "numeric";
       input.autocomplete = "cc-csc";
       input.maxLength = 4;
-      creditCardCvnEvents(input);
+      creditCardCVNEvents(input);
       break;
     }
   }
@@ -258,7 +258,7 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
   }
 }
 
-function creditCardCvnEvents(input: HTMLInputElement) {
+function creditCardCVNEvents(input: HTMLInputElement) {
   input.addEventListener("change", onChange);
   input.addEventListener("input", onInput);
 

@@ -386,7 +386,7 @@ export function makeTestBffData(): BffResponse {
             placeholder: "john.doe@example.com",
             type: { name: "email" },
             channel_property: "card_details.cardholder_email",
-            required: false,
+            required: true,
             span: 2,
           },
           {

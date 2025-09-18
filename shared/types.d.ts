@@ -40,12 +40,21 @@ type IframeFailedInitEvent = {
   type: "failed_init";
 };
 
+type IframeValidationEvent = {
+  type: "validate";
+  empty: boolean;
+  valid: boolean;
+  validationErrorCodes: string[];
+  cardBrand: CardBrand | null;
+};
+
 export type IframeEvent =
   | IframeChangeEvent
   | IframeReadyEvent
   | IframeFocusEvent
   | IframeBlurEvent
-  | IframeFailedInitEvent;
+  | IframeFailedInitEvent
+  | IframeValidationEvent;
 
 export type IframeFieldType =
   | "credit_card_number"

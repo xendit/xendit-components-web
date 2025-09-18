@@ -65,6 +65,26 @@ const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
 const queryInputs = getQueryInputs();
 
+window.addEventListener("message", (event) => {
+  if (event.origin !== queryInputs.embedderOrigin) return;
+  if (event.data.type === "validate") {
+    const input = document.querySelector(
+      "#secure-iframe-input",
+    ) as HTMLInputElement | null;
+    const validationResult = validate(
+      queryInputs.inputType,
+      input?.value ?? "",
+    );
+    securePostMessage({
+      type: "validate",
+      empty: input?.value.length === 0,
+      valid: validationResult.valid,
+      validationErrorCodes: validationResult.errorCodes,
+      cardBrand: validationResult.cardBrand ?? null,
+    });
+  }
+});
+
 function securePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, queryInputs.embedderOrigin);
 }

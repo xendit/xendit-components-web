@@ -115,10 +115,10 @@ export function validate(
   switch (inputType) {
     case "credit_card_number":
       return validateCreditCardNumber(value);
-    case "credit_card_cvn":
-      return validateCreditCardCVN(value);
     case "credit_card_expiry":
       return validateCreditCardExpiry(value);
+    case "credit_card_cvn":
+      return validateCreditCardCVN(value);
 
     default:
       throw new Error(`Unsupported input type: ${inputType}`);

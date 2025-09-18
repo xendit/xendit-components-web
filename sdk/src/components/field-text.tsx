@@ -63,7 +63,9 @@ export const TextField: React.FC<FieldProps> = (props) => {
         minLength={isTextField(field) ? field.type.min_length : undefined}
         maxLength={isTextField(field) ? field.type.max_length : undefined}
       />
-      {error && <span className="xendit-error-message">{error}</span>}
+      {error && (
+        <span className="xendit-error-message xendit-text-14">{error}</span>
+      )}
     </>
   );
 };

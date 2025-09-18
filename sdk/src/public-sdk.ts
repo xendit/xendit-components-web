@@ -394,6 +394,15 @@ export class XenditSessionSdk extends EventTarget {
       );
     });
 
+    const iframes = form.querySelectorAll("iframe");
+    iframes.forEach((iframe) => {
+      iframe.addEventListener("onValidateInput", (e: Event) => {
+        const detail = (e as CustomEvent).detail;
+        validationResults[detail.name] = detail.error;
+      });
+      iframe.contentWindow?.postMessage({ type: "validate" }, "*");
+    });
+
     return validationResults;
   }
 

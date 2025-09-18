@@ -112,6 +112,23 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           setFocusWithin(false);
           break;
         }
+        case "validate": {
+          if (data.validationErrorCodes.length > 0) {
+            setError(data.validationErrorCodes[0]);
+          } else {
+            setError(null);
+          }
+          const validateEvent = new CustomEvent("onValidateInput", {
+            detail: {
+              error:
+                data.validationErrorCodes.length > 0
+                  ? data.validationErrorCodes[0]
+                  : null,
+            },
+          });
+          iframeRef.current.dispatchEvent(validateEvent);
+          break;
+        }
         case "failed_init": {
           break;
         }
