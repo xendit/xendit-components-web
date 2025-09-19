@@ -7,7 +7,12 @@ import {
 } from "preact/hooks";
 import { FieldProps, formFieldName } from "./field";
 import { useSdk, useSession } from "./session-provider";
-import { IframeEvent } from "../../../shared/types";
+import {
+  IframeBlurEvent,
+  IframeChangeEvent,
+  IframeEvent,
+  IframeValidationEvent,
+} from "../../../shared/types";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -49,6 +54,25 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   const [focusWithin, setFocusWithin] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleIframeEventResult = useCallback(
+    (data: IframeChangeEvent | IframeBlurEvent | IframeValidationEvent) => {
+      const { empty, validationErrorCodes } = data;
+
+      if (validationErrorCodes.length === 0) {
+        setError(null);
+      } else {
+        if (empty && field.required) {
+          setError("FIELD_IS_REQUIRED");
+        } else if (validationErrorCodes.length > 0) {
+          setError(validationErrorCodes[0]);
+        } else {
+          setError(null);
+        }
+      }
+    },
+    [field.required],
+  );
+
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
       if (!iframeRef.current) return;
@@ -74,9 +98,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
         case "change": {
           if (!hiddenFieldRef.current) return;
-
-          if (data.validationErrorCodes.length === 0) setError(null);
-
+          handleIframeEventResult(data);
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
           const resultData = encrypted.map((enc) => {
@@ -104,22 +126,15 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           break;
         }
         case "blur": {
-          if (data.validationErrorCodes.length > 0) {
-            setError(data.validationErrorCodes[0]);
-          } else {
-            setError(null);
-          }
+          handleIframeEventResult(data);
           setFocusWithin(false);
           break;
         }
         case "validate": {
-          if (data.validationErrorCodes.length > 0) {
-            setError(data.validationErrorCodes[0]);
-          } else {
-            setError(null);
-          }
+          handleIframeEventResult(data);
           const validateEvent = new CustomEvent("onValidateInput", {
             detail: {
+              name: id,
               error:
                 data.validationErrorCodes.length > 0
                   ? data.validationErrorCodes[0]
@@ -134,7 +149,13 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
       }
     },
-    [iframeData.origin, iframeEcdhPublicKey, onChange],
+    [
+      handleIframeEventResult,
+      id,
+      iframeData.origin,
+      iframeEcdhPublicKey,
+      onChange,
+    ],
   );
 
   useEffect(() => {
@@ -156,7 +177,9 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
   return (
     <>
-      <div className={`xendit-iframe-container ${focusClass}`}>
+      <div
+        className={`xendit-iframe-container ${focusClass}${error ? " invalid" : ""}`}
+      >
         <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
         <iframe src={iframeUrl.toString()} ref={iframeRef} />
       </div>

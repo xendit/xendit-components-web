@@ -63,71 +63,14 @@ describe("validateCreditCardNumber - card brand detection", () => {
   });
 });
 
-describe("validateCreditCardCVN", () => {
-  it("returns empty=true for empty input", () => {
-    const result = validateCreditCardCVN("");
-    expect(result.empty).toBe(true);
-    expect(result.valid).toBe(true);
-    expect(result.errorCodes).toEqual([]);
-  });
-
-  it("returns NOT_A_NUMBER for non-numeric input", () => {
-    const result = validateCreditCardCVN("abc");
-    expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("NOT_A_NUMBER");
-  });
-
-  it("returns CREDIT_CARD_CVN_TOO_SHORT for 1 digit", () => {
-    const result = validateCreditCardCVN("1");
-    expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_SHORT");
-  });
-
-  it("returns CREDIT_CARD_CVN_TOO_SHORT for 2 digits", () => {
-    const result = validateCreditCardCVN("12");
-    expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_SHORT");
-  });
-
-  it("returns valid for 3 digits", () => {
-    const result = validateCreditCardCVN("123");
-    expect(result.valid).toBe(true);
-    expect(result.errorCodes).toEqual([]);
-  });
-
-  it("returns valid for 4 digits", () => {
-    const result = validateCreditCardCVN("1234");
-    expect(result.valid).toBe(true);
-    expect(result.errorCodes).toEqual([]);
-  });
-
-  it("returns CREDIT_CARD_CVN_TOO_LONG for 5 digits", () => {
-    const result = validateCreditCardCVN("12345");
-    expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_LONG");
-  });
-
-  it("returns CREDIT_CARD_CVN_TOO_LONG for 10 digits", () => {
-    const result = validateCreditCardCVN("1234567890");
-    expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_LONG");
-  });
-
-  it("trims spaces and validates CVN", () => {
-    const result = validateCreditCardCVN(" 123 ");
-    expect(result.valid).toBe(true);
-    expect(result.errorCodes).toEqual([]);
-  });
-});
-
-it("returns valid=true for valid input", () => {
-  const result = validateCreditCardExpiry(
-    `12/${(new Date().getFullYear() + 5).toString().slice(-2)}`,
-  );
-  expect(result.valid).toBe(true);
-});
-
 describe("validateCreditCardExpiry", () => {
+  it("returns valid=true for valid input", () => {
+    const result = validateCreditCardExpiry(
+      `12/${(new Date().getFullYear() + 5).toString().slice(-2)}`,
+    );
+    expect(result.valid).toBe(true);
+  });
+
   it("returns CREDIT_CARD_EXPIRY_INVALID for empty input", () => {
     const result = validateCreditCardExpiry("");
     expect(result.empty).toBe(true);
@@ -164,5 +107,84 @@ describe("validateCreditCardExpiry", () => {
     const result = validateCreditCardExpiry("01/20");
     expect(result.valid).toBe(false);
     expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
+  });
+});
+
+describe("validateCreditCardCVN", () => {
+  it("returns valid=true for 3-digit CVN", () => {
+    const result = validateCreditCardCVN("123");
+    expect(result.valid).toBe(true);
+    expect(result.errorCodes).toEqual([]);
+    expect(result.empty).toBe(false);
+  });
+
+  it("returns valid=true for 4-digit CVN", () => {
+    const result = validateCreditCardCVN("1234");
+    expect(result.valid).toBe(true);
+    expect(result.errorCodes).toEqual([]);
+    expect(result.empty).toBe(false);
+  });
+
+  it("returns NOT_A_NUMBER for non-numeric input", () => {
+    const result = validateCreditCardCVN("abc");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("NOT_A_NUMBER");
+    expect(result.empty).toBe(false);
+  });
+
+  it("returns NOT_A_NUMBER for empty string", () => {
+    const result = validateCreditCardCVN("");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("NOT_A_NUMBER");
+    expect(result.empty).toBe(true);
+  });
+
+  it("returns NOT_A_NUMBER for whitespace string", () => {
+    const result = validateCreditCardCVN("   ");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("NOT_A_NUMBER");
+    expect(result.empty).toBe(true);
+  });
+
+  it("returns CREDIT_CARD_CVN_TOO_SHORT for 1-digit CVN", () => {
+    const result = validateCreditCardCVN("1");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_SHORT");
+    expect(result.empty).toBe(false);
+  });
+
+  it("returns CREDIT_CARD_CVN_TOO_SHORT for 2-digit CVN", () => {
+    const result = validateCreditCardCVN("12");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_SHORT");
+    expect(result.empty).toBe(false);
+  });
+
+  it("returns CREDIT_CARD_CVN_TOO_LONG for 5-digit CVN", () => {
+    const result = validateCreditCardCVN("12345");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_LONG");
+    expect(result.empty).toBe(false);
+  });
+
+  it("returns CREDIT_CARD_CVN_TOO_LONG for 6-digit CVN", () => {
+    const result = validateCreditCardCVN("123456");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_LONG");
+    expect(result.empty).toBe(false);
+  });
+
+  it("returns NOT_A_NUMBER for CVN with special characters", () => {
+    const result = validateCreditCardCVN("12@");
+    expect(result.valid).toBe(false);
+    expect(result.errorCodes).toContain("NOT_A_NUMBER");
+    expect(result.empty).toBe(false);
+  });
+
+  it("trims whitespace before validation", () => {
+    const result = validateCreditCardCVN(" 123 ");
+    expect(result.valid).toBe(true);
+    expect(result.errorCodes).toEqual([]);
+    expect(result.empty).toBe(false);
   });
 });

@@ -58,12 +58,29 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
   };
 };
 
+export const validateCreditCardExpiry = (value: string): ValidationResult => {
+  const trimmedValue = value.replace(/\s+/g, "");
+  const errorCodes: IframeValidationError[] = [];
+
+  const expiryInfo = cardValidator.expirationDate(trimmedValue);
+  const { isPotentiallyValid, isValid, month, year } = expiryInfo;
+  if (!isPotentiallyValid || month === null || year === null) {
+    errorCodes.push("CREDIT_CARD_EXPIRY_INVALID");
+  }
+
+  return {
+    empty: trimmedValue.length === 0,
+    valid: isValid,
+    errorCodes,
+  };
+};
+
 export const validateCreditCardCVN = (value: string): ValidationResult => {
   const trimmedValue = value.replace(/\s+/g, "");
   const errorCodes: IframeValidationError[] = [];
   const cvnInfo = cardValidator.cvv(trimmedValue);
 
-  if (!/^\d*$/.test(trimmedValue)) {
+  if (!/^\d+$/.test(trimmedValue)) {
     errorCodes.push("NOT_A_NUMBER");
   } else {
     if (!cvnInfo.isPotentiallyValid && trimmedValue.length > 0) {
@@ -84,23 +101,6 @@ export const validateCreditCardCVN = (value: string): ValidationResult => {
   return {
     empty: trimmedValue.length === 0,
     valid: errorCodes.length === 0,
-    errorCodes,
-  };
-};
-
-export const validateCreditCardExpiry = (value: string): ValidationResult => {
-  const trimmedValue = value.replace(/\s+/g, "");
-  const errorCodes: IframeValidationError[] = [];
-
-  const expiryInfo = cardValidator.expirationDate(trimmedValue);
-  const { isPotentiallyValid, isValid, month, year } = expiryInfo;
-  if (!isPotentiallyValid || month === null || year === null) {
-    errorCodes.push("CREDIT_CARD_EXPIRY_INVALID");
-  }
-
-  return {
-    empty: trimmedValue.length === 0,
-    valid: isValid,
     errorCodes,
   };
 };

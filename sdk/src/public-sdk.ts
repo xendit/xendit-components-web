@@ -341,7 +341,6 @@ export class XenditSessionSdk extends EventTarget {
 
     if (form) {
       const validationResults = this.validateFormData(form);
-
       if (Object.keys(validationResults).length > 0) {
         return;
       }
@@ -372,6 +371,7 @@ export class XenditSessionSdk extends EventTarget {
   private validateFormData(
     form: HTMLFormElement,
   ): Record<string, string | null> {
+    const embedderOrigin = "https://localhost:4444";
     const validationResults: Record<string, string | null> = {};
     const inputs = Array.from(form.elements).filter(
       (el) => el instanceof HTMLInputElement,
@@ -382,7 +382,9 @@ export class XenditSessionSdk extends EventTarget {
         "onValidateInput",
         (e: Event) => {
           const detail = (e as CustomEvent).detail;
-          validationResults[detail.name] = detail.error;
+          if (detail.error) {
+            validationResults[detail.name] = detail.error;
+          }
         },
         { once: true },
       );
@@ -398,9 +400,11 @@ export class XenditSessionSdk extends EventTarget {
     iframes.forEach((iframe) => {
       iframe.addEventListener("onValidateInput", (e: Event) => {
         const detail = (e as CustomEvent).detail;
-        validationResults[detail.name] = detail.error;
+        if (detail.error) {
+          validationResults[detail.name] = detail.error;
+        }
       });
-      iframe.contentWindow?.postMessage({ type: "validate" }, "*");
+      iframe.contentWindow?.postMessage({ type: "validate" }, embedderOrigin);
     });
 
     return validationResults;

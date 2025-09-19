@@ -75,6 +75,7 @@ window.addEventListener("message", (event) => {
       queryInputs.inputType,
       input?.value ?? "",
     );
+
     securePostMessage({
       type: "validate",
       empty: input?.value.length === 0,
