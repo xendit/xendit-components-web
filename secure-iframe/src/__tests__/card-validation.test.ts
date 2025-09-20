@@ -132,20 +132,6 @@ describe("validateCreditCardCVN", () => {
     expect(result.empty).toBe(false);
   });
 
-  it("returns NOT_A_NUMBER for empty string", () => {
-    const result = validateCreditCardCVN("");
-    expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("NOT_A_NUMBER");
-    expect(result.empty).toBe(true);
-  });
-
-  it("returns NOT_A_NUMBER for whitespace string", () => {
-    const result = validateCreditCardCVN("   ");
-    expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("NOT_A_NUMBER");
-    expect(result.empty).toBe(true);
-  });
-
   it("returns CREDIT_CARD_CVN_TOO_SHORT for 1-digit CVN", () => {
     const result = validateCreditCardCVN("1");
     expect(result.valid).toBe(false);

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChannelFormField } from "../forms-types";
 import { FieldProps, formFieldName } from "./field";
 import { validate } from "../validation";
+import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -38,15 +39,11 @@ export const TextField: React.FC<FieldProps> = (props) => {
     const listener = (e: Event) => {
       const value = (e as CustomEvent).detail.value;
       const errorMessage = validateField(value);
-      const event = new CustomEvent("onValidateInput", {
-        detail: { name: id, value, error: errorMessage },
-        bubbles: true,
-      });
-      input.dispatchEvent(event);
+      if (errorMessage) input.dispatchEvent(new InputInvalidEvent());
     };
-    input.addEventListener("validate", listener);
+    input.addEventListener(InputValidateEvent.type, listener);
     return () => {
-      input.removeEventListener("validate", listener);
+      input.removeEventListener(InputValidateEvent.type, listener);
     };
   }, [id, validateField]);
 

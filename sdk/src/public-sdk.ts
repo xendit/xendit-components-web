@@ -5,6 +5,8 @@ import {
   bffSessionToPublicSession,
 } from "./bff-marshal";
 import {
+  InputInvalidEvent,
+  InputValidateEvent,
   XenditActionBeginEvent,
   XenditActionEndEvent,
   XenditErrorEvent,
@@ -23,7 +25,7 @@ import {
   XenditSession,
 } from "./public-data-types";
 import { internal } from "./internal";
-import { createElement, render } from "preact";
+import { createElement, createRef, RefObject, render } from "preact";
 import {
   XenditChannelPicker,
   XenditClearActiveChannelEvent,
@@ -96,6 +98,8 @@ export class XenditSessionSdk extends EventTarget {
     terminal: boolean;
   };
 
+  private channelFormRef: RefObject<HTMLFormElement>;
+
   /**
    * @internal
    */
@@ -114,6 +118,8 @@ export class XenditSessionSdk extends EventTarget {
       submitter: null,
       terminal: false,
     };
+
+    this.channelFormRef = createRef();
 
     // on next tick, emit "not-ready" event
     setTimeout(() => {
@@ -299,6 +305,7 @@ export class XenditSessionSdk extends EventTarget {
         children: createElement(PaymentChannel, {
           channel: channel[internal],
           active,
+          formRef: this.channelFormRef,
         }),
       }),
       container,
@@ -335,13 +342,11 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     const component = this[internal].paymentChannelComponents.get(channelCode);
-    const form = component?.element.querySelector(
-      ".xendit-channel-form form",
-    ) as HTMLFormElement | null;
+    const form = this.channelFormRef.current;
 
     if (form) {
-      const validationResults = this.validateFormData(form);
-      if (Object.keys(validationResults).length > 0) {
+      const isFormValid = this.validateFormData(form);
+      if (!isFormValid) {
         return;
       }
     }
@@ -368,46 +373,21 @@ export class XenditSessionSdk extends EventTarget {
     this[internal].submitter.begin();
   }
 
-  private validateFormData(
-    form: HTMLFormElement,
-  ): Record<string, string | null> {
-    const embedderOrigin = "https://localhost:4444";
-    const validationResults: Record<string, string | null> = {};
+  private validateFormData(form: HTMLFormElement) {
     const inputs = Array.from(form.elements).filter(
       (el) => el instanceof HTMLInputElement,
     ) as HTMLInputElement[];
+    let result = true;
+
+    form.addEventListener(InputInvalidEvent.type, (_) => {
+      result = false;
+    });
 
     inputs.forEach((input) => {
-      input.addEventListener(
-        "onValidateInput",
-        (e: Event) => {
-          const detail = (e as CustomEvent).detail;
-          if (detail.error) {
-            validationResults[detail.name] = detail.error;
-          }
-        },
-        { once: true },
-      );
-
-      input.dispatchEvent(
-        new CustomEvent("validate", {
-          detail: { value: input.value },
-        }),
-      );
+      input.dispatchEvent(new InputValidateEvent(input.value));
     });
 
-    const iframes = form.querySelectorAll("iframe");
-    iframes.forEach((iframe) => {
-      iframe.addEventListener("onValidateInput", (e: Event) => {
-        const detail = (e as CustomEvent).detail;
-        if (detail.error) {
-          validationResults[detail.name] = detail.error;
-        }
-      });
-      iframe.contentWindow?.postMessage({ type: "validate" }, embedderOrigin);
-    });
-
-    return validationResults;
+    return result;
   }
 
   /**

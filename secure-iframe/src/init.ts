@@ -65,27 +65,6 @@ const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
 const queryInputs = getQueryInputs();
 
-window.addEventListener("message", (event) => {
-  if (event.origin !== queryInputs.embedderOrigin) return;
-  if (event.data.type === "validate") {
-    const input = document.querySelector(
-      "#secure-iframe-input",
-    ) as HTMLInputElement | null;
-    const validationResult = validate(
-      queryInputs.inputType,
-      input?.value ?? "",
-    );
-
-    securePostMessage({
-      type: "validate",
-      empty: input?.value.length === 0,
-      valid: validationResult.valid,
-      validationErrorCodes: validationResult.errorCodes,
-      cardBrand: validationResult.cardBrand ?? null,
-    });
-  }
-});
-
 function securePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, queryInputs.embedderOrigin);
 }
@@ -188,18 +167,6 @@ export async function init() {
     });
   }
 
-  async function handleBlurEvent(value: string) {
-    if (value.length === 0) return;
-    const validationResult = validate(queryInputs.inputType, value);
-    securePostMessage({
-      type: "blur",
-      empty: value.length === 0,
-      valid: validationResult.valid,
-      validationErrorCodes: validationResult.errorCodes,
-      cardBrand: validationResult.cardBrand ?? null,
-    });
-  }
-
   // input change event
   input.addEventListener("secureinputevent", async (event) => {
     assertIsSecureInputEvent(event);
@@ -216,7 +183,9 @@ export async function init() {
         });
         return;
       case "blur":
-        handleBlurEvent(event.detail.value ?? "").catch(fatalError);
+        securePostMessage({
+          type: "blur",
+        });
         return;
     }
   });

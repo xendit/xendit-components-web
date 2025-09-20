@@ -16,11 +16,7 @@ export function createInputElement(type: IframeFieldType) {
     input.dispatchEvent(new SecureInputEvent("focus", {}));
   }
   function onBlur(event: Event) {
-    input.dispatchEvent(
-      new SecureInputEvent("blur", {
-        value: input.value,
-      }),
-    );
+    input.dispatchEvent(new SecureInputEvent("blur", {}));
   }
   input.addEventListener("focus", onFocus);
   input.addEventListener("blur", onBlur);

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import { useRef, useCallback, forwardRef, useImperativeHandle } from "react";
 import { ChannelFormField, ChannelProperties } from "../forms-types";
 import Field from "./field";
 
@@ -7,48 +7,54 @@ interface Props {
   onChannelPropertiesChanged: (channelProperties: ChannelProperties) => void;
 }
 
-const ChannelForm: React.FC<Props> = ({ form, onChannelPropertiesChanged }) => {
-  const formRef = useRef<HTMLFormElement>(null);
+const ChannelForm = forwardRef<HTMLFormElement, Props>(
+  ({ form, onChannelPropertiesChanged }, ref) => {
+    const formRef = useRef<HTMLFormElement>(null);
 
-  const getChannelProperties = useCallback((): ChannelProperties => {
-    if (!formRef.current) return {};
+    useImperativeHandle(ref, () => formRef.current as HTMLFormElement);
 
-    // The browser FormData collides with node's FormData, both are global, so we
-    // need to make up a type for it
-    const formData = new FormData(formRef.current) as unknown as {
-      entries: () => IterableIterator<[string, string | Blob]>;
-    };
+    const getChannelProperties = useCallback((): ChannelProperties => {
+      if (!formRef.current) return {};
 
-    return formKvToChannelProperties(formData.entries());
-  }, []);
+      // The browser FormData collides with node's FormData, both are global, so we
+      // need to make up a type for
+      const formData = new FormData(formRef.current) as unknown as {
+        entries: () => IterableIterator<[string, string | Blob]>;
+      };
 
-  const handleFieldChanged = useCallback(() => {
-    if (!formRef.current) return;
-    onChannelPropertiesChanged(getChannelProperties());
-  }, [getChannelProperties, onChannelPropertiesChanged]);
+      return formKvToChannelProperties(formData.entries());
+    }, []);
 
-  const filteredFieldGroups = groupFields(form).filter((group) => group.length);
+    const handleFieldChanged = useCallback(() => {
+      if (!formRef.current) return;
+      onChannelPropertiesChanged(getChannelProperties());
+    }, [getChannelProperties, onChannelPropertiesChanged]);
 
-  return (
-    <div class="xendit-channel-form">
-      <form ref={formRef}>
-        {filteredFieldGroups.map((fieldGroup, groupIndex) => (
-          <div key={groupIndex} className="xendit-form-field-group">
-            {fieldGroup.map((field, fieldIndex) => {
-              return (
-                <Field
-                  key={fieldIndex}
-                  field={field}
-                  onChange={handleFieldChanged}
-                />
-              );
-            })}
-          </div>
-        ))}
-      </form>
-    </div>
-  );
-};
+    const filteredFieldGroups = groupFields(form).filter(
+      (group) => group.length,
+    );
+
+    return (
+      <div class="xendit-channel-form">
+        <form ref={formRef}>
+          {filteredFieldGroups.map((fieldGroup, groupIndex) => (
+            <div key={groupIndex} className="xendit-form-field-group">
+              {fieldGroup.map((field, fieldIndex) => {
+                return (
+                  <Field
+                    key={fieldIndex}
+                    field={field}
+                    onChange={handleFieldChanged}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </form>
+      </div>
+    );
+  },
+);
 
 function groupFields(fields: ChannelFormField[]): ChannelFormField[][] {
   // Group fields for rendering

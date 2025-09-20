@@ -30,22 +30,10 @@ type IframeFocusEvent = {
 
 type IframeBlurEvent = {
   type: "blur";
-  empty: boolean;
-  valid: boolean;
-  validationErrorCodes: string[];
-  cardBrand: CardBrand | null;
 };
 
 type IframeFailedInitEvent = {
   type: "failed_init";
-};
-
-type IframeValidationEvent = {
-  type: "validate";
-  empty: boolean;
-  valid: boolean;
-  validationErrorCodes: string[];
-  cardBrand: CardBrand | null;
 };
 
 export type IframeEvent =
@@ -53,8 +41,7 @@ export type IframeEvent =
   | IframeReadyEvent
   | IframeFocusEvent
   | IframeBlurEvent
-  | IframeFailedInitEvent
-  | IframeValidationEvent;
+  | IframeFailedInitEvent;
 
 export type IframeFieldType =
   | "credit_card_number"

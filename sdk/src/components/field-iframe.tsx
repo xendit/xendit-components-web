@@ -7,12 +7,8 @@ import {
 } from "preact/hooks";
 import { FieldProps, formFieldName } from "./field";
 import { useSdk, useSession } from "./session-provider";
-import {
-  IframeBlurEvent,
-  IframeChangeEvent,
-  IframeEvent,
-  IframeValidationEvent,
-} from "../../../shared/types";
+import { IframeChangeEvent, IframeEvent } from "../../../shared/types";
+import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -36,6 +32,13 @@ function getIframeByEnv(env: string) {
   throw new Error(`Unknown env: ${env}`);
 }
 
+type ValidationState = {
+  valid: boolean;
+  empty?: boolean;
+  validationErrorCodes: string[];
+  cardBrand: string | null;
+};
+
 export const IframeField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
 
@@ -52,26 +55,69 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   >();
 
   const [focusWithin, setFocusWithin] = useState(false);
+
+  const [isTouched, setIsTouched] = useState(false);
+  const [validationResult, setValidationResult] = useState<ValidationState>({
+    valid: false,
+    validationErrorCodes: [],
+    cardBrand: null,
+  });
   const [error, setError] = useState<string | null>(null);
 
-  const handleIframeEventResult = useCallback(
-    (data: IframeChangeEvent | IframeBlurEvent | IframeValidationEvent) => {
-      const { empty, validationErrorCodes } = data;
-
-      if (validationErrorCodes.length === 0) {
-        setError(null);
-      } else {
-        if (empty && field.required) {
-          setError("FIELD_IS_REQUIRED");
-        } else if (validationErrorCodes.length > 0) {
-          setError(validationErrorCodes[0]);
-        } else {
-          setError(null);
-        }
-      }
+  const toValidationState = useCallback(
+    (incoming: IframeChangeEvent | undefined, prev: ValidationState) => {
+      if (!incoming) return prev;
+      return {
+        valid: incoming.valid,
+        empty: incoming.empty,
+        validationErrorCodes: incoming.validationErrorCodes ?? [],
+        cardBrand: incoming.cardBrand ?? null,
+      };
     },
-    [field.required],
+    [],
   );
+
+  const computeFieldError = useCallback(
+    (state: ValidationState, required: boolean) => {
+      if (state.empty && required) return "FIELD_IS_REQUIRED";
+      if (!state.validationErrorCodes?.length) return null;
+      return state.validationErrorCodes[0] ?? null;
+    },
+    [],
+  );
+
+  const handleIframeEventResult = useCallback(
+    (incoming?: IframeChangeEvent) => {
+      setValidationResult((prev) => {
+        const next = toValidationState(incoming, prev);
+        if (!isTouched && incoming) return next;
+        setError(computeFieldError(next, field.required));
+        return next;
+      });
+    },
+    [computeFieldError, field.required, isTouched, toValidationState],
+  );
+
+  useEffect(() => {
+    if (!hiddenFieldRef.current) return;
+    const input = hiddenFieldRef.current;
+    const listener = (e: Event) => {
+      const errorMessage = computeFieldError(
+        {
+          empty: input.value.length === 0,
+          validationErrorCodes: [] as string[],
+        } as ValidationState,
+        field.required,
+      );
+      setError(errorMessage);
+      setIsTouched(true);
+      if (errorMessage) input.dispatchEvent(new InputInvalidEvent());
+    };
+    input.addEventListener(InputValidateEvent.type, listener);
+    return () => {
+      input.removeEventListener(InputValidateEvent.type, listener);
+    };
+  }, [computeFieldError, field.required, id, validationResult]);
 
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
@@ -126,22 +172,9 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           break;
         }
         case "blur": {
-          handleIframeEventResult(data);
+          if (!validationResult.empty) setIsTouched(true);
+          handleIframeEventResult();
           setFocusWithin(false);
-          break;
-        }
-        case "validate": {
-          handleIframeEventResult(data);
-          const validateEvent = new CustomEvent("onValidateInput", {
-            detail: {
-              name: id,
-              error:
-                data.validationErrorCodes.length > 0
-                  ? data.validationErrorCodes[0]
-                  : null,
-            },
-          });
-          iframeRef.current.dispatchEvent(validateEvent);
           break;
         }
         case "failed_init": {
@@ -151,10 +184,10 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     },
     [
       handleIframeEventResult,
-      id,
       iframeData.origin,
       iframeEcdhPublicKey,
       onChange,
+      validationResult.empty,
     ],
   );
 

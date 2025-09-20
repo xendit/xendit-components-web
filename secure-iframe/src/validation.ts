@@ -80,7 +80,7 @@ export const validateCreditCardCVN = (value: string): ValidationResult => {
   const errorCodes: IframeValidationError[] = [];
   const cvnInfo = cardValidator.cvv(trimmedValue);
 
-  if (!/^\d+$/.test(trimmedValue)) {
+  if (!/^\d*$/.test(trimmedValue)) {
     errorCodes.push("NOT_A_NUMBER");
   } else {
     if (!cvnInfo.isPotentiallyValid && trimmedValue.length > 0) {
