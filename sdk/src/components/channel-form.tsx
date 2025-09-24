@@ -1,17 +1,40 @@
 import { useRef, useCallback, forwardRef, useImperativeHandle } from "react";
 import { ChannelFormField, ChannelProperties } from "../forms-types";
 import Field from "./field";
+import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 
 interface Props {
   form: ChannelFormField[];
   onChannelPropertiesChanged: (channelProperties: ChannelProperties) => void;
 }
+export interface ChannelFormHandle {
+  validate: () => boolean;
+}
 
-const ChannelForm = forwardRef<HTMLFormElement, Props>(
+const ChannelForm = forwardRef<ChannelFormHandle | null, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const formRef = useRef<HTMLFormElement>(null);
 
-    useImperativeHandle(ref, () => formRef.current as HTMLFormElement);
+    useImperativeHandle(ref, () => ({
+      validate() {
+        let result = true;
+
+        const form = formRef.current;
+        if (form) {
+          form.addEventListener(InputInvalidEvent.type, () => {
+            result = false;
+          });
+
+          Array.from(form.elements)
+            .filter((el) => el instanceof HTMLInputElement)
+            .forEach((input) => {
+              input.dispatchEvent(new InputValidateEvent(input.value));
+            });
+        }
+
+        return result;
+      },
+    }));
 
     const getChannelProperties = useCallback((): ChannelProperties => {
       if (!formRef.current) return {};

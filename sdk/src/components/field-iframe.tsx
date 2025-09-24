@@ -34,7 +34,7 @@ function getIframeByEnv(env: string) {
 
 type ValidationState = {
   valid: boolean;
-  empty?: boolean;
+  empty: boolean;
   validationErrorCodes: string[];
   cardBrand: string | null;
 };
@@ -58,6 +58,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
   const [isTouched, setIsTouched] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationState>({
+    empty: true,
     valid: false,
     validationErrorCodes: [],
     cardBrand: null,
@@ -101,11 +102,11 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   useEffect(() => {
     if (!hiddenFieldRef.current) return;
     const input = hiddenFieldRef.current;
-    const listener = (e: Event) => {
+    const listener = () => {
       const errorMessage = computeFieldError(
         {
-          empty: input.value.length === 0,
-          validationErrorCodes: [] as string[],
+          empty: validationResult.empty,
+          validationErrorCodes: validationResult.validationErrorCodes,
         } as ValidationState,
         field.required,
       );

@@ -1,13 +1,13 @@
 import { Channel, ChannelProperties } from "../forms-types";
 import Icon from "./icon";
-import ChannelForm from "./channel-form";
+import ChannelForm, { ChannelFormHandle } from "./channel-form";
 import { useRef } from "preact/hooks";
 import { RefObject } from "preact";
 
 interface Props {
   channel: Channel;
   active: boolean;
-  formRef: RefObject<HTMLFormElement>;
+  formRef?: RefObject<ChannelFormHandle | null>;
 }
 
 export const PaymentChannel: React.FC<Props> = (props) => {
