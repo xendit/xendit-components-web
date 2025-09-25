@@ -7,7 +7,7 @@ import { RefObject } from "preact";
 interface Props {
   channel: Channel;
   active: boolean;
-  formRef?: RefObject<ChannelFormHandle | null>;
+  formRef?: RefObject<ChannelFormHandle>;
 }
 
 export const PaymentChannel: React.FC<Props> = (props) => {

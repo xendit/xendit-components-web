@@ -54,7 +54,7 @@ export const TextField: React.FC<FieldProps> = (props) => {
         ref={inputRef}
         type="text"
         placeholder={field.placeholder}
-        className={`xendit-text-14${error ? " invalid" : ""}`}
+        className={`xendit-text-14 ${error ? "invalid" : ""}`}
         onBlur={handleBlur}
         onChange={handleChange}
         minLength={isTextField(field) ? field.type.min_length : undefined}

@@ -32,6 +32,25 @@ function getIframeByEnv(env: string) {
   throw new Error(`Unknown env: ${env}`);
 }
 
+const computeFieldError = (state: ValidationState, required: boolean) => {
+  if (state.empty && required) return "FIELD_IS_REQUIRED";
+  if (!state.validationErrorCodes?.length) return null;
+  return state.validationErrorCodes[0] ?? null;
+};
+
+const toValidationState = (
+  incoming: IframeChangeEvent | undefined,
+  prev: ValidationState,
+) => {
+  if (!incoming) return prev;
+  return {
+    valid: incoming.valid,
+    empty: incoming.empty,
+    validationErrorCodes: incoming.validationErrorCodes ?? [],
+    cardBrand: incoming.cardBrand ?? null,
+  };
+};
+
 type ValidationState = {
   valid: boolean;
   empty: boolean;
@@ -65,28 +84,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   });
   const [error, setError] = useState<string | null>(null);
 
-  const toValidationState = useCallback(
-    (incoming: IframeChangeEvent | undefined, prev: ValidationState) => {
-      if (!incoming) return prev;
-      return {
-        valid: incoming.valid,
-        empty: incoming.empty,
-        validationErrorCodes: incoming.validationErrorCodes ?? [],
-        cardBrand: incoming.cardBrand ?? null,
-      };
-    },
-    [],
-  );
-
-  const computeFieldError = useCallback(
-    (state: ValidationState, required: boolean) => {
-      if (state.empty && required) return "FIELD_IS_REQUIRED";
-      if (!state.validationErrorCodes?.length) return null;
-      return state.validationErrorCodes[0] ?? null;
-    },
-    [],
-  );
-
   const handleIframeEventResult = useCallback(
     (incoming?: IframeChangeEvent) => {
       setValidationResult((prev) => {
@@ -96,7 +93,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         return next;
       });
     },
-    [computeFieldError, field.required, isTouched, toValidationState],
+    [field.required, isTouched],
   );
 
   useEffect(() => {
@@ -118,7 +115,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     return () => {
       input.removeEventListener(InputValidateEvent.type, listener);
     };
-  }, [computeFieldError, field.required, id, validationResult]);
+  }, [field.required, id, validationResult]);
 
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
@@ -212,7 +209,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   return (
     <>
       <div
-        className={`xendit-iframe-container ${focusClass}${error ? " invalid" : ""}`}
+        className={`xendit-iframe-container ${focusClass} ${error ? "invalid" : ""}`}
       >
         <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
         <iframe src={iframeUrl.toString()} ref={iframeRef} />

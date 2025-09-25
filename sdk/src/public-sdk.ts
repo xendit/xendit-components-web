@@ -55,7 +55,7 @@ type SdkConstructorOptions = {
 type CachedChannelComponent = {
   element: HTMLElement;
   channelProperties: ChannelProperties | null;
-  channelformRef: RefObject<ChannelFormHandle | null>;
+  channelformRef: RefObject<ChannelFormHandle>;
 };
 
 /**
@@ -272,7 +272,7 @@ export class XenditSessionSdk extends EventTarget {
     const cachedComponent =
       this[internal].paymentChannelComponents.get(channelCode);
     let container: HTMLElement;
-    let channelFormRef = createRef<ChannelFormHandle | null>();
+    let channelFormRef = createRef<ChannelFormHandle>();
 
     if (cachedComponent) {
       container = cachedComponent.element;
@@ -342,17 +342,18 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     const component = this[internal].paymentChannelComponents.get(channelCode);
-    const form = component?.channelformRef?.current;
+
+    if (!component) {
+      throw new Error("No active payment channel component");
+    }
+
+    const form = component.channelformRef?.current;
 
     if (form) {
       const isFormValid = form.validate();
       if (!isFormValid) {
         return;
       }
-    }
-
-    if (!component) {
-      throw new Error("No active payment channel component");
     }
 
     this[internal].submitter = new Submitter(

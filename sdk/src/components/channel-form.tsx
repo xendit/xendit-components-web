@@ -11,7 +11,7 @@ export interface ChannelFormHandle {
   validate: () => boolean;
 }
 
-const ChannelForm = forwardRef<ChannelFormHandle | null, Props>(
+const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const formRef = useRef<HTMLFormElement>(null);
 
