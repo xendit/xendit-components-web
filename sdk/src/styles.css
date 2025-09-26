@@ -194,6 +194,11 @@ xendit-payment-channel[inert] {
   outline: none;
 }
 
+.xendit-channel-form-field input.invalid,
+.xendit-channel-form-field .xendit-iframe-container.invalid {
+  border-color: var(--xendit-color-danger);
+}
+
 .xendit-channel-form-field .xendit-iframe-container {
   height: 40px;
   width: 100%;
@@ -260,4 +265,8 @@ xendit-payment-channel[inert] {
   height: 390px;
   border: none;
   background-color: var(--xendit-color-background);
+}
+
+.xendit-error-message {
+  color: var(--xendit-color-danger);
 }

@@ -7,7 +7,8 @@ import {
 } from "preact/hooks";
 import { FieldProps, formFieldName } from "./field";
 import { useSdk, useSession } from "./session-provider";
-import { IframeEvent } from "../../../shared/shared";
+import { IframeChangeEvent, IframeEvent } from "../../../shared/types";
+import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -31,6 +32,32 @@ function getIframeByEnv(env: string) {
   throw new Error(`Unknown env: ${env}`);
 }
 
+const computeFieldError = (state: ValidationState, required: boolean) => {
+  if (state.empty && required) return "FIELD_IS_REQUIRED";
+  if (!state.validationErrorCodes?.length) return null;
+  return state.validationErrorCodes[0] ?? null;
+};
+
+const toValidationState = (
+  incoming: IframeChangeEvent | undefined,
+  prev: ValidationState,
+) => {
+  if (!incoming) return prev;
+  return {
+    valid: incoming.valid,
+    empty: incoming.empty,
+    validationErrorCodes: incoming.validationErrorCodes ?? [],
+    cardBrand: incoming.cardBrand ?? null,
+  };
+};
+
+type ValidationState = {
+  valid: boolean;
+  empty: boolean;
+  validationErrorCodes: string[];
+  cardBrand: string | null;
+};
+
 export const IframeField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
 
@@ -47,6 +74,48 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   >();
 
   const [focusWithin, setFocusWithin] = useState(false);
+
+  const [isTouched, setIsTouched] = useState(false);
+  const [validationResult, setValidationResult] = useState<ValidationState>({
+    empty: true,
+    valid: false,
+    validationErrorCodes: [],
+    cardBrand: null,
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  const handleIframeEventResult = useCallback(
+    (incoming?: IframeChangeEvent) => {
+      setValidationResult((prev) => {
+        const next = toValidationState(incoming, prev);
+        if (!isTouched && incoming) return next;
+        setError(computeFieldError(next, field.required));
+        return next;
+      });
+    },
+    [field.required, isTouched],
+  );
+
+  useEffect(() => {
+    if (!hiddenFieldRef.current) return;
+    const input = hiddenFieldRef.current;
+    const listener = () => {
+      const errorMessage = computeFieldError(
+        {
+          empty: validationResult.empty,
+          validationErrorCodes: validationResult.validationErrorCodes,
+        } as ValidationState,
+        field.required,
+      );
+      setError(errorMessage);
+      setIsTouched(true);
+      if (errorMessage) input.dispatchEvent(new InputInvalidEvent());
+    };
+    input.addEventListener(InputValidateEvent.type, listener);
+    return () => {
+      input.removeEventListener(InputValidateEvent.type, listener);
+    };
+  }, [field.required, id, validationResult]);
 
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
@@ -73,7 +142,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
         case "change": {
           if (!hiddenFieldRef.current) return;
-
+          handleIframeEventResult(data);
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
           const resultData = encrypted.map((enc) => {
@@ -101,6 +170,8 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           break;
         }
         case "blur": {
+          if (!validationResult.empty) setIsTouched(true);
+          handleIframeEventResult();
           setFocusWithin(false);
           break;
         }
@@ -109,7 +180,13 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
       }
     },
-    [iframeData.origin, iframeEcdhPublicKey, onChange],
+    [
+      handleIframeEventResult,
+      iframeData.origin,
+      iframeEcdhPublicKey,
+      onChange,
+      validationResult.empty,
+    ],
   );
 
   useEffect(() => {
@@ -130,9 +207,16 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
   return (
-    <div className={`xendit-iframe-container ${focusClass}`}>
-      <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
-      <iframe src={iframeUrl.toString()} ref={iframeRef} />
-    </div>
+    <>
+      <div
+        className={`xendit-iframe-container ${focusClass} ${error ? "invalid" : ""}`}
+      >
+        <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
+        <iframe src={iframeUrl.toString()} ref={iframeRef} />
+      </div>
+      {error && (
+        <span className="xendit-error-message xendit-text-14">{error}</span>
+      )}
+    </>
   );
 };

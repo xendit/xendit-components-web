@@ -1,4 +1,4 @@
-import { IframeEvent, IframeFieldType } from "../../shared/shared";
+import { IframeEvent, IframeFieldType } from "../../shared/types";
 import {
   deriveSharedKey,
   encryptText,

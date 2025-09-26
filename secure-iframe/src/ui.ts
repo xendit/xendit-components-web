@@ -1,4 +1,4 @@
-import { IframeFieldType } from "../../shared/shared";
+import { IframeFieldType } from "../../shared/types";
 import { SecureInputEvent } from "./events";
 
 export function createWrapperDiv() {
@@ -43,6 +43,7 @@ export function createInputElement(type: IframeFieldType) {
       input.inputMode = "numeric";
       input.autocomplete = "cc-csc";
       input.maxLength = 4;
+      creditCardCVNEvents(input);
       break;
     }
   }
@@ -250,6 +251,19 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
 
   function onInput(event: Event) {
     formatAndSendEvent();
+  }
+}
+
+function creditCardCVNEvents(input: HTMLInputElement) {
+  input.addEventListener("change", onChange);
+  input.addEventListener("input", onInput);
+
+  function onChange(event: Event) {
+    input.dispatchEvent(new SecureInputEvent("change", { value: input.value }));
+  }
+
+  function onInput(event: Event) {
+    input.dispatchEvent(new SecureInputEvent("change", { value: input.value }));
   }
 }
 

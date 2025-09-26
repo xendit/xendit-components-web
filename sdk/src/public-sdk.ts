@@ -23,7 +23,7 @@ import {
   XenditSession,
 } from "./public-data-types";
 import { internal } from "./internal";
-import { createElement, render } from "preact";
+import { createElement, createRef, RefObject, render } from "preact";
 import {
   XenditChannelPicker,
   XenditClearActiveChannelEvent,
@@ -36,6 +36,7 @@ import {
 } from "./components/payment-channel";
 import { fetchSessionData } from "./network";
 import Submitter from "./submitter";
+import { ChannelFormHandle } from "./components/channel-form";
 
 /**
  * @internal
@@ -54,6 +55,7 @@ type SdkConstructorOptions = {
 type CachedChannelComponent = {
   element: HTMLElement;
   channelProperties: ChannelProperties | null;
+  channelformRef: RefObject<ChannelFormHandle>;
 };
 
 /**
@@ -270,14 +272,18 @@ export class XenditSessionSdk extends EventTarget {
     const cachedComponent =
       this[internal].paymentChannelComponents.get(channelCode);
     let container: HTMLElement;
+    let channelFormRef = createRef<ChannelFormHandle>();
+
     if (cachedComponent) {
       container = cachedComponent.element;
+      channelFormRef = cachedComponent.channelformRef;
     } else {
       container = document.createElement("xendit-payment-channel");
       this.setupUiEventsForPaymentChannel(container);
       this[internal].paymentChannelComponents.set(channelCode, {
         element: container,
         channelProperties: null,
+        channelformRef: channelFormRef,
       });
     }
 
@@ -299,6 +305,7 @@ export class XenditSessionSdk extends EventTarget {
         children: createElement(PaymentChannel, {
           channel: channel[internal],
           active,
+          formRef: channelFormRef,
         }),
       }),
       container,
@@ -333,9 +340,20 @@ export class XenditSessionSdk extends EventTarget {
     if (!channelCode) {
       throw new Error("No active payment channel component");
     }
+
     const component = this[internal].paymentChannelComponents.get(channelCode);
+
     if (!component) {
       throw new Error("No active payment channel component");
+    }
+
+    const form = component.channelformRef?.current;
+
+    if (form) {
+      const isFormValid = form.validate();
+      if (!isFormValid) {
+        return;
+      }
     }
 
     this[internal].submitter = new Submitter(

@@ -1,29 +1,32 @@
 import { Channel, ChannelProperties } from "../forms-types";
 import Icon from "./icon";
-import ChannelForm from "./channel-form";
+import ChannelForm, { ChannelFormHandle } from "./channel-form";
 import { useRef } from "preact/hooks";
+import { RefObject } from "preact";
 
 interface Props {
   channel: Channel;
   active: boolean;
+  formRef?: RefObject<ChannelFormHandle>;
 }
 
-export const PaymentChannel: React.FC<Props> = (props, formRef) => {
-  const { channel } = props;
+export const PaymentChannel: React.FC<Props> = (props) => {
+  const { channel, formRef } = props;
 
-  const ref = useRef<HTMLDivElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
 
   const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
     const event = new XenditChannelPropertiesChangedEvent(
       channel.channel_code,
       channelProperties,
     );
-    ref.current?.dispatchEvent(event);
+    divRef.current?.dispatchEvent(event);
   };
 
   return (
-    <div className="xendit-payment-channel" ref={ref}>
+    <div className="xendit-payment-channel" ref={divRef}>
       <ChannelForm
+        ref={formRef}
         form={channel.form}
         onChannelPropertiesChanged={onChannelPropertiesChanged}
       />

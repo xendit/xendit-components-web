@@ -118,3 +118,30 @@ export class XenditErrorEvent extends Event {
     super(XenditErrorEvent.type, {});
   }
 }
+
+/**
+ * @public
+ * Event fired when an input responses to a validate event and returns
+ * invalid result.
+ */
+export class InputInvalidEvent extends Event {
+  static type = "input-invalid" as const;
+
+  constructor() {
+    super(InputInvalidEvent.type, { bubbles: true });
+  }
+}
+
+/**
+ * @public
+ * Event fired when an input starts to validate its value
+ */
+export class InputValidateEvent extends CustomEvent<{ value: string }> {
+  static type = "input-validate" as const;
+
+  constructor(value: string) {
+    super(InputValidateEvent.type, {
+      detail: { value },
+    });
+  }
+}
