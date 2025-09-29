@@ -61,7 +61,6 @@ const CountryCodeDropdown: React.FC<{
   return (
     <Dropdown
       id={id}
-      className="country-ddl"
       placeholder={placeholder}
       options={options}
       selectedIndex={selectedIndex}

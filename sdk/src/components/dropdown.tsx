@@ -6,6 +6,7 @@ export type DropdownOption = {
   title?: string; // primary line
   description?: string; // secondary line
   disabled?: boolean;
+  value?: string;
 };
 
 export type DropdownProps = {
@@ -45,6 +46,7 @@ export const Dropdown = (props: DropdownProps) => {
     defaultIndex = -1,
     selectedIndex,
     className,
+    placeholder,
   } = props;
 
   // Controlled vs uncontrolled selection
@@ -171,7 +173,7 @@ export const Dropdown = (props: DropdownProps) => {
   return (
     <div
       ref={rootRef}
-      className={`${className ?? ""}`}
+      className={`xendit-dropdown ${className ?? ""}`}
       aria-expanded={open ? "true" : "false"}
       aria-controls={listboxId}
       aria-haspopup="listbox"
@@ -187,21 +189,31 @@ export const Dropdown = (props: DropdownProps) => {
         onClick={() => (open ? closeList() : openList())}
         onKeyDown={(e) => onButtonKeyDown(e as unknown as KeyboardEvent)}
       >
-        {selected?.leadingAsset}
+        {selected?.leadingAsset && (
+          <span className="xendit-dropdown-button-leading-asset">
+            {selected.leadingAsset}
+          </span>
+        )}
 
-        <span className="" id={valueId}>
-          {selected && (
-            <>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M13 6L8 11L3 6"
-                  stroke="#252525"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </>
-          )}
+        {selected ? (
+          <span className="xendit-dropdown-button-title xendit-text-14">
+            {selected.title}
+          </span>
+        ) : (
+          <span className="xendit-dropdown-button-title xendit-text-14 xendit-text-secondary">
+            {placeholder}
+          </span>
+        )}
+
+        <span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M13 6L8 11L3 6"
+              stroke="#252525"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
         </span>
       </button>
 
@@ -210,7 +222,7 @@ export const Dropdown = (props: DropdownProps) => {
         id={listboxId}
         role="listbox"
         tabIndex={-1}
-        className="DropdownMenu"
+        className="xendit-dropdown-menu"
         aria-labelledby={labelId}
         aria-activedescendant={activeOptionId}
         style={{ display: open ? "block" : "none" }}
@@ -232,7 +244,7 @@ export const Dropdown = (props: DropdownProps) => {
               <div
                 className={`xendit-dropdown-item ${isActive ? "is-active" : ""}`}
               >
-                <div className={"xendit-dropdown-content country"}>
+                <div className={"xendit-dropdown-content"}>
                   {opt.leadingAsset && (
                     <div className="xendit-dropdown-item-leading-asset">
                       {opt.leadingAsset}
@@ -240,14 +252,14 @@ export const Dropdown = (props: DropdownProps) => {
                   )}
                   <div className="xendit-dropdown-item-content">
                     {opt.title && (
-                      <div className="xendit-dropdown-item-title xendit-text-16">
+                      <span className="xendit-dropdown-item-title xendit-text-14">
                         {opt.title}
-                      </div>
+                      </span>
                     )}
                     {opt.description && (
-                      <div className="xendit-dropdown-item-description xendit-text-12">
+                      <span className="xendit-dropdown-item-description xendit-text-12">
                         {opt.description}
-                      </div>
+                      </span>
                     )}
                   </div>
                 </div>
