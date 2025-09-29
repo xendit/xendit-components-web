@@ -71,7 +71,6 @@ export function validate(
   input: ChannelFormField,
   value: string,
 ): FormFieldValidationError | undefined {
-  console.log(input.required, value);
   if (input.required && value.trim().length === 0) {
     return "FIELD_IS_REQUIRED";
   }
