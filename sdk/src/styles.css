@@ -13,6 +13,13 @@ html {
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
   --xendit-animation-duration: 0.3s;
   --xendit-animation-ease: ease-in-out;
+  --xendit-radius-1: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 /* Set default font for root components */
@@ -184,6 +191,7 @@ xendit-payment-channel[inert] {
   border-radius: 8px;
   padding: 12px;
   appearance: none;
+  height: 40px;
 }
 
 .xendit-channel-form-field input:focus,
@@ -269,4 +277,120 @@ xendit-payment-channel[inert] {
 
 .xendit-error-message {
   color: var(--xendit-color-danger);
+}
+
+.xendit-input-phone .combobox {
+  display: flex;
+  gap: 8px;
+}
+
+.xendit-input-phone .country-ddl button {
+  display: flex;
+  width: 64px;
+  height: 40px;
+  background-color: var(--xendit-color-background);
+  border: 1px solid var(--xendit-color-border);
+  border-radius: var(--xendit-radius-1);
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.xendit-input-phone .country-ddl button:disabled {
+  background: var(--xendit-color-disabled);
+}
+
+.xendit-input-phone .country-ddl button:focus {
+  border: 1px solid var(--xendit-color-primary);
+  box-shadow: 0px 0px 0px 2px #1762ee26;
+}
+
+.xendit-input-phone.invalid .country-ddl button,
+.xendit-input-phone.invalid .phone-input {
+  border: 1px solid var(--xendit-color-danger);
+}
+
+.xendit-input-phone .country-ddl .DropdownMenu {
+  position: absolute;
+  background-color: var(--xendit-color-background);
+  border: 1px solid var(--xendit-color-border);
+  border-radius: 4px;
+  padding: 4px;
+  min-width: 257px;
+  height: 168px;
+  list-style: none;
+  box-shadow: 0px 4px 8px 0px #25252514;
+  overflow-y: auto;
+  cursor: pointer;
+}
+
+.xendit-input-phone .DropdownMenu .xendit-dropdown-content {
+  display: flex;
+  gap: 12px;
+}
+
+li[aria-disabled="true"] .xendit-dropdown-item {
+  background-color: var(--xendit-color-disabled);
+}
+
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item {
+  display: grid;
+  grid-template-columns: 1fr 28px;
+  padding: 8px 12px;
+  border-radius: var(--xendit-radius-1);
+}
+
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item:hover,
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item.is-active {
+  background-color: var(--xendit-color-primary);
+  color: var(--xendit-color-background);
+}
+
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item:hover svg,
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item.is-active svg {
+  stroke: var(--xendit-color-background);
+}
+
+.xendit-input-phone
+  .DropdownMenu
+  .xendit-dropdown-item:hover
+  .xendit-dropdown-item-description,
+.xendit-input-phone
+  .DropdownMenu
+  .xendit-dropdown-item.is-active
+  .xendit-dropdown-item-description {
+  color: var(--xendit-color-background);
+}
+
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.xendit-input-phone
+  .DropdownMenu
+  .xendit-dropdown-item-content
+  .xendit-dropdown-item-description {
+  color: var(--xendit-color-text-secondary);
+}
+
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item-leading-asset,
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item-selected {
+  display: flex;
+  align-items: center;
+}
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item-selected {
+  justify-content: flex-end;
+}
+
+.xendit-input-phone .DropdownMenu .xendit-dropdown-item-selected svg {
+  width: 16px;
+  height: 16px;
+  object-view-box: 0 0 16 16;
+  fill: none;
+  stroke: var(--xendit-color-primary);
+}
+
+.xendit-input-phone .phone-input {
+  width: 100%;
 }

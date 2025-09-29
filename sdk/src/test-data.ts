@@ -394,7 +394,7 @@ export function makeTestBffData(): BffResponse {
             placeholder: "+1234567890",
             type: { name: "phone_number" },
             channel_property: "card_details.cardholder_phone_number",
-            required: false,
+            required: true,
             span: 2,
           },
           {

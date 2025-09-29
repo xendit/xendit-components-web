@@ -12,6 +12,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import { stripTypeScriptTypes } from "module";
 import css from "rollup-plugin-import-css";
 import alias from "@rollup/plugin-alias";
+import commonjs from "@rollup/plugin-commonjs";
 
 const SDK_PORT = 4443;
 
@@ -43,7 +44,12 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       },
     ],
     plugins: [
-      resolve(),
+      resolve({
+        browser: true,
+      }),
+      commonjs({
+        include: ["**/node_modules/**"],
+      }),
       css(),
       typescript({
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),

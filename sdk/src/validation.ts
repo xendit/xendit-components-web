@@ -1,6 +1,7 @@
 import { CountryCode, isValidPhoneNumber } from "libphonenumber-js";
 import { FormFieldValidationError } from "../../shared/types";
 import { ChannelFormField } from "./forms-types";
+import { parsePhoneNumber } from "libphonenumber-js/min";
 
 export type ValidationResult = {
   errorCode: FormFieldValidationError | undefined;
@@ -24,9 +25,11 @@ export const validatePhoneNumber = (
   value: string,
   countryCode?: CountryCode | undefined,
 ): FormFieldValidationError | undefined => {
-  const trimmedValue = value.replace(/\s+/g, "");
-
-  const isValid = isValidPhoneNumber(trimmedValue, countryCode);
+  const parsedNumber = parsePhoneNumber(value);
+  const isValid = isValidPhoneNumber(
+    parsedNumber.nationalNumber,
+    parsedNumber.country,
+  );
 
   if (!isValid) return "INVALID_PHONE_NUMBER";
 };
@@ -70,6 +73,7 @@ export function validate(
   input: ChannelFormField,
   value: string,
 ): FormFieldValidationError | undefined {
+  console.log(input.required, value);
   if (input.required && value.trim().length === 0) {
     return "FIELD_IS_REQUIRED";
   }
