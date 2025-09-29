@@ -45,12 +45,12 @@ describe("validateEmail", () => {
 const countries: CountryCode[] = ["ID", "MY", "PH", "SG", "TH", "VN"];
 
 const validNumbers: Record<string, string[]> = {
-  ID: ["+628123456789", "08123456789"],
-  MY: ["+60123456789", "0123456789"],
-  PH: ["+639171234567", "09171234567"],
-  SG: ["+6581234567", "81234567"],
-  TH: ["+66812345678", "0812345678"],
-  VN: ["+84901234567", "0901234567"],
+  ID: ["+628123456789"],
+  MY: ["+60123456789"],
+  PH: ["+639171234567"],
+  SG: ["+6581234567"],
+  TH: ["+66812345678"],
+  VN: ["+84901234567"],
 };
 
 const invalidNumbers: Record<string, string[]> = {
@@ -68,25 +68,25 @@ describe("validatePhoneNumber", () => {
     describe(`Country: ${country}`, () => {
       validNumbers[country].forEach((number) => {
         it(`validates valid number: ${number}`, () => {
-          const result = validatePhoneNumber(number, country);
+          const result = validatePhoneNumber(number);
           expect(result).toBeUndefined();
         });
       });
 
       invalidNumbers[country].forEach((number) => {
         it(`invalidates invalid number: ${number}`, () => {
-          const result = validatePhoneNumber(number, country);
+          const result = validatePhoneNumber(number);
           expect(result).toBe("INVALID_PHONE_NUMBER");
         });
       });
 
       it("returns error for empty input", () => {
-        const result = validatePhoneNumber("", country);
+        const result = validatePhoneNumber("");
         expect(result).toBe("INVALID_PHONE_NUMBER");
       });
 
       it("handles whitespace input", () => {
-        const result = validatePhoneNumber("   ", country);
+        const result = validatePhoneNumber("   ");
         expect(result).toBe("INVALID_PHONE_NUMBER");
       });
     });
