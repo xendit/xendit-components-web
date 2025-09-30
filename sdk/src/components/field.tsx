@@ -1,4 +1,5 @@
 import { ChannelFormField } from "../forms-types";
+import { CheckboxField } from "./field-checkbox";
 import { CountryField } from "./field-country";
 import { DropdownField } from "./field-dropdown";
 import { IframeField } from "./field-iframe";
@@ -29,12 +30,16 @@ const Field: React.FC<FieldProps> = (props) => {
         return <DropdownField {...props} />;
       case "country":
         return <CountryField {...props} />;
+      case "checkbox":
+        return <CheckboxField {...props} />;
     }
   }
 
   return (
     <div
-      className={`xendit-channel-form-field xendit-form-field-span-${field.span}`}
+      className={`xendit-channel-form-field 
+                  ${field.type.name === "checkbox" ? "xendit-form-field-checkbox" : ""} 
+                  xendit-form-field-span-${field.span}`}
     >
       <label htmlFor={id} className="xendit-text-14">
         {field.label ?? ""}

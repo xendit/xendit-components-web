@@ -62,7 +62,7 @@ export type ChannelFormField = {
   /** Label shown to user */
   label: string;
   /** Placeholder text */
-  placeholder: string;
+  placeholder?: string;
   /** Field behavior */
   type: FieldType;
   /**
@@ -118,6 +118,10 @@ export type FieldType =
         icon_url?: string;
         value: string;
       }[];
+    }
+  | {
+      name: "checkbox";
+      checked: boolean;
     };
 
 type ChannelPropertyPrimative = string | number | boolean | undefined;

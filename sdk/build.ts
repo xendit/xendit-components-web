@@ -12,6 +12,10 @@ import resolve from "@rollup/plugin-node-resolve";
 import { stripTypeScriptTypes } from "module";
 import css from "rollup-plugin-import-css";
 import alias from "@rollup/plugin-alias";
+import commonjs from "@rollup/plugin-commonjs";
+import copy from "rollup-plugin-copy";
+import { createReadStream, existsSync } from "fs";
+import mime from "mime-types";
 
 const SDK_PORT = 4443;
 
@@ -43,14 +47,27 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       },
     ],
     plugins: [
-      resolve(),
-      css(),
+      resolve({
+        browser: true,
+      }),
+      commonjs({
+        include: ["**/node_modules/**"],
+      }),
       typescript({
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),
         compilerOptions: {
           module: "esnext",
           noEmitOnError: false,
         },
+      }),
+      css(),
+      copy({
+        targets: [
+          {
+            src: "sdk/src/assets/fonts/proxima-nova/*",
+            dest: "sdk/dist/assets/fonts/proxima-nova",
+          },
+        ],
       }),
       alias({
         entries: [
@@ -162,6 +179,14 @@ async function handleDevServerRequest(
     }
     const file = lastSeenBuildOutput.get(filename);
     res.writeHead(200, { "Content-Type": mime }).end(file);
+  }
+
+  const staticFilePath = path.join(import.meta.dirname, "dist", pathname);
+  if (pathname.startsWith("/assets/") && existsSync(staticFilePath)) {
+    const mimeType = mime.lookup(staticFilePath) || "application/octet-stream";
+    res.writeHead(200, { "Content-Type": mimeType });
+    createReadStream(staticFilePath).pipe(res);
+    return;
   }
 
   switch (`${req.method} ${pathname}`) {

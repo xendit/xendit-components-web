@@ -398,6 +398,13 @@ export function makeTestBffData(): BffResponse {
             span: 2,
           },
           {
+            label: "Save this card for future use",
+            type: { name: "checkbox", checked: false },
+            channel_property: "card_details.should_save_card",
+            span: 2,
+            required: false,
+          },
+          {
             label: "Postal/ZIP Code",
             placeholder: "",
             type: {
