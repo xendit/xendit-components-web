@@ -17,9 +17,6 @@ importers:
       card-validator:
         specifier: ^10.0.3
         version: 10.0.3
-      country-calling-code:
-        specifier: ^0.0.3
-        version: 0.0.3
       credit-card-type:
         specifier: ^10.0.2
         version: 10.0.2
@@ -877,9 +874,6 @@ packages:
 
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
-
-  country-calling-code@0.0.3:
-    resolution: {integrity: sha512-DNLyidwJPrEZyDkILYFbgPRlg/tFkpP+uk6JWG+du41l7qoH5guePxSA2YlIjl6wUfp7vWdjCUJeMRuAQPKpRg==}
 
   credit-card-type@10.0.2:
     resolution: {integrity: sha512-vt/iQokU0mtrT7ceRU75FSmWnIh5JFpLsUUUWYRmztYekOGm0ZbCuzwFTbNkq41k92y+0B8ChscFhRN9DhVZEA==}
@@ -2571,8 +2565,6 @@ snapshots:
   commondir@1.0.1: {}
 
   concat-map@0.0.1: {}
-
-  country-calling-code@0.0.3: {}
 
   credit-card-type@10.0.2: {}
 

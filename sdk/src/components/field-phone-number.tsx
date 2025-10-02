@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FieldProps, formFieldName } from "./field";
 import { validate } from "../validation";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
-import codes, { ICountryCodeItem } from "country-calling-code";
 import { Dropdown } from "./dropdown";
 import { CircleFlag } from "react-circle-flags";
+import { getCountries, getCountryCallingCode } from "libphonenumber-js/min";
 
 type CountryRow = {
   iso2: string; // e.g., 'ID'
@@ -22,13 +22,25 @@ const CountryCodeDropdown: React.FC<{
 }> = ({ dialValue, onDialChange, id, placeholder = "Select" }) => {
   const rows = useMemo<CountryRow[]>(() => {
     return (
-      codes
-        .map((c: ICountryCodeItem) => {
-          const dial = (c.countryCodes?.[0] ?? "").trim();
-          const iso2 = (c.isoCode2 ?? "").trim();
-          const country = (c.country ?? "").trim();
-          if (!dial || !iso2 || !country) return null;
-          return { iso2, dial, label: country } as CountryRow;
+      getCountries()
+        .map((countryCode) => {
+          try {
+            const callingCode = getCountryCallingCode(countryCode);
+            const country = new Intl.DisplayNames(["en"], {
+              type: "region",
+            }).of(countryCode);
+
+            if (!callingCode || !country) return null;
+
+            return {
+              iso2: countryCode,
+              dial: callingCode,
+              label: country,
+            } as CountryRow;
+          } catch {
+            //Country not supported
+            return null;
+          }
         })
         .filter(Boolean) as CountryRow[]
     ).sort((a, b) => a.label.localeCompare(b.label));
@@ -130,7 +142,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
 
   return (
     <div className={`xendit-input-phone ${error?.length ? "invalid" : ""}`}>
-      <div className="combobox">
+      <div className="xendit-combobox">
         <CountryCodeDropdown
           id={`${id}-country`}
           dialValue={dialCode}
@@ -144,7 +156,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
           type="tel"
           inputMode="tel"
           placeholder={dialCode ? `+${dialCode}` : ""}
-          className="xendit-text-14 phone-input"
+          className="xendit-text-14 xendit-phone-number-input"
           onBlur={handleBlur}
           onChange={handleLocalChange}
           value={localNumber}

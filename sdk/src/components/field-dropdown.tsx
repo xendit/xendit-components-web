@@ -1,15 +1,9 @@
-import { ChannelFormField } from "../forms-types";
+import { ChannelFormField, FieldType } from "../forms-types";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { FieldProps, formFieldName } from "./field";
 
 const toDropdownOptions = (
-  fieldOptions: {
-    label: string;
-    subtitle?: string;
-    icon_url?: string;
-    value: string;
-    disabled?: boolean;
-  }[],
+  fieldOptions: (FieldType & { name: "dropdown" })["options"],
 ): DropdownOption[] => {
   return fieldOptions.map((opt) => ({
     title: opt.label,
