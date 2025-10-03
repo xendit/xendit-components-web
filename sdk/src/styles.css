@@ -5,7 +5,6 @@
   font-display: swap;
   src:
     local("Proxima Nova Light"),
-    local("Proxima Nova Light"),
     local("Proxima Nova"),
     url("./assets/fonts/proxima-nova/proxima_nova_light.otf") format("opentype");
 }
@@ -16,7 +15,6 @@
   font-weight: 400;
   font-display: swap;
   src:
-    local("Proximanova Regular"),
     local("Proximanova Regular"),
     local("Proxima Nova"),
     url("./assets/fonts/proxima-nova/proximanova_regular.ttf")
@@ -29,7 +27,6 @@
   font-weight: 700;
   font-display: swap;
   src:
-    local("Proxima Nova Bold"),
     local("Proxima Nova Bold"),
     local("Proxima Nova"),
     url("./assets/fonts/proxima-nova/proximanova_bold.otf") format("opentype"),
@@ -44,7 +41,6 @@
   font-weight: 900;
   font-display: swap;
   src:
-    local("Proxima Nova Black"),
     local("Proxima Nova Black"),
     local("Proxima Nova"),
     url("./assets/fonts/proxima-nova/proximanova_black.otf") format("opentype"),
@@ -71,8 +67,18 @@ html {
 }
 
 /* Set default font for root components */
-* {
+xendit-channel-picker,
+xendit-action-handler,
+xendit-payment-channel {
   font-family: var(--xendit-font-family, sans-serif);
+}
+
+xendit-payment-channel button,
+input,
+input::placeholder,
+textarea,
+select {
+  font-family: inherit;
 }
 
 /* Reusable typography classes */
