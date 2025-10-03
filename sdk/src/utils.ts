@@ -14,3 +14,23 @@ export function camelCaseToKebabCase(str: string): string {
     return `-${match.toLowerCase()}`;
   });
 }
+
+export const CardBrands = [
+  {
+    logo_url: "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
+    name: "MASTERCARD",
+  },
+  {
+    logo_url: "https://assets.xendit.co/payment-session/logos/JCB.svg",
+    name: "JCB",
+  },
+  {
+    logo_url: "https://assets.xendit.co/payment-session/logos/VISA.svg",
+    name: "VISA",
+  },
+];
+
+export const getCardBrandLogo = (brand: string) => {
+  const brandInfo = CardBrands.find((b) => b.name.toUpperCase() === brand);
+  return brandInfo?.logo_url ?? null;
+};

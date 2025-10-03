@@ -7,8 +7,13 @@ import {
 } from "preact/hooks";
 import { FieldProps, formFieldName } from "./field";
 import { useSdk, useSession } from "./session-provider";
-import { IframeChangeEvent, IframeEvent } from "../../../shared/types";
+import {
+  CardBrand,
+  IframeChangeEvent,
+  IframeEvent,
+} from "../../../shared/types";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
+import { CardBrands, getCardBrandLogo } from "../utils";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -47,7 +52,6 @@ const toValidationState = (
     valid: incoming.valid,
     empty: incoming.empty,
     validationErrorCodes: incoming.validationErrorCodes ?? [],
-    cardBrand: incoming.cardBrand ?? null,
   };
 };
 
@@ -55,7 +59,6 @@ type ValidationState = {
   valid: boolean;
   empty: boolean;
   validationErrorCodes: string[];
-  cardBrand: string | null;
 };
 
 export const IframeField: React.FC<FieldProps> = (props) => {
@@ -80,9 +83,10 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     empty: true,
     valid: false,
     validationErrorCodes: [],
-    cardBrand: null,
   });
   const [error, setError] = useState<string | null>(null);
+
+  const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
 
   const handleIframeEventResult = useCallback(
     (incoming?: IframeChangeEvent) => {
@@ -142,7 +146,10 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         }
         case "change": {
           if (!hiddenFieldRef.current) return;
+
           handleIframeEventResult(data);
+          setCardBrand(data.cardBrand ?? null);
+
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
           const resultData = encrypted.map((enc) => {
@@ -213,6 +220,29 @@ export const IframeField: React.FC<FieldProps> = (props) => {
       >
         <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
         <iframe src={iframeUrl.toString()} ref={iframeRef} />
+        {field.type.name === "credit_card_number" &&
+          (cardBrand ? (
+            <div className="xendit-card-brand">
+              <img
+                className={"xendit-card-brand-logo"}
+                src={getCardBrandLogo(cardBrand) ?? ""}
+                alt={cardBrand}
+              />
+            </div>
+          ) : (
+            <div className="xendit-card-brands-list">
+              {CardBrands.map(({ name, logo_url }) => {
+                return (
+                  <img
+                    className={"xendit-card-brand-logo"}
+                    src={logo_url}
+                    alt={name}
+                    key={name}
+                  />
+                );
+              })}
+            </div>
+          ))}
       </div>
       {error && (
         <span className="xendit-error-message xendit-text-14">{error}</span>

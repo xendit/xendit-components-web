@@ -180,10 +180,29 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field input,
 .xendit-channel-form-field select,
 .xendit-channel-form-field .xendit-iframe-container {
+  display: flex;
   border: 1px solid var(--xendit-color-border);
   border-radius: 8px;
   padding: 12px;
   appearance: none;
+}
+
+.xendit-card-brand {
+  display: grid;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.xendit-card-brand-logo {
+  width: 32px;
+  height: 24px;
+}
+
+.xendit-card-brands-list {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 4px;
 }
 
 .xendit-channel-form-field input:focus,
@@ -210,6 +229,7 @@ xendit-payment-channel[inert] {
   height: 40px;
   width: 100%;
   border: none;
+  min-width: 0;
 }
 
 .xendit-channel-form-field.xendit-form-field-span-1 {
