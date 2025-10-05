@@ -13,7 +13,7 @@ import {
   IframeEvent,
 } from "../../../shared/types";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
-import { CardBrands, getCardBrandLogo } from "../utils";
+import { useChannelCard } from "./payment-channel";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -87,6 +87,8 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   const [error, setError] = useState<string | null>(null);
 
   const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
+
+  const channelCard = useChannelCard();
 
   const handleIframeEventResult = useCallback(
     (incoming?: IframeChangeEvent) => {
@@ -211,6 +213,38 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("pk", keyParts[2]);
   iframeUrl.searchParams.set("sig", keyParts[3]);
 
+  const renderCardBrand = () => {
+    if (!channelCard) return null;
+    const cardBrandLogo = channelCard.brands.find(
+      (b) => b.name === cardBrand,
+    )?.logo_url;
+
+    return cardBrand ? (
+      cardBrandLogo && (
+        <div className="xendit-card-brand">
+          <img
+            className={"xendit-card-brand-logo"}
+            src={cardBrandLogo}
+            alt={cardBrand}
+          />
+        </div>
+      )
+    ) : (
+      <div className="xendit-card-brands-list">
+        {channelCard.brands.map(({ name, logo_url }) => {
+          return (
+            <img
+              className={"xendit-card-brand-logo"}
+              src={logo_url}
+              alt={name}
+              key={name}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
   return (
@@ -220,29 +254,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
       >
         <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
         <iframe src={iframeUrl.toString()} ref={iframeRef} />
-        {field.type.name === "credit_card_number" &&
-          (cardBrand ? (
-            <div className="xendit-card-brand">
-              <img
-                className={"xendit-card-brand-logo"}
-                src={getCardBrandLogo(cardBrand) ?? ""}
-                alt={cardBrand}
-              />
-            </div>
-          ) : (
-            <div className="xendit-card-brands-list">
-              {CardBrands.map(({ name, logo_url }) => {
-                return (
-                  <img
-                    className={"xendit-card-brand-logo"}
-                    src={logo_url}
-                    alt={name}
-                    key={name}
-                  />
-                );
-              })}
-            </div>
-          ))}
+        {field.type.name === "credit_card_number" && renderCardBrand()}
       </div>
       {error && (
         <span className="xendit-error-message xendit-text-14">{error}</span>

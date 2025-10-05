@@ -1,8 +1,18 @@
 import { Channel, ChannelProperties } from "../forms-types";
 import Icon from "./icon";
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
-import { useRef } from "preact/hooks";
-import { RefObject } from "preact";
+import { useContext, useRef } from "preact/hooks";
+import { createContext, RefObject } from "preact";
+
+const ChannelCardContext = createContext<Channel["card"] | null>(null);
+
+export const useChannelCard = () => {
+  const context = useContext(ChannelCardContext);
+  if (context === undefined) {
+    throw new Error("useChannelCard must be used within a ChannelCardProvider");
+  }
+  return context;
+};
 
 interface Props {
   channel: Channel;
@@ -24,23 +34,28 @@ export const PaymentChannel: React.FC<Props> = (props) => {
   };
 
   return (
-    <div className="xendit-payment-channel" ref={divRef}>
-      <ChannelForm
-        ref={formRef}
-        form={channel.form}
-        onChannelPropertiesChanged={onChannelPropertiesChanged}
-      />
-      <div className="xendit-payment-channel-instructions">
-        <Icon name="instructions" size={40} />
-        <div className="xendit-payment-channel-instructions-text xendit-text-12">
-          {channel.instructions.map((instr, i) => (
-            <p key={i} className={i === 0 ? "xendit-text-semibold" : undefined}>
-              {instr}
-            </p>
-          ))}
+    <ChannelCardContext.Provider value={channel.card}>
+      <div className="xendit-payment-channel" ref={divRef}>
+        <ChannelForm
+          ref={formRef}
+          form={channel.form}
+          onChannelPropertiesChanged={onChannelPropertiesChanged}
+        />
+        <div className="xendit-payment-channel-instructions">
+          <Icon name="instructions" size={40} />
+          <div className="xendit-payment-channel-instructions-text xendit-text-12">
+            {channel.instructions.map((instr, i) => (
+              <p
+                key={i}
+                className={i === 0 ? "xendit-text-semibold" : undefined}
+              >
+                {instr}
+              </p>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </ChannelCardContext.Provider>
   );
 };
 
