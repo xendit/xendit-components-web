@@ -118,10 +118,6 @@ export type FieldType =
         icon_url?: string;
         value: string;
       }[];
-    }
-  | {
-      name: "checkbox";
-      checked: boolean;
     };
 
 type ChannelPropertyPrimative = string | number | boolean | undefined;
