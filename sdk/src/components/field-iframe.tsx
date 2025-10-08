@@ -13,7 +13,8 @@ import {
   IframeEvent,
 } from "../../../shared/types";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
-import { useChannelCard } from "./payment-channel";
+import { useChannel } from "./payment-channel";
+import { Channel } from "../forms-types";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -88,7 +89,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
   const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
 
-  const channelCard = useChannelCard();
+  const { card } = useChannel() ?? {};
 
   const handleIframeEventResult = useCallback(
     (incoming?: IframeChangeEvent) => {
@@ -213,34 +214,33 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("pk", keyParts[2]);
   iframeUrl.searchParams.set("sig", keyParts[3]);
 
-  const renderCardBrand = () => {
-    if (!channelCard) return null;
-    const cardBrandLogo = channelCard.brands.find(
+  const CardBrands = ({ card }: { card: Channel["card"] }) => {
+    if (!card) return null;
+    card.brands.sort((a, b) => a.name.localeCompare(b.name));
+    const cardBrandLogo = card.brands.find(
       (b) => b.name === cardBrand,
     )?.logo_url;
 
-    return cardBrand ? (
-      cardBrandLogo && (
-        <div className="xendit-card-brand">
-          <img
-            className={"xendit-card-brand-logo"}
-            src={cardBrandLogo}
-            alt={cardBrand}
-          />
-        </div>
-      )
-    ) : (
+    return (
       <div className="xendit-card-brands-list">
-        {channelCard.brands.map(({ name, logo_url }) => {
-          return (
-            <img
-              className={"xendit-card-brand-logo"}
-              src={logo_url}
-              alt={name}
-              key={name}
-            />
-          );
-        })}
+        {cardBrand
+          ? cardBrandLogo && (
+              <img
+                className={"xendit-card-brand-logo"}
+                src={cardBrandLogo}
+                alt={cardBrand}
+              />
+            )
+          : card.brands.map(({ name, logo_url }) => {
+              return (
+                <img
+                  className={"xendit-card-brand-logo"}
+                  src={logo_url}
+                  alt={name}
+                  key={name}
+                />
+              );
+            })}
       </div>
     );
   };
@@ -254,7 +254,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
       >
         <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
         <iframe src={iframeUrl.toString()} ref={iframeRef} />
-        {field.type.name === "credit_card_number" && renderCardBrand()}
+        {field.type.name === "credit_card_number" && <CardBrands card={card} />}
       </div>
       {error && (
         <span className="xendit-error-message xendit-text-14">{error}</span>

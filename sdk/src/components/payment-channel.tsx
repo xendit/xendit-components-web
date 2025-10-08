@@ -4,12 +4,12 @@ import ChannelForm, { ChannelFormHandle } from "./channel-form";
 import { useContext, useRef } from "preact/hooks";
 import { createContext, RefObject } from "preact";
 
-const ChannelCardContext = createContext<Channel["card"] | null>(null);
+const ChannelContext = createContext<Channel | null>(null);
 
-export const useChannelCard = () => {
-  const context = useContext(ChannelCardContext);
+export const useChannel = () => {
+  const context = useContext(ChannelContext);
   if (context === undefined) {
-    throw new Error("useChannelCard must be used within a ChannelCardProvider");
+    throw new Error("useChannel must be used within a ChannelProvider");
   }
   return context;
 };
@@ -34,7 +34,7 @@ export const PaymentChannel: React.FC<Props> = (props) => {
   };
 
   return (
-    <ChannelCardContext.Provider value={channel.card}>
+    <ChannelContext.Provider value={channel}>
       <div className="xendit-payment-channel" ref={divRef}>
         <ChannelForm
           ref={formRef}
@@ -55,7 +55,7 @@ export const PaymentChannel: React.FC<Props> = (props) => {
           </div>
         </div>
       </div>
-    </ChannelCardContext.Provider>
+    </ChannelContext.Provider>
   );
 };
 
