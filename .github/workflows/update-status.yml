@@ -8,7 +8,7 @@ jobs:
   update-status:
     runs-on: ubuntu-latest
     if: startsWith(github.event.comment.body, '/status')
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Update Project Status
         uses: actions/github-script@v7
@@ -44,14 +44,14 @@ jobs:
             }
 
             const [, statusValue, statusNote] = match;
-            
+
             // Map command values to field values
             const healthMap = {
               'on-track': 'On track',
               'at-risk': 'At risk',
               'blocked': 'Blocked'
             };
-            
+
             const health = healthMap[statusValue.toLowerCase()];
             const today = new Date().toISOString().split('T')[0];
 
@@ -83,7 +83,7 @@ jobs:
             });
 
             const projectItems = projectData.repository.issue.projectItems.nodes;
-            
+
             if (projectItems.length === 0) {
               console.log('Issue not linked to any project');
               await github.rest.issues.createComment({
@@ -150,7 +150,7 @@ jobs:
             });
 
             const fields = fieldsData.node.fields.nodes;
-            
+
             // Log all available fields for debugging
             console.log(`Project: ${fieldsData.node.title}`);
             console.log(`Available fields: ${fields.map(f => f.name).join(', ')}`);
@@ -185,7 +185,7 @@ jobs:
 
             // Get the option ID for the health value
             const healthOption = healthField.options.find(o => o.name === health);
-            
+
             if (!healthOption) {
               console.log(`Health option "${health}" not found`);
               return;
