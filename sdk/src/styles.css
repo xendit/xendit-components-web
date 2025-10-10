@@ -191,8 +191,8 @@ xendit-payment-channel[inert] {
 .xendit-card-brand-logo {
   width: 32px;
   height: 24px;
-  border: 1.33px solid var(--xendit-color-border-default);
-  border-radius: 5.33px;
+  border: 1px solid var(--xendit-color-border-default);
+  border-radius: 4px;
 }
 
 .xendit-card-brands-list {
