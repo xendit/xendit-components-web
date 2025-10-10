@@ -62,7 +62,7 @@ export type ChannelFormField = {
   /** Label shown to user */
   label: string;
   /** Placeholder text */
-  placeholder: string;
+  placeholder?: string;
   /** Field behavior */
   type: FieldType;
   /**

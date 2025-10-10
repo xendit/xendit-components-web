@@ -62,15 +62,13 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
         <form ref={formRef}>
           {filteredFieldGroups.map((fieldGroup, groupIndex) => (
             <div key={groupIndex} className="xendit-form-field-group">
-              {fieldGroup.map((field, fieldIndex) => {
-                return (
-                  <Field
-                    key={fieldIndex}
-                    field={field}
-                    onChange={handleFieldChanged}
-                  />
-                );
-              })}
+              {fieldGroup.map((field, fieldIndex) => (
+                <Field
+                  key={fieldIndex}
+                  field={field}
+                  onChange={handleFieldChanged}
+                />
+              ))}
             </div>
           ))}
         </form>
