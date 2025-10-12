@@ -1,3 +1,54 @@
+@font-face {
+  font-family: "Proxima Nova";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src:
+    local("Proxima Nova Light"),
+    local("Proxima Nova"),
+    url("./assets/fonts/proxima-nova/proxima_nova_light.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Proxima Nova";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local("Proximanova Regular"),
+    local("Proxima Nova"),
+    url("./assets/fonts/proxima-nova/proximanova_regular.ttf")
+      format("truetype");
+}
+
+@font-face {
+  font-family: "Proxima Nova";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src:
+    local("Proxima Nova Bold"),
+    local("Proxima Nova"),
+    url("./assets/fonts/proxima-nova/proximanova_bold.otf") format("opentype"),
+    url("./assets/fonts/proxima-nova/proximanova_boldit.otf") format("opentype"),
+    url("./assets/fonts/proxima-nova/proximanova_extrabold.otf")
+      format("opentype");
+}
+
+@font-face {
+  font-family: "Proxima Nova";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src:
+    local("Proxima Nova Black"),
+    local("Proxima Nova"),
+    url("./assets/fonts/proxima-nova/proximanova_black.otf") format("opentype"),
+    url("./assets/fonts/proxima-nova/proximanova_blackit.otf")
+      format("opentype"),
+    url("./assets/fonts/proxima-nova/proximanova_black.ttf") format("truetype");
+}
+
 /* variables */
 html {
   --xendit-font-family: "Proxima Nova", sans-serif;
@@ -18,9 +69,17 @@ html {
 
 /* Set default font for root components */
 xendit-channel-picker,
-xendit-payment-channel,
-xendit-action-handler {
+xendit-action-handler,
+xendit-payment-channel {
   font-family: var(--xendit-font-family, sans-serif);
+}
+
+xendit-payment-channel button,
+xendit-payment-channel textarea,
+xendit-payment-channel select,
+xendit-payment-channel input,
+xendit-payment-channel input::placeholder {
+  font-family: inherit;
 }
 
 /* Reusable typography classes */
@@ -182,7 +241,7 @@ xendit-payment-channel[inert] {
   gap: 8px;
 }
 
-.xendit-channel-form-field input,
+.xendit-channel-form-field input:not([type="checkbox"]),
 .xendit-channel-form-field select,
 .xendit-channel-form-field .xendit-iframe-container {
   display: flex;
@@ -224,6 +283,26 @@ xendit-payment-channel[inert] {
 
 .xendit-channel-form-field.xendit-form-field-span-2 {
   grid-column: span 2;
+}
+
+.xendit-checkbox-field {
+  display: flex;
+  gap: 8px;
+  flex-direction: row-reverse;
+  justify-content: left;
+  align-items: center;
+}
+
+.xendit-checkbox-field input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.xendit-checkbox-field input,
+.xendit-checkbox-field label {
+  cursor: pointer;
+  user-select: none;
 }
 
 /* Dialog */

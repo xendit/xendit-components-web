@@ -1,0 +1,75 @@
+- pipeline: "Deploy to Production"
+  trigger_mode: "MANUAL"
+  ref_name: '(refs/tags/v\d{0,3}\.\d{0,3}\.\d{0,3}$)'
+  ref_type: "WILDCARD"
+  priority: "NORMAL"
+  always_from_scratch: true
+  auto_clear_cache: true
+  fetch_all_refs: true
+  trigger_condition: "ALWAYS"
+  actions:
+    - action: "Execute: Build static files"
+      type: "BUILD"
+      working_directory: "/buddy/xendit-components-web"
+      docker_image_name: "library/node"
+      docker_image_tag: "22"
+      variables:
+      execute_commands:
+        - "cp .npmrc.example .npmrc"
+        - "npm install -g pnpm"
+        - "pnpm install"
+        - "pnpm build"
+        - "rm -f .npmrc"
+      volume_mappings:
+        - "/:/buddy/xendit-components-web"
+      shell: "BASH"
+    - action: "Upload SDK files to Amazon S3"
+      type: "AMAZON_S3"
+      input_type: "BUILD_ARTIFACTS"
+      local_path: "sdk/dist/"
+      remote_path: "/components/$BUDDY_EXECUTION_TAG/"
+      bucket_name: "xendit-checkout-assets"
+      acl: "PRIVATE"
+      integration_hash: "5e85761fc5f225000f97dd99"
+    - action: "Upload iframe file to Amazon S3"
+      type: "AMAZON_S3"
+      input_type: "BUILD_ARTIFACTS"
+      local_path: "secure-iframe/dist/iframe.html"
+      remote_path: "/components/secure-iframe-$BUDDY_EXECUTION_TAG.html"
+      bucket_name: "xendit-checkout-assets"
+      acl: "PRIVATE"
+      cache_control: "no-cache"
+      integration_hash: "5e85761fc5f225000f97dd99"
+    - action: "Purge cache at CloudFront"
+      type: "CLOUD_FRONT"
+      input_type: "SCM_REPOSITORY"
+      local_path: "/components/*"
+      distribution_id: "E29DVLNWK1GMOS"
+      purge_all: true
+      purge_by_change_set_limit: 10
+      trigger_conditions:
+        - trigger_condition: "ALWAYS"
+          zone_id: ""
+          trigger_hours: []
+          trigger_days: []
+      timeout: 0
+      integration_hash: "5e85761fc5f225000f97dd99"
+    - action: "Deployment finished notif"
+      type: "SLACK"
+      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME Finished execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
+      channel: "C09JFMTEGJ3"
+      channel_name: "buddy-ci-payment-interface"
+      attachments:
+        - '{"fallback":"$BUDDY_PIPELINE_NAME execution #$BUDDY_EXECUTION_ID","color":"good","fields":[{"title":"Successful execution","value":"<$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>","short":true},{"title":"Pipeline","value":"<$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>","short":true},{"title":"Tag","value":"$BUDDY_EXECUTION_TAG","short":true},{"title":"Project","value":"<$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>","short":true}]}'
+      trigger_condition: "ALWAYS"
+      integration_hash: "5ea6524a42eba4000eb35fbb"
+    - action: "Deployment failed notif"
+      type: "SLACK"
+      trigger_time: "ON_FAILURE"
+      content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME Failed execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
+      channel: "C09JFMTEGJ3"
+      channel_name: "buddy-ci-payment-interface"
+      attachments:
+        - '{"fallback":"$BUDDY_PIPELINE_NAME execution #$BUDDY_EXECUTION_ID","color":"danger","fields":[{"title":"Failed execution","value":"<$BUDDY_EXECUTION_URL|Execution #$BUDDY_EXECUTION_ID $BUDDY_EXECUTION_COMMENT>","short":true},{"title":"Pipeline","value":"<$BUDDY_PIPELINE_URL|$BUDDY_PIPELINE_NAME>","short":true},{"title":"Tag","value":"$BUDDY_EXECUTION_TAG","short":true},{"title":"Project","value":"<$BUDDY_PROJECT_URL|$BUDDY_PROJECT_NAME>","short":true}]}'
+      trigger_condition: "ALWAYS"
+      integration_hash: "5ea6524a42eba4000eb35fbb"
