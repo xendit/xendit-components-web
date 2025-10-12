@@ -54,6 +54,7 @@ const CountryCodeDropdown: React.FC<{
             countryCode={r.iso2.toLowerCase()}
             width={16}
             height={16}
+            cdnUrl={`https://assets.xendit.co/payment-session/flags/circle/`}
           />
         ),
         title: `${r.label} (+${r.dial})`,
