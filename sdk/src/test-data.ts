@@ -331,11 +331,6 @@ export function makeTestBffData(): BffResponse {
               logo_url:
                 "https://assets.xendit.co/payment-session/logos/JCB.svg",
             },
-            {
-              name: "GPN",
-              logo_url:
-                "https://assets.xendit.co/payment-session/logos/GPN.svg",
-            },
           ],
         },
         form: [
