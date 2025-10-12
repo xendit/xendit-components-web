@@ -1,5 +1,5 @@
 - pipeline: "Deploy to Staging"
-  trigger_mode: "ON_EVERY_PUSH"
+  trigger_mode: "MANUAL"
   ref_name: "main"
   ref_type: "BRANCH"
   priority: "NORMAL"
