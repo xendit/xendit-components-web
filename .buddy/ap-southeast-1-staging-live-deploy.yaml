@@ -19,6 +19,7 @@
         - "npm install -g pnpm"
         - "pnpm install"
         - "pnpm build"
+        - "cp secure-iframe/dist/iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
         - "rm -f .npmrc"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
@@ -34,8 +35,8 @@
     - action: "Upload iframe files to Amazon S3"
       type: "AMAZON_S3"
       input_type: "BUILD_ARTIFACTS"
-      local_path: "secure-iframe/dist/iframe.html"
-      remote_path: "/components/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
+      local_path: "secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
+      remote_path: "/components/"
       bucket_name: "xendit-checkout-assets-staging"
       acl: "PRIVATE"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
