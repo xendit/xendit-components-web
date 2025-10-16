@@ -37,6 +37,7 @@
     "credit-card-type": "^10.0.2",
     "libphonenumber-js": "^1.12.15",
     "preact": "^10.27.0",
+    "react-circle-flags": "^0.0.23",
     "tslib": "^2.8.1"
   },
   "devDependencies": {

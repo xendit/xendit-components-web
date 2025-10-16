@@ -117,6 +117,7 @@ export type FieldType =
         subtitle?: string;
         icon_url?: string;
         value: string;
+        disabled?: boolean;
       }[];
     };
 

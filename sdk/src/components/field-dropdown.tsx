@@ -1,5 +1,17 @@
-import { ChannelFormField } from "../forms-types";
+import { ChannelFormField, FieldType } from "../forms-types";
+import { Dropdown, DropdownOption } from "./dropdown";
 import { FieldProps, formFieldName } from "./field";
+
+const toDropdownOptions = (
+  fieldOptions: (FieldType & { name: "dropdown" })["options"],
+): DropdownOption[] => {
+  return fieldOptions.map((opt) => ({
+    title: opt.label,
+    description: opt.subtitle,
+    disabled: opt.disabled,
+    value: opt.value,
+  }));
+};
 
 export const DropdownField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -10,13 +22,12 @@ export const DropdownField: React.FC<FieldProps> = (props) => {
   }
 
   return (
-    <select name={id} onChange={onChange}>
-      {field.type.options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+    <Dropdown
+      id={id}
+      placeholder={field.placeholder}
+      options={toDropdownOptions(field.type.options)}
+      onChange={onChange}
+    />
   );
 };
 

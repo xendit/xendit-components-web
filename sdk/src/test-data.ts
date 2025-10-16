@@ -389,7 +389,41 @@ export function makeTestBffData(): BffResponse {
             placeholder: "+1234567890",
             type: { name: "phone_number" },
             channel_property: "card_details.cardholder_phone_number",
-            required: false,
+            required: true,
+            span: 2,
+          },
+          {
+            label: "Installment Plan",
+            placeholder: "Select",
+            type: {
+              name: "dropdown",
+              options: [
+                {
+                  label: "Pay in Full — IDR 189,000",
+                  subtitle: "0% installment fee",
+                  value: "PAY_IN_FULL",
+                },
+                {
+                  label: "3x Installment — IDR 63,000",
+                  subtitle: "0% installment fee",
+                  value: "3X_INSTALLMENT",
+                },
+                {
+                  label: "6x Installment — IDR 31,500",
+                  subtitle: "0% installment fee",
+                  value: "6X_INSTALLMENT",
+                },
+                {
+                  label: "12x Installment",
+                  subtitle:
+                    "Installment option is not available for transaction with this amount",
+                  value: "12X_INSTALLMENT",
+                  disabled: true,
+                },
+              ],
+            },
+            channel_property: "card_details.card_details",
+            required: true,
             span: 2,
           },
           {

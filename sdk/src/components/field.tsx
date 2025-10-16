@@ -2,6 +2,7 @@ import { ChannelFormField } from "../forms-types";
 import { CountryField } from "./field-country";
 import { DropdownField } from "./field-dropdown";
 import { IframeField } from "./field-iframe";
+import { PhoneNumberField } from "./field-phone-number";
 import { TextField } from "./field-text";
 
 export interface FieldProps {
@@ -20,8 +21,9 @@ const Field: React.FC<FieldProps> = (props) => {
       case "credit_card_expiry":
       case "credit_card_cvn":
         return <IframeField {...props} />;
-      case "text":
       case "phone_number":
+        return <PhoneNumberField {...props} />;
+      case "text":
       case "email":
       case "postal_code":
         return <TextField {...props} />;
