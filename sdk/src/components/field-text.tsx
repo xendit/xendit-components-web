@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChannelFormField } from "../forms-types";
+import { ChannelFormField } from "../backend-types/channel";
 import { FieldProps, formFieldName } from "./field";
 import { validate } from "../validation";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";

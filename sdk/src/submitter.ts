@@ -1,16 +1,16 @@
 import { createElement, render } from "preact";
-import { BffSession } from "./bff-types";
-import { ChannelProperties } from "./forms-types";
+import { ChannelProperties } from "./backend-types/channel";
 import { XenditActionBeginEvent } from "./public-event-types";
 import { XenditSessionSdk } from "./public-sdk";
-import { makeTestV3PaymentRequest } from "./test-data";
-import {
-  pickAction,
-  V3Action,
-  V3PaymentRequest,
-  V3PaymentToken,
-} from "./v3-types";
 import { ActionHandler } from "./components/action-handler";
+import { BffSession } from "./backend-types/session";
+import {
+  BffAction,
+  BffPaymentRequest,
+  BffPaymentToken,
+} from "./backend-types/payment-entity";
+import { makeTestPaymentRequest } from "./test-data";
+import { pickAction } from "./utils";
 
 type DoneCallback = (error?: Error) => void;
 
@@ -26,11 +26,11 @@ class Submitter {
   private paymentEntity:
     | {
         type: "request";
-        paymentRequest: V3PaymentRequest;
+        paymentRequest: BffPaymentRequest;
       }
     | {
         type: "token";
-        paymentToken: V3PaymentToken;
+        paymentToken: BffPaymentToken;
       }
     | null = null;
 
@@ -58,7 +58,7 @@ class Submitter {
         if (this.session.session_type === "PAY") {
           this.paymentEntity = {
             type: "request",
-            paymentRequest: makeTestV3PaymentRequest(
+            paymentRequest: makeTestPaymentRequest(
               this.session,
               this.channelCode,
               this.channelProperties,
@@ -110,7 +110,7 @@ class Submitter {
     this.paymentEntity = null;
   };
 
-  private getPrOrPt(): V3PaymentRequest | V3PaymentToken {
+  private getPrOrPt(): BffPaymentRequest | BffPaymentToken {
     if (this.paymentEntity) {
       switch (this.paymentEntity.type) {
         case "request":
@@ -165,7 +165,7 @@ class Submitter {
     }
   }
 
-  private createModalActionHandlerComponent(action: V3Action) {
+  private createModalActionHandlerComponent(action: BffAction) {
     if (!this.paymentEntity) {
       throw new Error("Payment request or token not created yet");
     }

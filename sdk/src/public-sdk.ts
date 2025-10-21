@@ -1,4 +1,3 @@
-import { BffResponse } from "./bff-types";
 import {
   bffChannelsToPublicChannelGroups,
   bffChannelsToPublicChannels,
@@ -29,14 +28,15 @@ import {
   XenditClearActiveChannelEvent,
 } from "./components/channel-picker";
 import { XenditSessionProvider } from "./components/session-provider";
-import { ChannelProperties } from "./forms-types";
+import { ChannelProperties } from "./backend-types/channel";
 import {
   PaymentChannel,
   XenditChannelPropertiesChangedEvent,
 } from "./components/payment-channel";
-import { fetchSessionData } from "./network";
+import { fetchSessionData } from "./api";
 import Submitter from "./submitter";
 import { ChannelFormHandle } from "./components/channel-form";
+import { BffResponse } from "./backend-types/common";
 
 /**
  * @internal
@@ -89,6 +89,7 @@ export class XenditSessionSdk extends EventTarget {
 
     /**
      * Payment submission controller.
+     * TODO: remove this
      */
     submitter: Submitter | null;
 
@@ -567,7 +568,7 @@ export class XenditSessionSdk extends EventTarget {
 export async function initializeSession(
   options: XenditSdkOptions,
 ): Promise<XenditSessionSdk> {
-  const bff = await fetchSessionData(options.sessionClientKey);
+  const bff = await fetchSessionData(undefined, options.sessionClientKey);
   return new XenditSessionSdk({
     [internal]: {
       options,

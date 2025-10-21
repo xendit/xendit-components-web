@@ -1,4 +1,4 @@
-export type Channel = {
+export type BffChannel = {
   /**
    * Human readable name of channel.
    *
@@ -49,7 +49,7 @@ export type Channel = {
   };
 };
 
-export type ChannelUiGroup = {
+export type BffChannelUiGroup = {
   /** Unique identifier for the group */
   id: string;
   /** Human readable group name */

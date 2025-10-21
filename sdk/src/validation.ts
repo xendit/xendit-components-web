@@ -1,5 +1,5 @@
 import { FormFieldValidationError } from "../../shared/types";
-import { ChannelFormField } from "./forms-types";
+import { ChannelFormField } from "./backend-types/channel";
 import parsePhoneNumberFromString from "libphonenumber-js/min";
 
 export type ValidationResult = {

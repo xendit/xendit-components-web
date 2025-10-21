@@ -14,7 +14,7 @@ import {
 } from "../../../shared/types";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 import { useChannel } from "./payment-channel";
-import { Channel } from "../forms-types";
+import { BffChannel } from "../backend-types/channel";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -214,7 +214,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("pk", keyParts[2]);
   iframeUrl.searchParams.set("sig", keyParts[3]);
 
-  const CardBrands = ({ card }: { card: Channel["card"] }) => {
+  const CardBrands = ({ card }: { card: BffChannel["card"] }) => {
     if (!card) return null;
     card.brands.sort((a, b) => a.name.localeCompare(b.name));
     const cardBrandLogo = card.brands.find(

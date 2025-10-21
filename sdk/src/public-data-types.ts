@@ -1,4 +1,4 @@
-import { BffChannel } from "./bff-types";
+import { BffChannel } from "./backend-types/channel";
 import { internal } from "./internal";
 
 /**
