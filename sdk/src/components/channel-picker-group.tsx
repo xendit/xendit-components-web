@@ -1,8 +1,7 @@
 import React, { useLayoutEffect, useState } from "react";
-import { BffChannelUiGroup } from "../bff-types";
-import { Channel } from "../forms-types";
 import { useChannels, useSdk } from "./session-provider";
 import { bffChannelToPublicChannel } from "../bff-marshal";
+import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup | null;
@@ -22,7 +21,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   const selectedChannelElementRef = React.useRef<HTMLElement>(null);
 
   const [explicitSelectedChannel, setExplicitSelectedChannel] =
-    useState<Channel | null>(null);
+    useState<BffChannel | null>(null);
   const channels = useChannels();
 
   const channelsInGroup =

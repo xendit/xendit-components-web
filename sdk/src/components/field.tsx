@@ -1,4 +1,4 @@
-import { ChannelFormField } from "../forms-types";
+import { ChannelFormField } from "../backend-types/channel";
 import { CountryField } from "./field-country";
 import { DropdownField } from "./field-dropdown";
 import { IframeField } from "./field-iframe";

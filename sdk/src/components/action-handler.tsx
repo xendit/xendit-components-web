@@ -1,15 +1,16 @@
-import { redirectCanBeHandledInIframe, V3Action } from "../v3-types";
-import { ChannelProperties } from "../forms-types";
+import { ChannelProperties } from "../backend-types/channel";
 import Submitter from "../submitter";
 import { useCallback, useEffect, useRef } from "preact/hooks";
 import { Dialog } from "./dialog";
+import { redirectCanBeHandledInIframe } from "../utils";
+import { BffAction } from "../backend-types/payment-entity";
 
 type PaymentEntity = NonNullable<(typeof Submitter.prototype)["paymentEntity"]>;
 
 type Props = {
   isTest: boolean;
   paymentEntity: PaymentEntity;
-  action: V3Action;
+  action: BffAction;
   channelProperties: ChannelProperties;
   triggerPoll: () => void;
   onCancel: () => void;
@@ -56,7 +57,7 @@ export const ActionHandler: React.FC<Props> = (props) => {
 export const IframeActionHandler: React.FC<{
   isTest: boolean;
   paymentEntity: PaymentEntity;
-  action: V3Action;
+  action: BffAction;
   triggerPoll: () => void;
   onCancel: () => void;
 }> = (props) => {

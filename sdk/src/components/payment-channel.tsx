@@ -1,10 +1,10 @@
-import { Channel, ChannelProperties } from "../forms-types";
 import Icon from "./icon";
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
 import { useContext, useRef } from "preact/hooks";
 import { createContext, RefObject } from "preact";
+import { BffChannel, ChannelProperties } from "../backend-types/channel";
 
-const ChannelContext = createContext<Channel | null>(null);
+const ChannelContext = createContext<BffChannel | null>(null);
 
 export const useChannel = () => {
   const context = useContext(ChannelContext);
@@ -15,7 +15,7 @@ export const useChannel = () => {
 };
 
 interface Props {
-  channel: Channel;
+  channel: BffChannel;
   active: boolean;
   formRef?: RefObject<ChannelFormHandle>;
 }

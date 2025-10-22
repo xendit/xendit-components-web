@@ -1,3 +1,6 @@
+import { ChannelProperties } from "./backend-types/channel";
+import { BffAction } from "./backend-types/payment-entity";
+
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   if (arg === null || arg === undefined) {
     throw new Error("Assertion failed: argument is null or undefined");
@@ -13,4 +16,43 @@ export function camelCaseToKebabCase(str: string): string {
     if (offset === 0) return match.toLowerCase();
     return `-${match.toLowerCase()}`;
   });
+}
+
+/**
+ * Creates an async iterator with exponential delay. Yields the attempt number.
+ *
+ * Use with async for (const attempt of retryLoop(100, 5)).
+ *
+ * Delay is mult * base ** attempt
+ * e.g. mult = 100ms, tries = 5, base = 2:
+ * 100ms, 200ms, 400ms, 800ms, 1600ms
+ *
+ * Doesn't wait in tests, unless waitInTests=true.
+ */
+export async function* retryLoop(mult: number, tries: number, base = 2) {
+  // first attempt always instant
+  yield 0;
+
+  let sleepTime = mult;
+
+  if (process.env.NODE_ENV === "test") {
+    sleepTime = 0;
+  }
+
+  for (let i = 1; i < tries; i++) {
+    sleepTime *= base;
+    await sleep(sleepTime);
+    yield i;
+  }
+}
+
+export function redirectCanBeHandledInIframe(
+  channelProperties: ChannelProperties,
+  action: BffAction,
+): boolean {
+  return true;
+}
+
+export function pickAction(actions: BffAction[]): BffAction {
+  return actions[0];
 }

@@ -1,4 +1,4 @@
-import { ChannelFormField, FieldType } from "../forms-types";
+import { ChannelFormField, FieldType } from "../backend-types/channel";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { FieldProps, formFieldName } from "./field";
 
@@ -8,7 +8,6 @@ const toDropdownOptions = (
   return fieldOptions.map((opt) => ({
     title: opt.label,
     description: opt.subtitle,
-    disabled: opt.disabled,
     value: opt.value,
   }));
 };

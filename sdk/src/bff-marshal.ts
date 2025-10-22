@@ -1,4 +1,6 @@
-import { BffChannel, BffResponse, BffSession } from "./bff-types";
+import { BffChannel } from "./backend-types/channel";
+import { BffResponse } from "./backend-types/common";
+import { BffSession } from "./backend-types/session";
 import { internal } from "./internal";
 import {
   XenditPaymentChannel,

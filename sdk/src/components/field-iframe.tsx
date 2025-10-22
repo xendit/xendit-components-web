@@ -14,7 +14,7 @@ import {
 } from "../../../shared/types";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 import { useChannel } from "./payment-channel";
-import { Channel } from "../forms-types";
+import { BffChannel } from "../backend-types/channel";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -210,11 +210,11 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("input_type", field.type.name);
   iframeUrl.searchParams.set("embedder", window.location.origin);
   iframeUrl.searchParams.set("session_id", session.payment_session_id);
-  const keyParts = session.client_key.split("-");
+  const keyParts = session.components_sdk_key.split("-");
   iframeUrl.searchParams.set("pk", keyParts[2]);
   iframeUrl.searchParams.set("sig", keyParts[3]);
 
-  const CardBrands = ({ card }: { card: Channel["card"] }) => {
+  const CardBrands = ({ card }: { card: BffChannel["card"] }) => {
     if (!card) return null;
     card.brands.sort((a, b) => a.name.localeCompare(b.name));
     const cardBrandLogo = card.brands.find(

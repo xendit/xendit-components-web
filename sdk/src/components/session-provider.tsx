@@ -1,19 +1,16 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import {
-  BffBusiness,
-  BffChannelUiGroup,
-  BffCustomer,
-  BffResponse,
-  BffSession,
-} from "../bff-types";
-import { Channel } from "../forms-types";
 import { XenditSessionSdk } from "../public-sdk";
+import { BffSession } from "../backend-types/session";
+import { BffBusiness } from "../backend-types/business";
+import { BffCustomer } from "../backend-types/customer";
+import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
+import { BffResponse } from "../backend-types/common";
 
 // Create contexts
 const SessionContext = createContext<BffSession | undefined>(undefined);
 const BusinessContext = createContext<BffBusiness | undefined>(undefined);
 const CustomerContext = createContext<BffCustomer | undefined>(undefined);
-const ChannelsContext = createContext<Channel[] | undefined>(undefined);
+const ChannelsContext = createContext<BffChannel[] | undefined>(undefined);
 const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | undefined>(
   undefined,
 );
