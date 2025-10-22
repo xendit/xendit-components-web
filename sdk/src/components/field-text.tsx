@@ -50,6 +50,7 @@ export const TextField: React.FC<FieldProps> = (props) => {
   return (
     <>
       <input
+        id={id}
         name={id}
         ref={inputRef}
         type="text"
