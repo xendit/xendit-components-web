@@ -21,10 +21,23 @@ export interface XenditSdkOptions {
 
 /**
  * @public
+ * Additional test-specific options for SDK initialization
  */
 export interface XenditSdkTestOptions {
+  /**
+   * Set to true to initialize the SDK with test data instead of fetching from the server.
+   */
+  isTest?: boolean;
   testNetworkFailure?: boolean;
 }
+
+/**
+ * @public
+ * Complete options interface for SDK initialization, including both core and test options
+ */
+export interface XenditSdkInitOptions
+  extends XenditSdkOptions,
+    XenditSdkTestOptions {}
 
 /**
  * @public

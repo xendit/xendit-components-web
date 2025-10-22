@@ -1,5 +1,5 @@
 import $ from "jquery";
-import { initializeTestSession } from "../../sdk/dist/index.esm.js";
+import { XenditSessionSdk } from "../../sdk/dist/index.esm.js";
 
 const cart: [string, string][] = [];
 
@@ -46,29 +46,32 @@ $(function () {
   });
 
   $(".begin-checkout").on("click", function () {
-    initializeTestSession({
+    // Using the new constructor approach
+    const sdk = new XenditSessionSdk({
       sessionClientKey: "test",
-    }).then((sdk) => {
-      sdk.env = "demo";
+      isTest: true,
+    });
+    sdk.env = "demo";
 
-      $(".payment-container").append(sdk.createChannelPickerComponent());
-      $(".submit").show();
+    // The channel picker element is returned immediately and populated after initialization
+    const channelPicker = sdk.createChannelPickerComponent();
+    $(".payment-container").append(channelPicker);
+    $(".submit").show();
 
-      $(sdk).on("ready", function () {
-        $(".submit").prop("disabled", false);
-      });
-      $(sdk).on("not-ready", function () {
-        $(".submit").prop("disabled", true);
-      });
+    $(sdk).on("ready", function () {
+      $(".submit").prop("disabled", false);
+    });
+    $(sdk).on("not-ready", function () {
+      $(".submit").prop("disabled", true);
+    });
 
-      $(sdk).on("session-complete", () => {
-        hidePages();
-        $(".payment-success").show();
-      });
+    $(sdk).on("session-complete", () => {
+      hidePages();
+      $(".payment-success").show();
+    });
 
-      $(".submit").on("click", async () => {
-        sdk.submit();
-      });
+    $(".submit").on("click", async () => {
+      sdk.submit();
     });
   });
 });
