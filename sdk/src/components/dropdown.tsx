@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "preact/hooks";
 
 export type DropdownOption = {
   leadingAsset?: ComponentChildren; // e.g. flag/icon URL
-  title?: string; // primary line
+  title: string; // primary line
   description?: string; // secondary line
   disabled?: boolean;
-  value?: string;
+  value: string;
 };
 
 export type DropdownProps = {
@@ -180,6 +180,7 @@ export const Dropdown = (props: DropdownProps) => {
       aria-labelledby={labelId}
     >
       <button
+        id={id}
         ref={btnRef}
         type="button"
         className=""
@@ -190,7 +191,10 @@ export const Dropdown = (props: DropdownProps) => {
         onKeyDown={(e) => onButtonKeyDown(e as unknown as KeyboardEvent)}
       >
         {selected?.leadingAsset && (
-          <span className="xendit-dropdown-button-leading-asset">
+          <span
+            className="xendit-dropdown-button-leading-asset"
+            key={selected.value}
+          >
             {selected.leadingAsset}
           </span>
         )}
@@ -217,69 +221,70 @@ export const Dropdown = (props: DropdownProps) => {
         </span>
       </button>
 
-      <ul
-        ref={listRef}
-        id={listboxId}
-        role="listbox"
-        tabIndex={-1}
-        className="xendit-dropdown-menu"
-        aria-labelledby={labelId}
-        aria-activedescendant={activeOptionId}
-        style={{ display: open ? "block" : "none" }}
-        onKeyDown={(e) => onListKeyDown(e as unknown as KeyboardEvent)}
-      >
-        {options.map((opt, i) => {
-          const isSelected = i === currentIndex;
-          const isActive = i === clampedActive;
-          return (
-            <li
-              key={`${id}-opt-${i}`}
-              id={`${id}-opt-${i}`}
-              role="option"
-              aria-disabled={opt.disabled == true}
-              aria-selected={isSelected ? "true" : "false"}
-              onMouseEnter={() => setActiveIndex(i)}
-              onClick={() => commit(i, opt.disabled == true)}
-            >
-              <div
-                className={`xendit-dropdown-item ${isActive ? "is-active" : ""}`}
+      {open ? (
+        <ul
+          ref={listRef}
+          id={listboxId}
+          role="listbox"
+          tabIndex={-1}
+          className="xendit-dropdown-menu"
+          aria-labelledby={labelId}
+          aria-activedescendant={activeOptionId}
+          onKeyDown={(e) => onListKeyDown(e as unknown as KeyboardEvent)}
+        >
+          {options.map((opt, i) => {
+            const isSelected = i === currentIndex;
+            const isActive = i === clampedActive;
+            return (
+              <li
+                key={`${id}-opt-${i}`}
+                id={`${id}-opt-${i}`}
+                role="option"
+                aria-disabled={opt.disabled == true}
+                aria-selected={isSelected ? "true" : "false"}
+                onMouseEnter={() => setActiveIndex(i)}
+                onClick={() => commit(i, opt.disabled == true)}
               >
-                <div className={"xendit-dropdown-content"}>
-                  {opt.leadingAsset && (
-                    <div className="xendit-dropdown-item-leading-asset">
-                      {opt.leadingAsset}
+                <div
+                  className={`xendit-dropdown-item ${isActive ? "is-active" : ""}`}
+                >
+                  <div className={"xendit-dropdown-content"}>
+                    {opt.leadingAsset && (
+                      <div className="xendit-dropdown-item-leading-asset">
+                        {opt.leadingAsset}
+                      </div>
+                    )}
+                    <div className="xendit-dropdown-item-content">
+                      {opt.title && (
+                        <span className="xendit-dropdown-item-title xendit-text-14">
+                          {opt.title}
+                        </span>
+                      )}
+                      {opt.description && (
+                        <span className="xendit-dropdown-item-description xendit-text-12">
+                          {opt.description}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <div className="xendit-dropdown-item-selected">
+                      <svg>
+                        <path
+                          d="M13.5 4.5L6.5 11.5L3 8"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
                     </div>
                   )}
-                  <div className="xendit-dropdown-item-content">
-                    {opt.title && (
-                      <span className="xendit-dropdown-item-title xendit-text-14">
-                        {opt.title}
-                      </span>
-                    )}
-                    {opt.description && (
-                      <span className="xendit-dropdown-item-description xendit-text-12">
-                        {opt.description}
-                      </span>
-                    )}
-                  </div>
                 </div>
-                {isSelected && (
-                  <div className="xendit-dropdown-item-selected">
-                    <svg>
-                      <path
-                        d="M13.5 4.5L6.5 11.5L3 8"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 };

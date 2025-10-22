@@ -57,6 +57,7 @@ const CountryCodeDropdown: React.FC<{
             cdnUrl={`https://assets.xendit.co/payment-session/flags/circle/`}
           />
         ),
+        value: r.iso2,
         title: `${r.label} (+${r.dial})`,
       })),
     [rows],

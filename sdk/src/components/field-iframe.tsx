@@ -14,7 +14,7 @@ import {
 } from "../../../shared/types";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 import { useChannel } from "./payment-channel";
-import { BffChannel } from "../backend-types/channel";
+import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -199,6 +199,15 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     ],
   );
 
+  const giveFocusToIframe = useCallback(() => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: "focus" },
+        iframeData.origin,
+      );
+    }
+  }, [iframeData.origin]);
+
   useEffect(() => {
     window.addEventListener("message", handleEventFromIframe);
     return () => {
@@ -214,37 +223,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("pk", keyParts[2]);
   iframeUrl.searchParams.set("sig", keyParts[3]);
 
-  const CardBrands = ({ card }: { card: BffChannel["card"] }) => {
-    if (!card) return null;
-    card.brands.sort((a, b) => a.name.localeCompare(b.name));
-    const cardBrandLogo = card.brands.find(
-      (b) => b.name === cardBrand,
-    )?.logo_url;
-
-    return (
-      <div className="xendit-card-brands-list">
-        {cardBrand
-          ? cardBrandLogo && (
-              <img
-                className={"xendit-card-brand-logo"}
-                src={cardBrandLogo}
-                alt={cardBrand}
-              />
-            )
-          : card.brands.map(({ name, logo_url }) => {
-              return (
-                <img
-                  className={"xendit-card-brand-logo"}
-                  src={logo_url}
-                  alt={name}
-                  key={name}
-                />
-              );
-            })}
-      </div>
-    );
-  };
-
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
   return (
@@ -252,13 +230,60 @@ export const IframeField: React.FC<FieldProps> = (props) => {
       <div
         className={`xendit-iframe-container ${focusClass} ${error ? "invalid" : ""}`}
       >
+        <XenditFormAssociatedFocusTrap.tag
+          id={id}
+          onFocus={giveFocusToIframe}
+          tabIndex={-1}
+        />
         <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
         <iframe src={iframeUrl.toString()} ref={iframeRef} />
-        {field.type.name === "credit_card_number" && <CardBrands card={card} />}
+        {field.type.name === "credit_card_number" && card && (
+          <CardBrands
+            cardsBrandList={card.brands}
+            selectedCardBrand={cardBrand}
+          />
+        )}
       </div>
       {error && (
         <span className="xendit-error-message xendit-text-14">{error}</span>
       )}
     </>
+  );
+};
+
+const CardBrands = ({
+  cardsBrandList,
+  selectedCardBrand,
+}: {
+  cardsBrandList: { name: string; logo_url: string }[];
+  selectedCardBrand: CardBrand | null;
+}) => {
+  if (!cardsBrandList) return null;
+
+  const cardBrandLogo = cardsBrandList.find(
+    (b) => b.name === selectedCardBrand,
+  )?.logo_url;
+
+  return (
+    <div className="xendit-card-brands-list">
+      {selectedCardBrand
+        ? cardBrandLogo && (
+            <img
+              className={"xendit-card-brand-logo"}
+              src={cardBrandLogo}
+              alt={selectedCardBrand}
+            />
+          )
+        : cardsBrandList.map(({ name, logo_url }) => {
+            return (
+              <img
+                className={"xendit-card-brand-logo"}
+                src={logo_url}
+                alt={name}
+                key={name}
+              />
+            );
+          })}
+    </div>
   );
 };

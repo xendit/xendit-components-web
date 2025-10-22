@@ -242,6 +242,11 @@ xendit-payment-channel[inert] {
   gap: 8px;
 }
 
+.xendit-channel-form-field label {
+  width: fit-content;
+  cursor: pointer;
+}
+
 .xendit-channel-form-field input:not([type="checkbox"]),
 .xendit-channel-form-field select,
 .xendit-channel-form-field .xendit-iframe-container {
@@ -406,6 +411,7 @@ xendit-payment-channel[inert] {
   border-radius: var(--xendit-radius-1);
   justify-content: space-between;
   padding: 12px;
+  cursor: pointer;
 }
 
 .xendit-dropdown button:disabled {
@@ -429,7 +435,6 @@ xendit-payment-channel[inert] {
   list-style: none;
   box-shadow: 0px 4px 8px 0px #25252514;
   overflow-y: auto;
-  cursor: pointer;
 }
 
 .xendit-dropdown-content {
@@ -442,6 +447,7 @@ xendit-payment-channel[inert] {
   grid-template-columns: 1fr 28px;
   padding: 8px 12px;
   border-radius: var(--xendit-radius-1);
+  cursor: pointer;
 }
 
 .xendit-dropdown-item-content {

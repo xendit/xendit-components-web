@@ -189,6 +189,20 @@ export async function init() {
         return;
     }
   });
+
+  // handle focus request from parent
+  window.addEventListener("message", (event) => {
+    if (
+      event.origin !== queryInputs.embedderOrigin ||
+      event.source !== window.parent
+    ) {
+      return;
+    }
+    const data = event.data as IframeEvent;
+    if (data.type === "focus") {
+      input.focus();
+    }
+  });
 }
 
 export function fatalError(err: Error) {
