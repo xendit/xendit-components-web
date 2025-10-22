@@ -1,5 +1,5 @@
 // TODO
-const BACKEND_HOST = process.env.BACKEND_HOST || "";
+const BACKEND_HOST = "https://localhost:8080";
 
 /**
  * Encode data for x-www-form-urlencoded content type

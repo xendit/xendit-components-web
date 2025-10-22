@@ -210,7 +210,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("input_type", field.type.name);
   iframeUrl.searchParams.set("embedder", window.location.origin);
   iframeUrl.searchParams.set("session_id", session.payment_session_id);
-  const keyParts = session.client_key.split("-");
+  const keyParts = session.components_sdk_key.split("-");
   iframeUrl.searchParams.set("pk", keyParts[2]);
   iframeUrl.searchParams.set("sig", keyParts[3]);
 

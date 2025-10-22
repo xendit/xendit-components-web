@@ -25,20 +25,24 @@ export type BffChannel = {
   /** V3 channel code */
   channel_code: string;
 
-  /** The type of channel */
-  pm_type: string;
+  /** If true, user is allowed to uncheck the "Save" checkbox in PAY flow with optional saving. */
+  allow_pay_without_save: boolean;
 
-  /** If true, supports PAY flow. */
-  one_time_payment: boolean;
-
-  /** If true, supports SAVE flow. */
-  save_payment_information: boolean;
+  /** If true, user is allowed to check the "Save" checkbox in PAY flow. */
+  allow_save: boolean;
 
   /** Channel form */
   form: ChannelFormField[];
 
   /** Instruction text to show at bottom of form */
   instructions: string[];
+
+  /** If session amount is outside this range, disable the channel */
+  min_amount?: number;
+  max_amount?: number;
+
+  /** If true, user must provide customer details if not provided */
+  requires_customer_details?: boolean;
 
   /** Special properties for cards */
   card?: {
@@ -59,10 +63,12 @@ export type BffChannelUiGroup = {
 };
 
 export type ChannelFormField = {
-  /** Label shown to user */
+  /** Label shown in error messages and a11y */
   label: string;
+  /** Label shown as text above the field, if this field is the first in it's group. Defaults to `label` */
+  group_label?: string;
   /** Placeholder text */
-  placeholder?: string;
+  placeholder: string;
   /** Field behavior */
   type: FieldType;
   /**
@@ -75,12 +81,21 @@ export type ChannelFormField = {
    * ["expiry_month", "expiry_year"] -> { expiry_month: "value1", expiry_year: "value2" }
    **/
   channel_property: string | string[];
+  /** Initial value of field */
+  initial_value?: string;
+  /** If true, user cannot edit */
+  disabled?: boolean;
   /** If true, the field must not be empty. */
   required: boolean;
   /** 2 means full-width, 1 means half-width */
   span: 1 | 2;
   /** If true, hide label and collapse whitespace between this field and the previous one. */
   join?: boolean;
+  /** Additional flags */
+  flags?: {
+    /* If true, hide by default, show only for some countries */
+    require_billing_information?: boolean;
+  };
 };
 
 export type FieldType =
@@ -98,6 +113,8 @@ export type FieldType =
   | { name: "postal_code" }
   // has dropdown with flags, and a large list of options
   | { name: "country" }
+  // has dropdown with a list of provinces/states depending on the selected country
+  | { name: "province" }
 
   // generic fields
   | {
@@ -117,7 +134,6 @@ export type FieldType =
         subtitle?: string;
         icon_url?: string;
         value: string;
-        disabled?: boolean;
       }[];
     };
 

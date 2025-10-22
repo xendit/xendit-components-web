@@ -8,7 +8,6 @@ const toDropdownOptions = (
   return fieldOptions.map((opt) => ({
     title: opt.label,
     description: opt.subtitle,
-    disabled: opt.disabled,
     value: opt.value,
   }));
 };

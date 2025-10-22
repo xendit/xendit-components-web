@@ -538,7 +538,7 @@ export class XenditSessionSdk extends EventTarget {
  * @public
  * Initialize the SDK for a given session.
  *
- * You can get the session client key from the client_key field of the
+ * You can get the components sdk key from the components_sdk_key field of the
  * `POST /sessions` or `GET /session` endpoints.
  *
  * This returns an object that can be used to create UI components, that allow
