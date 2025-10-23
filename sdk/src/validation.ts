@@ -43,21 +43,24 @@ export const validatePostalCode = (
   }
 };
 
+// TODO: implement localization for error messages
+type LocalizedString = string;
+
 export const validateText = (
   input: ChannelFormField & {
     type: { name: "text" };
   },
   value: string,
-): FormFieldValidationError | undefined => {
+): FormFieldValidationError | LocalizedString | undefined => {
   const trimmedValue = value.trim();
 
   if (Array.isArray(input.type.regex_validators)) {
-    input.type.regex_validators.every((pattern) => {
+    for (const pattern of input.type.regex_validators) {
       const regex = new RegExp(pattern.regex);
-      if (!regex.test(value)) {
+      if (!regex.test(trimmedValue)) {
         return pattern.message;
       }
-    });
+    }
   }
 
   if (trimmedValue.length < (input.type.min_length ?? 1)) {
@@ -70,7 +73,7 @@ export const validateText = (
 export function validate(
   input: ChannelFormField,
   value: string,
-): FormFieldValidationError | undefined {
+): FormFieldValidationError | LocalizedString | undefined {
   if (input.required && value.trim().length === 0) {
     return "FIELD_IS_REQUIRED";
   }

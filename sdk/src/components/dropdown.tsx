@@ -210,14 +210,14 @@ export const Dropdown = (props: DropdownProps) => {
         id={id}
         ref={btnRef}
         type="button"
-        className=""
+        className={selected?.leadingAsset ? "xendit-dropdown-has-asset" : ""}
         aria-controls={listboxId}
         aria-expanded={open ? "true" : "false"}
         aria-labelledby={`${labelId} ${valueId}`}
         onClick={() => (open ? closeList() : openList())}
         onKeyDown={(e) => onButtonKeyDown(e as unknown as KeyboardEvent)}
       >
-        {selected?.leadingAsset ? selected.leadingAsset : <div />}
+        {selected?.leadingAsset ? selected.leadingAsset : null}
 
         {selected ? (
           <span className="xendit-dropdown-button-title xendit-text-14">
@@ -264,10 +264,10 @@ export const Dropdown = (props: DropdownProps) => {
                 ref={isActive ? scrollActiveIntoView : undefined}
               >
                 <div
-                  className={`xendit-dropdown-item xendit-text-14 ${isActive ? "is-active" : ""}`}
+                  className={`xendit-dropdown-item xendit-text-14 ${isActive ? "is-active" : ""} ${opt.leadingAsset ? "xendit-dropdown-has-asset" : ""}`}
                 >
-                  {opt.leadingAsset ? opt.leadingAsset : <div />}
-                  <div className="xendit-dropdown-item-text">
+                  {opt.leadingAsset ? opt.leadingAsset : null}
+                  <div className="xendit-dropdown-item-text xendit-text-14">
                     <span className="xendit-dropdown-item-title">
                       {opt.title}
                     </span>

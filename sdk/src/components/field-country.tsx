@@ -33,7 +33,7 @@ export const CountryField: React.FC<FieldProps> = (props) => {
   );
 };
 
-const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
+export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
   .map((countryCode) => {
     const country = new Intl.DisplayNames(["en"], {
       type: "region",

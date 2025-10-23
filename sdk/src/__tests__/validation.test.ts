@@ -166,7 +166,9 @@ describe("validateText", () => {
       ...baseField,
       type: {
         ...baseField.type,
-        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+        regex_validators: [
+          { regex: "^[a-z]+$", message: "Should only be lowercase" },
+        ],
       },
     };
     expect(validateText(field, "abc")).toBeUndefined();
@@ -178,10 +180,12 @@ describe("validateText", () => {
       ...baseField,
       type: {
         ...baseField.type,
-        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+        regex_validators: [
+          { regex: "^[a-z]+$", message: "Should only be lowercase" },
+        ],
       },
     };
-    expect(validateText(field, "ABC")).toBeUndefined();
+    expect(validateText(field, "ABC")).toBe("Should only be lowercase");
   });
 
   it("returns TEXT_TOO_SHORT if regex passes but length fails", () => {
@@ -189,7 +193,9 @@ describe("validateText", () => {
       ...baseField,
       type: {
         ...baseField.type,
-        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+        regex_validators: [
+          { regex: "^[a-z]+$", message: "Should only be lowercase" },
+        ],
       },
     };
     expect(validateText(field, "a")).toBe("TEXT_TOO_SHORT");
@@ -200,7 +206,9 @@ describe("validateText", () => {
       ...baseField,
       type: {
         ...baseField.type,
-        regex_validators: [{ regex: "^[a-z]+$", message: "ONLY_LOWERCASE" }],
+        regex_validators: [
+          { regex: "^[a-z]+$", message: "Should only be lowercase" },
+        ],
       },
     };
     expect(validateText(field, "abcdef")).toBe("TEXT_TOO_LONG");
@@ -212,13 +220,13 @@ describe("validateText", () => {
       type: {
         ...baseField.type,
         regex_validators: [
-          { regex: "^[a-z]+$", message: "ONLY_LOWERCASE" },
-          { regex: "^.{2,}$", message: "MIN_TWO_CHARS" },
+          { regex: "^[a-z]+$", message: "Should only be lowercase" },
+          { regex: "^.{2,}$", message: "Should be at least two characters" },
         ],
       },
     };
     expect(validateText(field, "ab")).toBeUndefined();
-    expect(validateText(field, "a")).toBe("TEXT_TOO_SHORT");
+    expect(validateText(field, "a")).toBe("Should be at least two characters");
   });
 
   it("returns undefined if no regex_validators and valid length", () => {
