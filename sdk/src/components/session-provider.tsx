@@ -8,13 +8,24 @@ import { BffResponse } from "../backend-types/common";
 
 // Create contexts
 const SessionContext = createContext<BffSession | undefined>(undefined);
+SessionContext.displayName = "SessionContext";
+
 const BusinessContext = createContext<BffBusiness | undefined>(undefined);
+BusinessContext.displayName = "BusinessContext";
+
 const CustomerContext = createContext<BffCustomer | undefined>(undefined);
+CustomerContext.displayName = "CustomerContext";
+
 const ChannelsContext = createContext<BffChannel[] | undefined>(undefined);
+ChannelsContext.displayName = "ChannelsContext";
+
 const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | undefined>(
   undefined,
 );
+ChannelUiGroupsContext.displayName = "ChannelUiGroupsContext";
+
 const SdkContext = createContext<XenditSessionSdk | undefined>(undefined);
+SdkContext.displayName = "SdkContext";
 
 // Custom hooks for consuming contexts
 export const useSession = () => {

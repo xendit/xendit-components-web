@@ -18,8 +18,8 @@ export const fetchSessionData = endpoint<undefined, BffResponse, string>(
 
 type CreatePaymentTokenRequestBody = {
   session_id: string;
-  channel_code?: string;
-  channel_properties: Record<string, unknown>;
+  channel_code: string;
+  channel_properties: ChannelProperties;
 };
 /**
  * Creates a payment token.
@@ -32,7 +32,7 @@ export const createPaymentToken = endpoint<
 
 type CreatePaymentRequestRequestBody = {
   session_id: string;
-  channel_code?: string;
+  channel_code: string;
   channel_properties: ChannelProperties;
   customer?: BffCustomer;
 };

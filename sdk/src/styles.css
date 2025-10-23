@@ -193,6 +193,16 @@ xendit-payment-channel input::placeholder {
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
 }
 
+.xendit-channel-logo {
+  width: 24px;
+  height: 16px;
+  margin: -5px 0;
+  padding: 4px;
+  border: 1px solid var(--xendit-color-border-default);
+  border-radius: 4px;
+  background-color: var(--xendit-color-background);
+}
+
 /* Payment channel */
 
 xendit-payment-channel[inert] {
@@ -404,8 +414,11 @@ xendit-payment-channel[inert] {
 /* Dropdown */
 .xendit-dropdown button {
   width: 100%;
-  height: 40px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
@@ -437,67 +450,41 @@ xendit-payment-channel[inert] {
   overflow-y: auto;
 }
 
-.xendit-dropdown-content {
-  display: flex;
-  gap: 12px;
-}
-
 .xendit-dropdown-item {
   display: grid;
-  grid-template-columns: 1fr 28px;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
   padding: 8px 12px;
   border-radius: var(--xendit-radius-1);
   cursor: pointer;
 }
 
-.xendit-dropdown-item-content {
+.xendit-dropdown-item-text {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
+.xendit-dropdown-item-selected {
+  color: var(--xendit-color-primary);
+}
+
 .xendit-dropdown-item:hover,
-.xendit-dropdown-item.is-active {
+.xendit-dropdown-item.is-active,
+.xendit-dropdown-item:hover .xendit-dropdown-item-description,
+.xendit-dropdown-item.is-active .xendit-dropdown-item-description {
   background-color: var(--xendit-color-primary);
-}
-
-.xendit-dropdown-item:hover svg,
-.xendit-dropdown-item.is-active svg {
-  stroke: var(--xendit-color-background);
-}
-
-.xendit-dropdown-item:hover span,
-.xendit-dropdown-item.is-active span {
   color: var(--xendit-color-background);
 }
 
-li[aria-disabled="true"] .xendit-dropdown-item {
-  background-color: var(--xendit-color-disabled);
-}
-
-li[aria-disabled="true"] .xendit-dropdown-item-content span {
-  color: var(--xendit-color-text-secondary);
+.xendit-dropdown-item:hover .xendit-dropdown-item-selected,
+.xendit-dropdown-item.is-active .xendit-dropdown-item-selected {
+  color: var(--xendit-color-background);
 }
 
 .xendit-dropdown-item-description {
   color: var(--xendit-color-text-secondary);
 }
 
-.xendit-dropdown-item-leading-asset,
-.xendit-dropdown-item-selected {
-  display: flex;
-  align-items: center;
-}
-
-.xendit-dropdown-item-selected {
-  justify-content: flex-end;
-}
-
-.xendit-dropdown-item-selected svg {
-  width: 16px;
-  height: 16px;
-  object-view-box: 0 0 16 16;
-  fill: none;
-  stroke: var(--xendit-color-primary);
-}
 /* Dropdown ends */
