@@ -1,5 +1,5 @@
-// TODO
-const BACKEND_HOST = "https://localhost:8080";
+// TODO: inject hostname from environment variable
+const BACKEND_HOST = "https://checkout-ui-gateway-dev.stg.tidnex.dev";
 
 /**
  * Encode data for x-www-form-urlencoded content type
