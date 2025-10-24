@@ -1,3 +1,7 @@
+// Must be the first import (TODO: remove from prod build)
+import "preact/debug";
+import "preact/devtools";
+
 import { createIconSet } from "./components/icon";
 import { createStyles } from "./styles";
 

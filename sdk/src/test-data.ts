@@ -8,17 +8,20 @@ const examplePublicKey =
 const exampleSignature =
   "1WJcUIskN1a7MXUF6ddsjSlpQ7PXk5X47bIExisXmzxXqKColRYXVwjVVguyYiHwUyeuB908L+tEf7xbxbzDcs+0/EJGL2loKV/fyv6iWDM72+Sv5SvfOBImhfT38yB7";
 
+export function makeTestSdkKey() {
+  return `session-12345678901234567890-${examplePublicKey}-${exampleSignature}`;
+}
+
 export function makeTestBffData(): BffResponse {
   return {
     session: {
       payment_session_id: "ps-68f870c1d394132ab724261e",
-      components_sdk_key: `session-12345678901234567890-${examplePublicKey}-${exampleSignature}`,
       created: "2025-10-22T05:50:57.478Z",
       updated: "2025-10-22T05:50:57.478Z",
       status: "ACTIVE",
       reference_id: "simontestwhyitbrokeagain",
       currency: "IDR",
-      amount: 10000,
+      amount: 1000,
       country: "ID",
       expires_at: "2025-10-22T06:20:57.188Z",
       session_type: "PAY",
@@ -32,8 +35,8 @@ export function makeTestBffData(): BffResponse {
           reference_id: "1234",
           type: "DIGITAL_PRODUCT",
           name: "Item 1",
-          net_unit_amount: 10000,
-          quantity: 10,
+          net_unit_amount: 1000,
+          quantity: 1,
           category: "",
         },
       ],

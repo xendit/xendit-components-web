@@ -146,7 +146,7 @@ export class XenditSessionSdk extends EventTarget {
       this.dispatchEvent(new XenditNotReadyEvent());
 
       // Fetch session data from the server
-      const bff = await fetchSessionData(undefined, options.sessionClientKey);
+      const bff = await fetchSessionData(options.sessionClientKey);
 
       // Update internal data
       this[internal].initData = {

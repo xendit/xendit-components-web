@@ -11,15 +11,15 @@ import { endpoint } from "./networking";
 /**
  * Initialization method, returns session, customer, business, and channels.
  */
-export const fetchSessionData = endpoint<undefined, BffResponse, string>(
+export const fetchSessionData = endpoint<BffResponse, string>(
   "GET",
-  (sessionAuthKey) => `/api/session/${sessionAuthKey}`,
+  (sessionAuthKey) => `/api/sessions/${sessionAuthKey}`,
 );
 
 type CreatePaymentTokenRequestBody = {
   session_id: string;
-  channel_code?: string;
-  channel_properties: Record<string, unknown>;
+  channel_code: string;
+  channel_properties: ChannelProperties;
 };
 /**
  * Creates a payment token.
@@ -32,7 +32,7 @@ export const createPaymentToken = endpoint<
 
 type CreatePaymentRequestRequestBody = {
   session_id: string;
-  channel_code?: string;
+  channel_code: string;
   channel_properties: ChannelProperties;
   customer?: BffCustomer;
 };
@@ -43,7 +43,7 @@ export const createPaymentRequest = endpoint<
   CreatePaymentRequestRequestBody,
   BffPaymentRequest,
   string
->("POST", () => `/api/session/payment_requests`);
+>("POST", () => `/api/sessions/payment_requests`);
 
 type SimulatePaymentRequestRequestBody = {
   channel_code: string;
@@ -69,13 +69,12 @@ export const simulatePaymentRequest = endpoint<
  * If the session is completed, the succeeded channel will be included.
  */
 export const pollSession = endpoint<
-  undefined,
   BffPollResponse,
   string,
   string | undefined
 >(
   "GET",
-  (sessionAuthKey) => `/api/session/${sessionAuthKey}/poll`,
+  (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/poll`,
   (tokenRequestId) =>
     new URLSearchParams(
       tokenRequestId ? { token_request_id: tokenRequestId } : {},
@@ -95,4 +94,4 @@ export const lookupCardDetails = endpoint<
   LookupCardDetailsRequestBody,
   BffCardDetails,
   string
->("GET", (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/card_info`);
+>("POST", (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/card_info`);

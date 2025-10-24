@@ -1,35 +1,56 @@
+import { useCallback, useRef } from "preact/hooks";
 import { FieldProps, formFieldName } from "./field";
+import { getCountries } from "libphonenumber-js";
+import { Dropdown, DropdownOption } from "./dropdown";
+import { CircleFlag } from "react-circle-flags";
 
 export const CountryField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
   const id = formFieldName(field);
 
+  const hiddenFieldRef = useRef<HTMLInputElement>(null);
+
+  const onChangeWrapper = useCallback(
+    (option: DropdownOption) => {
+      if (hiddenFieldRef.current) {
+        hiddenFieldRef.current.value = option.value;
+      }
+      onChange();
+    },
+    [onChange],
+  );
+
   return (
-    <select name={id} onChange={onChange}>
-      {Object.entries(countries).map(([code, data]) => (
-        <option key={code} value={code}>
-          {toFlagEmoji(code)} {data.name}
-        </option>
-      ))}
-    </select>
+    <>
+      <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
+      <Dropdown
+        id={id}
+        options={COUNTRIES_AS_DROPDOWN_OPTIONS}
+        onChange={onChangeWrapper}
+        placeholder={field.placeholder}
+      />
+    </>
   );
 };
 
-// TODO: use images instead (flag emojis don't work in windows)
-function toFlagEmoji(countryCode: string): string {
-  const codePoints = countryCode
-    .toUpperCase()
-    .split("")
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-}
+export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
+  .map((countryCode) => {
+    const country = new Intl.DisplayNames(["en"], {
+      type: "region",
+    }).of(countryCode);
 
-// TODO: pull this from a library
-const countries = {
-  ID: { name: "Indonesia", phoneCode: "62" },
-  MY: { name: "Malaysia", phoneCode: "60" },
-  PH: { name: "Philippines", phoneCode: "63" },
-  SG: { name: "Singapore", phoneCode: "65" },
-  TH: { name: "Thailand", phoneCode: "66" },
-  VN: { name: "Vietnam", phoneCode: "84" },
-};
+    return {
+      title: country,
+      value: countryCode,
+      leadingAsset: (
+        <CircleFlag
+          key={countryCode}
+          countryCode={countryCode.toLowerCase()}
+          width={16}
+          height={16}
+          cdnUrl={`https://assets.xendit.co/payment-session/flags/circle/`}
+        />
+      ),
+    } as DropdownOption;
+  })
+  .sort((a, b) => a.title.localeCompare(b.title));
