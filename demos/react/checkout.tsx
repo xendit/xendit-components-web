@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { CartItem } from "./types";
 import {
-  initializeTestSession,
   XenditSessionSdk,
+  XenditSessionTestSdk,
 } from "../../sdk/dist/index.esm";
 
 export const CheckoutPage: React.FC<{
@@ -69,15 +69,16 @@ const Payment: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    initializeTestSession({}).then((sdk) => {
-      setSdk(sdk);
-      sdk.env = "demo";
-
-      const component = el.current?.appendChild(
-        sdk.createChannelPickerComponent(),
-      );
-      el.current?.appendChild(component!);
+    // Using the test SDK class
+    const sdk = new XenditSessionTestSdk({
+      sessionClientKey: "test",
     });
+    sdk.env = "demo";
+    setSdk(sdk);
+
+    // The channel picker element is returned immediately and populated after initialization
+    const channelPicker = sdk.createChannelPickerComponent();
+    el.current?.appendChild(channelPicker);
   }, []);
 
   useEffect(() => {

@@ -22,13 +22,6 @@ export interface XenditSdkOptions {
 /**
  * @public
  */
-export interface XenditSdkTestOptions {
-  testNetworkFailure?: boolean;
-}
-
-/**
- * @public
- */
 export interface XenditChannelPickerComponentOptions {
   todo: string;
 }

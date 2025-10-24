@@ -33,10 +33,11 @@ const submitButton = document.createElement("button");
 submitButton.textContent = "Submit";
 controlsDiv.appendChild(submitButton);
 
-const { initializeTestSession } = (
+const { XenditSessionTestSdk } = (
   window as unknown as { XenditSdk: typeof import("./src/public-sdk") }
 ).XenditSdk;
-const sdk = await initializeTestSession({
+
+const sdk = new XenditSessionTestSdk({
   sessionClientKey: "1234",
 });
 sdk.env = "local";
