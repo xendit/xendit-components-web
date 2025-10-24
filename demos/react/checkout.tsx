@@ -3,7 +3,7 @@ import { CartItem } from "./types";
 import {
   XenditSessionSdk,
   XenditSessionTestSdk,
-} from "../../sdk/src/public-sdk";
+} from "../../sdk/dist/index.esm";
 
 export const CheckoutPage: React.FC<{
   cart: CartItem[];

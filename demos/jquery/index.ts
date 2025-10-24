@@ -1,5 +1,5 @@
 import $ from "jquery";
-import { XenditSessionTestSdk } from "../../sdk/src/public-sdk";
+import { XenditSessionTestSdk } from "../../sdk/dist/index.esm";
 
 const cart: [string, string][] = [];
 
