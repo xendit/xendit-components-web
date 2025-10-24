@@ -3,6 +3,7 @@ import { CountryField } from "./field-country";
 import { DropdownField } from "./field-dropdown";
 import { IframeField } from "./field-iframe";
 import { PhoneNumberField } from "./field-phone-number";
+import { ProvinceField } from "./field-province";
 import { TextField } from "./field-text";
 
 export interface FieldProps {
@@ -31,6 +32,8 @@ const Field: React.FC<FieldProps> = (props) => {
         return <DropdownField {...props} />;
       case "country":
         return <CountryField {...props} />;
+      case "province":
+        return <ProvinceField {...props} />;
     }
   }
 

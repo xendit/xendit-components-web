@@ -2,95 +2,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FieldProps, formFieldName } from "./field";
 import { validate } from "../validation";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
-import { Dropdown } from "./dropdown";
-import { CircleFlag } from "react-circle-flags";
-import { getCountries, getCountryCallingCode } from "libphonenumber-js/min";
-
-type CountryRow = {
-  iso2: string; // e.g., 'ID'
-  dial: string; // e.g., '+62'
-  label: string; // e.g., 'Indonesia'
-};
-
-// Thin adapter to map country codes -> Dropdown options
-const CountryCodeDropdown: React.FC<{
-  dialValue: string; // current selected dial (e.g., '+84')
-  onDialChange: (nextDialCode: string) => void; // callback when user selects new dial
-  id: string;
-  label?: string;
-  placeholder?: string;
-}> = ({ dialValue, onDialChange, id, placeholder = "Select" }) => {
-  const rows = useMemo<CountryRow[]>(() => {
-    return (
-      getCountries()
-        .map((countryCode) => {
-          try {
-            const callingCode = getCountryCallingCode(countryCode);
-            const country = new Intl.DisplayNames(["en"], {
-              type: "region",
-            }).of(countryCode);
-
-            if (!callingCode || !country) return null;
-
-            return {
-              iso2: countryCode,
-              dial: callingCode,
-              label: country,
-            } as CountryRow;
-          } catch {
-            //Country not supported
-            return null;
-          }
-        })
-        .filter(Boolean) as CountryRow[]
-    ).sort((a, b) => a.label.localeCompare(b.label));
-  }, []);
-
-  const options = useMemo(
-    () =>
-      rows.map((r) => ({
-        leadingAsset: (
-          <CircleFlag
-            countryCode={r.iso2.toLowerCase()}
-            width={16}
-            height={16}
-            cdnUrl={`https://assets.xendit.co/payment-session/flags/circle/`}
-          />
-        ),
-        value: r.iso2,
-        title: `${r.label} (+${r.dial})`,
-      })),
-    [rows],
-  );
-
-  const selectedIndex = useMemo(
-    () =>
-      Math.max(
-        0,
-        rows.findIndex((r) => r.dial === dialValue),
-      ),
-    [rows, dialValue],
-  );
-
-  return (
-    <Dropdown
-      id={id}
-      placeholder={placeholder}
-      options={options}
-      selectedIndex={selectedIndex}
-      onChange={(_, idx) => {
-        const row = rows[idx];
-        if (row) onDialChange(row.dial);
-      }}
-    />
-  );
-};
+import { Dropdown, DropdownOption } from "./dropdown";
+import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
+import { COUNTRIES_AS_DROPDOWN_OPTIONS } from "./field-country";
+import { getExampleNumber } from "libphonenumber-js";
+import examples from "libphonenumber-js/mobile/examples";
+import { useSession } from "./session-provider";
 
 export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
   const id = formFieldName(field);
 
-  const [dialCode, setDialCode] = useState("62"); // default to Indonesia
+  const session = useSession();
+
+  const [countryCode, setCountryCode] = useState(session.country);
+  const countryCodeIndex = useMemo(() => {
+    const index = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.findIndex(
+      (r) => r.value === countryCode,
+    );
+    if (index === -1) return 0;
+    return index;
+  }, [countryCode]);
+  const country =
+    COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS[countryCodeIndex];
+
   const [localNumber, setLocalNumber] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isTouched, setIsTouched] = useState(false);
@@ -112,22 +47,21 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   };
 
   // Compose the value shown to validation / submission
-  const fullValue = formatPhoneNumber(dialCode, localNumber);
+  const fullValue = formatPhoneNumber(country.dial, localNumber);
 
   function handleLocalChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
     setLocalNumber(nextLocal);
     onChange(); // keep parity with other fields
     if (!isTouched) return;
-    validateField(formatPhoneNumber(dialCode, nextLocal));
+    validateField(formatPhoneNumber(country.dial, nextLocal));
   }
 
   function handleBlur(event: React.FocusEvent<HTMLInputElement>): void {
     const value = (event.target as HTMLInputElement).value;
-    if (value) validateField(formatPhoneNumber(dialCode, value));
+    if (value) validateField(formatPhoneNumber(country.dial, value));
   }
 
-  // Hook your custom validation event into the composed value
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
@@ -145,19 +79,22 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   return (
     <div className={`xendit-input-phone ${error?.length ? "invalid" : ""}`}>
       <div className="xendit-combobox">
-        <CountryCodeDropdown
-          id={`${id}-country`}
-          dialValue={dialCode}
-          onDialChange={(code) => setDialCode(code)}
+        <Dropdown
+          id={id}
+          options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
+          selectedIndex={countryCodeIndex}
+          onChange={(option) => setCountryCode(option.value)}
         />
-
         <input
           id={id}
           name={id}
           ref={inputRef}
           type="tel"
           inputMode="tel"
-          placeholder={dialCode ? `+${dialCode}` : ""}
+          placeholder={getExampleNumber(
+            country.value as CountryCode,
+            examples,
+          )?.formatInternational()}
           className="xendit-text-14 xendit-phone-number-input"
           onBlur={handleBlur}
           onChange={handleLocalChange}
@@ -175,3 +112,19 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     </div>
   );
 };
+
+type DropdownOptionWithDial = DropdownOption & { dial: string };
+const COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS =
+  COUNTRIES_AS_DROPDOWN_OPTIONS.map<DropdownOptionWithDial | null>(
+    (country) => {
+      const dial = getCountryCallingCode(country.value as CountryCode);
+      if (!dial) return null;
+      return {
+        ...country,
+        title: `${country.title} (+${dial})`,
+        dial,
+      };
+    },
+  ).filter((country): country is DropdownOptionWithDial => {
+    return Boolean(country);
+  });

@@ -1,7 +1,9 @@
 import React, { useLayoutEffect, useState } from "react";
-import { useChannels, useSdk } from "./session-provider";
+import { useChannels, useSdk, useSession } from "./session-provider";
 import { bffChannelToPublicChannel } from "../bff-marshal";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
+import { Dropdown, DropdownOption } from "./dropdown";
+import { BffSession } from "../backend-types/session";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup | null;
@@ -14,6 +16,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   const { group, open } = props;
 
   const sdk = useSdk();
+  const session = useSession();
 
   // container for the selected channel component
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -54,38 +57,72 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   }, [selectedChannel, sdk, open]);
 
   // Called on channel dropdown change
-  const onSelectedChannelChange = (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
-    if (!channels) return;
-
-    const target = event.target as HTMLSelectElement;
+  const onSelectedChannelChange = (dropdownOption: DropdownOption) => {
     const selected =
-      channels.find((channel) => channel.channel_code === target.value) || null;
+      channels.find(
+        (channel) => channel.channel_code === dropdownOption.value,
+      ) || null;
     setExplicitSelectedChannel(selected);
   };
 
   // Create channel options for dropdown
-  const channelOptions = channelsInGroup.map((channel) => ({
-    label: channel.brand_name,
-    channelCode: channel.channel_code,
+  const channelOptions = channelsInGroup.map<DropdownOption>((channel) => ({
+    leadingAsset: (
+      <img
+        className="xendit-channel-logo"
+        src={channel.brand_logo_url}
+        key={channel.channel_code}
+      />
+    ),
+    title: channel.brand_name,
+    value: channel.channel_code,
+    disabled: !shouldEnableChannel(session, channel),
+    description: getChannelDisabledReason(session, channel) || undefined,
   }));
+
+  // Hide dropdown for cards channel
+  const hideDropdown =
+    channelsInGroup.length === 1 && channelsInGroup[0].channel_code === "CARDS";
 
   return (
     <div className="xendit-channel-picker-group">
-      {channelsInGroup.length > 1 ? (
-        <select onChange={onSelectedChannelChange}>
-          <option value="" disabled selected>
-            Select a channel
-          </option>
-          {channelOptions.map((ch) => (
-            <option key={ch.channelCode} value={ch.channelCode}>
-              {ch.label}
-            </option>
-          ))}
-        </select>
-      ) : null}
+      {hideDropdown ? null : (
+        <Dropdown
+          options={channelOptions}
+          onChange={onSelectedChannelChange}
+          placeholder={"Select a payment method"}
+        />
+      )}
       <div ref={containerRef} />
     </div>
   );
 };
+
+export function shouldEnableChannel(
+  session: BffSession,
+  channel: BffChannel,
+): boolean {
+  if (session.session_type !== "PAY") {
+    return true; // only pay sessions have min/max
+  }
+
+  const amount = session.amount;
+  const min = channel.min_amount ?? 0;
+  const max = channel.max_amount ?? Number.MAX_VALUE;
+  if (amount < min || amount > max) {
+    return false;
+  }
+
+  return true;
+}
+
+export function getChannelDisabledReason(
+  session: BffSession,
+  channel: BffChannel,
+): string | null {
+  if (shouldEnableChannel(session, channel)) {
+    return null;
+  }
+
+  return "Unavailable for this payment";
+}
