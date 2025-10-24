@@ -1,7 +1,15 @@
-import { useRef, useCallback, forwardRef, useImperativeHandle } from "react";
+import { forwardRef } from "react";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import Field from "./field";
 import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
+import { BffSession } from "../backend-types/session";
+import {
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "preact/hooks";
+import { useSession } from "./session-provider";
 
 interface Props {
   form: ChannelFormField[];
@@ -13,6 +21,8 @@ export interface ChannelFormHandle {
 
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
+    const session = useSession();
+
     const formRef = useRef<HTMLFormElement>(null);
 
     useImperativeHandle(ref, () => ({
@@ -28,6 +38,10 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
           Array.from(form.elements)
             .filter((el) => el instanceof HTMLInputElement)
             .forEach((input) => {
+              if (!input.name) {
+                // only validate inputs with a channel property name
+                return;
+              }
               input.dispatchEvent(new InputValidateEvent(input.value));
             });
         }
@@ -53,7 +67,9 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       onChannelPropertiesChanged(getChannelProperties());
     }, [getChannelProperties, onChannelPropertiesChanged]);
 
-    const filteredFieldGroups = groupFields(form).filter(
+    const filteredForm = useFilteredFormFields(session, form);
+
+    const filteredFieldGroups = groupFields(filteredForm).filter(
       (group) => group.length,
     );
 
@@ -181,6 +197,30 @@ function formValueToStringArray(subkeys: string[], value: string): string[] {
   } catch (_e) {
     return [value];
   }
+}
+
+/**
+ * Takes a form and filters out fields that should not be shown based on context.
+ */
+export function useFilteredFormFields(
+  session: BffSession,
+  form: ChannelFormField[],
+) {
+  // TODO: implement billing details feature
+  const showBillingDetailsFields = false;
+
+  const filteredForm = useMemo(() => {
+    return form.filter((field) => {
+      if (field.flags?.require_billing_information) {
+        // these fields should only be shown if billing details are required
+        if (session.session_type !== "PAY") return false;
+        if (!showBillingDetailsFields) return false;
+      }
+      return true;
+    });
+  }, [form, session.session_type, showBillingDetailsFields]);
+
+  return filteredForm;
 }
 
 export default ChannelForm;

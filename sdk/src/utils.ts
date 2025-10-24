@@ -56,3 +56,29 @@ export function redirectCanBeHandledInIframe(
 export function pickAction(actions: BffAction[]): BffAction {
   return actions[0];
 }
+
+export type ParsedSdkKey = {
+  sessionAuthKey: string;
+  publicKey: string;
+  signature: string;
+};
+
+export function parseSdkKey(componentsSdkKey: string): ParsedSdkKey {
+  if (!componentsSdkKey) {
+    throw new Error("componentsSdkKey is missing");
+  }
+  const parts = componentsSdkKey.split("-");
+  if (parts.length < 4) {
+    throw new Error("Invalid componentsSdkKey format");
+  }
+  return {
+    sessionAuthKey: [parts[0], parts[1]].join("-"),
+    publicKey: parts[2],
+    signature: parts[3],
+  };
+}
+
+export function isRedirectIframeCapable(action: BffAction): boolean {
+  // TODO
+  return true;
+}

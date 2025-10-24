@@ -14,5 +14,10 @@ export default defineConfig({
     ],
     css: false,
     testTimeout: 10000,
+    coverage: {
+      enabled: true,
+      reporter: ["html"],
+      include: ["sdk/src/**", "secure-iframe/src/**"],
+    },
   },
 });

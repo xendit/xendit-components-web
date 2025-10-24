@@ -1,8 +1,11 @@
 import { BffAction, BffPaymentEntity } from "../backend-types/payment-entity";
 import { BffSession } from "../backend-types/session";
-import { pickAction } from "../utils";
+import { isRedirectIframeCapable, pickAction } from "../utils";
 import { behaviorNode } from "./behavior-tree-runner";
-import { ActionRedirectBehavior } from "./behaviors/action";
+import {
+  ActionIframeBehavior,
+  ActionRedirectBehavior,
+} from "./behaviors/action";
 import {
   PeFailedBehavior,
   PePendingBehavior,
@@ -124,7 +127,11 @@ export function behaviorTreeForAction(action: BffAction) {
     case "REDIRECT_CUSTOMER": {
       switch (action.descriptor) {
         case "WEB_URL": {
-          return behaviorNode(ActionRedirectBehavior, [action]);
+          if (isRedirectIframeCapable(action)) {
+            return behaviorNode(ActionIframeBehavior, [action]);
+          } else {
+            return behaviorNode(ActionRedirectBehavior, [action]);
+          }
         }
         case "DEEPLINK_URL": {
           throw new Error(`Unsupported action type ${action.type}`);

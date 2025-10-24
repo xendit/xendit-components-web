@@ -22,7 +22,7 @@
     "build": "./build.ts prod",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:run": "vitest run",
     "test:debug": "vitest run --printConsoleTrace=true --silent=false",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --fix --ext .ts,.tsx",

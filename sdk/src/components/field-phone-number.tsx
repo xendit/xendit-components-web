@@ -87,7 +87,6 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
         />
         <input
           id={id}
-          name={id}
           ref={inputRef}
           type="tel"
           inputMode="tel"
@@ -104,7 +103,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
       </div>
 
       {/* Hidden canonical value (useful for non-JS form posts) */}
-      <input type="hidden" value={fullValue} />
+      <input type="hidden" name={id} value={fullValue} />
 
       {error && (
         <span className="xendit-error-message xendit-text-14">{error}</span>

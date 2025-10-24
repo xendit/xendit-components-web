@@ -131,11 +131,14 @@ export async function init() {
         break;
       }
       case "credit_card_expiry": {
-        const parts = inputValue.split("/");
-        extractedInputValues = [
-          (parts[0] ?? "").trim(),
-          (parts[1] ?? "").trim(),
-        ];
+        // convert from "MM/YY" to [MM, YYYY]
+        const parts = value.split("/");
+        const month = (parts[0] ?? "").trim();
+        let year = (parts[1] ?? "").trim();
+        if (year.length === 2) {
+          year = `20${year}`;
+        }
+        extractedInputValues = [month, year];
         break;
       }
       default: {

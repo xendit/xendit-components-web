@@ -1,9 +1,11 @@
 import { SdkEventManager } from "../sdk-event-manager";
+import { ParsedSdkKey } from "../utils";
 
 /**
- * Data passed to every node.
+ * Immutable data passed to every node.
  */
 export type SdkData = {
+  sdkKey: ParsedSdkKey;
   sdkEvents: SdkEventManager;
 };
 
@@ -100,7 +102,7 @@ function shallowEqualArrays(a: unknown[], b: unknown[]) {
 
 function enterSubtree(node: BehaviorNode<unknown[]>, sdkData: SdkData) {
   // construct instances traversing downwards and call enter traversing upwards
-  node.instance = new node.impl(sdkData, node.subjects);
+  node.instance = new node.impl(sdkData, ...node.subjects);
   if (node.child) {
     enterSubtree(node.child, sdkData);
   }
@@ -116,15 +118,15 @@ function exitSubtree(node: BehaviorNode<unknown[]>) {
   node.instance = undefined;
 }
 
-export function findNodeByType<T extends BehaviorConstructor<unknown[]>>(
-  node: BehaviorNode<unknown[]>,
-  constructor: T,
-): InstanceType<T> | null {
+export function findBehaviorNodeByType<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  T extends BehaviorConstructor<any>,
+>(node: BehaviorNode<unknown[]>, constructor: T): InstanceType<T> | null {
   if (node.impl === constructor) {
     return node.instance ? (node.instance as InstanceType<T>) : null;
   }
   if (node.child) {
-    return findNodeByType(node.child, constructor);
+    return findBehaviorNodeByType(node.child, constructor);
   }
   return null;
 }

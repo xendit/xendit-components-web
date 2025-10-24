@@ -1,10 +1,9 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { XenditSessionSdk } from "../public-sdk";
+import { WorldState, XenditSessionSdk } from "../public-sdk";
 import { BffSession } from "../backend-types/session";
 import { BffBusiness } from "../backend-types/business";
 import { BffCustomer } from "../backend-types/customer";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
-import { BffResponse } from "../backend-types/common";
 
 // Create contexts
 const SessionContext = createContext<BffSession | undefined>(undefined);
@@ -80,7 +79,7 @@ export const useSdk = () => {
 
 interface XenditSessionProviderProps {
   children: ReactNode;
-  data: BffResponse;
+  data: WorldState;
   sdk: XenditSessionSdk;
 }
 
@@ -89,13 +88,7 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
   data,
   sdk,
 }) => {
-  const {
-    session,
-    business,
-    customer,
-    channels,
-    channel_ui_groups: channelUiGroups,
-  } = data;
+  const { session, business, customer, channels, channelUiGroups } = data;
 
   return (
     <SdkContext.Provider value={sdk}>

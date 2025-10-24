@@ -27,7 +27,7 @@ type CreatePaymentTokenRequestBody = {
 export const createPaymentToken = endpoint<
   CreatePaymentTokenRequestBody,
   BffPaymentToken,
-  string
+  null
 >("POST", () => `/api/sessions/payment_tokens`);
 
 type CreatePaymentRequestRequestBody = {
@@ -42,7 +42,7 @@ type CreatePaymentRequestRequestBody = {
 export const createPaymentRequest = endpoint<
   CreatePaymentRequestRequestBody,
   BffPaymentRequest,
-  string
+  null
 >("POST", () => `/api/sessions/payment_requests`);
 
 type SimulatePaymentRequestRequestBody = {

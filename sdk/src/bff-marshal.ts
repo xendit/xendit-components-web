@@ -1,5 +1,4 @@
-import { BffChannel } from "./backend-types/channel";
-import { BffResponse } from "./backend-types/common";
+import { BffChannel, BffChannelUiGroup } from "./backend-types/channel";
 import { BffSession } from "./backend-types/session";
 import { internal } from "./internal";
 import {
@@ -17,7 +16,8 @@ export function bffSessionToPublicSession(
 }
 
 export function bffChannelsToPublicChannelGroups(
-  bffResponse: BffResponse,
+  bffChannels: BffChannel[],
+  bffChannelGroups: BffChannelUiGroup[],
 ): XenditPaymentChannelGroup[] {
   // TODO
   return [];

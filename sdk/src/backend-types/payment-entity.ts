@@ -115,3 +115,19 @@ export type BffPaymentEntity =
       type: "paymentToken";
       entity: BffPaymentToken;
     };
+
+export function toPaymentEntity(
+  prOrPt: BffPaymentRequest | BffPaymentToken,
+): BffPaymentEntity {
+  if ("payment_request_id" in prOrPt) {
+    return {
+      type: "paymentRequest",
+      entity: prOrPt,
+    };
+  } else {
+    return {
+      type: "paymentToken",
+      entity: prOrPt,
+    };
+  }
+}

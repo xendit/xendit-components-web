@@ -1,20 +1,73 @@
-import { BffPaymentEntity } from "../../backend-types/payment-entity";
+import { createPaymentRequest, createPaymentToken } from "../../api";
+import { ChannelProperties } from "../../backend-types/channel";
+import {
+  BffPaymentEntity,
+  BffPaymentRequest,
+  BffPaymentToken,
+  toPaymentEntity,
+} from "../../backend-types/payment-entity";
 import { BffSession, BffSessionStatus } from "../../backend-types/session";
 import { Behavior, SdkData } from "../behavior-tree-runner";
 
 export class SessionActiveBehavior implements Behavior {
+  private submission: {
+    abortController: AbortController;
+    promise: Promise<void>;
+  } | null;
+
   constructor(
     private data: SdkData,
     private session: BffSession,
     private paymentEntity: BffPaymentEntity | null,
-  ) {}
+  ) {
+    this.submission = null;
+  }
 
   enter() {
     // TODO: emit ready or not-ready events based on form state and whether we have a payment entity
   }
 
-  submit() {
-    // TODO: send submit api call and set paymentEntity in sdk data
+  submitCreatePaymentRequest(
+    channelCode: string,
+    channelProperties: ChannelProperties,
+  ) {
+    this.submission = {
+      abortController: new AbortController(), // TODO: use this to cancel
+      promise: createPaymentRequest(
+        {
+          session_id: this.data.sdkKey.sessionAuthKey,
+          channel_code: channelCode,
+          channel_properties: channelProperties,
+          // TODO: pass customer for VA channels
+        },
+        null,
+      ).then((paymentRequest: BffPaymentRequest) => {
+        this.data.sdkEvents.updateWorld({
+          paymentEntity: toPaymentEntity(paymentRequest),
+        });
+      }),
+    };
+  }
+
+  submitCreatePaymentToken(
+    channelCode: string,
+    channelProperties: ChannelProperties,
+  ) {
+    this.submission = {
+      abortController: new AbortController(), // TODO: use this to cancel
+      promise: createPaymentToken(
+        {
+          session_id: this.data.sdkKey.sessionAuthKey,
+          channel_code: channelCode,
+          channel_properties: channelProperties,
+        },
+        null,
+      ).then((paymentToken: BffPaymentToken) => {
+        this.data.sdkEvents.updateWorld({
+          paymentEntity: toPaymentEntity(paymentToken),
+        });
+      }),
+    };
   }
 
   exit() {
