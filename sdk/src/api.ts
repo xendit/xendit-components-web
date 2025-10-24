@@ -11,7 +11,7 @@ import { endpoint } from "./networking";
 /**
  * Initialization method, returns session, customer, business, and channels.
  */
-export const fetchSessionData = endpoint<undefined, BffResponse, string>(
+export const fetchSessionData = endpoint<BffResponse, string>(
   "GET",
   (sessionAuthKey) => `/api/session/${sessionAuthKey}`,
 );
@@ -69,7 +69,6 @@ export const simulatePaymentRequest = endpoint<
  * If the session is completed, the succeeded channel will be included.
  */
 export const pollSession = endpoint<
-  undefined,
   BffPollResponse,
   string,
   string | undefined
@@ -95,4 +94,4 @@ export const lookupCardDetails = endpoint<
   LookupCardDetailsRequestBody,
   BffCardDetails,
   string
->("GET", (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/card_info`);
+>("POST", (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/card_info`);

@@ -10,6 +10,36 @@ function convertDataToUrlSearchParams<T extends object>(data: T) {
   return params;
 }
 
+// GET with path param
+export function endpoint<ResponseBody, PathArg>(
+  method: "GET",
+  getPath: (pathArg: PathArg) => string,
+): (pathArg: PathArg) => Promise<ResponseBody>;
+
+// GET with path param and query param
+export function endpoint<ResponseBody, PathArg, QueryArg = never>(
+  method: "GET",
+  getPath: (pathArg: PathArg) => string,
+  getQuery: (queryArg: QueryArg) => URLSearchParams,
+): (pathArg: PathArg, queryArg?: QueryArg) => Promise<ResponseBody>;
+
+// POST with path param
+export function endpoint<RequestBody, ResponseBody, PathArg>(
+  method: "POST",
+  getPath: (pathArg: PathArg) => string,
+): (requestBody: RequestBody, pathArg: PathArg) => Promise<ResponseBody>;
+
+// POST with path param and query param
+export function endpoint<RequestBody, ResponseBody, PathArg, QueryArg = never>(
+  method: "POST",
+  getPath: (pathArg: PathArg) => string,
+  getQuery: (queryArg: QueryArg) => URLSearchParams,
+): (
+  requestBody: RequestBody,
+  pathArg: PathArg,
+  queryArg?: QueryArg,
+) => Promise<ResponseBody>;
+
 /**
  * Declares an endpoint in checkout-ui-gateway and returns a function to call it.
  *
@@ -31,21 +61,27 @@ function convertDataToUrlSearchParams<T extends object>(data: T) {
  * await myEndpoint({userId: "123"}, "456", "789");
  * ```
  */
-export function endpoint<
-  RequestBody extends object | undefined,
-  ResponseBody,
-  PathArg,
-  QueryArg = never,
->(
+export function endpoint(
   method: "GET" | "POST",
-  getPath: (pathArg: PathArg) => string,
-  getQuery?: (queryArg: QueryArg) => URLSearchParams,
+  getPath: (pathArg: unknown) => string,
+  getQuery?: (queryArg: unknown) => URLSearchParams,
 ) {
-  return async function (
-    requestBody: RequestBody,
-    pathArg: PathArg,
-    queryArg?: QueryArg,
-  ): Promise<ResponseBody> {
+  return async function (...rest: unknown[]): Promise<unknown> {
+    let pathArg: unknown;
+    let queryArg: unknown;
+    let requestBody: unknown;
+
+    switch (method) {
+      case "GET":
+        [pathArg, queryArg] = rest;
+        break;
+      case "POST":
+        [requestBody, pathArg, queryArg] = rest;
+        break;
+      default:
+        throw new Error(`Unsupported method: ${method}`);
+    }
+
     const url = new URL(getPath(pathArg), BACKEND_HOST);
     if (getQuery) {
       if (queryArg === undefined) {

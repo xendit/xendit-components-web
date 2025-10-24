@@ -568,7 +568,7 @@ export class XenditSessionSdk extends EventTarget {
 export async function initializeSession(
   options: XenditSdkOptions,
 ): Promise<XenditSessionSdk> {
-  const bff = await fetchSessionData(undefined, options.sessionClientKey);
+  const bff = await fetchSessionData(options.sessionClientKey);
   return new XenditSessionSdk({
     [internal]: {
       options,
