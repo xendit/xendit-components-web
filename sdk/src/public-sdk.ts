@@ -37,6 +37,7 @@ import { fetchSessionData } from "./api";
 import Submitter from "./submitter";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BffResponse } from "./backend-types/common";
+import { makeTestSdkKey } from "./test-data";
 
 /**
  * @internal
@@ -589,7 +590,10 @@ export async function initializeTestSession(
   return new XenditSessionSdk({
     [internal]: {
       isTest: true,
-      options,
+      options: {
+        ...options,
+        sessionClientKey: makeTestSdkKey(),
+      },
       bff: (await import("./test-data")).makeTestBffData(),
     },
   });

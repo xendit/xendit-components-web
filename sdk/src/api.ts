@@ -13,7 +13,7 @@ import { endpoint } from "./networking";
  */
 export const fetchSessionData = endpoint<BffResponse, string>(
   "GET",
-  (sessionAuthKey) => `/api/session/${sessionAuthKey}`,
+  (sessionAuthKey) => `/api/sessions/${sessionAuthKey}`,
 );
 
 type CreatePaymentTokenRequestBody = {
@@ -43,7 +43,7 @@ export const createPaymentRequest = endpoint<
   CreatePaymentRequestRequestBody,
   BffPaymentRequest,
   string
->("POST", () => `/api/session/payment_requests`);
+>("POST", () => `/api/sessions/payment_requests`);
 
 type SimulatePaymentRequestRequestBody = {
   channel_code: string;
@@ -74,7 +74,7 @@ export const pollSession = endpoint<
   string | undefined
 >(
   "GET",
-  (sessionAuthKey) => `/api/session/${sessionAuthKey}/poll`,
+  (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/poll`,
   (tokenRequestId) =>
     new URLSearchParams(
       tokenRequestId ? { token_request_id: tokenRequestId } : {},
