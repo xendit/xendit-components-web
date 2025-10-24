@@ -41,17 +41,6 @@ import { BffResponse } from "./backend-types/common";
 /**
  * @internal
  */
-interface SdkConstructorOptions {
-  [internal]: {
-    isTest?: boolean;
-    options: XenditSdkOptions;
-    bff: BffResponse;
-  };
-}
-
-/**
- * @internal
- */
 type CachedChannelComponent = {
   element: HTMLElement;
   channelProperties: ChannelProperties | null;
@@ -69,7 +58,11 @@ export class XenditSessionSdk extends EventTarget {
     /**
      * Session data from backend.
      */
-    initData: SdkConstructorOptions[typeof internal];
+    initData: {
+      isTest: boolean;
+      options: XenditSdkOptions;
+      bff: BffResponse;
+    };
 
     /**
      * The channel picker element
@@ -118,32 +111,11 @@ export class XenditSessionSdk extends EventTarget {
    * });
    * ```
    */
-  constructor(options: XenditSdkOptions);
   /**
    * @internal
    */
-  constructor(options: SdkConstructorOptions);
-  constructor(options: XenditSdkOptions | SdkConstructorOptions) {
+  constructor(options: XenditSdkOptions) {
     super();
-
-    // Handle internal constructor format (for backward compatibility)
-    if (options && typeof options === "object" && internal in options) {
-      const initData = options as SdkConstructorOptions;
-      this[internal] = {
-        initData: initData[internal],
-        activeChannelPickerComponent: null,
-        activeChannelCode: null,
-        paymentChannelComponents: new Map(),
-        submitter: null,
-        terminal: false,
-      };
-
-      // on next tick, emit "not-ready" event
-      setTimeout(() => {
-        this.dispatchEvent(new XenditNotReadyEvent());
-      }, 0);
-      return;
-    }
 
     // Handle new public constructor format
     const publicOptions = options as XenditSdkOptions;
