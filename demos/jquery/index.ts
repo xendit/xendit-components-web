@@ -1,5 +1,5 @@
 import $ from "jquery";
-import { XenditSessionSdk } from "../../sdk/dist/index.esm.js";
+import { XenditSessionTestSdk } from "../../sdk/src/public-sdk";
 
 const cart: [string, string][] = [];
 
@@ -46,10 +46,9 @@ $(function () {
   });
 
   $(".begin-checkout").on("click", function () {
-    // Using the new constructor approach
-    const sdk = new XenditSessionSdk({
+    // Using the test SDK class
+    const sdk = new XenditSessionTestSdk({
       sessionClientKey: "test",
-      isTest: true,
     });
     sdk.env = "demo";
 

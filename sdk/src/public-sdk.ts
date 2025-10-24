@@ -15,11 +15,7 @@ import {
   XenditSessionFailedEvent,
   XenditWillRedirectEvent,
 } from "./public-event-types";
-import {
-  XenditSdkOptions,
-  XenditSdkTestOptions,
-  XenditSdkInitOptions,
-} from "./public-options-types";
+import { XenditSdkOptions } from "./public-options-types";
 import {
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
@@ -122,12 +118,12 @@ export class XenditSessionSdk extends EventTarget {
    * });
    * ```
    */
-  constructor(options: XenditSdkInitOptions);
+  constructor(options: XenditSdkOptions);
   /**
    * @internal
    */
   constructor(options: SdkConstructorOptions);
-  constructor(options: XenditSdkInitOptions | SdkConstructorOptions) {
+  constructor(options: XenditSdkOptions | SdkConstructorOptions) {
     super();
 
     // Handle internal constructor format (for backward compatibility)
@@ -150,7 +146,7 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     // Handle new public constructor format
-    const publicOptions = options as XenditSdkInitOptions;
+    const publicOptions = options as XenditSdkOptions;
     this[internal] = {
       initData: {
         isTest: false,
@@ -172,24 +168,17 @@ export class XenditSessionSdk extends EventTarget {
    * @internal
    * Initialize session data asynchronously
    */
-  private async initializeAsync(options: XenditSdkInitOptions) {
+  protected async initializeAsync(options: XenditSdkOptions) {
     try {
       // Emit "not-ready" event initially
       this.dispatchEvent(new XenditNotReadyEvent());
 
-      let bff: BffResponse;
-      let isTest = false;
-
-      if (options.isTest) {
-        isTest = true;
-        bff = (await import("./test-data")).makeTestBffData();
-      } else {
-        bff = await fetchSessionData(undefined, options.sessionClientKey);
-      }
+      // Fetch session data from the server
+      const bff = await fetchSessionData(undefined, options.sessionClientKey);
 
       // Update internal data
       this[internal].initData = {
-        isTest,
+        isTest: false,
         options,
         bff,
       };
@@ -207,7 +196,7 @@ export class XenditSessionSdk extends EventTarget {
    * @internal
    * Populate an existing channel picker element with UI components
    */
-  private populateChannelPicker(container: HTMLElement): void {
+  protected populateChannelPicker(container: HTMLElement): void {
     render(
       createElement(XenditSessionProvider, {
         data: this[internal].initData.bff,
@@ -631,75 +620,43 @@ export class XenditSessionSdk extends EventTarget {
 }
 
 /**
- * @deprecated Use `new XenditSessionSdk(options)` constructor instead.
  * @public
- * Initialize the SDK for a given session.
- *
- * You can get the components sdk key from the components_sdk_key field of the
- * `POST /sessions` or `GET /session` endpoints.
- *
- * This returns an object that can be used to create UI components, that allow
- * users to make payment or save tokens, using a variety of channels, depending on
- * the session configuration.
- *
- * This will throw if the session is expired, cancelled, already complete,
- * or on network errors.
+ * Test version of XenditSessionSdk that uses mock data instead of API calls.
+ * Use this class for testing and development purposes.
  *
  * @example
  * ```
- * // OLD: deprecated approach
- * const xenditSdk = await XenditSdk.initializeSession({
- *   sessionClientKey: "your-session-client-key",
- * });
- *
- * // NEW: preferred approach
- * const xenditSdk = new XenditSessionSdk({
- *   sessionClientKey: "your-session-client-key",
+ * const testSdk = new XenditSessionTestSdk({
+ *   sessionClientKey: "test-key",
  * });
  * ```
  */
-export async function initializeSession(
-  options: XenditSdkOptions,
-): Promise<XenditSessionSdk> {
-  const bff = await fetchSessionData(undefined, options.sessionClientKey);
-  return new XenditSessionSdk({
-    [internal]: {
-      options,
-      bff,
-    },
-  });
-}
+export class XenditSessionTestSdk extends XenditSessionSdk {
+  /**
+   * @internal
+   * Override to use test data instead of making API calls
+   */
+  protected async initializeAsync(options: XenditSdkOptions) {
+    try {
+      // Emit "not-ready" event initially
+      this.dispatchEvent(new XenditNotReadyEvent());
 
-/**
- * @deprecated Use `new XenditSessionSdk(options)` constructor instead.
- * @public
- * Initialize the SDK for testing. Use this while testing your integration.
- *
- * The sessionClientKey is ignored, and a set of test data is used instead.
- *
- * @example
- * ```
- * // OLD: deprecated approach
- * const xenditSdk = await XenditSdk.initializeTestSession({
- *   sessionClientKey: "1234",
- *   isTest: true,
- * });
- *
- * // NEW: preferred approach
- * const xenditSdk = new XenditSessionSdk({
- *   sessionClientKey: "1234",
- *   isTest: true,
- * });
- * ```
- */
-export async function initializeTestSession(
-  options: XenditSdkOptions & XenditSdkTestOptions,
-): Promise<XenditSessionSdk> {
-  return new XenditSessionSdk({
-    [internal]: {
-      isTest: true,
-      options,
-      bff: (await import("./test-data")).makeTestBffData(),
-    },
-  });
+      // Always use test data for this class
+      const bff = (await import("./test-data")).makeTestBffData();
+
+      // Update internal data
+      this[internal].initData = {
+        isTest: true,
+        options,
+        bff,
+      };
+
+      // If we have an active channel picker, populate it now
+      if (this[internal].activeChannelPickerComponent) {
+        this.populateChannelPicker(this[internal].activeChannelPickerComponent);
+      }
+    } catch (_error) {
+      this.dispatchEvent(new XenditErrorEvent());
+    }
+  }
 }
