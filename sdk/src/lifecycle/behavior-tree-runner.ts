@@ -1,5 +1,5 @@
 import { SdkEventManager } from "../sdk-event-manager";
-import { ParsedSdkKey } from "../utils";
+import { areArraysShallowEqual, ParsedSdkKey } from "../utils";
 
 /**
  * Immutable data passed to every node.
@@ -74,7 +74,7 @@ export function behaviorTreeUpdate(
     previousRoot === undefined ||
     newRoot === undefined ||
     previousRoot.impl !== newRoot.impl ||
-    !shallowEqualArrays(previousRoot.subjects, newRoot.subjects);
+    !areArraysShallowEqual(previousRoot.subjects, newRoot.subjects);
 
   if (isChanged) {
     if (previousRoot) {
@@ -86,18 +86,6 @@ export function behaviorTreeUpdate(
   } else {
     behaviorTreeUpdate(previousRoot?.child, newRoot?.child, sdkData);
   }
-}
-
-function shallowEqualArrays(a: unknown[], b: unknown[]) {
-  if (a.length !== b.length) {
-    return false;
-  }
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 function enterSubtree(node: BehaviorNode<unknown[]>, sdkData: SdkData) {
