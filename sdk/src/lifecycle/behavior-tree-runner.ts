@@ -89,12 +89,12 @@ export function behaviorTreeUpdate(
 }
 
 function enterSubtree(node: BehaviorNode<unknown[]>, sdkData: SdkData) {
-  // construct instances traversing downwards and call enter traversing upwards
+  // construct instances and call enter traversing downwards
   node.instance = new node.impl(sdkData, ...node.subjects);
+  node.instance?.enter?.();
   if (node.child) {
     enterSubtree(node.child, sdkData);
   }
-  node.instance?.enter?.();
 }
 
 function exitSubtree(node: BehaviorNode<unknown[]>) {

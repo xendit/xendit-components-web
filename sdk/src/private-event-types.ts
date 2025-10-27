@@ -1,4 +1,4 @@
-import { WorldState } from "./public-sdk";
+import { UpdatableWorldState, WorldState } from "./public-sdk";
 
 /**
  * @public
@@ -7,7 +7,7 @@ import { WorldState } from "./public-sdk";
 export class InternalUpdateWorldState extends Event {
   static type = "xendit-update-world-state" as const;
 
-  constructor(public data: Partial<WorldState>) {
+  constructor(public data: WorldState | UpdatableWorldState) {
     super(InternalUpdateWorldState.type, { bubbles: false });
   }
 }

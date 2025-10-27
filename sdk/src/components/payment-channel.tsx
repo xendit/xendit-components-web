@@ -16,7 +16,6 @@ export const useChannel = () => {
 
 interface Props {
   channel: BffChannel;
-  active: boolean;
   formRef?: RefObject<ChannelFormHandle>;
 }
 
