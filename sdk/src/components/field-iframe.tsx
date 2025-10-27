@@ -221,11 +221,8 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("embedder", window.location.origin);
   iframeUrl.searchParams.set("session_id", session.payment_session_id);
 
-  const parsedKey = parseSdkKey(
-    sdk[internal].initData.options.sessionClientKey,
-  );
-  iframeUrl.searchParams.set("pk", parsedKey.publicKey);
-  iframeUrl.searchParams.set("sig", parsedKey.signature);
+  iframeUrl.searchParams.set("pk", sdk[internal].sdkKey.publicKey);
+  iframeUrl.searchParams.set("sig", sdk[internal].sdkKey.signature);
 
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
@@ -291,18 +288,3 @@ const CardBrands = ({
     </div>
   );
 };
-
-function parseSdkKey(componentsSdkKey: string) {
-  if (!componentsSdkKey) {
-    throw new Error("componentsSdkKey is missing");
-  }
-  const parts = componentsSdkKey.split("-");
-  if (parts.length < 4) {
-    throw new Error("Invalid componentsSdkKey format");
-  }
-  return {
-    sessionAuthKey: [parts[0], parts[1]].join("-"),
-    publicKey: parts[2],
-    signature: parts[3],
-  };
-}

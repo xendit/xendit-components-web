@@ -56,7 +56,7 @@ export const validateText = (
 
   if (Array.isArray(input.type.regex_validators)) {
     for (const pattern of input.type.regex_validators) {
-      const regex = new RegExp(pattern.regex);
+      const regex = new RegExp(sanitizeRegex(pattern.regex));
       if (!regex.test(trimmedValue)) {
         return pattern.message;
       }
@@ -69,6 +69,14 @@ export const validateText = (
     return "TEXT_TOO_LONG";
   }
 };
+
+function sanitizeRegex(pattern: string): string {
+  // Remove leading and trailing slashes if present
+  if (pattern.startsWith("/") && pattern.endsWith("/")) {
+    return pattern.slice(1, -1);
+  }
+  return pattern;
+}
 
 export function validate(
   input: ChannelFormField,

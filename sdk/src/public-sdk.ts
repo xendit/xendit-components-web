@@ -28,15 +28,33 @@ import {
   XenditClearActiveChannelEvent,
 } from "./components/channel-picker";
 import { XenditSessionProvider } from "./components/session-provider";
-import { ChannelProperties } from "./backend-types/channel";
+import {
+  BffChannel,
+  BffChannelUiGroup,
+  ChannelProperties,
+} from "./backend-types/channel";
 import {
   PaymentChannel,
   XenditChannelPropertiesChangedEvent,
 } from "./components/payment-channel";
 import { fetchSessionData } from "./api";
-import Submitter from "./submitter";
 import { ChannelFormHandle } from "./components/channel-form";
+import {
+  BehaviorNode,
+  behaviorTreeUpdate,
+  findBehaviorNodeByType,
+} from "./lifecycle/behavior-tree-runner";
+import { behaviorTreeForSdk } from "./lifecycle/behavior-tree";
+import { BffSession } from "./backend-types/session";
+import { BffBusiness } from "./backend-types/business";
+import { BffCustomer } from "./backend-types/customer";
+import { BffPaymentEntity } from "./backend-types/payment-entity";
+import { SdkEventManager } from "./sdk-event-manager";
+import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
+import { InternalUpdateWorldState } from "./private-event-types";
 import { BffResponse } from "./backend-types/common";
+import { ParsedSdkKey, parseSdkKey } from "./utils";
+import { makeTestSdkKey } from "./test-data";
 
 /**
  * @internal
@@ -48,21 +66,55 @@ type CachedChannelComponent = {
 };
 
 /**
+ * @internal
+ */
+export type WorldState = {
+  business: BffBusiness;
+  customer: BffCustomer | undefined;
+  session: BffSession;
+  channels: BffChannel[];
+  channelUiGroups: BffChannelUiGroup[];
+  paymentEntity: BffPaymentEntity | undefined;
+};
+
+type InitializedSdk = {
+  [internal]: {
+    worldState: WorldState;
+  };
+};
+
+/**
  * @public
  */
 export class XenditSessionSdk extends EventTarget {
   /**
    * @internal
    */
-  private [internal]: {
+  protected [internal]: {
     /**
-     * Session data from backend.
+     * Parsed SDK key components.
      */
-    initData: {
-      isTest: boolean;
-      options: XenditSdkOptions;
-      bff: BffResponse;
-    };
+    sdkKey: ParsedSdkKey;
+
+    /**
+     * User-provided options.
+     */
+    options: XenditSdkOptions;
+
+    /**
+     * The session and ascociated data from the backend.
+     */
+    worldState: WorldState | null;
+
+    /**
+     * The event manager.
+     */
+    eventManager: SdkEventManager;
+
+    /**
+     * Behavior tree for state management.
+     */
+    behaviorTree: BehaviorNode<unknown[]> | null;
 
     /**
      * The channel picker element
@@ -79,12 +131,6 @@ export class XenditSessionSdk extends EventTarget {
      * Map of channel code to the channel's respective HTMLElement and form state.
      */
     paymentChannelComponents: Map<string, CachedChannelComponent>;
-
-    /**
-     * Payment submission controller.
-     * TODO: remove this
-     */
-    submitter: Submitter | null;
 
     /**
      * If true, we are done, either successfully or not.
@@ -120,58 +166,109 @@ export class XenditSessionSdk extends EventTarget {
     // Handle new public constructor format
     const publicOptions = options as XenditSdkOptions;
     this[internal] = {
-      initData: {
-        isTest: false,
-        options: publicOptions,
-        bff: {} as BffResponse, // Will be populated after initialization
-      },
+      sdkKey: parseSdkKey(publicOptions.sessionClientKey),
+      options: options,
+      worldState: null,
+      eventManager: new SdkEventManager(this),
       activeChannelPickerComponent: null,
       activeChannelCode: null,
       paymentChannelComponents: new Map(),
-      submitter: null,
+      behaviorTree: null,
       terminal: false,
     };
 
+    (this as EventTarget).addEventListener(
+      InternalUpdateWorldState.type,
+      this.onUpdateWorldState,
+    );
+
     // Initialize session data asynchronously
-    this.initializeAsync(publicOptions);
+    this.initializeAsync();
   }
 
   /**
    * @internal
    * Initialize session data asynchronously
    */
-  protected async initializeAsync(options: XenditSdkOptions) {
+  protected async initializeAsync() {
+    // Emit "not-ready" event initially
+    this.dispatchEvent(new XenditNotReadyEvent());
+
+    let bff: BffResponse;
     try {
-      // Emit "not-ready" event initially
-      this.dispatchEvent(new XenditNotReadyEvent());
-
       // Fetch session data from the server
-      const bff = await fetchSessionData(options.sessionClientKey);
-
-      // Update internal data
-      this[internal].initData = {
-        isTest: false,
-        options,
-        bff,
-      };
-
-      // If we have an active channel picker, populate it now
-      if (this[internal].activeChannelPickerComponent) {
-        this.populateChannelPicker(this[internal].activeChannelPickerComponent);
-      }
+      bff = await fetchSessionData(this[internal].sdkKey.sessionAuthKey);
     } catch (_error) {
       this.dispatchEvent(new XenditErrorEvent());
+      return;
+    }
+
+    // Update world state
+    this.dispatchEvent(
+      new InternalUpdateWorldState({
+        business: bff.business,
+        customer: bff.customer,
+        session: bff.session,
+        channels: bff.channels,
+        channelUiGroups: bff.channel_ui_groups,
+        paymentEntity: undefined,
+      }),
+    );
+
+    // If we have an active channel picker, populate it now
+    // TODO: only populate if not already populated
+    if (this[internal].activeChannelPickerComponent) {
+      this.populateChannelPicker(this[internal].activeChannelPickerComponent);
     }
   }
+
+  /**
+   * @internal
+   * Throws if the SDK is not initialized.
+   */
+  private assertInitialized(): asserts this is InitializedSdk {
+    if (!this[internal].worldState) {
+      throw new Error("SDK is not initialized");
+    }
+  }
+
+  /**
+   * @internal
+   * Updates the session or other ascociated entities and syncs everything that depends on them.
+   */
+  private onUpdateWorldState = (event: Event) => {
+    const data = (event as InternalUpdateWorldState).data;
+    this[internal].worldState = {
+      ...(this[internal].worldState ?? {}),
+      ...data,
+    } as WorldState; // assume the first event will populate all the required fields
+
+    const newTree = behaviorTreeForSdk(
+      "ACTIVE",
+      this[internal].worldState.session,
+      this[internal].worldState.paymentEntity ?? null,
+    );
+    behaviorTreeUpdate(this[internal].behaviorTree ?? undefined, newTree, {
+      sdkKey: this[internal].sdkKey,
+      sdkEvents: this[internal].eventManager,
+    });
+    this[internal].behaviorTree = newTree;
+
+    // TODO: also re-render any active components
+  };
 
   /**
    * @internal
    * Populate an existing channel picker element with UI components
    */
   protected populateChannelPicker(container: HTMLElement): void {
+    this.assertInitialized();
+
+    this.setupUiEventsForChannelPicker(container);
+
     render(
       createElement(XenditSessionProvider, {
-        data: this[internal].initData.bff,
+        data: this[internal].worldState,
         sdk: this,
         children: createElement(XenditChannelPicker, {}),
       }),
@@ -180,12 +277,14 @@ export class XenditSessionSdk extends EventTarget {
   }
 
   private setupUiEventsForChannelPicker(container: HTMLElement): void {
+    this.assertInitialized();
+
     // clear active channel when the channel picker accordion is closed
     container.addEventListener(XenditClearActiveChannelEvent.type, (_event) => {
       const event = _event as XenditClearActiveChannelEvent;
       const activeChannelCode = this[internal].activeChannelCode;
       if (!activeChannelCode) return;
-      const channel = this[internal].initData.bff.channels.find(
+      const channel = this[internal].worldState.channels.find(
         (ch) => ch.channel_code === activeChannelCode,
       );
       if (!channel || channel.ui_group !== event.uiGroup) return;
@@ -225,7 +324,8 @@ export class XenditSessionSdk extends EventTarget {
    * Retrieve the xendit session object.
    */
   getSession(): XenditSession {
-    return bffSessionToPublicSession(this[internal].initData.bff.session);
+    this.assertInitialized();
+    return bffSessionToPublicSession(this[internal].worldState.session);
   }
 
   /**
@@ -236,7 +336,11 @@ export class XenditSessionSdk extends EventTarget {
    * You can use this to render your channel picker UI.
    */
   getAvailablePaymentChannelGroups(): XenditPaymentChannelGroup[] {
-    return bffChannelsToPublicChannelGroups(this[internal].initData.bff);
+    this.assertInitialized();
+    return bffChannelsToPublicChannelGroups(
+      this[internal].worldState.channels,
+      this[internal].worldState.channelUiGroups,
+    );
   }
 
   /**
@@ -247,7 +351,8 @@ export class XenditSessionSdk extends EventTarget {
    * use `getAvailablePaymentChannelGroups` instead.
    */
   getAvailablePaymentChannels(): XenditPaymentChannel[] {
-    return bffChannelsToPublicChannels(this[internal].initData.bff.channels);
+    this.assertInitialized();
+    return bffChannelsToPublicChannels(this[internal].worldState.channels);
   }
 
   /**
@@ -272,16 +377,12 @@ export class XenditSessionSdk extends EventTarget {
     this.cleanupChannelPickerComponent();
 
     const container = document.createElement("xendit-channel-picker");
-    this.setupUiEventsForChannelPicker(container);
 
     // Store the container for later population
     this[internal].activeChannelPickerComponent = container;
 
     // If initialization is complete, populate immediately
-    if (
-      this[internal].initData.bff &&
-      Object.keys(this[internal].initData.bff).length > 0
-    ) {
+    if (this[internal].worldState) {
       this.populateChannelPicker(container);
     }
     // Otherwise, it will be populated when initializeAsync completes
@@ -318,6 +419,8 @@ export class XenditSessionSdk extends EventTarget {
     channel: XenditPaymentChannel,
     active = true,
   ): HTMLElement {
+    this.assertInitialized();
+
     if (this[internal].terminal) {
       throw new Error("Session is in terminal state, cannot create components");
     }
@@ -358,7 +461,7 @@ export class XenditSessionSdk extends EventTarget {
 
     render(
       createElement(XenditSessionProvider, {
-        data: this[internal].initData.bff,
+        data: this[internal].worldState,
         sdk: this,
         children: createElement(PaymentChannel, {
           channel: channel[internal],
@@ -394,6 +497,8 @@ export class XenditSessionSdk extends EventTarget {
    * to create a payment request or token, depending on the type of session.
    */
   submit() {
+    this.assertInitialized();
+
     const channelCode = this[internal].activeChannelCode;
     if (!channelCode) {
       throw new Error("No active payment channel component");
@@ -414,22 +519,34 @@ export class XenditSessionSdk extends EventTarget {
       }
     }
 
-    this[internal].submitter = new Submitter(
-      this,
-      this[internal].initData.bff.session,
-      channelCode,
-      component.channelProperties || {},
-      this[internal].initData.isTest || false,
-      (error?: Error) => {
-        this[internal].submitter = null;
-        if (!error) {
-          // session complete
-          this.dispatchEvent(new XenditSessionCompleteEvent());
-          this.enterTerminalState();
-        }
-      },
+    if (!this[internal].behaviorTree) {
+      throw new Error("Invalid state for session");
+    }
+    const sessionActiveBehavior = findBehaviorNodeByType(
+      this[internal].behaviorTree,
+      SessionActiveBehavior,
     );
-    this[internal].submitter.begin();
+    if (!sessionActiveBehavior) {
+      throw new Error("Invalid state for session");
+    }
+
+    const sessionType = this[internal].worldState.session.session_type;
+    switch (sessionType) {
+      case "PAY":
+        sessionActiveBehavior.submitCreatePaymentRequest(
+          channelCode,
+          component.channelProperties || {},
+        );
+        break;
+      case "SAVE":
+        sessionActiveBehavior.submitCreatePaymentToken(
+          channelCode,
+          component.channelProperties || {},
+        );
+        break;
+      default:
+        throw new Error(`Unsupported session type: ${sessionType}`);
+    }
   }
 
   /**
@@ -596,6 +713,8 @@ export class XenditSessionSdk extends EventTarget {
  * Test version of XenditSessionSdk that uses mock data instead of API calls.
  * Use this class for testing and development purposes.
  *
+ * The sessionClientKey option is ignored.
+ *
  * @example
  * ```
  * const testSdk = new XenditSessionTestSdk({
@@ -605,30 +724,42 @@ export class XenditSessionSdk extends EventTarget {
  */
 export class XenditSessionTestSdk extends XenditSessionSdk {
   /**
+   * Test SDK ignores sessionClientKey and uses a mock key.
+   */
+  constructor(options: XenditSdkOptions) {
+    super({
+      ...options,
+      sessionClientKey: makeTestSdkKey(),
+    });
+  }
+
+  /**
    * @internal
    * Override to use test data instead of making API calls
    */
-  protected async initializeAsync(options: XenditSdkOptions) {
-    try {
-      // Emit "not-ready" event initially
-      this.dispatchEvent(new XenditNotReadyEvent());
+  protected async initializeAsync() {
+    // Emit "not-ready" event initially
+    this.dispatchEvent(new XenditNotReadyEvent());
 
-      // Always use test data for this class
-      const bff = (await import("./test-data")).makeTestBffData();
+    // Always use test data for this class
+    const bff = (await import("./test-data")).makeTestBffData();
 
-      // Update internal data
-      this[internal].initData = {
-        isTest: true,
-        options,
-        bff,
-      };
+    // Update internal data
+    this.dispatchEvent(
+      new InternalUpdateWorldState({
+        business: bff.business,
+        customer: bff.customer,
+        session: bff.session,
+        channels: bff.channels,
+        channelUiGroups: bff.channel_ui_groups,
+        paymentEntity: undefined,
+      }),
+    );
 
-      // If we have an active channel picker, populate it now
-      if (this[internal].activeChannelPickerComponent) {
-        this.populateChannelPicker(this[internal].activeChannelPickerComponent);
-      }
-    } catch (_error) {
-      this.dispatchEvent(new XenditErrorEvent());
+    // If we have an active channel picker, populate it now
+    // TODO: only populate if not already populated
+    if (this[internal].activeChannelPickerComponent) {
+      this.populateChannelPicker(this[internal].activeChannelPickerComponent);
     }
   }
 }

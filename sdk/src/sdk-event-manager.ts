@@ -1,4 +1,5 @@
 import { BffSessionStatus } from "./backend-types/session";
+import { InternalUpdateWorldState } from "./private-event-types";
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
@@ -6,8 +7,9 @@ import {
   XenditReadyEvent,
   XenditSessionCompleteEvent,
   XenditSessionFailedEvent,
+  XenditWillRedirectEvent,
 } from "./public-event-types";
-import { XenditSessionSdk } from "./public-sdk";
+import { WorldState, XenditSessionSdk } from "./public-sdk";
 
 export class SdkEventManager {
   sdk: XenditSessionSdk;
@@ -17,6 +19,10 @@ export class SdkEventManager {
 
   constructor(sdk: XenditSessionSdk) {
     this.sdk = sdk;
+  }
+
+  updateWorld(data: Partial<WorldState>) {
+    this.sdk.dispatchEvent(new InternalUpdateWorldState(data));
   }
 
   setReady(ready: boolean) {
@@ -47,5 +53,9 @@ export class SdkEventManager {
     } else {
       this.sdk.dispatchEvent(new XenditSessionFailedEvent());
     }
+  }
+
+  setWillRedirect() {
+    this.sdk.dispatchEvent(new XenditWillRedirectEvent());
   }
 }
