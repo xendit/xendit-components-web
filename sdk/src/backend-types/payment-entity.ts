@@ -12,7 +12,7 @@ export type BffAction =
     }
   | {
       type: "REDIRECT_CUSTOMER";
-      descriptor: "WEB_URL" | "DEEPLINK_URL";
+      descriptor: "WEB_URL" | "DEEPLINK_URL" | "WEB_GOOGLE_PAYLINK";
       value: string;
     }
   | {

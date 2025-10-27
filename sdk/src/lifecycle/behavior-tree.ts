@@ -136,6 +136,9 @@ export function behaviorTreeForAction(action: BffAction) {
         case "DEEPLINK_URL": {
           throw new Error(`Unsupported action type ${action.type}`);
         }
+        case "WEB_GOOGLE_PAYLINK": {
+          throw new Error(`Unsupported action type ${action.type}`);
+        }
       }
       break;
     }
