@@ -2,8 +2,7 @@ import { WorldState } from "./public-sdk";
 
 /**
  * @public
- * Event fired when an input responses to a validate event and returns
- * invalid result.
+ * Event fired when a session / paymentEntity / etc is changed.
  */
 export class InternalUpdateWorldState extends Event {
   static type = "xendit-update-world-state" as const;
