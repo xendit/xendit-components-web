@@ -4,9 +4,9 @@ import { BffPaymentRequest } from "./backend-types/payment-entity";
 import { BffSession } from "./backend-types/session";
 
 const examplePublicKey =
-  "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEVpIgrkofEwt4eLojVyGHgqTu3DS/kKmzvNf+fS2AdkiSQYrNYdtRjY3Ga+Vif+MR6GE5g3A5r5DXP6RFTel7CoIdZ7tyylAq8pwzYbEyb7Q0KOWcifkH/ZyQVA7Gz11e";
+  "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEyCADI5pdf6KmN8+Fxl2ES3yolUKXunNeY3gGScGNEvDcrcHAPKxIInAo5DVnDvTtYtqZvx/bu7HLeBJNMXwHhie/uyNEtT8dSaLc9bd0WSlYdxI+iUsTv2Qu0LiiPrZs";
 const exampleSignature =
-  "1WJcUIskN1a7MXUF6ddsjSlpQ7PXk5X47bIExisXmzxXqKColRYXVwjVVguyYiHwUyeuB908L+tEf7xbxbzDcs+0/EJGL2loKV/fyv6iWDM72+Sv5SvfOBImhfT38yB7";
+  "NKf7whM9meUs/eRCvG0oc180MDiyeli3kH6EQ3ZahECHsZQi5G2IpH6vk3cYMtf01Y1L4OBn1SZCOv1kwpjIUet4DJeoTwwq2nM5b+K7rD+/WFTi3AEX4NWJNkKi0a91";
 
 export function makeTestSdkKey() {
   return `session-12345678901234567890-${examplePublicKey}-${exampleSignature}`;

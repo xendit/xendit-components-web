@@ -7,7 +7,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.recommended,
-  reactHooks.configs["recommended-latest"],
+  reactHooks.configs.flat["recommended-latest"],
   {
     ignores: ["**/dist", "node_modules"],
   },
@@ -23,6 +23,8 @@ export default tseslint.config(
           ignoreRestSiblings: true,
         },
       ],
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
     },
   },
 );
