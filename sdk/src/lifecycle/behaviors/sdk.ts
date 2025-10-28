@@ -12,7 +12,7 @@ export class SdkActiveBehavior implements Behavior {
   constructor(private data: SdkData) {}
 
   enter() {
-    // TODO: emit init event
+    this.data.sdkEvents.setInitialized();
   }
 }
 

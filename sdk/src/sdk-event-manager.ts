@@ -3,13 +3,14 @@ import { InternalUpdateWorldState } from "./private-event-types";
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
+  XenditInitEvent,
   XenditNotReadyEvent,
   XenditReadyEvent,
   XenditSessionCompleteEvent,
   XenditSessionFailedEvent,
   XenditWillRedirectEvent,
 } from "./public-event-types";
-import { WorldState, XenditSessionSdk } from "./public-sdk";
+import { UpdatableWorldState, XenditSessionSdk } from "./public-sdk";
 
 export class SdkEventManager {
   sdk: XenditSessionSdk;
@@ -21,8 +22,12 @@ export class SdkEventManager {
     this.sdk = sdk;
   }
 
-  updateWorld(data: Partial<WorldState>) {
+  updateWorld(data: UpdatableWorldState) {
     this.sdk.dispatchEvent(new InternalUpdateWorldState(data));
+  }
+
+  setInitialized() {
+    this.sdk.dispatchEvent(new XenditInitEvent());
   }
 
   setReady(ready: boolean) {

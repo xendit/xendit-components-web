@@ -7,6 +7,8 @@ export type XenditEventListener<T extends Event> = ((event: T) => void) | null;
  * @public
  */
 export type XenditEventMap = {
+  init: XenditInitEvent;
+
   ready: XenditReadyEvent;
   "not-ready": XenditReadyEvent;
 
@@ -20,6 +22,18 @@ export type XenditEventMap = {
 
   error: XenditErrorEvent;
 };
+
+/**
+ * @public
+ * Event fired when the SDK is ready to submit.
+ */
+export class XenditInitEvent extends Event {
+  static type = "init" as const;
+
+  constructor() {
+    super(XenditInitEvent.type, {});
+  }
+}
 
 /**
  * @public

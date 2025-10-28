@@ -54,6 +54,8 @@ function logEvent(event: Event) {
   outputChannelProperties.value += "\n";
 }
 
+sdk.addEventListener("init", logEvent);
+
 sdk.addEventListener("ready", logEvent);
 sdk.addEventListener("not-ready", logEvent);
 
