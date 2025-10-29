@@ -703,17 +703,13 @@ export class XenditSessionSdk extends EventTarget {
    */
   getState() {
     const channelCode = this[internal].activeChannelCode;
-    if (!channelCode) {
-      return {
-        channelCode: null,
-        channelProperties: null,
-      };
-    }
-    const component =
-      this[internal].liveComponents.paymentChannels.get(channelCode);
+    const component = this[internal].liveComponents.paymentChannels.get(
+      channelCode ?? "",
+    );
     return {
       channelCode,
       channelProperties: component?.channelProperties || null,
+      behaviorTree: this[internal].behaviorTree,
     };
   }
 

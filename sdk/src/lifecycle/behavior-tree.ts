@@ -141,10 +141,14 @@ export function behaviorTreeForAction(action: BffAction) {
           }
         }
         case "DEEPLINK_URL": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "WEB_GOOGLE_PAYLINK": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
       }
       break;
@@ -152,13 +156,19 @@ export function behaviorTreeForAction(action: BffAction) {
     case "PRESENT_TO_CUSTOMER": {
       switch (action.descriptor) {
         case "QR_STRING": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "PAYMENT_CODE": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "VIRTUAL_ACCOUNT_NUMBER": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
       }
       break;
@@ -166,18 +176,26 @@ export function behaviorTreeForAction(action: BffAction) {
     case "API_POST_REQUEST": {
       switch (action.descriptor) {
         case "CAPTURE_PAYMENT": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "VALIDATE_OTP": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "RESEND_OTP": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
       }
       break;
     }
   }
   action satisfies never;
-  throw new Error(`Unknown action type: ${(action as BffAction).type}`);
+  throw new Error(
+    `Unknown action type: ${(action as BffAction).type} ${(action as BffAction).descriptor}`,
+  );
 }
