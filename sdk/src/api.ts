@@ -68,11 +68,7 @@ export const simulatePaymentRequest = endpoint<
  * If the session is active, the payment entity will be included.
  * If the session is completed, the succeeded channel will be included.
  */
-export const pollSession = endpoint<
-  BffPollResponse,
-  string,
-  string | undefined
->(
+export const pollSession = endpoint<BffPollResponse, string, string | null>(
   "GET",
   (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/poll`,
   (tokenRequestId) =>

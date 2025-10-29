@@ -1,12 +1,11 @@
 import { createPaymentRequest, createPaymentToken } from "../../api";
 import { ChannelProperties } from "../../backend-types/channel";
 import {
-  BffPaymentEntity,
   BffPaymentRequest,
   BffPaymentToken,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
-import { BffSession, BffSessionStatus } from "../../backend-types/session";
+import { BffSessionStatus } from "../../backend-types/session";
 import { Behavior, SdkData } from "../behavior-tree-runner";
 
 export class SessionActiveBehavior implements Behavior {
@@ -15,11 +14,7 @@ export class SessionActiveBehavior implements Behavior {
     promise: Promise<void>;
   } | null;
 
-  constructor(
-    private data: SdkData,
-    private session: BffSession,
-    private paymentEntity: BffPaymentEntity | null,
-  ) {
+  constructor(private data: SdkData) {
     this.submission = null;
   }
 
@@ -44,6 +39,7 @@ export class SessionActiveBehavior implements Behavior {
       ).then((paymentRequest: BffPaymentRequest) => {
         this.data.sdkEvents.updateWorld({
           paymentEntity: toPaymentEntity(paymentRequest),
+          sessionTokenRequestId: paymentRequest.session_token_request_id,
         });
       }),
     };
@@ -65,13 +61,19 @@ export class SessionActiveBehavior implements Behavior {
       ).then((paymentToken: BffPaymentToken) => {
         this.data.sdkEvents.updateWorld({
           paymentEntity: toPaymentEntity(paymentToken),
+          sessionTokenRequestId: paymentToken.session_token_request_id,
         });
       }),
     };
   }
 
+  abortSubmission() {
+    this.submission?.abortController.abort();
+    this.submission = null;
+  }
+
   exit() {
-    // TODO: cancel any in-flight requests
+    this.abortSubmission();
   }
 }
 

@@ -22,7 +22,7 @@ export class PollWorker {
 
   constructor(
     private sessionAuthKey: string,
-    private tokenRequestId: string | undefined,
+    private sessionTokenRequestId: string | null,
     private onPollResult: (
       result: BffPollResponse,
       paymentEntity: BffPaymentEntity | null,
@@ -45,7 +45,10 @@ export class PollWorker {
 
       let response: BffPollResponse;
       try {
-        response = await pollSession(this.sessionAuthKey, this.tokenRequestId);
+        response = await pollSession(
+          this.sessionAuthKey,
+          this.sessionTokenRequestId,
+        );
       } catch (_err) {
         // TODO: error handling
         continue;

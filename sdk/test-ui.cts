@@ -42,6 +42,9 @@ const sdk = new XenditSessionTestSdk({
 });
 sdk.env = "local";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).sdk = sdk;
+
 const channelPicker = sdk.createChannelPickerComponent();
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 

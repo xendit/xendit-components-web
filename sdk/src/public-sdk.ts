@@ -54,8 +54,9 @@ import { SdkEventManager } from "./sdk-event-manager";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
 import { InternalUpdateWorldState } from "./private-event-types";
 import { BffResponse } from "./backend-types/common";
-import { ParsedSdkKey, parseSdkKey } from "./utils";
+import { mergeIgnoringUndefined, ParsedSdkKey, parseSdkKey } from "./utils";
 import { makeTestSdkKey } from "./test-data";
+import { BffSucceededChannel } from "./backend-types/succeeded-channel";
 
 /**
  * @internal
@@ -68,22 +69,30 @@ type CachedChannelComponent = {
 
 /**
  * @internal
+ * The session and associated entities.
  */
 export type WorldState = {
   business: BffBusiness;
-  customer: BffCustomer | undefined;
+  customer: BffCustomer | null;
   session: BffSession;
   channels: BffChannel[];
   channelUiGroups: BffChannelUiGroup[];
-  paymentEntity: BffPaymentEntity | undefined;
+  paymentEntity: BffPaymentEntity | null;
+  sessionTokenRequestId: string | null;
+  succeededChannel: BffSucceededChannel | null;
 };
 
 /**
  * @internal
+ * Updatable parts of the world state. Nulls are written, undefineds are ignored.
  */
-export type UpdatableWorldState = Partial<
-  Pick<WorldState, "session" | "paymentEntity">
->;
+export type UpdatableWorldState = {
+  [K in
+    | "session"
+    | "paymentEntity"
+    | "sessionTokenRequestId"
+    | "succeededChannel"]?: WorldState[K] | undefined;
+};
 
 type InitializedSdk = {
   [internal]: {
@@ -181,7 +190,7 @@ export class XenditSessionSdk extends EventTarget {
       behaviorTree: null,
     };
 
-    this.behaviorTreeUpdate(behaviorTreeForSdk("LOADING", null, null));
+    this.behaviorTreeUpdate(behaviorTreeForSdk("LOADING", null, null, null));
 
     (this as EventTarget).addEventListener(
       InternalUpdateWorldState.type,
@@ -217,8 +226,10 @@ export class XenditSessionSdk extends EventTarget {
         session: bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
-        paymentEntity: undefined,
-      }),
+        paymentEntity: null,
+        sessionTokenRequestId: null,
+        succeededChannel: null,
+      } satisfies WorldState),
     );
   }
 
@@ -248,17 +259,18 @@ export class XenditSessionSdk extends EventTarget {
    */
   private onUpdateWorldState = (event: Event) => {
     const data = (event as InternalUpdateWorldState).data;
-    this[internal].worldState = {
-      ...(this[internal].worldState ?? {}),
-      ...data,
-    } as WorldState; // assume the first event will populate all the required fields
+    this[internal].worldState = mergeIgnoringUndefined(
+      this[internal].worldState ?? ({} as WorldState),
+      data,
+    );
 
     // update behavior tree
     this.behaviorTreeUpdate(
       behaviorTreeForSdk(
         "ACTIVE",
         this[internal].worldState.session,
-        this[internal].worldState.paymentEntity ?? null,
+        this[internal].worldState.sessionTokenRequestId,
+        this[internal].worldState.paymentEntity,
       ),
     );
 
@@ -556,6 +568,35 @@ export class XenditSessionSdk extends EventTarget {
   }
 
   /**
+   * Destroys a component of any type created by the SDK. Removes it from the DOM if necessary.
+   * Throws if the element is not a xendit component or if it was already destroyed.
+   */
+  public destroyComponent(component: HTMLElement): void {
+    if (this[internal].liveComponents.channelPicker === component) {
+      this[internal].liveComponents.channelPicker = null;
+      render(null, component);
+      return;
+    }
+
+    for (const [channelCode, cachedComponent] of this[internal].liveComponents
+      .paymentChannels) {
+      if (cachedComponent.element === component) {
+        this[internal].liveComponents.paymentChannels.delete(channelCode);
+        render(null, component);
+        return;
+      }
+    }
+
+    if (this[internal].liveComponents.actionContainer === component) {
+      this[internal].liveComponents.actionContainer = null;
+      render(null, component);
+      return;
+    }
+
+    throw new Error("Component not found or already destroyed");
+  }
+
+  /**
    * @public
    * Submit.
    *
@@ -617,6 +658,43 @@ export class XenditSessionSdk extends EventTarget {
       default:
         throw new Error(`Unsupported session type: ${sessionType}`);
     }
+  }
+
+  /**
+   * Cancels a submission.
+   *
+   * If a submission is in-flight, the request is cancelled. If an action is in progress,
+   * the action is aborted. Any active PaymentRequest or PaymentToken is abandoned.
+   *
+   * Does nothing if there is no active submission.
+   */
+  abortSubmission() {
+    this.assertInitialized();
+
+    if (!this[internal].behaviorTree) {
+      throw new Error("Invalid state for session");
+    }
+
+    const sessionActiveBehavior = findBehaviorNodeByType(
+      this[internal].behaviorTree,
+      SessionActiveBehavior,
+    );
+
+    // we can't abort a submission if we're not in active state
+    if (!sessionActiveBehavior) {
+      throw new Error("Invalid state for session");
+    }
+
+    // abort any in-flight submission
+    sessionActiveBehavior.abortSubmission();
+
+    // if we have a PR/PT, clear it
+    this.dispatchEvent(
+      new InternalUpdateWorldState({
+        paymentEntity: null,
+        sessionTokenRequestId: null,
+      }),
+    );
   }
 
   /**
@@ -829,8 +907,10 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
         session: bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
-        paymentEntity: undefined,
-      }),
+        paymentEntity: null,
+        sessionTokenRequestId: null,
+        succeededChannel: null,
+      } satisfies WorldState),
     );
   }
 }
