@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import Field from "./field";
-import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
-import { BffSession } from "../backend-types/session";
+import { InternalInputValidateEvent } from "../private-event-types";
+import { BffSession, BffSessionType } from "../backend-types/session";
 import {
   useCallback,
   useImperativeHandle,
@@ -16,7 +16,7 @@ interface Props {
   onChannelPropertiesChanged: (channelProperties: ChannelProperties) => void;
 }
 export interface ChannelFormHandle {
-  validate: () => boolean;
+  validate: () => void;
 }
 
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
@@ -27,26 +27,17 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
 
     useImperativeHandle(ref, () => ({
       validate() {
-        let result = true;
-
         const form = formRef.current;
-        if (form) {
-          form.addEventListener(InputInvalidEvent.type, () => {
-            result = false;
+        if (!form) return;
+        Array.from(form.elements)
+          .filter((el) => el instanceof HTMLInputElement)
+          .forEach((input) => {
+            if (!input.name) {
+              // only validate inputs with a channel property name
+              return;
+            }
+            input.dispatchEvent(new InternalInputValidateEvent(input.value));
           });
-
-          Array.from(form.elements)
-            .filter((el) => el instanceof HTMLInputElement)
-            .forEach((input) => {
-              if (!input.name) {
-                // only validate inputs with a channel property name
-                return;
-              }
-              input.dispatchEvent(new InputValidateEvent(input.value));
-            });
-        }
-
-        return result;
       },
     }));
 
@@ -210,17 +201,29 @@ export function useFilteredFormFields(
   const showBillingDetailsFields = false;
 
   const filteredForm = useMemo(() => {
-    return form.filter((field) => {
-      if (field.flags?.require_billing_information) {
-        // these fields should only be shown if billing details are required
-        if (session.session_type !== "PAY") return false;
-        if (!showBillingDetailsFields) return false;
-      }
-      return true;
-    });
+    return filterFormFields(
+      session.session_type,
+      form,
+      showBillingDetailsFields,
+    );
   }, [form, session.session_type, showBillingDetailsFields]);
 
   return filteredForm;
+}
+
+export function filterFormFields(
+  sessionType: BffSessionType,
+  form: ChannelFormField[],
+  showBillingDetailsFields: boolean,
+) {
+  return form.filter((field) => {
+    if (field.flags?.require_billing_information) {
+      // these fields should only be shown if billing details are required
+      if (sessionType !== "PAY") return false;
+      if (!showBillingDetailsFields) return false;
+    }
+    return true;
+  });
 }
 
 export default ChannelForm;

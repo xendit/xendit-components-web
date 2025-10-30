@@ -11,3 +11,17 @@ export class InternalUpdateWorldState extends Event {
     super(InternalUpdateWorldState.type, { bubbles: false });
   }
 }
+
+/**
+ * @public
+ * Revalidates a field and marks it as touched.
+ */
+export class InternalInputValidateEvent extends CustomEvent<{ value: string }> {
+  static type = "xendit-internal-input-validate" as const;
+
+  constructor(value: string) {
+    super(InternalInputValidateEvent.type, {
+      detail: { value },
+    });
+  }
+}

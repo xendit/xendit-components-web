@@ -92,10 +92,6 @@ function creditCardNumberEvents(input: HTMLInputElement) {
     const { value, hasCollapsedSelection, beforeCursor, afterCursor } =
       inputStats(input);
 
-    const _raw = value.replace(/\s/g, "");
-    // FIXME: module resolution issue
-    // const cardType: CreditCardType | undefined = creditCardType(raw)[0];
-
     // group digits in groups of 4
     const groupings: number[] = [4, 4, 4, 4];
 
