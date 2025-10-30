@@ -5,7 +5,10 @@ import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
 import { COUNTRIES_AS_DROPDOWN_OPTIONS } from "./field-country";
-import { getExampleNumber } from "libphonenumber-js";
+import parsePhoneNumberFromString, {
+  getExampleNumber,
+  PhoneNumber,
+} from "libphonenumber-js";
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
 
@@ -14,6 +17,8 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const id = formFieldName(field);
 
   const session = useSession();
+
+  const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
   const [countryCode, setCountryCode] = useState(session.country);
   const countryCodeIndex = useMemo(() => {
@@ -31,69 +36,110 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const [isTouched, setIsTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const validateField = useCallback(
-    (value: string) => {
-      const errorMessage = validate(field, value) ?? null;
-      setError(errorMessage);
-      setIsTouched(true);
-      return errorMessage;
+  const formatPhoneNumber = useCallback(
+    (country: DropdownOptionWithDial, localNumber: string) => {
+      const phoneNumber = sanitizePhoneNumber(country, localNumber);
+      if (phoneNumber) {
+        // use parsed format if parsing was successful
+        return phoneNumber.number;
+      } else {
+        // else just concat the dial code and local number
+        return `+${country.dial}${localNumber}`;
+      }
     },
-    [field],
+    [],
   );
 
-  const formatPhoneNumber = (dialCode: string, phoneNumber: string): string => {
-    if (phoneNumber.length === 0) return "";
-    return `+${dialCode}${phoneNumber.replace(/\D/g, "")}`;
-  };
+  const updateValidity = useCallback(
+    (nextCountry: DropdownOptionWithDial, localNumber: string) => {
+      const phoneNumberString = formatPhoneNumber(nextCountry, localNumber);
+      const errorMessage = validate(field, phoneNumberString) ?? null;
+      setError(errorMessage);
+    },
+    [field, formatPhoneNumber],
+  );
 
-  // Compose the value shown to validation / submission
-  const fullValue = formatPhoneNumber(country.dial, localNumber);
+  const updateHiddenField = useCallback(
+    (country: DropdownOptionWithDial, localNumber: string) => {
+      if (hiddenFieldRef.current) {
+        hiddenFieldRef.current.value = formatPhoneNumber(country, localNumber);
+      }
+    },
+    [formatPhoneNumber],
+  );
 
   function handleLocalChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
     setLocalNumber(nextLocal);
+    updateHiddenField(country, nextLocal);
+    updateValidity(country, nextLocal);
     onChange(); // keep parity with other fields
-    if (!isTouched) return;
-    validateField(formatPhoneNumber(country.dial, nextLocal));
   }
 
-  function handleBlur(event: React.FocusEvent<HTMLInputElement>): void {
-    const value = (event.target as HTMLInputElement).value;
-    if (value) validateField(formatPhoneNumber(country.dial, value));
+  function handleCountryChange(option: DropdownOption): void {
+    const nextCountry = option as DropdownOptionWithDial;
+    setCountryCode(nextCountry.value as string);
+    updateHiddenField(nextCountry, localNumber);
+    updateValidity(nextCountry, localNumber);
+    onChange(); // keep parity with other fields
+  }
+
+  function getExampleLocalNumber() {
+    return (
+      getExampleNumber(country.value as CountryCode, examples)
+        ?.formatInternational()
+        ?.replace(
+          `+${getCountryCallingCode(country.value as CountryCode)} `,
+          "",
+        ) || ""
+    );
+  }
+
+  function formatForUser() {
+    const phoneNumber = sanitizePhoneNumber(country, localNumber);
+    if (phoneNumber) {
+      const international = phoneNumber.formatInternational();
+      // remove country dial code from displayed local number
+      setLocalNumber(
+        international.replace(
+          `+${getCountryCallingCode(country.value as CountryCode)} `,
+          "",
+        ),
+      );
+    }
+  }
+
+  function handleBlur(): void {
+    setIsTouched(true);
+    formatForUser();
   }
 
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
-    const listener = (e: Event) => {
-      const value = (e as InputValidateEvent).detail.value as string;
-      const errorMessage = validateField(value);
-      if (errorMessage) input.dispatchEvent(new InputInvalidEvent());
+    const listener = () => {
+      if (error) input.dispatchEvent(new InputInvalidEvent());
     };
     input.addEventListener(InputValidateEvent.type, listener);
     return () => {
       input.removeEventListener(InputValidateEvent.type, listener);
     };
-  }, [id, validateField]);
+  }, [error]);
 
   return (
     <div className={`xendit-input-phone ${error?.length ? "invalid" : ""}`}>
       <div className="xendit-combobox">
         <Dropdown
-          id={id}
           options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
           selectedIndex={countryCodeIndex}
-          onChange={(option) => setCountryCode(option.value)}
+          onChange={handleCountryChange}
         />
         <input
           id={id}
           ref={inputRef}
           type="tel"
           inputMode="tel"
-          placeholder={getExampleNumber(
-            country.value as CountryCode,
-            examples,
-          )?.formatInternational()}
+          placeholder={getExampleLocalNumber()}
           className="xendit-text-14 xendit-phone-number-input"
           onBlur={handleBlur}
           onChange={handleLocalChange}
@@ -103,11 +149,11 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
       </div>
 
       {/* Hidden canonical value (useful for non-JS form posts) */}
-      <input type="hidden" name={id} value={fullValue} />
+      <input type="hidden" name={id} ref={hiddenFieldRef} />
 
-      {error && (
+      {error && isTouched ? (
         <span className="xendit-error-message xendit-text-14">{error}</span>
-      )}
+      ) : null}
     </div>
   );
 };
@@ -127,3 +173,17 @@ const COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS =
   ).filter((country): country is DropdownOptionWithDial => {
     return Boolean(country);
   });
+
+const sanitizePhoneNumber = (
+  country: DropdownOptionWithDial,
+  phoneNumber: string,
+): PhoneNumber | null => {
+  const parsed = parsePhoneNumberFromString(
+    phoneNumber,
+    country.value as CountryCode,
+  );
+  console.log("parsed phone number without dial code", parsed);
+  if (parsed && parsed.isPossible()) return parsed;
+
+  return null;
+};
