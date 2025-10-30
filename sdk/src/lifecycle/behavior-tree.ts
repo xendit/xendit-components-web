@@ -1,11 +1,17 @@
+import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { BffAction, BffPaymentEntity } from "../backend-types/payment-entity";
 import { BffSession } from "../backend-types/session";
 import { pickAction, redirectCanBeHandledInIframe } from "../utils";
+import { channelPropertiesAreValid } from "../validation";
 import { behaviorNode } from "./behavior-tree-runner";
 import {
   ActionIframeBehavior,
   ActionRedirectBehavior,
 } from "./behaviors/action";
+import {
+  ChannelInvalidBehavior,
+  ChannelValidBehavior,
+} from "./behaviors/channel";
 import {
   PeFailedBehavior,
   PePendingBehavior,
@@ -29,6 +35,8 @@ export function behaviorTreeForSdk(
   session: BffSession | null,
   sessionTokenRequestId: string | null,
   paymentEntity: BffPaymentEntity | null,
+  channel: BffChannel | null,
+  channelProperties: ChannelProperties | null,
 ) {
   switch (sdkStatus) {
     case "LOADING": {
@@ -41,7 +49,13 @@ export function behaviorTreeForSdk(
       return behaviorNode(
         SdkActiveBehavior,
         [],
-        behaviorTreeForSession(session, sessionTokenRequestId, paymentEntity),
+        behaviorTreeForSession(
+          session,
+          sessionTokenRequestId,
+          paymentEntity,
+          channel,
+          channelProperties,
+        ),
       );
     }
     case "FATAL_ERROR": {
@@ -58,6 +72,8 @@ export function behaviorTreeForSession(
   session: BffSession,
   sessionTokenRequestId: string | null,
   paymentEntity: BffPaymentEntity | null,
+  channel: BffChannel | null,
+  channelProperties: ChannelProperties | null,
 ) {
   switch (session.status) {
     case "ACTIVE": {
@@ -66,7 +82,7 @@ export function behaviorTreeForSession(
         [],
         paymentEntity
           ? behaviorTreeForPaymentEntity(sessionTokenRequestId, paymentEntity)
-          : undefined,
+          : behaviorTreeForForm(session, channel, channelProperties),
       );
     }
     case "COMPLETED": {
@@ -84,6 +100,29 @@ export function behaviorTreeForSession(
         `Unknown session status: ${(session as BffSession).status}`,
       );
     }
+  }
+}
+
+export function behaviorTreeForForm(
+  session: BffSession,
+  channel: BffChannel | null,
+  channelProperties?: ChannelProperties | null,
+) {
+  const showBillingDetails = false;
+  if (
+    channel &&
+    channelPropertiesAreValid(
+      session.session_type,
+      channel,
+      channelProperties,
+      showBillingDetails,
+    )
+  ) {
+    return behaviorNode(ChannelValidBehavior, []);
+  } else {
+    return behaviorNode(ChannelInvalidBehavior, [
+      channel?.channel_code ?? null,
+    ]);
   }
 }
 

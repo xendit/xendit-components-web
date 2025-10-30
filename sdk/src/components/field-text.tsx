@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChannelFormField } from "../backend-types/channel";
 import { FieldProps, formFieldName } from "./field";
 import { validate } from "../validation";
-import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
+import { InternalInputValidateEvent } from "../private-event-types";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -38,12 +38,11 @@ export const TextField: React.FC<FieldProps> = (props) => {
     if (!input) return;
     const listener = (e: Event) => {
       const value = (e as CustomEvent).detail.value;
-      const errorMessage = validateField(value);
-      if (errorMessage) input.dispatchEvent(new InputInvalidEvent());
+      validateField(value);
     };
-    input.addEventListener(InputValidateEvent.type, listener);
+    input.addEventListener(InternalInputValidateEvent.type, listener);
     return () => {
-      input.removeEventListener(InputValidateEvent.type, listener);
+      input.removeEventListener(InternalInputValidateEvent.type, listener);
     };
   }, [id, validateField]);
 

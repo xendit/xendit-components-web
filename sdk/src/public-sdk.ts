@@ -57,6 +57,7 @@ import { BffResponse } from "./backend-types/common";
 import { mergeIgnoringUndefined, ParsedSdkKey, parseSdkKey } from "./utils";
 import { makeTestSdkKey } from "./test-data";
 import { BffSucceededChannel } from "./backend-types/succeeded-channel";
+import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel";
 
 /**
  * @internal
@@ -190,7 +191,7 @@ export class XenditSessionSdk extends EventTarget {
       behaviorTree: null,
     };
 
-    this.behaviorTreeUpdate(behaviorTreeForSdk("LOADING", null, null, null));
+    this.behaviorTreeUpdate();
 
     (this as EventTarget).addEventListener(
       InternalUpdateWorldState.type,
@@ -206,9 +207,6 @@ export class XenditSessionSdk extends EventTarget {
    * Initialize session data asynchronously
    */
   protected async initializeAsync() {
-    // Emit "not-ready" event initially
-    this.dispatchEvent(new XenditNotReadyEvent());
-
     let bff: BffResponse;
     try {
       // Fetch session data from the server
@@ -265,14 +263,7 @@ export class XenditSessionSdk extends EventTarget {
     );
 
     // update behavior tree
-    this.behaviorTreeUpdate(
-      behaviorTreeForSdk(
-        "ACTIVE",
-        this[internal].worldState.session,
-        this[internal].worldState.sessionTokenRequestId,
-        this[internal].worldState.paymentEntity,
-      ),
-    );
+    this.behaviorTreeUpdate();
 
     // re-render live components
     this.renderChannelPicker();
@@ -283,7 +274,25 @@ export class XenditSessionSdk extends EventTarget {
     }
   };
 
-  private behaviorTreeUpdate(newTree: BehaviorNode<unknown[]>): void {
+  private behaviorTreeUpdate(): void {
+    let newTree: BehaviorNode<unknown[]>;
+    if (!this[internal].worldState) {
+      newTree = behaviorTreeForSdk("LOADING", null, null, null, null, null);
+    } else {
+      newTree = behaviorTreeForSdk(
+        "ACTIVE",
+        this[internal].worldState.session,
+        this[internal].worldState.sessionTokenRequestId,
+        this[internal].worldState.paymentEntity,
+        this[internal].activeChannelCode
+          ? this.findChannel(this[internal].activeChannelCode)
+          : null,
+        this[internal].liveComponents.paymentChannels.get(
+          this[internal].activeChannelCode ?? "",
+        )?.channelProperties ?? null,
+      );
+    }
+
     behaviorTreeUpdate(this[internal].behaviorTree ?? undefined, newTree, {
       sdkKey: this[internal].sdkKey,
       sdkEvents: this[internal].eventManager,
@@ -399,7 +408,6 @@ export class XenditSessionSdk extends EventTarget {
       if (!channel || channel.ui_group !== event.uiGroup) return;
 
       this.cleanupPaymentChannelComponent();
-      this.dispatchEvent(new XenditNotReadyEvent());
     });
   }
 
@@ -519,6 +527,9 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     this[internal].activeChannelCode = channelCode;
+
+    // update behavior tree (active channel and form validity have changed)
+    this.behaviorTreeUpdate();
   }
 
   private setupUiEventsForPaymentChannel(container: HTMLElement): void {
@@ -535,7 +546,8 @@ export class XenditSessionSdk extends EventTarget {
         }
         component.channelProperties = event.channelProperties;
 
-        this.dispatchEvent(new XenditReadyEvent());
+        // update behavior tree (form validity may have changed)
+        this.behaviorTreeUpdate();
       },
     );
   }
@@ -582,6 +594,7 @@ export class XenditSessionSdk extends EventTarget {
       .paymentChannels) {
       if (cachedComponent.element === component) {
         this[internal].liveComponents.paymentChannels.delete(channelCode);
+        // TODO: clear up activeChannelCode if necessary
         render(null, component);
         return;
       }
@@ -621,15 +634,6 @@ export class XenditSessionSdk extends EventTarget {
       throw new Error("No active payment channel component");
     }
 
-    const form = component.channelformRef?.current;
-
-    if (form) {
-      const isFormValid = form.validate();
-      if (!isFormValid) {
-        return;
-      }
-    }
-
     if (!this[internal].behaviorTree) {
       throw new Error("Invalid state for session");
     }
@@ -639,6 +643,17 @@ export class XenditSessionSdk extends EventTarget {
     );
     if (!sessionActiveBehavior) {
       throw new Error("Invalid state for session");
+    }
+
+    const form = component.channelformRef?.current;
+    form?.validate();
+
+    const channelInvalidBehavior = findBehaviorNodeByType(
+      this[internal].behaviorTree,
+      ChannelInvalidBehavior,
+    );
+    if (channelInvalidBehavior) {
+      throw new Error("Cannot submit: form is invalid");
     }
 
     const sessionType = this[internal].worldState.session.session_type;
