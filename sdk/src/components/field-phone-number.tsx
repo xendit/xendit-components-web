@@ -182,7 +182,6 @@ const sanitizePhoneNumber = (
     phoneNumber,
     country.value as CountryCode,
   );
-  console.log("parsed phone number without dial code", parsed);
   if (parsed && parsed.isPossible()) return parsed;
 
   return null;
