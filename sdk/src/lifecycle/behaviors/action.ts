@@ -1,25 +1,34 @@
-import { BffAction } from "../../backend-types/payment-entity";
 import { Behavior, SdkData } from "../behavior-tree-runner";
 
 export class ActionRedirectBehavior implements Behavior {
   constructor(
     private data: SdkData,
-    private action: BffAction,
+    private url: string,
   ) {}
 
   enter() {
     this.data.sdkEvents.setWillRedirect();
-    window.location.href = this.action.value;
+    window.location.href = this.url;
   }
 }
 
 export class ActionIframeBehavior implements Behavior {
+  cleanupFn: (() => void) | null = null;
+
   constructor(
     private data: SdkData,
-    private action: BffAction,
+    private url: string,
   ) {}
 
   enter() {
-    // TODO: create action container and load iframe with action.value
+    this.cleanupFn = this.data.sdkEvents.ensureHasActionContainer();
+    this.data.sdkEvents.populateActionContainerWithIframe(this.url);
+  }
+
+  exit() {
+    if (this.cleanupFn) {
+      this.cleanupFn();
+      this.cleanupFn = null;
+    }
   }
 }

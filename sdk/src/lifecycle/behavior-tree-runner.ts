@@ -84,6 +84,7 @@ export function behaviorTreeUpdate(
       enterSubtree(newRoot, sdkData);
     }
   } else {
+    newRoot.instance = previousRoot.instance;
     behaviorTreeUpdate(previousRoot?.child, newRoot?.child, sdkData);
   }
 }

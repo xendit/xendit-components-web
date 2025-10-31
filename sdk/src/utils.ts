@@ -1,4 +1,3 @@
-import { ChannelProperties } from "./backend-types/channel";
 import { BffAction } from "./backend-types/payment-entity";
 
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
@@ -35,10 +34,6 @@ export async function* retryLoop(mult: number, tries: number, base = 2) {
 
   let sleepTime = mult;
 
-  if (process.env.NODE_ENV === "test") {
-    sleepTime = 0;
-  }
-
   for (let i = 1; i < tries; i++) {
     sleepTime *= base;
     await sleep(sleepTime);
@@ -46,10 +41,7 @@ export async function* retryLoop(mult: number, tries: number, base = 2) {
   }
 }
 
-export function redirectCanBeHandledInIframe(
-  channelProperties: ChannelProperties,
-  action: BffAction,
-): boolean {
+export function redirectCanBeHandledInIframe(action: BffAction): boolean {
   return true;
 }
 
@@ -78,11 +70,6 @@ export function parseSdkKey(componentsSdkKey: string): ParsedSdkKey {
   };
 }
 
-export function isRedirectIframeCapable(action: BffAction): boolean {
-  // TODO
-  return true;
-}
-
 export function areArraysShallowEqual(a: unknown[], b: unknown[]) {
   if (a.length !== b.length) {
     return false;
@@ -93,4 +80,20 @@ export function areArraysShallowEqual(a: unknown[], b: unknown[]) {
     }
   }
   return true;
+}
+/**
+ * Return a copy of original, with properties from updates applied on top, except undefined properties.
+ */
+export function mergeIgnoringUndefined<T>(
+  original: T,
+  updates: Partial<{ [K in keyof T]: T[K] | undefined }>,
+): T {
+  const result = { ...original };
+  for (const key of Object.keys(updates) as (keyof T)[]) {
+    const value = updates[key];
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
 }

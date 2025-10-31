@@ -1,6 +1,6 @@
 import { BffAction, BffPaymentEntity } from "../backend-types/payment-entity";
 import { BffSession } from "../backend-types/session";
-import { isRedirectIframeCapable, pickAction } from "../utils";
+import { pickAction, redirectCanBeHandledInIframe } from "../utils";
 import { behaviorNode } from "./behavior-tree-runner";
 import {
   ActionIframeBehavior,
@@ -27,6 +27,7 @@ type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 export function behaviorTreeForSdk(
   sdkStatus: SdkStatus,
   session: BffSession | null,
+  sessionTokenRequestId: string | null,
   paymentEntity: BffPaymentEntity | null,
 ) {
   switch (sdkStatus) {
@@ -40,7 +41,7 @@ export function behaviorTreeForSdk(
       return behaviorNode(
         SdkActiveBehavior,
         [],
-        behaviorTreeForSession(session, paymentEntity),
+        behaviorTreeForSession(session, sessionTokenRequestId, paymentEntity),
       );
     }
     case "FATAL_ERROR": {
@@ -55,14 +56,17 @@ export function behaviorTreeForSdk(
 
 export function behaviorTreeForSession(
   session: BffSession,
+  sessionTokenRequestId: string | null,
   paymentEntity: BffPaymentEntity | null,
 ) {
   switch (session.status) {
     case "ACTIVE": {
       return behaviorNode(
         SessionActiveBehavior,
-        [session, paymentEntity],
-        paymentEntity ? behaviorTreeForPaymentEntity(paymentEntity) : undefined,
+        [],
+        paymentEntity
+          ? behaviorTreeForPaymentEntity(sessionTokenRequestId, paymentEntity)
+          : undefined,
       );
     }
     case "COMPLETED": {
@@ -83,15 +87,18 @@ export function behaviorTreeForSession(
   }
 }
 
-export function behaviorTreeForPaymentEntity(paymentEntity: BffPaymentEntity) {
+export function behaviorTreeForPaymentEntity(
+  sessionTokenRequestId: string | null,
+  paymentEntity: BffPaymentEntity,
+) {
   switch (paymentEntity.entity.status) {
     case "PENDING": {
-      return behaviorNode(PePendingBehavior, [paymentEntity]);
+      return behaviorNode(PePendingBehavior, [sessionTokenRequestId]);
     }
     case "REQUIRES_ACTION": {
       return behaviorNode(
         PeRequiresActionBehavior,
-        [paymentEntity],
+        [sessionTokenRequestId],
         behaviorTreeForAction(pickAction(paymentEntity.entity.actions)),
       );
     }
@@ -111,7 +118,7 @@ export function behaviorTreeForPaymentEntity(paymentEntity: BffPaymentEntity) {
     case "ACTIVE":
     case "SUCCEEDED": {
       // The payemnt entity is completed but the session is still active, it should automatically switch to completed soon
-      return behaviorNode(PePendingBehavior, [paymentEntity]);
+      return behaviorNode(PePendingBehavior, [sessionTokenRequestId]);
     }
     default: {
       paymentEntity.entity satisfies never;
@@ -127,17 +134,21 @@ export function behaviorTreeForAction(action: BffAction) {
     case "REDIRECT_CUSTOMER": {
       switch (action.descriptor) {
         case "WEB_URL": {
-          if (isRedirectIframeCapable(action)) {
-            return behaviorNode(ActionIframeBehavior, [action]);
+          if (redirectCanBeHandledInIframe(action)) {
+            return behaviorNode(ActionIframeBehavior, [action.value]);
           } else {
-            return behaviorNode(ActionRedirectBehavior, [action]);
+            return behaviorNode(ActionRedirectBehavior, [action.value]);
           }
         }
         case "DEEPLINK_URL": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "WEB_GOOGLE_PAYLINK": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
       }
       break;
@@ -145,13 +156,19 @@ export function behaviorTreeForAction(action: BffAction) {
     case "PRESENT_TO_CUSTOMER": {
       switch (action.descriptor) {
         case "QR_STRING": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "PAYMENT_CODE": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "VIRTUAL_ACCOUNT_NUMBER": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
       }
       break;
@@ -159,18 +176,26 @@ export function behaviorTreeForAction(action: BffAction) {
     case "API_POST_REQUEST": {
       switch (action.descriptor) {
         case "CAPTURE_PAYMENT": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "VALIDATE_OTP": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
         case "RESEND_OTP": {
-          throw new Error(`Unsupported action type ${action.type}`);
+          throw new Error(
+            `Unsupported action type ${action.type} ${action.descriptor}`,
+          );
         }
       }
       break;
     }
   }
   action satisfies never;
-  throw new Error(`Unknown action type: ${(action as BffAction).type}`);
+  throw new Error(
+    `Unknown action type: ${(action as BffAction).type} ${(action as BffAction).descriptor}`,
+  );
 }

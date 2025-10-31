@@ -7,12 +7,11 @@ export class PePendingBehavior implements Behavior {
   private pollWorker: PollWorker;
   constructor(
     private data: SdkData,
-    private paymentEntity: BffPaymentEntity,
+    private sessionTokenRequestId: string | null,
   ) {
     this.pollWorker = new PollWorker(
       this.data.sdkKey.sessionAuthKey,
-      // TODO: session_token_request_id should be stored separately because it doesn't get returned on polls, only the first request
-      this.paymentEntity.entity.session_token_request_id,
+      this.sessionTokenRequestId,
       this.onPollResult,
     );
   }
@@ -29,7 +28,11 @@ export class PePendingBehavior implements Behavior {
     pollResponse: BffPollResponse,
     paymentEntity: BffPaymentEntity | null,
   ) => {
-    console.log(pollResponse, paymentEntity);
+    this.data.sdkEvents.updateWorld({
+      session: pollResponse.session,
+      paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
+      succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
+    });
   };
 }
 
@@ -37,28 +40,36 @@ export class PeRequiresActionBehavior implements Behavior {
   private pollWorker: PollWorker;
   constructor(
     private data: SdkData,
-    private paymentEntity: BffPaymentEntity,
+    private sessionTokenRequestId: string | null,
   ) {
     this.pollWorker = new PollWorker(
       this.data.sdkKey.sessionAuthKey,
-      this.paymentEntity.entity.session_token_request_id,
+      this.sessionTokenRequestId,
       this.onPollResult,
     );
   }
 
   enter() {
+    this.data.sdkEvents.setHasAction(true);
+    this.data.sdkEvents.setActionContainerLocked(true);
     this.pollWorker.start();
   }
 
   exit() {
     this.pollWorker.stop();
+    this.data.sdkEvents.setActionContainerLocked(false);
+    this.data.sdkEvents.setHasAction(false);
   }
 
   onPollResult = (
     pollResponse: BffPollResponse,
     paymentEntity: BffPaymentEntity | null,
   ) => {
-    console.log(pollResponse, paymentEntity);
+    this.data.sdkEvents.updateWorld({
+      session: pollResponse.session,
+      paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
+      succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
+    });
   };
 }
 

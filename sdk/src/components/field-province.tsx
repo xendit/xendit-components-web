@@ -38,12 +38,10 @@ export const ProvinceField: React.FC<FieldProps> = (props) => {
     // 1. previous form field
     // 2. card data country
     // 3. session country
-    return (
-      getProvinceList(session.country as CountryCode)?.map((country) => ({
-        title: country.name,
-        value: country.value,
-      })) ?? null
-    );
+    return getProvinceList(session.country as CountryCode)?.map((country) => ({
+      title: country.name,
+      value: country.value,
+    }));
   }, [session.country]);
 
   return (

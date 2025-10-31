@@ -152,7 +152,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           if (!hiddenFieldRef.current) return;
 
           handleIframeEventResult(data);
-          setCardBrand(data.cardBrand ?? null);
+          setCardBrand(data.cardBrand);
 
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
