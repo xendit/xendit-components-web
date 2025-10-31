@@ -73,10 +73,13 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
         explicitSelectedChannel &&
         sdkSelectedChannelCode !== explicitSelectedChannel.channel_code
       ) {
-        // update sdk state to match this group's explicit selection
+        // update sdk state to match this group's selection if this group is opened and has a selection that differs from sdk state
         sdk.setActiveChannel(
           bffChannelToPublicChannel(explicitSelectedChannel),
         );
+      } else if (!explicitSelectedChannel) {
+        // clear sdk selection if this group is opened and this group has no selection
+        sdk.setActiveChannel(null);
       }
     }
   }, [
