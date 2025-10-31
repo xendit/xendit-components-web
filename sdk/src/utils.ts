@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
@@ -97,3 +98,19 @@ export function mergeIgnoringUndefined<T>(
   }
   return result;
 }
+
+export function usePrevious<T>(value: T) {
+  const ref = useRef<T>(); // Create a ref to store the previous value
+
+  useLayoutEffect(() => {
+    ref.current = value; // Update the ref's current value after each render
+  });
+
+  // eslint-disable-next-line react-hooks/refs
+  return ref.current; // Return the value stored in the ref (which is the previous value)
+}
+
+/**
+ * Make properties K of T optional
+ */
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

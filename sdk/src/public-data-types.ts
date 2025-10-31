@@ -12,6 +12,7 @@ export interface XenditSession {
  * @public
  */
 export interface XenditPaymentChannel {
+  channelCode: string;
   /** @internal */
   [internal]: BffChannel;
 }

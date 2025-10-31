@@ -4,6 +4,7 @@ import { BffSession } from "../backend-types/session";
 import { BffBusiness } from "../backend-types/business";
 import { BffCustomer } from "../backend-types/customer";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
+import { internal } from "../internal";
 
 // Create contexts
 const SessionContext = createContext<BffSession | null>(null);
@@ -23,6 +24,9 @@ ChannelUiGroupsContext.displayName = "ChannelUiGroupsContext";
 
 const SdkContext = createContext<XenditSessionSdk | null>(null);
 SdkContext.displayName = "SdkContext";
+
+const ActiveChannelContext = createContext<BffChannel | null>(null);
+ActiveChannelContext.displayName = "ActiveChannelContext";
 
 // Custom hooks for consuming contexts
 export const useSession = () => {
@@ -75,6 +79,10 @@ export const useSdk = () => {
   return context;
 };
 
+export const useActiveChannel = () => {
+  return useContext(ActiveChannelContext);
+};
+
 interface XenditSessionProviderProps {
   children: ReactNode;
   data: WorldState;
@@ -90,17 +98,21 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
 
   return (
     <SdkContext.Provider value={sdk}>
-      <SessionContext.Provider value={session}>
-        <BusinessContext.Provider value={business}>
-          <CustomerContext.Provider value={customer}>
-            <ChannelsContext.Provider value={channels}>
-              <ChannelUiGroupsContext.Provider value={channelUiGroups}>
-                {children}
-              </ChannelUiGroupsContext.Provider>
-            </ChannelsContext.Provider>
-          </CustomerContext.Provider>
-        </BusinessContext.Provider>
-      </SessionContext.Provider>
+      <ActiveChannelContext.Provider
+        value={sdk.getActiveChannel()?.[internal] ?? null}
+      >
+        <SessionContext.Provider value={session}>
+          <BusinessContext.Provider value={business}>
+            <CustomerContext.Provider value={customer}>
+              <ChannelsContext.Provider value={channels}>
+                <ChannelUiGroupsContext.Provider value={channelUiGroups}>
+                  {children}
+                </ChannelUiGroupsContext.Provider>
+              </ChannelsContext.Provider>
+            </CustomerContext.Provider>
+          </BusinessContext.Provider>
+        </SessionContext.Provider>
+      </ActiveChannelContext.Provider>
     </SdkContext.Provider>
   );
 };
