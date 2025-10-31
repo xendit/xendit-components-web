@@ -109,8 +109,3 @@ export function usePrevious<T>(value: T) {
   // eslint-disable-next-line react-hooks/refs
   return ref.current; // Return the value stored in the ref (which is the previous value)
 }
-
-/**
- * Make properties K of T optional
- */
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

@@ -54,12 +54,7 @@ import { SdkEventManager } from "./sdk-event-manager";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
 import { InternalUpdateWorldState } from "./private-event-types";
 import { BffResponse } from "./backend-types/common";
-import {
-  mergeIgnoringUndefined,
-  ParsedSdkKey,
-  parseSdkKey,
-  PartialBy,
-} from "./utils";
+import { mergeIgnoringUndefined, ParsedSdkKey, parseSdkKey } from "./utils";
 import { makeTestSdkKey } from "./test-data";
 import { BffSucceededChannel } from "./backend-types/succeeded-channel";
 import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel";
@@ -950,7 +945,11 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
   /**
    * Test SDK ignores sessionClientKey and uses a mock key.
    */
-  constructor(options: PartialBy<XenditSdkOptions, "sessionClientKey">) {
+  constructor(
+    options: Omit<XenditSdkOptions, "sessionClientKey"> & {
+      sessionClientKey?: string;
+    },
+  ) {
     super({
       ...options,
       sessionClientKey: makeTestSdkKey(),
