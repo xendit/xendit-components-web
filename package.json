@@ -31,6 +31,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@preact/preset-vite": "^2.10.2",
     "@rollup/plugin-commonjs": "^28.0.9",
     "@rollup/plugin-replace": "^6.0.2",
     "card-validator": "^10.0.3",

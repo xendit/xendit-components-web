@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FieldProps, formFieldName } from "./field";
 import { validate } from "../validation";
-import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
+import { InternalInputValidateEvent } from "../private-event-types";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
 import { COUNTRIES_AS_DROPDOWN_OPTIONS } from "./field-country";
@@ -117,12 +117,12 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
-    const listener = () => {
-      if (error) input.dispatchEvent(new InputInvalidEvent());
+    const listener = (e: Event) => {
+      setIsTouched(true);
     };
-    input.addEventListener(InputValidateEvent.type, listener);
+    input.addEventListener(InternalInputValidateEvent.type, listener);
     return () => {
-      input.removeEventListener(InputValidateEvent.type, listener);
+      input.removeEventListener(InternalInputValidateEvent.type, listener);
     };
   }, [error]);
 

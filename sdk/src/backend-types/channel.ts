@@ -137,7 +137,7 @@ export type FieldType =
       }[];
     };
 
-type ChannelPropertyPrimative = string | number | boolean | undefined;
+export type ChannelPropertyPrimative = string | number | boolean | undefined;
 export type ChannelProperty =
   | ChannelPropertyPrimative
   | ChannelPropertyPrimative[]
