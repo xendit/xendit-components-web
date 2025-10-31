@@ -123,7 +123,7 @@ export function validate(
     default:
       input.type satisfies never;
       throw new Error(
-        `Unsupported input type: ${(input as ChannelFormField).type.name}`,
+        `Unsupported input type: ${(input as ChannelFormField).type.name}; this is a bug, please contact support.`,
       );
   }
 }
@@ -179,7 +179,7 @@ export function getChannelPropertyValue(
   if (typeof value !== "object" || Array.isArray(value)) {
     if (parts.length !== 1) {
       throw new Error(
-        `Attempted to read nested channel property but value is not an object`,
+        `Attempted to read channel property "${key}" expecting an object but found a primitive value; this is a bug, please contact support.`,
       );
     }
     return value;

@@ -3,7 +3,9 @@ import { BffAction } from "./backend-types/payment-entity";
 
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   if (arg === null || arg === undefined) {
-    throw new Error("Assertion failed: argument is null or undefined");
+    throw new Error(
+      "Assertion failed: argument is null or undefined; this is a bug, please contact support.",
+    );
   }
 }
 
@@ -58,11 +60,15 @@ export type ParsedSdkKey = {
 
 export function parseSdkKey(componentsSdkKey: string): ParsedSdkKey {
   if (!componentsSdkKey) {
-    throw new Error("componentsSdkKey is missing");
+    throw new Error(
+      "The componentsSdkKey option is missing; check the constructor parameters.",
+    );
   }
   const parts = componentsSdkKey.split("-");
   if (parts.length < 4) {
-    throw new Error("Invalid componentsSdkKey format");
+    throw new Error(
+      "The componentsSdkKey option has the wrong format. Ensure you pass the value returned from the `components_sdk_key` property of the `POST /sessions` response.",
+    );
   }
   return {
     sessionAuthKey: [parts[0], parts[1]].join("-"),

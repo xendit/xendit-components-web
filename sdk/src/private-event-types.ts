@@ -25,3 +25,15 @@ export class InternalInputValidateEvent extends CustomEvent<{ value: string }> {
     });
   }
 }
+
+/**
+ * @public
+ * Event fired to indicate whether a create PR or create PT request is in-flight.
+ */
+export class InternalHasInFlightRequestEvent extends Event {
+  static type = "xendit-has-in-flight-submission-request" as const;
+
+  constructor(public hasInFlightRequest: boolean) {
+    super(InternalHasInFlightRequestEvent.type, { bubbles: false });
+  }
+}

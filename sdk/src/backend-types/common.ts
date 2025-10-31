@@ -4,12 +4,12 @@ import { BffCustomer } from "./customer";
 import { BffPaymentRequest, BffPaymentToken } from "./payment-entity";
 import { BffSession } from "./session";
 
-export type SucceededChannel = {
+export type BffSucceededChannel = {
   channel_code: string;
   logo_url: string;
 };
 
-export type ErrorContent = {
+export type BffErrorContent = {
   title: string;
   message_1: string;
   message_2?: string;
@@ -27,6 +27,6 @@ export type BffPollResponse = {
   session: BffSession;
   payment_token?: BffPaymentToken;
   payment_request?: BffPaymentRequest;
-  succeeded_channel?: SucceededChannel;
-  error_content?: ErrorContent;
+  succeeded_channel?: BffSucceededChannel;
+  error_content?: BffErrorContent;
 };
