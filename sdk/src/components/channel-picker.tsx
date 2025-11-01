@@ -1,12 +1,13 @@
 import React, { useCallback } from "react";
 import { Accordion } from "./accordion";
 import { AccordionItem } from "./accordion-item";
-import { useChannelUiGroups } from "./session-provider";
+import { useChannelUiGroups, useSession } from "./session-provider";
 import { ChannelPickerGroup } from "./channel-picker-group";
 
 type Props = object;
 
 export const XenditChannelPicker: React.FC<Props> = (props) => {
+  const session = useSession();
   const channelUiGroups = useChannelUiGroups();
 
   const thisRef = React.useRef<HTMLDivElement>(null);
@@ -28,7 +29,11 @@ export const XenditChannelPicker: React.FC<Props> = (props) => {
     [channelUiGroups, selectedGroup],
   );
 
-  if (!channelUiGroups) return null;
+  if (session.status !== "ACTIVE") {
+    // users are allowed to create channel pickers before loading the session, but we
+    // shouldn't render anything if after it loads, it isn't active
+    return null;
+  }
 
   return (
     // FIXME: make it work without this extra div

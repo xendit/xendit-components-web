@@ -1,36 +1,33 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { XenditSessionSdk } from "../public-sdk";
+import { WorldState, XenditSessionSdk } from "../public-sdk";
 import { BffSession } from "../backend-types/session";
 import { BffBusiness } from "../backend-types/business";
 import { BffCustomer } from "../backend-types/customer";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
-import { BffResponse } from "../backend-types/common";
 
 // Create contexts
-const SessionContext = createContext<BffSession | undefined>(undefined);
+const SessionContext = createContext<BffSession | null>(null);
 SessionContext.displayName = "SessionContext";
 
-const BusinessContext = createContext<BffBusiness | undefined>(undefined);
+const BusinessContext = createContext<BffBusiness | null>(null);
 BusinessContext.displayName = "BusinessContext";
 
-const CustomerContext = createContext<BffCustomer | undefined>(undefined);
+const CustomerContext = createContext<BffCustomer | null>(null);
 CustomerContext.displayName = "CustomerContext";
 
-const ChannelsContext = createContext<BffChannel[] | undefined>(undefined);
+const ChannelsContext = createContext<BffChannel[] | null>(null);
 ChannelsContext.displayName = "ChannelsContext";
 
-const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | undefined>(
-  undefined,
-);
+const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | null>(null);
 ChannelUiGroupsContext.displayName = "ChannelUiGroupsContext";
 
-const SdkContext = createContext<XenditSessionSdk | undefined>(undefined);
+const SdkContext = createContext<XenditSessionSdk | null>(null);
 SdkContext.displayName = "SdkContext";
 
 // Custom hooks for consuming contexts
 export const useSession = () => {
   const context = useContext(SessionContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useSession must be used within a XenditSessionProvider");
   }
   return context;
@@ -38,7 +35,7 @@ export const useSession = () => {
 
 export const useBusiness = () => {
   const context = useContext(BusinessContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useBusiness must be used within a XenditSessionProvider");
   }
   return context;
@@ -46,7 +43,7 @@ export const useBusiness = () => {
 
 export const useCustomer = () => {
   const context = useContext(CustomerContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useCustomer must be used within a XenditSessionProvider");
   }
   return context;
@@ -54,7 +51,7 @@ export const useCustomer = () => {
 
 export const useChannels = () => {
   const context = useContext(ChannelsContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useChannels must be used within a XenditSessionProvider");
   }
   return context;
@@ -62,7 +59,7 @@ export const useChannels = () => {
 
 export const useChannelUiGroups = () => {
   const context = useContext(ChannelUiGroupsContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error(
       "useChannelUiGroups must be used within a XenditSessionProvider",
     );
@@ -72,7 +69,7 @@ export const useChannelUiGroups = () => {
 
 export const useSdk = () => {
   const context = useContext(SdkContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useSdk must be used within a XenditSessionProvider");
   }
   return context;
@@ -80,7 +77,7 @@ export const useSdk = () => {
 
 interface XenditSessionProviderProps {
   children: ReactNode;
-  data: BffResponse;
+  data: WorldState;
   sdk: XenditSessionSdk;
 }
 
@@ -89,13 +86,7 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
   data,
   sdk,
 }) => {
-  const {
-    session,
-    business,
-    customer,
-    channels,
-    channel_ui_groups: channelUiGroups,
-  } = data;
+  const { session, business, customer, channels, channelUiGroups } = data;
 
   return (
     <SdkContext.Provider value={sdk}>

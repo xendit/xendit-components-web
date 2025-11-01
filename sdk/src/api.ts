@@ -27,7 +27,7 @@ type CreatePaymentTokenRequestBody = {
 export const createPaymentToken = endpoint<
   CreatePaymentTokenRequestBody,
   BffPaymentToken,
-  string
+  null
 >("POST", () => `/api/sessions/payment_tokens`);
 
 type CreatePaymentRequestRequestBody = {
@@ -42,7 +42,7 @@ type CreatePaymentRequestRequestBody = {
 export const createPaymentRequest = endpoint<
   CreatePaymentRequestRequestBody,
   BffPaymentRequest,
-  string
+  null
 >("POST", () => `/api/sessions/payment_requests`);
 
 type SimulatePaymentRequestRequestBody = {
@@ -68,11 +68,7 @@ export const simulatePaymentRequest = endpoint<
  * If the session is active, the payment entity will be included.
  * If the session is completed, the succeeded channel will be included.
  */
-export const pollSession = endpoint<
-  BffPollResponse,
-  string,
-  string | undefined
->(
+export const pollSession = endpoint<BffPollResponse, string, string | null>(
   "GET",
   (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/poll`,
   (tokenRequestId) =>

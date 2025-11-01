@@ -17,16 +17,28 @@ const controlsDiv = document.createElement("div");
 controlsDiv.id = "controls";
 outer.appendChild(controlsDiv);
 
-const outputChannelProperties = document.createElement("textarea");
-outputChannelProperties.style.width = "100%";
-outputChannelProperties.setAttribute("rows", "20");
-controlsDiv.appendChild(outputChannelProperties);
+const outputEventLog = document.createElement("textarea");
+outputEventLog.style.width = "100%";
+outputEventLog.setAttribute("rows", "10");
+controlsDiv.appendChild(outputEventLog);
+
+const outputChannelPropertiesLog = document.createElement("textarea");
+outputChannelPropertiesLog.style.width = "100%";
+outputChannelPropertiesLog.setAttribute("rows", "10");
+controlsDiv.appendChild(outputChannelPropertiesLog);
+
+const outputBehaviorTree = document.createElement("textarea");
+outputBehaviorTree.style.width = "100%";
+outputBehaviorTree.setAttribute("rows", "10");
+controlsDiv.appendChild(outputBehaviorTree);
 
 const clearButton = document.createElement("button");
 clearButton.textContent = "Clear Output";
 controlsDiv.appendChild(clearButton);
 clearButton.addEventListener("click", () => {
-  outputChannelProperties.value = "";
+  controlsDiv.querySelectorAll("textarea").forEach((ta) => {
+    ta.value = "";
+  });
 });
 
 const submitButton = document.createElement("button");
@@ -42,17 +54,22 @@ const sdk = new XenditSessionTestSdk({
 });
 sdk.env = "local";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).sdk = sdk;
+
 const channelPicker = sdk.createChannelPickerComponent();
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 
 function logEvent(event: Event) {
   const { type, isTrusted, ...rest } = event;
-  outputChannelProperties.value += JSON.stringify({
+  outputEventLog.value += JSON.stringify({
     type,
     ...rest,
   });
-  outputChannelProperties.value += "\n";
+  outputEventLog.value += "\n";
 }
+
+sdk.addEventListener("init", logEvent);
 
 sdk.addEventListener("ready", logEvent);
 sdk.addEventListener("not-ready", logEvent);
@@ -66,13 +83,26 @@ sdk.addEventListener("session-failed", logEvent);
 
 sdk.addEventListener("error", logEvent);
 
-// Use the instance type, not the constructor type
-type XenditReadyEvent = import("./src").XenditReadyEvent;
-sdk.addEventListener("ready", (event: XenditReadyEvent) => {
-  const state = sdk.getState();
-  outputChannelProperties.value += JSON.stringify(state, null, 2);
-  outputChannelProperties.value += "\n";
-});
+setInterval(() => {
+  const internalState = sdk.getState();
+  outputChannelPropertiesLog.value = `Selected Channel: ${internalState.channelCode}
+Channel Properties: ${JSON.stringify(internalState.channelProperties, null, 2)}`;
+  outputBehaviorTree.value = stringifyBehaviorTree(
+    internalState.behaviorTree,
+    1,
+  );
+}, 200);
+
+type TreeNode = { impl: { name: string }; child: TreeNode } | null | undefined;
+function stringifyBehaviorTree(tree: TreeNode, depth: number): string {
+  return (
+    "-".repeat(depth) +
+    " " +
+    (tree
+      ? tree.impl.name + "\n" + stringifyBehaviorTree(tree?.child, depth + 1)
+      : "(no child)")
+  );
+}
 
 submitButton.addEventListener("click", () => {
   sdk.submit();

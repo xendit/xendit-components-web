@@ -7,6 +7,8 @@ export type XenditEventListener<T extends Event> = ((event: T) => void) | null;
  * @public
  */
 export type XenditEventMap = {
+  init: XenditInitEvent;
+
   ready: XenditReadyEvent;
   "not-ready": XenditReadyEvent;
 
@@ -20,6 +22,18 @@ export type XenditEventMap = {
 
   error: XenditErrorEvent;
 };
+
+/**
+ * @public
+ * Event fired when the SDK is ready to submit.
+ */
+export class XenditInitEvent extends Event {
+  static type = "init" as const;
+
+  constructor() {
+    super(XenditInitEvent.type, {});
+  }
+}
 
 /**
  * @public
@@ -116,32 +130,5 @@ export class XenditErrorEvent extends Event {
 
   constructor() {
     super(XenditErrorEvent.type, {});
-  }
-}
-
-/**
- * @public
- * Event fired when an input responses to a validate event and returns
- * invalid result.
- */
-export class InputInvalidEvent extends Event {
-  static type = "input-invalid" as const;
-
-  constructor() {
-    super(InputInvalidEvent.type, { bubbles: true });
-  }
-}
-
-/**
- * @public
- * Event fired when an input starts to validate its value
- */
-export class InputValidateEvent extends CustomEvent<{ value: string }> {
-  static type = "input-validate" as const;
-
-  constructor(value: string) {
-    super(InputValidateEvent.type, {
-      detail: { value },
-    });
   }
 }

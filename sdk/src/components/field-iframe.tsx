@@ -12,7 +12,7 @@ import {
   IframeChangeEvent,
   IframeEvent,
 } from "../../../shared/types";
-import { InputInvalidEvent, InputValidateEvent } from "../public-event-types";
+import { InternalInputValidateEvent } from "../private-event-types";
 import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
@@ -117,11 +117,10 @@ export const IframeField: React.FC<FieldProps> = (props) => {
       );
       setError(errorMessage);
       setIsTouched(true);
-      if (errorMessage) input.dispatchEvent(new InputInvalidEvent());
     };
-    input.addEventListener(InputValidateEvent.type, listener);
+    input.addEventListener(InternalInputValidateEvent.type, listener);
     return () => {
-      input.removeEventListener(InputValidateEvent.type, listener);
+      input.removeEventListener(InternalInputValidateEvent.type, listener);
     };
   }, [field.required, id, validationResult]);
 
@@ -152,11 +151,15 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           if (!hiddenFieldRef.current) return;
 
           handleIframeEventResult(data);
-          setCardBrand(data.cardBrand ?? null);
+          setCardBrand(data.cardBrand);
 
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
           const resultData = encrypted.map((enc) => {
+            if (data.empty) {
+              return "";
+            }
+
             return [
               "xendit-encrypted",
               encryptionVersion,
@@ -221,11 +224,8 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("embedder", window.location.origin);
   iframeUrl.searchParams.set("session_id", session.payment_session_id);
 
-  const parsedKey = parseSdkKey(
-    sdk[internal].initData.options.sessionClientKey,
-  );
-  iframeUrl.searchParams.set("pk", parsedKey.publicKey);
-  iframeUrl.searchParams.set("sig", parsedKey.signature);
+  iframeUrl.searchParams.set("pk", sdk[internal].sdkKey.publicKey);
+  iframeUrl.searchParams.set("sig", sdk[internal].sdkKey.signature);
 
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
@@ -291,18 +291,3 @@ const CardBrands = ({
     </div>
   );
 };
-
-function parseSdkKey(componentsSdkKey: string) {
-  if (!componentsSdkKey) {
-    throw new Error("componentsSdkKey is missing");
-  }
-  const parts = componentsSdkKey.split("-");
-  if (parts.length < 4) {
-    throw new Error("Invalid componentsSdkKey format");
-  }
-  return {
-    sessionAuthKey: [parts[0], parts[1]].join("-"),
-    publicKey: parts[2],
-    signature: parts[3],
-  };
-}

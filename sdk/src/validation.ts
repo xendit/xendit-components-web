@@ -1,6 +1,13 @@
 import { FormFieldValidationError } from "../../shared/types";
-import { ChannelFormField } from "./backend-types/channel";
+import {
+  BffChannel,
+  ChannelFormField,
+  ChannelProperties,
+  ChannelPropertyPrimative,
+} from "./backend-types/channel";
 import parsePhoneNumberFromString from "libphonenumber-js/min";
+import { filterFormFields } from "./components/channel-form";
+import { BffSessionType } from "./backend-types/session";
 
 export type ValidationResult = {
   errorCode: FormFieldValidationError | undefined;
@@ -56,7 +63,7 @@ export const validateText = (
 
   if (Array.isArray(input.type.regex_validators)) {
     for (const pattern of input.type.regex_validators) {
-      const regex = new RegExp(pattern.regex);
+      const regex = new RegExp(sanitizeRegex(pattern.regex));
       if (!regex.test(trimmedValue)) {
         return pattern.message;
       }
@@ -70,6 +77,14 @@ export const validateText = (
   }
 };
 
+function sanitizeRegex(pattern: string): string {
+  // Remove leading and trailing slashes if present
+  if (pattern.startsWith("/") && pattern.endsWith("/")) {
+    return pattern.slice(1, -1);
+  }
+  return pattern;
+}
+
 export function validate(
   input: ChannelFormField,
   value: string,
@@ -79,6 +94,12 @@ export function validate(
   }
 
   switch (input.type.name) {
+    case "credit_card_number":
+    case "credit_card_expiry":
+    case "credit_card_cvn": {
+      // these are encrypted, no validation
+      return undefined;
+    }
     case "phone_number":
       return validatePhoneNumber(value);
     case "email":
@@ -92,8 +113,77 @@ export function validate(
         },
         value,
       );
+    case "country":
+    case "province":
+    case "dropdown": {
+      // no validation required for now
+      return undefined;
+    }
 
     default:
-      throw new Error(`Unsupported input type: ${input.type.name}`);
+      input.type satisfies never;
+      throw new Error(
+        `Unsupported input type: ${(input as ChannelFormField).type.name}`,
+      );
+  }
+}
+
+export function channelPropertiesAreValid(
+  sessionType: BffSessionType,
+  channel: BffChannel,
+  channelProperties?: ChannelProperties | null,
+  showBillingDetails = false,
+): boolean {
+  if (!channelProperties) channelProperties = {};
+
+  for (const field of filterFormFields(
+    sessionType,
+    channel.form,
+    showBillingDetails,
+  )) {
+    const channelPropertyKeys = Array.isArray(field.channel_property)
+      ? field.channel_property
+      : [field.channel_property];
+    for (const key of channelPropertyKeys) {
+      let value = getChannelPropertyValue(channelProperties, key);
+      if (value === undefined || value === "") {
+        if (field.required) {
+          return false;
+        } else {
+          value = "";
+        }
+      }
+      if (typeof value !== "string") {
+        // validation for non-string values not supported
+        continue;
+      }
+      const error = validate(field, value);
+      if (error) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+export function getChannelPropertyValue(
+  channelProperties: ChannelProperties,
+  key: string,
+): ChannelPropertyPrimative | ChannelPropertyPrimative[] | undefined {
+  const parts = key.split(".");
+  const value = channelProperties[parts[0]];
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "object" || Array.isArray(value)) {
+    if (parts.length !== 1) {
+      throw new Error(
+        `Attempted to read nested channel property but value is not an object`,
+      );
+    }
+    return value;
+  } else {
+    return getChannelPropertyValue(value, parts.slice(1).join("."));
   }
 }
