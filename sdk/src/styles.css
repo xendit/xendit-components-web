@@ -246,6 +246,10 @@ xendit-payment-channel[inert] {
   grid-gap: 16px 12px;
 }
 
+.xendit-form-field-group.xendit-joined-field-group {
+  gap: 0;
+}
+
 .xendit-channel-form-field {
   display: flex;
   flex-direction: column;
@@ -257,6 +261,16 @@ xendit-payment-channel[inert] {
   cursor: pointer;
 }
 
+.xendit-joined-field-group .xendit-channel-form-field label {
+  display: none;
+}
+
+.xendit-joined-field-group
+  .xendit-channel-form-field
+  span.xendit-error-message {
+  display: none;
+}
+
 .xendit-channel-form-field input:not([type="checkbox"]),
 .xendit-channel-form-field select,
 .xendit-channel-form-field .xendit-iframe-container {
@@ -266,6 +280,54 @@ xendit-payment-channel[inert] {
   padding: 12px;
   appearance: none;
 }
+
+/* TODO: Refine these class usages */
+.xendit-channel-form-field.field-radius-tl-0 input,
+.xendit-channel-form-field.field-radius-tl-0 select,
+.xendit-channel-form-field.field-radius-tl-0 .xendit-iframe-container {
+  border-top-left-radius: 0;
+}
+
+.xendit-channel-form-field.field-radius-tr-0 input,
+.xendit-channel-form-field.field-radius-tr-0 select,
+.xendit-channel-form-field.field-radius-tr-0 .xendit-iframe-container {
+  border-top-right-radius: 0;
+}
+
+.xendit-channel-form-field.field-radius-bl-0 input,
+.xendit-channel-form-field.field-radius-bl-0 select,
+.xendit-channel-form-field.field-radius-bl-0 .xendit-iframe-container {
+  border-bottom-left-radius: 0;
+}
+
+.xendit-channel-form-field.field-radius-br-0 input,
+.xendit-channel-form-field.field-radius-br-0 select,
+.xendit-channel-form-field.field-radius-br-0 .xendit-iframe-container {
+  border-bottom-right-radius: 0;
+}
+
+.xendit-channel-form-field.field-collapse-r input,
+.xendit-channel-form-field.field-collapse-r select {
+  margin-right: -0.5px;
+}
+
+.xendit-channel-form-field.field-collapse-l input,
+.xendit-channel-form-field.field-collapse-l select {
+  margin-left: -0.5px;
+}
+
+.xendit-channel-form-field.field-collapse-t input,
+.xendit-channel-form-field.field-collapse-t select,
+.xendit-channel-form-field.field-collapse-t .xendit-iframe-container {
+  margin-top: -0.5px;
+}
+
+.xendit-channel-form-field.field-collapse-b input,
+.xendit-channel-form-field.field-collapse-b select,
+.xendit-channel-form-field.field-collapse-b .xendit-iframe-container {
+  margin-bottom: -0.5px;
+}
+/* Ends TODO */
 
 .xendit-card-brand-logo {
   width: 32px;

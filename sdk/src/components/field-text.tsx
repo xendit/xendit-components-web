@@ -5,7 +5,7 @@ import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 
 export const TextField: React.FC<FieldProps> = (props) => {
-  const { field, onChange } = props;
+  const { field, onChange, onError } = props;
   const id = formFieldName(field);
   const [error, setError] = useState<string | null>(null);
   const [isTouched, setIsTouched] = useState(false);
@@ -26,11 +26,12 @@ export const TextField: React.FC<FieldProps> = (props) => {
   const validateField = useCallback(
     (value: string) => {
       const errorMessage = validate(field, value) ?? null;
+      if (onError) onError(id, errorMessage);
       setError(errorMessage);
       setIsTouched(true);
       return errorMessage;
     },
-    [field],
+    [field, id, onError],
   );
 
   useEffect(() => {
