@@ -20,6 +20,7 @@
         - "pnpm install"
         - "pnpm build"
         - "cp secure-iframe/dist/iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
+        - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
         - "rm -f .npmrc"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
@@ -41,7 +42,7 @@
       acl: "PRIVATE"
       cache_control: "no-cache"
       metadata:
-        - "Content-Security-Policy: default-src 'none'; script-src 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='; style-src 'unsafe-inline'; base-uri 'none'; object-src 'none'; require-trusted-types-for 'script'"
+        - "Content-Security-Policy: default-src 'none'; script-src 'sha256-$DYNAMIC_CSP_HASH'; style-src 'unsafe-inline'; base-uri 'none'; object-src 'none'; require-trusted-types-for 'script'"
         - "Permissions-Policy: microphone=(), camera=(), geolocation=(), payment=(), usb=(), bluetooth=()"
         - "X-Content-Type-Options: nosniff"
         - "Referrer-Policy: no-referrer"
