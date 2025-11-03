@@ -29,6 +29,12 @@ sdkKeyInput.oninput = (e) => {
   const target = e.target as HTMLTextAreaElement;
   localStorage.setItem(LOCALSTORAGE_KEY, target.value.trim());
 };
+sdkKeyInput.onkeypress = (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    location.reload();
+  }
+};
 controlsDiv.appendChild(sdkKeyInput);
 
 const outputEventLog = document.createElement("textarea");
