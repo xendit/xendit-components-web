@@ -1,11 +1,14 @@
 import { createPaymentRequest, createPaymentToken } from "../../api";
 import { ChannelProperties } from "../../backend-types/channel";
 import {
+  BffPaymentEntity,
   BffPaymentRequest,
   BffPaymentToken,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
-import { BffSessionStatus } from "../../backend-types/session";
+import { BffSessionStatus, BffSessionType } from "../../backend-types/session";
+import { makeTestPaymentRequest, makeTestPaymentToken } from "../../test-data";
+import { cancellableSleep } from "../../utils";
 import { Behavior, SdkData } from "../behavior-tree-runner";
 
 export class SessionActiveBehavior implements Behavior {
@@ -20,60 +23,104 @@ export class SessionActiveBehavior implements Behavior {
 
   enter() {}
 
-  submitCreatePaymentRequest(
+  submit(
+    sessionType: BffSessionType,
     channelCode: string,
     channelProperties: ChannelProperties,
   ) {
     this.data.sdkEvents.setHasInFlightSubmitRequest(true);
-    this.submission = {
-      abortController: new AbortController(), // TODO: use this to cancel
-      promise: createPaymentRequest(
+
+    const abortController = new AbortController();
+
+    let promise1: Promise<BffPaymentRequest | BffPaymentToken>;
+    switch (sessionType) {
+      case "PAY":
         {
-          session_id: this.data.sdkKey.sessionAuthKey,
-          channel_code: channelCode,
-          channel_properties: channelProperties,
-          // TODO: pass customer for VA channels
-        },
-        null,
-      )
-        .then((paymentRequest: BffPaymentRequest) => {
-          this.data.sdkEvents.updateWorld({
-            paymentEntity: toPaymentEntity(paymentRequest),
-            sessionTokenRequestId: paymentRequest.session_token_request_id,
-          });
-        })
-        .finally(() => {
-          this.submission = null;
-          this.data.sdkEvents.setHasInFlightSubmitRequest(false);
-        }),
+          promise1 = createPaymentRequest(
+            {
+              session_id: this.data.sdkKey.sessionAuthKey,
+              channel_code: channelCode,
+              channel_properties: channelProperties,
+              // TODO: pass customer for VA channels
+            },
+            null,
+            null,
+            abortController.signal,
+          );
+        }
+        break;
+      case "SAVE": {
+        promise1 = createPaymentToken(
+          {
+            session_id: this.data.sdkKey.sessionAuthKey,
+            channel_code: channelCode,
+            channel_properties: channelProperties,
+          },
+          null,
+          null,
+          abortController.signal,
+        );
+        break;
+      }
+      default: {
+        throw new Error(`The session type ${sessionType} is not supported.`);
+      }
+    }
+
+    const promise2 = promise1
+      .then((prOrPt: BffPaymentRequest | BffPaymentToken) => {
+        this.data.sdkEvents.updateWorld({
+          paymentEntity: toPaymentEntity(prOrPt),
+          sessionTokenRequestId: prOrPt.session_token_request_id,
+        });
+      })
+      .finally(() => {
+        this.submission = null;
+        this.data.sdkEvents.setHasInFlightSubmitRequest(false);
+      });
+
+    this.submission = {
+      abortController,
+      promise: promise2,
     };
   }
 
-  submitCreatePaymentToken(
-    channelCode: string,
-    channelProperties: ChannelProperties,
-  ) {
+  submitMock(sessionType: BffSessionType, channelCode: string) {
     this.data.sdkEvents.setHasInFlightSubmitRequest(true);
+
+    const abortController = new AbortController();
+
+    const promise = cancellableSleep(1000, abortController.signal)
+      .then(() => {
+        let paymentEntity: BffPaymentEntity;
+        switch (sessionType) {
+          case "PAY":
+            paymentEntity = toPaymentEntity(
+              makeTestPaymentRequest(channelCode),
+            );
+            break;
+          case "SAVE":
+            paymentEntity = toPaymentEntity(makeTestPaymentToken(channelCode));
+            break;
+          default:
+            throw new Error(
+              `The session type ${sessionType} is not supported.`,
+            );
+        }
+
+        this.data.sdkEvents.updateWorld({
+          paymentEntity,
+          sessionTokenRequestId: paymentEntity.entity.session_token_request_id,
+        });
+      })
+      .finally(() => {
+        this.submission = null;
+        this.data.sdkEvents.setHasInFlightSubmitRequest(false);
+      });
+
     this.submission = {
-      abortController: new AbortController(), // TODO: use this to cancel
-      promise: createPaymentToken(
-        {
-          session_id: this.data.sdkKey.sessionAuthKey,
-          channel_code: channelCode,
-          channel_properties: channelProperties,
-        },
-        null,
-      )
-        .then((paymentToken: BffPaymentToken) => {
-          this.data.sdkEvents.updateWorld({
-            paymentEntity: toPaymentEntity(paymentToken),
-            sessionTokenRequestId: paymentToken.session_token_request_id,
-          });
-        })
-        .finally(() => {
-          this.submission = null;
-          this.data.sdkEvents.setHasInFlightSubmitRequest(false);
-        }),
+      abortController,
+      promise,
     };
   }
 

@@ -48,7 +48,7 @@ import {
   findBehaviorNodeByType,
 } from "./lifecycle/behavior-tree-runner";
 import { behaviorTreeForSdk } from "./lifecycle/behavior-tree";
-import { BffSession } from "./backend-types/session";
+import { BffSession, BffSessionType } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
@@ -788,22 +788,25 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     const sessionType = this[internal].worldState.session.session_type;
-    switch (sessionType) {
-      case "PAY":
-        sessionActiveBehavior.submitCreatePaymentRequest(
-          channelCode,
-          component.channelProperties || {},
-        );
-        break;
-      case "SAVE":
-        sessionActiveBehavior.submitCreatePaymentToken(
-          channelCode,
-          component.channelProperties || {},
-        );
-        break;
-      default:
-        throw new Error(`The session type ${sessionType} is not supported.`);
-    }
+    this.internalSubmit(
+      sessionActiveBehavior,
+      sessionType,
+      channelCode,
+      component.channelProperties ?? {},
+    );
+  }
+
+  /**
+   * @internal
+   * Separate logic for actual submission, to allow overriding in subclasses.
+   */
+  protected internalSubmit(
+    behavior: SessionActiveBehavior,
+    sessionType: BffSessionType,
+    channelCode: string,
+    channelProperties: ChannelProperties,
+  ) {
+    behavior.submit(sessionType, channelCode, channelProperties);
   }
 
   /**
@@ -1087,5 +1090,19 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
         succeededChannel: null,
       } satisfies WorldState),
     );
+  }
+
+  /**
+   * @internal
+   * Creates a mock submission.
+   */
+  protected internalSubmit(
+    behavior: SessionActiveBehavior,
+    sessionType: BffSessionType,
+    channelCode: string,
+    channelProperties: ChannelProperties,
+  ) {
+    // override this method to use mock submission
+    behavior.submitMock(sessionType, channelCode);
   }
 }

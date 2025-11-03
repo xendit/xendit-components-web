@@ -1,7 +1,8 @@
-import { ChannelProperties } from "./backend-types/channel";
 import { BffResponse } from "./backend-types/common";
-import { BffPaymentRequest } from "./backend-types/payment-entity";
-import { BffSession } from "./backend-types/session";
+import {
+  BffPaymentRequest,
+  BffPaymentToken,
+} from "./backend-types/payment-entity";
 
 const examplePublicKey =
   "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEyCADI5pdf6KmN8+Fxl2ES3yolUKXunNeY3gGScGNEvDcrcHAPKxIInAo5DVnDvTtYtqZvx/bu7HLeBJNMXwHhie/uyNEtT8dSaLc9bd0WSlYdxI+iUsTv2Qu0LiiPrZs";
@@ -763,16 +764,31 @@ export function makeTestBffData(): BffResponse {
 }
 
 function makeTestRandomId() {
-  return Math.random().toString(36).substring(2, 15);
+  // 32 hex characters
+  return Array.from({ length: 32 })
+    .map(() => Math.floor(Math.random() * 16).toString(16))
+    .join("");
 }
 
-export function makeTestPaymentRequest(
-  session: BffSession,
-  channelCode: string,
-  channelProperties: ChannelProperties,
-): BffPaymentRequest {
+export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {
   return {
     payment_request_id: `pr-${makeTestRandomId()}`,
+    status: "REQUIRES_ACTION",
+    channel_code: channelCode,
+    actions: [
+      {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "WEB_URL",
+        value: "https://example.com/redirect",
+      },
+    ],
+    session_token_request_id: makeTestRandomId(),
+  };
+}
+
+export function makeTestPaymentToken(channelCode: string): BffPaymentToken {
+  return {
+    payment_token_id: `pr-${makeTestRandomId()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
     actions: [
