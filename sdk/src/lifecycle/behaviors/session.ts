@@ -78,6 +78,7 @@ export class SessionActiveBehavior implements Behavior {
   }
 
   abortSubmission() {
+    // TODO: don't trigger behavior tree updates while updating behavior tree
     this.submission?.abortController.abort();
     this.submission = null;
   }
