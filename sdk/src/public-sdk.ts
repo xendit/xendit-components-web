@@ -892,7 +892,11 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
   /**
    * Test SDK ignores sessionClientKey and uses a mock key.
    */
-  constructor(options: XenditSdkOptions) {
+  constructor(
+    options: Omit<XenditSdkOptions, "sessionClientKey"> & {
+      sessionClientKey?: string;
+    },
+  ) {
     super({
       ...options,
       sessionClientKey: makeTestSdkKey(),
