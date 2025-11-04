@@ -61,6 +61,7 @@ import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel";
 
 /**
  * @internal
+ * Represents payment channel state.
  */
 type CachedChannelComponent = {
   element: HTMLElement;
@@ -95,6 +96,10 @@ export type UpdatableWorldState = {
     | "succeededChannel"]?: WorldState[K] | undefined;
 };
 
+/**
+ * @internal
+ * Used to assert that the SDK is initialized.
+ */
 type InitializedSdk = {
   [internal]: {
     worldState: WorldState;
@@ -264,16 +269,13 @@ export class XenditSessionSdk extends EventTarget {
 
     // update behavior tree
     this.behaviorTreeUpdate();
-
-    // re-render live components
-    this.renderChannelPicker();
-    for (const channelCode of this[
-      internal
-    ].liveComponents.paymentChannels.keys()) {
-      this.renderPaymentChannel(channelCode);
-    }
+    this.rerenderAllComponents();
   };
 
+  /**
+   * @internal
+   * Creates a new behavior tree based on the internal state and runs the update process.
+   */
   private behaviorTreeUpdate(): void {
     let newTree: BehaviorNode<unknown[]>;
     if (!this[internal].worldState) {
@@ -298,6 +300,20 @@ export class XenditSessionSdk extends EventTarget {
       sdkEvents: this[internal].eventManager,
     });
     this[internal].behaviorTree = newTree;
+  }
+
+  /**
+   * @internal
+   * Rerender everything.
+   */
+  private rerenderAllComponents() {
+    // re-render live components
+    this.renderChannelPicker();
+    for (const channelCode of this[
+      internal
+    ].liveComponents.paymentChannels.keys()) {
+      this.renderPaymentChannel(channelCode);
+    }
   }
 
   /**
@@ -357,7 +373,10 @@ export class XenditSessionSdk extends EventTarget {
    * ```
    */
   createChannelPickerComponent(): HTMLElement {
-    this.cleanupChannelPickerComponent();
+    // destroy previous instance if it exists
+    if (this[internal].liveComponents.channelPicker) {
+      this.destroyComponent(this[internal].liveComponents.channelPicker);
+    }
 
     const container = document.createElement("xendit-channel-picker");
 
@@ -395,10 +414,16 @@ export class XenditSessionSdk extends EventTarget {
     );
   }
 
+  /**
+   * @internal
+   * Handles events from the channel picker component.
+   */
   private setupUiEventsForChannelPicker(container: HTMLElement): void {
     // clear active channel when the channel picker accordion is closed
     container.addEventListener(XenditClearActiveChannelEvent.type, (_event) => {
       this.assertInitialized();
+
+      // do nothing if the active channel is not in the same ui group as the event
       const event = _event as XenditClearActiveChannelEvent;
       const activeChannelCode = this[internal].activeChannelCode;
       if (!activeChannelCode) return;
@@ -407,15 +432,9 @@ export class XenditSessionSdk extends EventTarget {
       );
       if (!channel || channel.ui_group !== event.uiGroup) return;
 
-      this.cleanupPaymentChannelComponent();
+      // clear active channel
+      this.setActiveChannel(null);
     });
-  }
-
-  private cleanupChannelPickerComponent(): void {
-    if (this[internal].liveComponents.channelPicker) {
-      this[internal].liveComponents.channelPicker.replaceChildren();
-      this[internal].liveComponents.channelPicker = null;
-    }
   }
 
   /**
@@ -442,8 +461,6 @@ export class XenditSessionSdk extends EventTarget {
   ): HTMLElement {
     this.assertInitialized();
 
-    this.cleanupPaymentChannelComponent();
-
     const channelCode = channel[internal].channel_code;
 
     // return previously created component if it exists
@@ -467,7 +484,7 @@ export class XenditSessionSdk extends EventTarget {
 
     this.renderPaymentChannel(channelCode);
     if (active) {
-      this.activatePaymentChannel(channelCode);
+      this.setActiveChannel(channel);
     }
 
     this.setupUiEventsForPaymentChannel(container);
@@ -503,21 +520,54 @@ export class XenditSessionSdk extends EventTarget {
   }
 
   /**
-   * Makes the specified channel component active.
+   * @public
+   * Get the currently active payment channel.
    */
-  private activatePaymentChannel(channelCode: string): void {
-    this.assertInitialized();
+  getActiveChannel() {
+    const currentActiveChannelCode = this[internal].activeChannelCode;
+    if (!currentActiveChannelCode) {
+      return null;
+    }
+    return (
+      this.getAvailablePaymentChannels().find(
+        (ch) => ch.channelCode === currentActiveChannelCode,
+      ) ?? null
+    );
+  }
 
-    const thisComponent =
-      this[internal].liveComponents.paymentChannels.get(channelCode);
-    if (!thisComponent) {
-      throw new Error(`Component not found: ${channelCode}`);
+  /**
+   * @public
+   * Activate a previously created payment channel component.
+   *
+   * Set to null to clear the active channel.
+   */
+  setActiveChannel(channel: XenditPaymentChannel | null): void {
+    const currentActiveChannelCode = this[internal].activeChannelCode;
+
+    const channelCode = channel?.[internal].channel_code ?? null;
+
+    if (currentActiveChannelCode === channelCode) {
+      // no change
+      return;
     }
 
-    // set inert on all other components and remove it from this one
+    // if channel is not null, the component must exist
+    let component: CachedChannelComponent | null = null;
+    if (channel && channelCode) {
+      component =
+        this[internal].liveComponents.paymentChannels.get(channelCode) ?? null;
+      if (!component) {
+        this.createPaymentComponentForChannel(channel, false);
+        component =
+          this[internal].liveComponents.paymentChannels.get(channelCode) ??
+          null;
+      }
+    }
+
+    // set inert on all components that are not the active one
     for (const [_, otherComponent] of this[internal].liveComponents
       .paymentChannels) {
-      if (thisComponent === otherComponent) {
+      if (component === otherComponent) {
         if (otherComponent.element.hasAttribute("inert")) {
           otherComponent.element.removeAttribute("inert");
         }
@@ -527,11 +577,15 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     this[internal].activeChannelCode = channelCode;
-
-    // update behavior tree (active channel and form validity have changed)
     this.behaviorTreeUpdate();
+    this.rerenderAllComponents();
   }
 
+  /**
+   * @internal
+   * Handles events from the payment channel component.
+   *  - Updates channel properties when they change.
+   */
   private setupUiEventsForPaymentChannel(container: HTMLElement): void {
     // update per-channel channel properties
     container.addEventListener(
@@ -552,11 +606,8 @@ export class XenditSessionSdk extends EventTarget {
     );
   }
 
-  private cleanupPaymentChannelComponent(): void {
-    this[internal].activeChannelCode = null;
-  }
-
   /**
+   * @public
    * Creates a container element for rendering action UIs.
    *
    * For example, 3DS or QR codes.
@@ -567,7 +618,7 @@ export class XenditSessionSdk extends EventTarget {
    * If no action container is created (or if the created container is removed from the DOM or is too small),
    * the SDK will create an action container (in a modal dialog) for you.
    */
-  public createActionContainerComponent(): HTMLElement {
+  createActionContainerComponent(): HTMLElement {
     this.assertInitialized();
 
     const container = document.createElement(
@@ -580,10 +631,11 @@ export class XenditSessionSdk extends EventTarget {
   }
 
   /**
+   * @public
    * Destroys a component of any type created by the SDK. Removes it from the DOM if necessary.
    * Throws if the element is not a xendit component or if it was already destroyed.
    */
-  public destroyComponent(component: HTMLElement): void {
+  destroyComponent(component: HTMLElement): void {
     if (this[internal].liveComponents.channelPicker === component) {
       this[internal].liveComponents.channelPicker = null;
       render(null, component);
@@ -594,7 +646,9 @@ export class XenditSessionSdk extends EventTarget {
       .paymentChannels) {
       if (cachedComponent.element === component) {
         this[internal].liveComponents.paymentChannels.delete(channelCode);
-        // TODO: clear up activeChannelCode if necessary
+        if (this[internal].activeChannelCode === channelCode) {
+          this.setActiveChannel(null);
+        }
         render(null, component);
         return;
       }
@@ -676,6 +730,7 @@ export class XenditSessionSdk extends EventTarget {
   }
 
   /**
+   * @public
    * Cancels a submission.
    *
    * If a submission is in-flight, the request is cancelled. If an action is in progress,
@@ -883,16 +938,18 @@ export class XenditSessionSdk extends EventTarget {
  *
  * @example
  * ```
- * const testSdk = new XenditSessionTestSdk({
- *   sessionClientKey: "test-key",
- * });
+ * const testSdk = new XenditSessionTestSdk({});
  * ```
  */
 export class XenditSessionTestSdk extends XenditSessionSdk {
   /**
    * Test SDK ignores sessionClientKey and uses a mock key.
    */
-  constructor(options: XenditSdkOptions) {
+  constructor(
+    options: Omit<XenditSdkOptions, "sessionClientKey"> & {
+      sessionClientKey?: string;
+    },
+  ) {
     super({
       ...options,
       sessionClientKey: makeTestSdkKey(),

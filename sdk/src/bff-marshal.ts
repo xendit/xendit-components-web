@@ -28,6 +28,7 @@ export function bffChannelToPublicChannel(
 ): XenditPaymentChannel {
   // TODO
   return {
+    channelCode: bffChannel.channel_code,
     [internal]: bffChannel,
   };
 }

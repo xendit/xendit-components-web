@@ -1,9 +1,15 @@
-import React, { useLayoutEffect, useState } from "react";
-import { useChannels, useSdk, useSession } from "./session-provider";
+import {
+  useActiveChannel,
+  useChannels,
+  useSdk,
+  useSession,
+} from "./session-provider";
 import { bffChannelToPublicChannel } from "../bff-marshal";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { BffSession } from "../backend-types/session";
+import { usePrevious } from "../utils";
+import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup | null;
@@ -19,29 +25,28 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   const session = useSession();
 
   // container for the selected channel component
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   // reference to the selected channel element
-  const selectedChannelElementRef = React.useRef<HTMLElement>(null);
+  const selectedChannelElementRef = useRef<HTMLElement>(null);
+
+  const sdkSelectedChannelCode = useActiveChannel()?.channel_code ?? null;
 
   const [explicitSelectedChannel, setExplicitSelectedChannel] =
     useState<BffChannel | null>(null);
   const channels = useChannels();
 
-  const channelsInGroup =
-    channels?.filter((method) => method.ui_group === group?.id) || [];
-
-  // If there's only one channel in the group, select it automatically
-  const selectedChannel =
-    channelsInGroup.length === 1 ? channelsInGroup[0] : explicitSelectedChannel;
+  const channelsInGroup = useMemo(() => {
+    return channels?.filter((method) => method.ui_group === group?.id) || [];
+  }, [channels, group?.id]);
 
   // Create and mount the channel component if a channel is selected
   useLayoutEffect(() => {
     if (!containerRef.current) return;
-    if (selectedChannel) {
+    if (explicitSelectedChannel) {
       if (open) {
         // create new channel component
         const el = sdk.createPaymentComponentForChannel(
-          bffChannelToPublicChannel(selectedChannel),
+          bffChannelToPublicChannel(explicitSelectedChannel),
         );
         selectedChannelElementRef.current = el;
         if (el.parentElement !== containerRef.current) {
@@ -54,7 +59,66 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     } else {
       containerRef.current.replaceChildren();
     }
-  }, [selectedChannel, sdk, open]);
+  }, [explicitSelectedChannel, sdk, open]);
+
+  // when the group is opened, auto-select a channel if needed
+  const previousOpen = usePrevious(open);
+  useLayoutEffect(() => {
+    if (open && !previousOpen) {
+      // only run this when the group is opened
+      if (channelsInGroup.length === 1 && explicitSelectedChannel === null) {
+        // auto-select channel if this group contains only one
+        setExplicitSelectedChannel(channelsInGroup[0]);
+      } else if (
+        explicitSelectedChannel &&
+        sdkSelectedChannelCode !== explicitSelectedChannel.channel_code
+      ) {
+        // update sdk state to match this group's selection if this group is opened and has a selection that differs from sdk state
+        sdk.setActiveChannel(
+          bffChannelToPublicChannel(explicitSelectedChannel),
+        );
+      } else if (!explicitSelectedChannel) {
+        // clear sdk selection if this group is opened and this group has no selection
+        sdk.setActiveChannel(null);
+      }
+    }
+  }, [
+    channelsInGroup,
+    explicitSelectedChannel,
+    open,
+    previousOpen,
+    sdk,
+    sdkSelectedChannelCode,
+  ]);
+
+  // when the sdk selected channel changes, update this group's selection if needed
+  const previousSdkSelectedChannelCode =
+    usePrevious(sdkSelectedChannelCode) ?? null;
+  useLayoutEffect(() => {
+    if (sdkSelectedChannelCode !== previousSdkSelectedChannelCode) {
+      // only run this when the sdk selected channel changes
+      if (sdkSelectedChannelCode === null) {
+        // do nothing if the selected channel is cleared, we want to collapse the group if the selection cleared rather than clearing explicitlySelectedChannel
+        return;
+      }
+
+      if (sdkSelectedChannelCode !== explicitSelectedChannel?.channel_code) {
+        // if the sdk selected channel is part of this group and is different from the user selected one, update this group selection
+        const newSelected = channelsInGroup.find(
+          (channel) => channel.channel_code === sdkSelectedChannelCode,
+        );
+        if (newSelected) {
+          setExplicitSelectedChannel(newSelected);
+        }
+      }
+    }
+  }, [
+    channelsInGroup,
+    explicitSelectedChannel?.channel_code,
+    previousSdkSelectedChannelCode,
+    sdk,
+    sdkSelectedChannelCode,
+  ]);
 
   // Called on channel dropdown change
   const onSelectedChannelChange = (dropdownOption: DropdownOption) => {
@@ -88,6 +152,11 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     <div className="xendit-channel-picker-group">
       {hideDropdown ? null : (
         <Dropdown
+          selectedIndex={
+            channelOptions.findIndex((channel) => {
+              return channel.value === explicitSelectedChannel?.channel_code;
+            }) ?? 0
+          }
           options={channelOptions}
           onChange={onSelectedChannelChange}
           placeholder={"Select a payment method"}
