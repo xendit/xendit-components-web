@@ -1,7 +1,8 @@
 import { useState, useCallback } from "preact/hooks";
 import { ChannelFormField } from "../backend-types/channel";
-import Field, { formFieldName } from "./field";
-import classnames from "classnames";
+import Field from "./field";
+import classNames from "classnames";
+import { formFieldName } from "../utils";
 
 // CSS class name constants for better readability
 const CSS_CLASSES = {
@@ -69,7 +70,7 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     ) => {
       const { fieldPositionBySpan, fieldRow, isLastRow } = position;
 
-      return classnames({
+      return classNames({
         [CSS_CLASSES.BOTTOM_LEFT_0]:
           groupRowCount > fieldRow + 1 || fieldPositionBySpan % 2 === 1,
         [CSS_CLASSES.BOTTOM_RIGHT_0]: !!fieldGroupSpans[index + 1],
@@ -100,18 +101,13 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
   }, []);
 
   return (
-    <>
-      {isJoinedGroup && (
-        <label
-          htmlFor={formFieldName(fieldGroup[0])}
-          className="xendit-text-14"
-        >
-          {fieldGroup[0].group_label ?? ""}
-        </label>
-      )}
+    <div className="xendit-channel-form-field-group">
+      <label htmlFor={formFieldName(fieldGroup[0])} className="xendit-text-14">
+        {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
+      </label>
       <div
         key={groupIndex}
-        className={classnames("xendit-form-field-group", {
+        className={classNames("xendit-form-field-group", {
           "xendit-joined-field-group": isJoinedGroup,
         })}
       >
@@ -130,8 +126,8 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
           );
         })}
       </div>
-      {isJoinedGroup && renderFirstFoundError()}
-    </>
+      {Object.keys(fieldGroupErrors).length > 0 && renderFirstFoundError()}
+    </div>
   );
 };
 

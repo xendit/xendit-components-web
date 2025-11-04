@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { Dropdown, DropdownOption } from "./dropdown";
@@ -11,6 +11,7 @@ import parsePhoneNumberFromString, {
 } from "libphonenumber-js";
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
+import { formFieldName } from "../utils";
 
 export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;

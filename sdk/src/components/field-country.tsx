@@ -1,8 +1,9 @@
 import { useCallback, useRef } from "preact/hooks";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 import { getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { CircleFlag } from "react-circle-flags";
+import { formFieldName } from "../utils";
 
 export const CountryField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;

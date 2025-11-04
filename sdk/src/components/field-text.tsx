@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChannelFormField } from "../backend-types/channel";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
+import { formFieldName } from "../utils";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
@@ -61,9 +62,6 @@ export const TextField: React.FC<FieldProps> = (props) => {
         minLength={isTextField(field) ? field.type.min_length : undefined}
         maxLength={isTextField(field) ? field.type.max_length : undefined}
       />
-      {error && (
-        <span className="xendit-error-message xendit-text-14">{error}</span>
-      )}
     </>
   );
 };

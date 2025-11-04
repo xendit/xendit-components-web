@@ -195,7 +195,7 @@ export function useFilteredFormFields(
   form: ChannelFormField[],
 ) {
   // TODO: implement billing details feature
-  const showBillingDetailsFields = false;
+  const showBillingDetailsFields = true; // Changed to true for testing
 
   const filteredForm = useMemo(() => {
     return filterFormFields(

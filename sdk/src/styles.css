@@ -66,6 +66,7 @@ html {
   --xendit-animation-duration: 0.3s;
   --xendit-animation-ease: ease-in-out;
   --xendit-radius-1: 8px;
+  --xendit-z-index-focus: 2;
 }
 
 /* Set default font for root components */
@@ -243,11 +244,6 @@ xendit-payment-channel[inert] {
 .xendit-form-field-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-gap: 16px 12px;
-}
-
-.xendit-form-field-group.xendit-joined-field-group {
-  gap: 0;
 }
 
 .xendit-channel-form-field {
@@ -256,19 +252,14 @@ xendit-payment-channel[inert] {
   gap: 8px;
 }
 
-.xendit-channel-form-field label {
+.xendit-channel-form-field-group {
+  display: grid;
+  gap: 8px;
+}
+
+.xendit-channel-form-field-group label {
   width: fit-content;
   cursor: pointer;
-}
-
-.xendit-joined-field-group .xendit-channel-form-field label {
-  display: none;
-}
-
-.xendit-joined-field-group
-  .xendit-channel-form-field
-  span.xendit-error-message {
-  display: none;
 }
 
 .xendit-channel-form-field input:not([type="checkbox"]),
@@ -284,48 +275,64 @@ xendit-payment-channel[inert] {
 /* TODO: Refine these class usages */
 .xendit-channel-form-field.field-radius-tl-0 input,
 .xendit-channel-form-field.field-radius-tl-0 select,
+.xendit-channel-form-field.field-radius-tl-0 button,
 .xendit-channel-form-field.field-radius-tl-0 .xendit-iframe-container {
   border-top-left-radius: 0;
 }
 
 .xendit-channel-form-field.field-radius-tr-0 input,
 .xendit-channel-form-field.field-radius-tr-0 select,
+.xendit-channel-form-field.field-radius-tr-0 button,
 .xendit-channel-form-field.field-radius-tr-0 .xendit-iframe-container {
   border-top-right-radius: 0;
 }
 
 .xendit-channel-form-field.field-radius-bl-0 input,
 .xendit-channel-form-field.field-radius-bl-0 select,
+.xendit-channel-form-field.field-radius-bl-0 button,
 .xendit-channel-form-field.field-radius-bl-0 .xendit-iframe-container {
   border-bottom-left-radius: 0;
 }
 
 .xendit-channel-form-field.field-radius-br-0 input,
 .xendit-channel-form-field.field-radius-br-0 select,
+.xendit-channel-form-field.field-radius-br-0 button,
 .xendit-channel-form-field.field-radius-br-0 .xendit-iframe-container {
   border-bottom-right-radius: 0;
 }
 
 .xendit-channel-form-field.field-collapse-r input,
-.xendit-channel-form-field.field-collapse-r select {
+.xendit-channel-form-field.field-collapse-r select,
+.xendit-channel-form-field.field-collapse-r button {
   margin-right: -0.5px;
 }
 
 .xendit-channel-form-field.field-collapse-l input,
-.xendit-channel-form-field.field-collapse-l select {
+.xendit-channel-form-field.field-collapse-l select,
+.xendit-channel-form-field.field-collapse-l button {
   margin-left: -0.5px;
 }
 
 .xendit-channel-form-field.field-collapse-t input,
 .xendit-channel-form-field.field-collapse-t select,
+.xendit-channel-form-field.field-collapse-t button,
 .xendit-channel-form-field.field-collapse-t .xendit-iframe-container {
   margin-top: -0.5px;
 }
 
 .xendit-channel-form-field.field-collapse-b input,
 .xendit-channel-form-field.field-collapse-b select,
+.xendit-channel-form-field.field-collapse-b button,
 .xendit-channel-form-field.field-collapse-b .xendit-iframe-container {
   margin-bottom: -0.5px;
+}
+
+.xendit-channel-form-field.field-collapse-r .xendit-iframe-container:focus {
+  border-right: none;
+}
+
+.xendit-channel-form-field.field-collapse-l .xendit-iframe-container:focus {
+  border-left: none;
 }
 /* Ends TODO */
 
@@ -349,6 +356,12 @@ xendit-payment-channel[inert] {
   border-color: var(--xendit-color-primary);
   box-shadow: var(--xendit-focus-shadow);
   outline: none;
+  z-index: var(--xendit-z-index-focus);
+}
+
+.xendit-channel-form-field button:focus {
+  position: relative;
+  z-index: var(--xendit-z-index-focus);
 }
 
 .xendit-channel-form-field input.invalid,

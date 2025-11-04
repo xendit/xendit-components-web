@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
 import {
   CardBrand,
@@ -16,6 +16,7 @@ import { InternalInputValidateEvent } from "../private-event-types";
 import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
+import { formFieldName } from "../utils";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -254,9 +255,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           />
         )}
       </div>
-      {error && (
-        <span className="xendit-error-message xendit-text-14">{error}</span>
-      )}
     </>
   );
 };

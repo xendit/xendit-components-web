@@ -16,8 +16,6 @@ export interface FieldProps {
 const Field: React.FC<FieldProps> = (props) => {
   const { field, className } = props;
 
-  const id = formFieldName(field);
-
   function renderInner() {
     switch (field.type.name) {
       case "credit_card_number":
@@ -43,23 +41,9 @@ const Field: React.FC<FieldProps> = (props) => {
     <div
       className={`${className} xendit-channel-form-field xendit-form-field-span-${field.span}`}
     >
-      <label htmlFor={id} className="xendit-text-14">
-        {field.group_label ?? field.label ?? ""}
-      </label>
       {renderInner()}
     </div>
   );
 };
 
 export default Field;
-
-export function formFieldName(field: ChannelFormField): string {
-  let id: string;
-  if (typeof field.channel_property === "string") {
-    id = field.channel_property;
-  } else {
-    const keys = Object.values(field.channel_property);
-    id = keys.join("__");
-  }
-  return id;
-}
