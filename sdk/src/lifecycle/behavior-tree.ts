@@ -26,125 +26,144 @@ import {
   SessionActiveBehavior,
   SessionCompletedBehavior,
   SessionFailedBehavior,
+  SubmissionBehavior,
 } from "./behaviors/session";
 
 type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
-export function behaviorTreeForSdk(
-  sdkStatus: SdkStatus,
-  session: BffSession | null,
-  sessionTokenRequestId: string | null,
-  paymentEntity: BffPaymentEntity | null,
-  channel: BffChannel | null,
-  channelProperties: ChannelProperties | null,
-) {
-  switch (sdkStatus) {
+export function behaviorTreeForSdk(data: {
+  sdkStatus: SdkStatus;
+  session: BffSession | null;
+  sessionTokenRequestId: string | null;
+  paymentEntity: BffPaymentEntity | null;
+  channel: BffChannel | null;
+  channelProperties: ChannelProperties | null;
+  submissionRequestInFlight: boolean;
+}) {
+  switch (data.sdkStatus) {
     case "LOADING": {
       return behaviorNode(SdkLoadingBehavior, []);
     }
     case "ACTIVE": {
-      if (!session) {
+      if (!data.session) {
         throw new Error("Session is required when SDK is active");
       }
       return behaviorNode(
         SdkActiveBehavior,
         [],
-        behaviorTreeForSession(
-          session,
-          sessionTokenRequestId,
-          paymentEntity,
-          channel,
-          channelProperties,
-        ),
+        behaviorTreeForSession({
+          ...data,
+          session: data.session,
+        }),
       );
     }
     case "FATAL_ERROR": {
       return behaviorNode(SdkFatalErrorBehavior, []);
     }
     default: {
-      sdkStatus satisfies never;
-      throw new Error(`Unknown SDK status: ${sdkStatus as SdkStatus}`);
+      data.sdkStatus satisfies never;
+      throw new Error(`Unknown SDK status: ${data.sdkStatus as SdkStatus}`);
     }
   }
 }
 
-export function behaviorTreeForSession(
-  session: BffSession,
-  sessionTokenRequestId: string | null,
-  paymentEntity: BffPaymentEntity | null,
-  channel: BffChannel | null,
-  channelProperties: ChannelProperties | null,
-) {
-  switch (session.status) {
+export function behaviorTreeForSession(data: {
+  session: BffSession;
+  sessionTokenRequestId: string | null;
+  paymentEntity: BffPaymentEntity | null;
+  channel: BffChannel | null;
+  channelProperties: ChannelProperties | null;
+  submissionRequestInFlight: boolean;
+}) {
+  switch (data.session.status) {
     case "ACTIVE": {
       return behaviorNode(
         SessionActiveBehavior,
         [],
-        paymentEntity
-          ? behaviorTreeForPaymentEntity(sessionTokenRequestId, paymentEntity)
-          : behaviorTreeForForm(session, channel, channelProperties),
+        data.submissionRequestInFlight || data.paymentEntity
+          ? behaviorTreeForSubmission(data)
+          : behaviorTreeForForm(data),
       );
     }
     case "COMPLETED": {
       return behaviorNode(SessionCompletedBehavior, []);
     }
     case "EXPIRED": {
-      return behaviorNode(SessionFailedBehavior, [session.status]);
+      return behaviorNode(SessionFailedBehavior, [data.session.status]);
     }
     case "CANCELED": {
-      return behaviorNode(SessionFailedBehavior, [session.status]);
+      return behaviorNode(SessionFailedBehavior, [data.session.status]);
     }
     default: {
-      session.status satisfies never;
+      data.session.status satisfies never;
       throw new Error(
-        `Unknown session status: ${(session as BffSession).status}`,
+        `Unknown session status: ${(data.session as BffSession).status}`,
       );
     }
   }
 }
 
-export function behaviorTreeForForm(
-  session: BffSession,
-  channel: BffChannel | null,
-  channelProperties?: ChannelProperties | null,
-) {
-  const showBillingDetails = false;
+export function behaviorTreeForForm(data: {
+  session: BffSession;
+  channel: BffChannel | null;
+  channelProperties?: ChannelProperties | null;
+}) {
+  if (!data.channel) {
+    return undefined;
+  }
+
+  const showBillingDetails = false; // TODO
   if (
-    channel &&
     channelPropertiesAreValid(
-      session.session_type,
-      channel,
-      channelProperties,
+      data.session.session_type,
+      data.channel,
+      data.channelProperties,
       showBillingDetails,
     )
   ) {
     return behaviorNode(ChannelValidBehavior, []);
   } else {
     return behaviorNode(ChannelInvalidBehavior, [
-      channel?.channel_code ?? null,
+      data.channel?.channel_code ?? null,
     ]);
   }
 }
 
-export function behaviorTreeForPaymentEntity(
-  sessionTokenRequestId: string | null,
-  paymentEntity: BffPaymentEntity,
-) {
-  switch (paymentEntity.entity.status) {
+export function behaviorTreeForSubmission(data: {
+  sessionTokenRequestId: string | null;
+  paymentEntity: BffPaymentEntity | null;
+}) {
+  return behaviorNode(
+    SubmissionBehavior,
+    [],
+    data.paymentEntity
+      ? behaviorTreeForPaymentEntity({
+          ...data,
+          paymentEntity: data.paymentEntity,
+        })
+      : undefined,
+  );
+}
+
+export function behaviorTreeForPaymentEntity(data: {
+  sessionTokenRequestId: string | null;
+  paymentEntity: BffPaymentEntity;
+}) {
+  switch (data.paymentEntity.entity.status) {
     case "PENDING": {
-      return behaviorNode(PePendingBehavior, [sessionTokenRequestId]);
+      return behaviorNode(PePendingBehavior, [data.sessionTokenRequestId]);
     }
     case "REQUIRES_ACTION": {
       return behaviorNode(
         PeRequiresActionBehavior,
-        [sessionTokenRequestId],
-        behaviorTreeForAction(pickAction(paymentEntity.entity.actions)),
+        [data.sessionTokenRequestId],
+        behaviorTreeForAction(pickAction(data.paymentEntity.entity.actions)),
       );
     }
     case "FAILED":
     case "EXPIRED":
     case "CANCELED": {
-      return behaviorNode(PeFailedBehavior, [paymentEntity]);
+      return behaviorNode(PeFailedBehavior, [data.paymentEntity]);
     }
     case "ACCEPTING_PAYMENTS": {
       // Never happens because sessions don't set the PR type to REUSABLE_PAYMENT_CODE
@@ -157,12 +176,12 @@ export function behaviorTreeForPaymentEntity(
     case "ACTIVE":
     case "SUCCEEDED": {
       // The payemnt entity is completed but the session is still active, it should automatically switch to completed soon
-      return behaviorNode(PePendingBehavior, [sessionTokenRequestId]);
+      return behaviorNode(PePendingBehavior, [data.sessionTokenRequestId]);
     }
     default: {
-      paymentEntity.entity satisfies never;
+      data.paymentEntity.entity satisfies never;
       throw new Error(
-        `Unknown payment entity status: ${(paymentEntity as BffPaymentEntity).entity.status}`,
+        `Unknown payment entity status: ${(data.paymentEntity as BffPaymentEntity).entity.status}`,
       );
     }
   }

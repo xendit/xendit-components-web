@@ -18,14 +18,13 @@ export class SessionActiveBehavior implements Behavior {
     this.submission = null;
   }
 
-  enter() {
-    // TODO: emit ready or not-ready events based on form state and whether we have a payment entity
-  }
+  enter() {}
 
   submitCreatePaymentRequest(
     channelCode: string,
     channelProperties: ChannelProperties,
   ) {
+    this.data.sdkEvents.setHasInFlightSubmitRequest(true);
     this.submission = {
       abortController: new AbortController(), // TODO: use this to cancel
       promise: createPaymentRequest(
@@ -36,12 +35,17 @@ export class SessionActiveBehavior implements Behavior {
           // TODO: pass customer for VA channels
         },
         null,
-      ).then((paymentRequest: BffPaymentRequest) => {
-        this.data.sdkEvents.updateWorld({
-          paymentEntity: toPaymentEntity(paymentRequest),
-          sessionTokenRequestId: paymentRequest.session_token_request_id,
-        });
-      }),
+      )
+        .then((paymentRequest: BffPaymentRequest) => {
+          this.data.sdkEvents.updateWorld({
+            paymentEntity: toPaymentEntity(paymentRequest),
+            sessionTokenRequestId: paymentRequest.session_token_request_id,
+          });
+        })
+        .finally(() => {
+          this.submission = null;
+          this.data.sdkEvents.setHasInFlightSubmitRequest(false);
+        }),
     };
   }
 
@@ -49,6 +53,7 @@ export class SessionActiveBehavior implements Behavior {
     channelCode: string,
     channelProperties: ChannelProperties,
   ) {
+    this.data.sdkEvents.setHasInFlightSubmitRequest(true);
     this.submission = {
       abortController: new AbortController(), // TODO: use this to cancel
       promise: createPaymentToken(
@@ -58,22 +63,39 @@ export class SessionActiveBehavior implements Behavior {
           channel_properties: channelProperties,
         },
         null,
-      ).then((paymentToken: BffPaymentToken) => {
-        this.data.sdkEvents.updateWorld({
-          paymentEntity: toPaymentEntity(paymentToken),
-          sessionTokenRequestId: paymentToken.session_token_request_id,
-        });
-      }),
+      )
+        .then((paymentToken: BffPaymentToken) => {
+          this.data.sdkEvents.updateWorld({
+            paymentEntity: toPaymentEntity(paymentToken),
+            sessionTokenRequestId: paymentToken.session_token_request_id,
+          });
+        })
+        .finally(() => {
+          this.submission = null;
+          this.data.sdkEvents.setHasInFlightSubmitRequest(false);
+        }),
     };
   }
 
   abortSubmission() {
+    // TODO: don't trigger behavior tree updates while updating behavior tree
     this.submission?.abortController.abort();
     this.submission = null;
   }
 
   exit() {
     this.abortSubmission();
+  }
+}
+
+export class SubmissionBehavior implements Behavior {
+  constructor(private data: SdkData) {}
+
+  enter() {
+    this.data.sdkEvents.setSubmitting(true);
+  }
+  exit() {
+    this.data.sdkEvents.setSubmitting(false);
   }
 }
 

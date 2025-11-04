@@ -14,6 +14,8 @@ import {
   XenditReadyEvent,
   XenditSessionCompleteEvent,
   XenditSessionFailedEvent,
+  XenditSubmissionBeginEvent,
+  XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
 } from "./public-event-types";
 import { XenditSdkOptions } from "./public-options-types";
@@ -51,16 +53,22 @@ import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
 import { SdkEventManager } from "./sdk-event-manager";
-import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
-import { InternalUpdateWorldState } from "./private-event-types";
-import { BffResponse } from "./backend-types/common";
+import {
+  SessionActiveBehavior,
+  SubmissionBehavior,
+} from "./lifecycle/behaviors/session";
+import {
+  InternalHasInFlightRequestEvent,
+  InternalUpdateWorldState,
+} from "./private-event-types";
+import { BffResponse, BffSucceededChannel } from "./backend-types/common";
 import { mergeIgnoringUndefined, ParsedSdkKey, parseSdkKey } from "./utils";
 import { makeTestSdkKey } from "./test-data";
-import { BffSucceededChannel } from "./backend-types/succeeded-channel";
-import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel";
+import { ChannelValidBehavior } from "./lifecycle/behaviors/channel";
 
 /**
  * @internal
+ * Represents payment channel state.
  */
 type CachedChannelComponent = {
   element: HTMLElement;
@@ -95,6 +103,10 @@ export type UpdatableWorldState = {
     | "succeededChannel"]?: WorldState[K] | undefined;
 };
 
+/**
+ * @internal
+ * Used to assert that the SDK is initialized.
+ */
 type InitializedSdk = {
   [internal]: {
     worldState: WorldState;
@@ -148,6 +160,11 @@ export class XenditSessionSdk extends EventTarget {
      * This is used as a key into `paymentChannelComponents`.
      */
     activeChannelCode: string | null;
+
+    /**
+     * If true, a submission request is in-flight (this triggers the submission-begin and submission-end events).
+     */
+    hasInFlightSubmissionRequest: boolean;
   };
 
   /**
@@ -189,13 +206,19 @@ export class XenditSessionSdk extends EventTarget {
       },
       activeChannelCode: null,
       behaviorTree: null,
+      hasInFlightSubmissionRequest: false,
     };
 
     this.behaviorTreeUpdate();
 
+    // internal event listeners
     (this as EventTarget).addEventListener(
       InternalUpdateWorldState.type,
       this.onUpdateWorldState,
+    );
+    (this as EventTarget).addEventListener(
+      InternalHasInFlightRequestEvent.type,
+      this.onUpdateHasInFlightRequest,
     );
 
     // Initialize session data asynchronously
@@ -237,7 +260,9 @@ export class XenditSessionSdk extends EventTarget {
    */
   private assertInitialized(): asserts this is InitializedSdk {
     if (!this[internal].worldState) {
-      throw new Error("SDK is not initialized");
+      throw new Error(
+        "The session data is not loaded. Listen for the `init` event. Only `createChannelPickerComponent` can be called before initialization.",
+      );
     }
   }
 
@@ -264,33 +289,51 @@ export class XenditSessionSdk extends EventTarget {
 
     // update behavior tree
     this.behaviorTreeUpdate();
-
-    // re-render live components
-    this.renderChannelPicker();
-    for (const channelCode of this[
-      internal
-    ].liveComponents.paymentChannels.keys()) {
-      this.renderPaymentChannel(channelCode);
-    }
+    this.rerenderAllComponents();
   };
 
+  /**
+   * @internal
+   * Event handler for in-flight request updates.
+   */
+  private onUpdateHasInFlightRequest = (event: Event) => {
+    const castedEvent = event as InternalHasInFlightRequestEvent;
+    this[internal].hasInFlightSubmissionRequest =
+      castedEvent.hasInFlightRequest;
+    this.behaviorTreeUpdate();
+  };
+
+  /**
+   * @internal
+   * Creates a new behavior tree based on the internal state and runs the update process.
+   */
   private behaviorTreeUpdate(): void {
     let newTree: BehaviorNode<unknown[]>;
     if (!this[internal].worldState) {
-      newTree = behaviorTreeForSdk("LOADING", null, null, null, null, null);
+      newTree = behaviorTreeForSdk({
+        sdkStatus: "LOADING",
+        session: null,
+        sessionTokenRequestId: null,
+        paymentEntity: null,
+        channel: null,
+        channelProperties: null,
+        submissionRequestInFlight: false,
+      });
     } else {
-      newTree = behaviorTreeForSdk(
-        "ACTIVE",
-        this[internal].worldState.session,
-        this[internal].worldState.sessionTokenRequestId,
-        this[internal].worldState.paymentEntity,
-        this[internal].activeChannelCode
+      newTree = behaviorTreeForSdk({
+        sdkStatus: "ACTIVE",
+        session: this[internal].worldState.session,
+        sessionTokenRequestId: this[internal].worldState.sessionTokenRequestId,
+        paymentEntity: this[internal].worldState.paymentEntity,
+        channel: this[internal].activeChannelCode
           ? this.findChannel(this[internal].activeChannelCode)
           : null,
-        this[internal].liveComponents.paymentChannels.get(
-          this[internal].activeChannelCode ?? "",
-        )?.channelProperties ?? null,
-      );
+        channelProperties:
+          this[internal].liveComponents.paymentChannels.get(
+            this[internal].activeChannelCode ?? "",
+          )?.channelProperties ?? null,
+        submissionRequestInFlight: this[internal].hasInFlightSubmissionRequest,
+      });
     }
 
     behaviorTreeUpdate(this[internal].behaviorTree ?? undefined, newTree, {
@@ -298,6 +341,20 @@ export class XenditSessionSdk extends EventTarget {
       sdkEvents: this[internal].eventManager,
     });
     this[internal].behaviorTree = newTree;
+  }
+
+  /**
+   * @internal
+   * Rerender everything.
+   */
+  private rerenderAllComponents() {
+    // re-render live components
+    this.renderChannelPicker();
+    for (const channelCode of this[
+      internal
+    ].liveComponents.paymentChannels.keys()) {
+      this.renderPaymentChannel(channelCode);
+    }
   }
 
   /**
@@ -348,7 +405,9 @@ export class XenditSessionSdk extends EventTarget {
    *
    * This returns a div immediately. The component will be populated after
    * initialization is complete. You should insert this div into the DOM.
-   * To destroy it, remove it from the DOM.
+   *
+   * Calling this again will destroy it and return a new element. Manually
+   * destroying the component is not necessary, removing it from the DOM is sufficient.
    *
    * @example
    * ```
@@ -357,7 +416,10 @@ export class XenditSessionSdk extends EventTarget {
    * ```
    */
   createChannelPickerComponent(): HTMLElement {
-    this.cleanupChannelPickerComponent();
+    // destroy previous instance if it exists
+    if (this[internal].liveComponents.channelPicker) {
+      this.destroyComponent(this[internal].liveComponents.channelPicker);
+    }
 
     const container = document.createElement("xendit-channel-picker");
 
@@ -395,10 +457,16 @@ export class XenditSessionSdk extends EventTarget {
     );
   }
 
+  /**
+   * @internal
+   * Handles events from the channel picker component.
+   */
   private setupUiEventsForChannelPicker(container: HTMLElement): void {
     // clear active channel when the channel picker accordion is closed
     container.addEventListener(XenditClearActiveChannelEvent.type, (_event) => {
       this.assertInitialized();
+
+      // do nothing if the active channel is not in the same ui group as the event
       const event = _event as XenditClearActiveChannelEvent;
       const activeChannelCode = this[internal].activeChannelCode;
       if (!activeChannelCode) return;
@@ -407,27 +475,24 @@ export class XenditSessionSdk extends EventTarget {
       );
       if (!channel || channel.ui_group !== event.uiGroup) return;
 
-      this.cleanupPaymentChannelComponent();
+      // clear active channel
+      this.setActiveChannel(null);
     });
-  }
-
-  private cleanupChannelPickerComponent(): void {
-    if (this[internal].liveComponents.channelPicker) {
-      this[internal].liveComponents.channelPicker.replaceChildren();
-      this[internal].liveComponents.channelPicker = null;
-    }
   }
 
   /**
    * @public
-   * Creates a UI component for making payments with a specific channel.
+   * Creates a UI component for making payments with a specific channel. It will
+   * contain form fields, and/or instructions for the user.
    *
-   * This returns a div. You should insert this div into the DOM. To destroy it,
-   * remove it from the DOM.
+   * This also makes the provided channel "active", the `submit` method
+   * will use that channel.
    *
-   * Only one payment component can be active at a time. The most recently created
-   * component is always "active". Inactive components are disabled (their contents are given `dispaly: none`),
-   * but they still exist, and can be resurrected by calling this method again with the same channel.
+   * This returns a div. You should insert this div into the DOM. Creating a new
+   * component multiple times for the same channel will return the same component instance.
+   *
+   * Destroying the component manually is not necessary, removing it from the DOM is sufficient,
+   * but if you want to clear the form state, you can do so with the `destroyComponent` method.
    *
    * @example
    * ```
@@ -441,8 +506,6 @@ export class XenditSessionSdk extends EventTarget {
     active = true,
   ): HTMLElement {
     this.assertInitialized();
-
-    this.cleanupPaymentChannelComponent();
 
     const channelCode = channel[internal].channel_code;
 
@@ -467,7 +530,7 @@ export class XenditSessionSdk extends EventTarget {
 
     this.renderPaymentChannel(channelCode);
     if (active) {
-      this.activatePaymentChannel(channelCode);
+      this.setActiveChannel(channel);
     }
 
     this.setupUiEventsForPaymentChannel(container);
@@ -503,21 +566,58 @@ export class XenditSessionSdk extends EventTarget {
   }
 
   /**
-   * Makes the specified channel component active.
+   * @public
+   * Returns the currently active payment channel.
    */
-  private activatePaymentChannel(channelCode: string): void {
-    this.assertInitialized();
+  getActiveChannel() {
+    const currentActiveChannelCode = this[internal].activeChannelCode;
+    if (!currentActiveChannelCode) {
+      return null;
+    }
+    return (
+      this.getAvailablePaymentChannels().find(
+        (ch) => ch.channelCode === currentActiveChannelCode,
+      ) ?? null
+    );
+  }
 
-    const thisComponent =
-      this[internal].liveComponents.paymentChannels.get(channelCode);
-    if (!thisComponent) {
-      throw new Error(`Component not found: ${channelCode}`);
+  /**
+   * @public
+   * Makes the given channel the active channel for submission.
+   *
+   * The active channel:
+   *  - Is interactive if it has a form (other channel compoennts are non-interactive)
+   *  - Is used when `submit()` is called.
+   *
+   * Set to null to clear the active channel.
+   */
+  setActiveChannel(channel: XenditPaymentChannel | null): void {
+    const currentActiveChannelCode = this[internal].activeChannelCode;
+
+    const channelCode = channel?.[internal].channel_code ?? null;
+
+    if (currentActiveChannelCode === channelCode) {
+      // no change
+      return;
     }
 
-    // set inert on all other components and remove it from this one
+    // if channel is not null, the component must exist
+    let component: CachedChannelComponent | null = null;
+    if (channel && channelCode) {
+      component =
+        this[internal].liveComponents.paymentChannels.get(channelCode) ?? null;
+      if (!component) {
+        this.createPaymentComponentForChannel(channel, false);
+        component =
+          this[internal].liveComponents.paymentChannels.get(channelCode) ??
+          null;
+      }
+    }
+
+    // set inert on all components that are not the active one
     for (const [_, otherComponent] of this[internal].liveComponents
       .paymentChannels) {
-      if (thisComponent === otherComponent) {
+      if (component === otherComponent) {
         if (otherComponent.element.hasAttribute("inert")) {
           otherComponent.element.removeAttribute("inert");
         }
@@ -527,11 +627,15 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     this[internal].activeChannelCode = channelCode;
-
-    // update behavior tree (active channel and form validity have changed)
     this.behaviorTreeUpdate();
+    this.rerenderAllComponents();
   }
 
+  /**
+   * @internal
+   * Handles events from the payment channel component.
+   *  - Updates channel properties when they change.
+   */
   private setupUiEventsForPaymentChannel(container: HTMLElement): void {
     // update per-channel channel properties
     container.addEventListener(
@@ -552,22 +656,20 @@ export class XenditSessionSdk extends EventTarget {
     );
   }
 
-  private cleanupPaymentChannelComponent(): void {
-    this[internal].activeChannelCode = null;
-  }
-
   /**
+   * @public
    * Creates a container element for rendering action UIs.
    *
    * For example, 3DS or QR codes.
    *
-   * You can create an action container before or during the action-begin event.
+   * Create an action container before or during the action-begin event, and
+   * the action UI will be rendered inside it.
    * Creating an action container during an action will throw an error.
    *
    * If no action container is created (or if the created container is removed from the DOM or is too small),
    * the SDK will create an action container (in a modal dialog) for you.
    */
-  public createActionContainerComponent(): HTMLElement {
+  createActionContainerComponent(): HTMLElement {
     this.assertInitialized();
 
     const container = document.createElement(
@@ -580,10 +682,17 @@ export class XenditSessionSdk extends EventTarget {
   }
 
   /**
+   * @public
    * Destroys a component of any type created by the SDK. Removes it from the DOM if necessary.
    * Throws if the element is not a xendit component or if it was already destroyed.
    */
-  public destroyComponent(component: HTMLElement): void {
+  destroyComponent(component: HTMLElement): void {
+    if (!component.tagName.startsWith("XENDIT-")) {
+      throw new Error(
+        "Unable to destroy component; only elements created by this SDK can be destroyed.",
+      );
+    }
+
     if (this[internal].liveComponents.channelPicker === component) {
       this[internal].liveComponents.channelPicker = null;
       render(null, component);
@@ -594,7 +703,9 @@ export class XenditSessionSdk extends EventTarget {
       .paymentChannels) {
       if (cachedComponent.element === component) {
         this[internal].liveComponents.paymentChannels.delete(channelCode);
-        // TODO: clear up activeChannelCode if necessary
+        if (this[internal].activeChannelCode === channelCode) {
+          this.setActiveChannel(null);
+        }
         render(null, component);
         return;
       }
@@ -606,54 +717,74 @@ export class XenditSessionSdk extends EventTarget {
       return;
     }
 
-    throw new Error("Component not found or already destroyed");
+    throw new Error(
+      "Unable to destroy component; component not found. It may have already been destroyed.",
+    );
   }
 
   /**
    * @public
-   * Submit.
+   * Submit, makes a payment or saves a payment method for the active payment channel.
    *
-   * Call this when your submit button is clicked. Listen to the status event
-   * for the result.
+   * Call this when your submit button is clicked. Listen to the events to know the status:
+   *  - `submission-begin` and `submission-end` to know when submission is in progress (you should disable your UI during this time)
+   *  - `action-begin` and `action-end` to know when user action is in progress
+   *  - `will-redirect` when the user will be redirected to another page
+   *  - `session-complete` when the payment request or token is successfully created (you should redirect the user to your confirmation page)
+   *  - `session-failed` can happen at any time, but it's likely to happen on submission if the session expired or was cancelled during checkout
+   *  - `not-ready` fires before `submission-begin` to indicate that you cannot submit while a submission is in progress
    *
-   * This corresponds to the POST /v3/payment_requests or POST /v3/payment_tokens endpoints,
-   * to create a payment request or token, depending on the type of session.
+   * When a submission fails, you can try again by calling `submit()` again.
+   * (`session-failed` and `error` are fatal, submission failure is not)
+   *
+   * This corresponds to the endpoints:
+   *  - `POST /v3/payment_requests` for PAY sessions
+   *  - `POST /v3/payment_tokens` for SAVE sessions
    */
   submit() {
     this.assertInitialized();
 
-    const channelCode = this[internal].activeChannelCode;
-    if (!channelCode) {
-      throw new Error("No active payment channel component");
-    }
-
-    const component =
-      this[internal].liveComponents.paymentChannels.get(channelCode);
-
-    if (!component) {
-      throw new Error("No active payment channel component");
-    }
-
     if (!this[internal].behaviorTree) {
-      throw new Error("Invalid state for session");
+      throw new Error(
+        "Behavior tree is missing; this is a bug, please contact support.",
+      );
     }
     const sessionActiveBehavior = findBehaviorNodeByType(
       this[internal].behaviorTree,
       SessionActiveBehavior,
     );
     if (!sessionActiveBehavior) {
-      throw new Error("Invalid state for session");
+      throw new Error(
+        "Unable to submit; the session is not in the active state. Listen to the `session-complete` and `session-failed` events and display success or failure states accordingly.",
+      );
+    }
+
+    const channelCode = this[internal].activeChannelCode;
+    if (!channelCode) {
+      throw new Error(
+        "Unable to submit; there is no active payment channel. Create a payment component with `createPaymentComponentForChannel` or make an existing one active with `setActiveChannel`.",
+      );
+    }
+
+    const component =
+      this[internal].liveComponents.paymentChannels.get(channelCode);
+    if (!component) {
+      throw new Error(
+        "Active channel is set but component is missing; this is a bug, please contact support.",
+      );
     }
 
     const form = component.channelformRef?.current;
-    form?.validate();
+    form?.validate(); // force any form fields to display validation errors
 
-    const channelInvalidBehavior = findBehaviorNodeByType(
+    const channelValidBehavior = findBehaviorNodeByType(
       this[internal].behaviorTree,
-      ChannelInvalidBehavior,
+      ChannelValidBehavior,
     );
-    if (channelInvalidBehavior) {
-      throw new Error("Cannot submit: form is invalid");
+    if (!channelValidBehavior) {
+      throw new Error(
+        "Unable to submit; the form for the active channel has errors. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
+      );
     }
 
     const sessionType = this[internal].worldState.session.session_type;
@@ -671,11 +802,12 @@ export class XenditSessionSdk extends EventTarget {
         );
         break;
       default:
-        throw new Error(`Unsupported session type: ${sessionType}`);
+        throw new Error(`The session type ${sessionType} is not supported.`);
     }
   }
 
   /**
+   * @public
    * Cancels a submission.
    *
    * If a submission is in-flight, the request is cancelled. If an action is in progress,
@@ -687,17 +819,27 @@ export class XenditSessionSdk extends EventTarget {
     this.assertInitialized();
 
     if (!this[internal].behaviorTree) {
-      throw new Error("Invalid state for session");
+      throw new Error(
+        "Behavior tree is missing; this is a bug, please contact support.",
+      );
+    }
+
+    const submissionBehavior = findBehaviorNodeByType(
+      this[internal].behaviorTree,
+      SubmissionBehavior,
+    );
+    if (!submissionBehavior) {
+      return; // no submission in progress
     }
 
     const sessionActiveBehavior = findBehaviorNodeByType(
       this[internal].behaviorTree,
       SessionActiveBehavior,
     );
-
-    // we can't abort a submission if we're not in active state
     if (!sessionActiveBehavior) {
-      throw new Error("Invalid state for session");
+      throw new Error(
+        "Submission state found but active state missing. This is a bug, please contact support.",
+      );
     }
 
     // abort any in-flight submission
@@ -776,6 +918,26 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "not-ready",
     listener: XenditEventListener<XenditReadyEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * The `submission-begin` and `submission-end` events let you know when a submission is in progress.
+   *
+   * Use this to disable your UI while submission is in progress.
+   *
+   * In the case of successful submission, `submission-end` will be followed by `session-complete`.
+   * In the case of failed submission, the SDK will return to the ready state and you can try submitting again.
+   */
+  addEventListener(
+    name: "submission-begin",
+    listener: XenditEventListener<XenditSubmissionBeginEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    name: "submission-end",
+    listener: XenditEventListener<XenditSubmissionEndEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
@@ -883,16 +1045,18 @@ export class XenditSessionSdk extends EventTarget {
  *
  * @example
  * ```
- * const testSdk = new XenditSessionTestSdk({
- *   sessionClientKey: "test-key",
- * });
+ * const testSdk = new XenditSessionTestSdk({});
  * ```
  */
 export class XenditSessionTestSdk extends XenditSessionSdk {
   /**
    * Test SDK ignores sessionClientKey and uses a mock key.
    */
-  constructor(options: XenditSdkOptions) {
+  constructor(
+    options: Omit<XenditSdkOptions, "sessionClientKey"> & {
+      sessionClientKey?: string;
+    },
+  ) {
     super({
       ...options,
       sessionClientKey: makeTestSdkKey(),

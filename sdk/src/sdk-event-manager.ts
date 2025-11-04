@@ -1,7 +1,10 @@
 import { createElement, render } from "preact";
 import { BffSessionStatus } from "./backend-types/session";
 import { internal } from "./internal";
-import { InternalUpdateWorldState } from "./private-event-types";
+import {
+  InternalHasInFlightRequestEvent,
+  InternalUpdateWorldState,
+} from "./private-event-types";
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
@@ -10,6 +13,8 @@ import {
   XenditReadyEvent,
   XenditSessionCompleteEvent,
   XenditSessionFailedEvent,
+  XenditSubmissionBeginEvent,
+  XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
 } from "./public-event-types";
 import { UpdatableWorldState, XenditSessionSdk } from "./public-sdk";
@@ -20,6 +25,8 @@ export class SdkEventManager {
   sdk: XenditSessionSdk;
 
   ready = false;
+  hasInFlightRequest = false;
+  submitting = false;
   action = false;
 
   constructor(sdk: XenditSessionSdk) {
@@ -42,6 +49,28 @@ export class SdkEventManager {
       this.sdk.dispatchEvent(new XenditReadyEvent());
     } else {
       this.sdk.dispatchEvent(new XenditNotReadyEvent());
+    }
+  }
+
+  setHasInFlightSubmitRequest(hasInFlightRequest: boolean) {
+    if (this.hasInFlightRequest === hasInFlightRequest) return;
+    this.hasInFlightRequest = hasInFlightRequest;
+
+    if (hasInFlightRequest) {
+      this.sdk.dispatchEvent(new InternalHasInFlightRequestEvent(true));
+    } else {
+      this.sdk.dispatchEvent(new InternalHasInFlightRequestEvent(false));
+    }
+  }
+
+  setSubmitting(submitting: boolean) {
+    if (this.submitting === submitting) return;
+    this.submitting = submitting;
+
+    if (submitting) {
+      this.sdk.dispatchEvent(new XenditSubmissionBeginEvent());
+    } else {
+      this.sdk.dispatchEvent(new XenditSubmissionEndEvent());
     }
   }
 
@@ -104,7 +133,9 @@ export class SdkEventManager {
   populateActionContainerWithIframe(url: string) {
     const container = this.sdk[internal].liveComponents.actionContainer;
     if (!container) {
-      throw new Error("Action container must exist before populating it");
+      throw new Error(
+        "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
+      );
     }
     render(createElement(ActionIframe, { url }), container);
   }

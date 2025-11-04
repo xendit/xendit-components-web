@@ -79,13 +79,17 @@ export function endpoint(
         [requestBody, pathArg, queryArg] = rest;
         break;
       default:
-        throw new Error(`Unsupported method: ${method}`);
+        throw new Error(
+          `Unable to call endpoint with method ${method}; this is a bug, please contact support.`,
+        );
     }
 
     const url = new URL(getPath(pathArg), BACKEND_HOST);
     if (getQuery) {
       if (queryArg === undefined) {
-        throw new Error("queryArg is required but was not provided");
+        throw new Error(
+          "Query string argument is missing; this is a bug, please contact support.",
+        );
       }
       url.search = getQuery(queryArg).toString();
     }
@@ -98,7 +102,10 @@ export function endpoint(
     };
     const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error(`Failed to call ${method} ${getPath(pathArg)}`);
+      throw new Error(
+        // TODO: proper error handling for this
+        `Failed to call ${method} ${getPath(pathArg)}; status ${response.status}`,
+      );
     }
     return response.json();
   };
