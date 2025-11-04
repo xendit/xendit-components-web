@@ -101,6 +101,8 @@ sdk.addEventListener("init", logEvent);
 sdk.addEventListener("ready", logEvent);
 sdk.addEventListener("not-ready", logEvent);
 
+sdk.addEventListener("submission-begin", logEvent);
+sdk.addEventListener("submission-end", logEvent);
 sdk.addEventListener("action-begin", logEvent);
 sdk.addEventListener("action-end", logEvent);
 sdk.addEventListener("will-redirect", logEvent);
