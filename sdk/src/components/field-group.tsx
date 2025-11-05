@@ -33,6 +33,51 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     fieldGroup.reduce((agg, field) => agg + field.span, 0) / 2,
   );
 
+  const calculateFieldPosition = (index: number) => {
+    const fieldPositionBySpan = fieldGroupSpans
+      .slice(0, index)
+      .reduce((agg, span) => agg + span, 0);
+    const fieldRow = index === 0 ? 0 : Math.floor(fieldPositionBySpan / 2);
+    const fieldColumn = fieldPositionBySpan % 2;
+    const isLastRow = fieldRow === groupRowCount - 1;
+
+    return { fieldPositionBySpan, fieldRow, fieldColumn, isLastRow };
+  };
+
+  const getFieldClassNames = (
+    field: ChannelFormField,
+    index: number,
+    position: ReturnType<typeof calculateFieldPosition>,
+  ) => {
+    const { fieldPositionBySpan, fieldRow, fieldColumn, isLastRow } = position;
+    console.log(position);
+    return classNames({
+      [CSS_CLASSES.BOTTOM_LEFT_0]:
+        groupRowCount > fieldRow + 1 || fieldPositionBySpan % 2 === 1,
+      [CSS_CLASSES.BOTTOM_RIGHT_0]: !!fieldGroupSpans[index + 1],
+      [CSS_CLASSES.TOP_LEFT_0]: index > 0,
+      [CSS_CLASSES.TOP_RIGHT_0]:
+        !(fieldRow === 0 && fieldColumn === 1) &&
+        !(fieldRow === 0 && fieldColumn === 0 && field.span === 2),
+      [CSS_CLASSES.COLLAPSE_RIGHT]: field.span === 1 && fieldColumn === 0,
+      [CSS_CLASSES.COLLAPSE_LEFT]: field.span === 1 && fieldColumn === 1,
+      [CSS_CLASSES.COLLAPSE_TOP]: fieldPositionBySpan >= 2,
+      [CSS_CLASSES.COLLAPSE_BOTTOM]: !isLastRow,
+    });
+  };
+
+  const handleFieldError = useCallback((id: string, error: string | null) => {
+    setFieldGroupErrors((prev) => {
+      return error
+        ? { ...prev, [id]: error }
+        : (() => {
+            const newErrors = { ...prev };
+            delete newErrors[id];
+            return newErrors;
+          })();
+    });
+  }, []);
+
   const renderFirstFoundError = () => {
     const firstFieldWithError = fieldGroup.find(
       (field) => fieldGroupErrors[formFieldName(field)],
@@ -47,58 +92,6 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
       </span>
     );
   };
-
-  const calculateFieldPosition = useCallback(
-    (index: number) => {
-      const fieldPositionBySpan = fieldGroupSpans
-        .slice(0, index)
-        .reduce((agg, span) => agg + span, 0);
-      const fieldRow = index === 0 ? 0 : Math.floor(fieldPositionBySpan / 2);
-      const fieldColumn = fieldPositionBySpan % 2;
-      const isLastRow = fieldRow === groupRowCount - 1;
-
-      return { fieldPositionBySpan, fieldRow, fieldColumn, isLastRow };
-    },
-    [fieldGroupSpans, groupRowCount],
-  );
-
-  const getFieldClassNames = useCallback(
-    (
-      field: ChannelFormField,
-      index: number,
-      position: ReturnType<typeof calculateFieldPosition>,
-    ) => {
-      const { fieldPositionBySpan, fieldRow, isLastRow } = position;
-
-      return classNames({
-        [CSS_CLASSES.BOTTOM_LEFT_0]:
-          groupRowCount > fieldRow + 1 || fieldPositionBySpan % 2 === 1,
-        [CSS_CLASSES.BOTTOM_RIGHT_0]: !!fieldGroupSpans[index + 1],
-        [CSS_CLASSES.TOP_LEFT_0]: index > 0,
-        [CSS_CLASSES.TOP_RIGHT_0]:
-          fieldRow > 0 || (!!fieldGroupSpans[index + 1] && field.span !== 2),
-        [CSS_CLASSES.COLLAPSE_RIGHT]:
-          field.span === 1 && position.fieldColumn === 0,
-        [CSS_CLASSES.COLLAPSE_LEFT]:
-          field.span === 1 && position.fieldColumn === 1,
-        [CSS_CLASSES.COLLAPSE_TOP]: fieldPositionBySpan >= 2,
-        [CSS_CLASSES.COLLAPSE_BOTTOM]: !isLastRow,
-      });
-    },
-    [fieldGroupSpans, groupRowCount],
-  );
-
-  const handleFieldError = useCallback((id: string, error: string | null) => {
-    setFieldGroupErrors((prev) => {
-      return error
-        ? { ...prev, [id]: error }
-        : (() => {
-            const newErrors = { ...prev };
-            delete newErrors[id];
-            return newErrors;
-          })();
-    });
-  }, []);
 
   return (
     <div className="xendit-channel-form-field-group">
