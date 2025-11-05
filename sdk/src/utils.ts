@@ -13,6 +13,37 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * A sleep function that can be cancelled via an AbortSignal.
+ */
+export function cancellableSleep(
+  ms: number,
+  signal: AbortSignal,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      resolve();
+    }, ms);
+
+    // already aborted
+    if (signal.aborted) {
+      clearTimeout(timeoutId);
+      reject(new Error("Aborted"));
+      return;
+    }
+
+    // abort on signal
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timeoutId);
+        reject(new Error("Aborted"));
+      },
+      { once: true },
+    );
+  });
+}
+
 export function camelCaseToKebabCase(str: string): string {
   return str.replace(/[A-Z]/gm, (match, offset) => {
     if (offset === 0) return match.toLowerCase();

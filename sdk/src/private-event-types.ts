@@ -1,7 +1,7 @@
 import { UpdatableWorldState, WorldState } from "./public-sdk";
 
 /**
- * @public
+ * @internal
  * Event fired when a session / paymentEntity / etc is changed.
  */
 export class InternalUpdateWorldState extends Event {
@@ -13,7 +13,7 @@ export class InternalUpdateWorldState extends Event {
 }
 
 /**
- * @public
+ * @internal
  * Revalidates a field and marks it as touched.
  */
 export class InternalInputValidateEvent extends CustomEvent<{ value: string }> {
@@ -27,7 +27,7 @@ export class InternalInputValidateEvent extends CustomEvent<{ value: string }> {
 }
 
 /**
- * @public
+ * @internal
  * Event fired to indicate whether a create PR or create PT request is in-flight.
  */
 export class InternalHasInFlightRequestEvent extends Event {
