@@ -5,11 +5,12 @@ import { Dialog } from "./dialog";
 type Props = {
   sdk: XenditSessionSdk;
   title: string;
-  onCloseClick: () => void;
+  close?: boolean;
+  onClose: () => void;
 };
 
 export default function DefaultActionContainer(props: Props) {
-  const { sdk, title, onCloseClick } = props;
+  const { sdk, title, onClose } = props;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -21,7 +22,7 @@ export default function DefaultActionContainer(props: Props) {
   }, [sdk]);
 
   return (
-    <Dialog title={title} onClose={onCloseClick}>
+    <Dialog title={title} onClose={onClose} close={props.close}>
       <div ref={wrapperRef} />
     </Dialog>
   );

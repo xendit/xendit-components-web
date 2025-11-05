@@ -8,7 +8,7 @@ type CardBrand =
   | "UNIONPAY";
 
 type IframeChangeEvent = {
-  type: "change";
+  type: "xendit-iframe-change";
   encrypted: {
     iv: string;
     value: string;
@@ -20,20 +20,24 @@ type IframeChangeEvent = {
 };
 
 type IframeReadyEvent = {
-  type: "ready";
+  type: "xendit-iframe-ready";
   ecdhPublicKey: string;
 };
 
 type IframeFocusEvent = {
-  type: "focus";
+  type: "xendit-iframe-focus";
 };
 
 type IframeBlurEvent = {
-  type: "blur";
+  type: "xendit-iframe-blur";
 };
 
 type IframeFailedInitEvent = {
-  type: "failed_init";
+  type: "xendit-iframe-failed-init";
+};
+
+type IframeActionCompleteEvent = {
+  type: "xendit-iframe-action-complete";
 };
 
 export type IframeEvent =
@@ -41,7 +45,8 @@ export type IframeEvent =
   | IframeReadyEvent
   | IframeFocusEvent
   | IframeBlurEvent
-  | IframeFailedInitEvent;
+  | IframeFailedInitEvent
+  | IframeActionCompleteEvent;
 
 export type IframeFieldType =
   | "credit_card_number"

@@ -7,6 +7,7 @@ import { areArraysShallowEqual, ParsedSdkKey } from "../utils";
 export type SdkData = {
   sdkKey: ParsedSdkKey;
   sdkEvents: SdkEventManager;
+  mock: boolean;
 };
 
 /**

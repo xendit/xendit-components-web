@@ -170,7 +170,7 @@ async function createTestCase(testCaseName: string, inputType: string) {
     session_id: sessionId,
     input_type: inputType,
   });
-  const url = `./iframe.html?${search}`;
+  const url = `./secure-iframe.html?${search}`;
 
   // make ui
   const iframe = document.createElement("iframe");

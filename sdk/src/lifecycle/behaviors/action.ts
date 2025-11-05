@@ -22,13 +22,21 @@ export class ActionIframeBehavior implements Behavior {
 
   enter() {
     this.cleanupFn = this.data.sdkEvents.ensureHasActionContainer();
-    this.data.sdkEvents.populateActionContainerWithIframe(this.url);
+    this.data.sdkEvents.populateActionContainerWithIframe(
+      this.url,
+      this.data.mock,
+      this.cleanupActionContainer.bind(this),
+    );
   }
 
-  exit() {
+  cleanupActionContainer() {
     if (this.cleanupFn) {
       this.cleanupFn();
       this.cleanupFn = null;
     }
+  }
+
+  exit() {
+    this.cleanupActionContainer();
   }
 }
