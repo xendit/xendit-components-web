@@ -68,6 +68,10 @@ html {
   --xendit-animation-ease: ease-in-out;
   --xendit-radius-1: 8px;
   --xendit-z-index-focus: 2;
+
+  /* Browser-specific border collapse margins */
+  --xendit-border-collapse-offset: -0.5px; /* Default for Chrome/Edge */
+  --xendit-border-collapse-webkit-gecko: -1.5px; /* Fix Safari and Firefox subpixel rendering */
 }
 
 /* Set default font for root components */
@@ -275,57 +279,72 @@ xendit-payment-channel[inert] {
 
 /* TODO: Refine these class usages */
 .xendit-channel-form-field.field-radius-tl-0 input,
-.xendit-channel-form-field.field-radius-tl-0 select,
 .xendit-channel-form-field.field-radius-tl-0 button,
 .xendit-channel-form-field.field-radius-tl-0 .xendit-iframe-container {
   border-top-left-radius: 0;
 }
 
 .xendit-channel-form-field.field-radius-tr-0 input,
-.xendit-channel-form-field.field-radius-tr-0 select,
 .xendit-channel-form-field.field-radius-tr-0 button,
 .xendit-channel-form-field.field-radius-tr-0 .xendit-iframe-container {
   border-top-right-radius: 0;
 }
 
 .xendit-channel-form-field.field-radius-bl-0 input,
-.xendit-channel-form-field.field-radius-bl-0 select,
 .xendit-channel-form-field.field-radius-bl-0 button,
 .xendit-channel-form-field.field-radius-bl-0 .xendit-iframe-container {
   border-bottom-left-radius: 0;
 }
 
 .xendit-channel-form-field.field-radius-br-0 input,
-.xendit-channel-form-field.field-radius-br-0 select,
 .xendit-channel-form-field.field-radius-br-0 button,
 .xendit-channel-form-field.field-radius-br-0 .xendit-iframe-container {
   border-bottom-right-radius: 0;
 }
 
-.xendit-channel-form-field.field-collapse-r input,
-.xendit-channel-form-field.field-collapse-r select,
-.xendit-channel-form-field.field-collapse-r button {
-  margin-right: -0.5px;
+.xendit-channel-form-field.field-collapse-l,
+.xendit-channel-form-field.field-collapse-l {
+  margin-left: var(--xendit-border-collapse-offset);
 }
 
-.xendit-channel-form-field.field-collapse-l input,
-.xendit-channel-form-field.field-collapse-l select,
-.xendit-channel-form-field.field-collapse-l button {
-  margin-left: -0.5px;
+.xendit-channel-form-field.field-collapse-r,
+.xendit-channel-form-field.field-collapse-r {
+  margin-right: var(--xendit-border-collapse-offset);
+}
+
+.xendit-channel-form-field.field-collapse-l .xendit-iframe-container {
+  margin-left: calc(var(--xendit-border-collapse-offset) * 2);
+  width: calc(100% + abs(var(--xendit-border-collapse-offset) * 2));
+}
+
+.xendit-channel-form-field.field-collapse-r .xendit-iframe-container {
+  margin-right: 0;
 }
 
 .xendit-channel-form-field.field-collapse-t input,
-.xendit-channel-form-field.field-collapse-t select,
 .xendit-channel-form-field.field-collapse-t button,
 .xendit-channel-form-field.field-collapse-t .xendit-iframe-container {
-  margin-top: -0.5px;
+  margin-top: var(--xendit-border-collapse-offset);
 }
 
 .xendit-channel-form-field.field-collapse-b input,
-.xendit-channel-form-field.field-collapse-b select,
 .xendit-channel-form-field.field-collapse-b button,
 .xendit-channel-form-field.field-collapse-b .xendit-iframe-container {
-  margin-bottom: -0.5px;
+  margin-bottom: var(--xendit-border-collapse-offset);
+}
+
+/* Safari and Firefox specific adjustments */
+@supports (font: -apple-system-body) or (-moz-appearance: none) {
+  .xendit-channel-form-field.field-collapse-l .xendit-iframe-container {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .xendit-channel-form-field.field-collapse-b input,
+  .xendit-channel-form-field.field-collapse-b button {
+    margin-bottom: var(--xendit-border-collapse-webkit-gecko);
+    height: calc(100% + abs(var(--xendit-border-collapse-webkit-gecko) * 2));
+  }
 }
 
 .xendit-channel-form-field.field-collapse-r .xendit-iframe-container:focus {
@@ -375,6 +394,7 @@ xendit-payment-channel[inert] {
   width: 100%;
   padding: 0;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .xendit-channel-form-field .xendit-iframe-container iframe {

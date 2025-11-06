@@ -50,7 +50,6 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     position: ReturnType<typeof calculateFieldPosition>,
   ) => {
     const { fieldPositionBySpan, fieldRow, fieldColumn, isLastRow } = position;
-    console.log(position);
     return classNames({
       [CSS_CLASSES.BOTTOM_LEFT_0]:
         groupRowCount > fieldRow + 1 || fieldPositionBySpan % 2 === 1,
