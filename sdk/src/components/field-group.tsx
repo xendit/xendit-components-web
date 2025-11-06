@@ -4,7 +4,6 @@ import Field from "./field";
 import classNames from "classnames";
 import { formFieldName } from "../utils";
 
-// CSS class name constants for better readability
 const CSS_CLASSES = {
   BOTTOM_LEFT_0: "field-radius-bl-0",
   BOTTOM_RIGHT_0: "field-radius-br-0",
