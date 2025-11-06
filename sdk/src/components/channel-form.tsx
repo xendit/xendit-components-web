@@ -1,6 +1,5 @@
 import { forwardRef } from "react";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
-import Field from "./field";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { BffSession, BffSessionType } from "../backend-types/session";
 import {
@@ -10,6 +9,7 @@ import {
   useRef,
 } from "preact/hooks";
 import { useSession } from "./session-provider";
+import FieldGroup from "./field-group";
 
 interface Props {
   form: ChannelFormField[];
@@ -67,16 +67,13 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     return (
       <div class="xendit-channel-form">
         <form ref={formRef}>
-          {filteredFieldGroups.map((fieldGroup, groupIndex) => (
-            <div key={groupIndex} className="xendit-form-field-group">
-              {fieldGroup.map((field, fieldIndex) => (
-                <Field
-                  key={fieldIndex}
-                  field={field}
-                  onChange={handleFieldChanged}
-                />
-              ))}
-            </div>
+          {filteredFieldGroups.map((fieldGroup, index) => (
+            <FieldGroup
+              key={index}
+              fieldGroup={fieldGroup}
+              groupIndex={index}
+              handleFieldChanged={handleFieldChanged}
+            />
           ))}
         </form>
       </div>
@@ -198,7 +195,7 @@ export function useFilteredFormFields(
   form: ChannelFormField[],
 ) {
   // TODO: implement billing details feature
-  const showBillingDetailsFields = false;
+  const showBillingDetailsFields = true; // Changed to true for testing
 
   const filteredForm = useMemo(() => {
     return filterFormFields(

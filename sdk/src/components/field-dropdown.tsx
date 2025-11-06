@@ -1,6 +1,7 @@
 import { ChannelFormField, FieldType } from "../backend-types/channel";
+import { formFieldName } from "../utils";
 import { Dropdown, DropdownOption } from "./dropdown";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 
 const toDropdownOptions = (
   fieldOptions: (FieldType & { name: "dropdown" })["options"],

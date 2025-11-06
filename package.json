@@ -35,6 +35,7 @@
     "@rollup/plugin-commonjs": "^28.0.9",
     "@rollup/plugin-replace": "^6.0.2",
     "card-validator": "^10.0.3",
+    "classnames": "^2.5.1",
     "credit-card-type": "^10.1.0",
     "libphonenumber-js": "^1.12.25",
     "preact": "^10.27.2",

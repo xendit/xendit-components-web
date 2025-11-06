@@ -1,3 +1,4 @@
+import { ChannelFormField } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 
@@ -145,4 +146,20 @@ export function usePrevious<T>(value: T) {
 
   // eslint-disable-next-line react-hooks/refs
   return ref.current; // Return the value stored in the ref (which is the previous value)
+}
+
+/**
+ * Get the form field name for a given channel form field.
+ * @param field The channel form field to get the name for.
+ * @returns The form field name.
+ */
+export function formFieldName(field: ChannelFormField): string {
+  let id: string;
+  if (typeof field.channel_property === "string") {
+    id = field.channel_property;
+  } else {
+    const keys = Object.values(field.channel_property);
+    id = keys.join("__");
+  }
+  return id;
 }

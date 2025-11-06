@@ -363,7 +363,7 @@ export function makeTestBffData(): BffResponse {
               name: "country",
             },
             channel_property: "billing_information.country",
-            span: 2,
+            span: 1,
             required: true,
             flags: {
               require_billing_information: true,
@@ -377,7 +377,7 @@ export function makeTestBffData(): BffResponse {
               name: "province",
             },
             channel_property: "billing_information.province_state",
-            span: 2,
+            span: 1,
             required: true,
             flags: {
               require_billing_information: true,
