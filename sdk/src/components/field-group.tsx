@@ -27,7 +27,6 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     Record<string, string>
   >({});
 
-  const isJoinedGroup = fieldGroup.length > 1;
   const fieldGroupSpans = fieldGroup.map((f) => f.span);
   const groupRowCount = Math.ceil(
     fieldGroup.reduce((agg, field) => agg + field.span, 0) / 2,
@@ -97,12 +96,7 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
       <label htmlFor={formFieldName(fieldGroup[0])} className="xendit-text-14">
         {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
       </label>
-      <div
-        key={groupIndex}
-        className={classNames("xendit-form-field-group", {
-          "xendit-joined-field-group": isJoinedGroup,
-        })}
-      >
+      <div key={groupIndex} className="xendit-form-field-group">
         {fieldGroup.map((field, index) => {
           const position = calculateFieldPosition(index);
           const className = getFieldClassNames(field, index, position);
