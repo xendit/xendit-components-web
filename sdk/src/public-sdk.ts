@@ -42,11 +42,7 @@ import {
 } from "./components/payment-channel";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
-import {
-  BehaviorNode,
-  behaviorTreeUpdate,
-  findBehaviorNodeByType,
-} from "./lifecycle/behavior-tree-runner";
+import { BehaviorNode, BehaviorTree } from "./lifecycle/behavior-tree-runner";
 import { behaviorTreeForSdk } from "./lifecycle/behavior-tree";
 import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
@@ -148,7 +144,7 @@ export class XenditSessionSdk extends EventTarget {
     /**
      * Behavior tree for state management.
      */
-    behaviorTree: BehaviorNode<unknown[]> | null;
+    behaviorTree: BehaviorTree;
 
     /**
      * Components the user has created
@@ -198,18 +194,24 @@ export class XenditSessionSdk extends EventTarget {
 
     // Handle new public constructor format
     const publicOptions = options as XenditSdkOptions;
+    const eventManager = new SdkEventManager(this);
+    const sdkKey = parseSdkKey(publicOptions.sessionClientKey);
     this[internal] = {
-      sdkKey: parseSdkKey(publicOptions.sessionClientKey),
+      sdkKey,
       options: options,
       worldState: null,
-      eventManager: new SdkEventManager(this),
+      eventManager,
       liveComponents: {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
       },
       activeChannelCode: null,
-      behaviorTree: null,
+      behaviorTree: new BehaviorTree({
+        sdkEvents: eventManager,
+        sdkKey,
+        mock: this.isMock(),
+      }),
       hasInFlightSubmissionRequest: false,
     };
 
@@ -344,12 +346,7 @@ export class XenditSessionSdk extends EventTarget {
       });
     }
 
-    behaviorTreeUpdate(this[internal].behaviorTree ?? undefined, newTree, {
-      sdkKey: this[internal].sdkKey,
-      sdkEvents: this[internal].eventManager,
-      mock: this.isMock(),
-    });
-    this[internal].behaviorTree = newTree;
+    this[internal].behaviorTree.update(newTree);
   }
 
   /**
@@ -678,20 +675,23 @@ export class XenditSessionSdk extends EventTarget {
    * If no action container is created (or if the created container is removed from the DOM or is too small),
    * the SDK will create an action container (in a modal dialog) for you.
    */
-  createActionContainerComponent(): HTMLElement {
+  createActionContainerComponent(): HTMLElement;
+  /**
+   * @internal If isInternal is passed, it bypasses the action-in-progress check.
+   **/
+  createActionContainerComponent(isInternal: typeof internal): HTMLElement;
+  createActionContainerComponent(isInternal?: typeof internal): HTMLElement {
     this.assertInitialized();
 
-    if (!this[internal].behaviorTree) {
-      throw new Error(
-        "Behavior tree is missing; this is a bug, please contact support.",
-      );
-    }
-
-    const requiresActionBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
+    const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
       PeRequiresActionBehavior,
     );
-    if (requiresActionBehavior) {
+    //
+    if (
+      isInternal !== internal &&
+      requiresActionBehavior &&
+      !requiresActionBehavior.canCreateActionContainer
+    ) {
       throw new Error(
         "Unable to create action container; there is an action in progress. Create an action before or during the `action-begin` event.",
       );
@@ -769,13 +769,7 @@ export class XenditSessionSdk extends EventTarget {
   submit() {
     this.assertInitialized();
 
-    if (!this[internal].behaviorTree) {
-      throw new Error(
-        "Behavior tree is missing; this is a bug, please contact support.",
-      );
-    }
-    const sessionActiveBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
+    const sessionActiveBehavior = this[internal].behaviorTree.findBehavior(
       SessionActiveBehavior,
     );
     if (!sessionActiveBehavior) {
@@ -802,8 +796,7 @@ export class XenditSessionSdk extends EventTarget {
     const form = component.channelformRef?.current;
     form?.validate(); // force any form fields to display validation errors
 
-    const channelInvalidBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
+    const channelInvalidBehavior = this[internal].behaviorTree.findBehavior(
       ChannelInvalidBehavior,
     );
     if (channelInvalidBehavior) {
@@ -812,10 +805,8 @@ export class XenditSessionSdk extends EventTarget {
       );
     }
 
-    const channelValidBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
-      ChannelValidBehavior,
-    );
+    const channelValidBehavior =
+      this[internal].behaviorTree.findBehavior(ChannelValidBehavior);
     if (!channelValidBehavior) {
       throw new Error(
         "Unable to submit; the SDK is not in a valid state for submission. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
@@ -842,22 +833,13 @@ export class XenditSessionSdk extends EventTarget {
   abortSubmission() {
     this.assertInitialized();
 
-    if (!this[internal].behaviorTree) {
-      throw new Error(
-        "Behavior tree is missing; this is a bug, please contact support.",
-      );
-    }
-
-    const submissionBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
-      SubmissionBehavior,
-    );
+    const submissionBehavior =
+      this[internal].behaviorTree.findBehavior(SubmissionBehavior);
     if (!submissionBehavior) {
       return; // no submission in progress
     }
 
-    const sessionActiveBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
+    const sessionActiveBehavior = this[internal].behaviorTree.findBehavior(
       SessionActiveBehavior,
     );
     if (!sessionActiveBehavior) {
