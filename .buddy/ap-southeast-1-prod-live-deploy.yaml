@@ -53,7 +53,7 @@
       type: "CLOUD_FRONT"
       input_type: "SCM_REPOSITORY"
       local_path: "/components/*"
-      distribution_id: "E29DVLNWK1GMOS"
+      distribution_id: "E147G3U7WB0LPJ"
       purge_all: true
       purge_by_change_set_limit: 10
       trigger_conditions:
