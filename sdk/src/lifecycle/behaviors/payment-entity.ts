@@ -11,6 +11,7 @@ export class PePendingBehavior implements Behavior {
   ) {
     this.pollWorker = new PollWorker(
       this.data.sdkKey.sessionAuthKey,
+      this.data.mock,
       this.sessionTokenRequestId,
       this.onPollResult,
     );
@@ -44,6 +45,7 @@ export class PeRequiresActionBehavior implements Behavior {
   ) {
     this.pollWorker = new PollWorker(
       this.data.sdkKey.sessionAuthKey,
+      this.data.mock,
       this.sessionTokenRequestId,
       this.onPollResult,
     );
@@ -51,13 +53,11 @@ export class PeRequiresActionBehavior implements Behavior {
 
   enter() {
     this.data.sdkEvents.setHasAction(true);
-    this.data.sdkEvents.setActionContainerLocked(true);
     this.pollWorker.start();
   }
 
   exit() {
     this.pollWorker.stop();
-    this.data.sdkEvents.setActionContainerLocked(false);
     this.data.sdkEvents.setHasAction(false);
   }
 
@@ -74,10 +74,7 @@ export class PeRequiresActionBehavior implements Behavior {
 }
 
 export class PeFailedBehavior implements Behavior {
-  constructor(
-    private data: SdkData,
-    private paymentEntity: BffPaymentEntity,
-  ) {}
+  constructor(private data: SdkData) {}
 
   enter() {
     // TODO: emit payment attempt failed event

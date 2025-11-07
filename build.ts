@@ -7,10 +7,11 @@ execSync(`rm -rf "./temp-dts" "./temp" "./sdk/dist" "./secure-iframe/dist"`, {
   stdio: "inherit",
 });
 
-// run builds for both sub-projects
+// run builds for all sub-projects
 await Promise.all([
   await import("./sdk/build.ts"),
   await import("./secure-iframe/build.ts"),
+  await import("./landing-iframe/build.ts"),
 ]);
 
 // if prod, build .d.ts file for sdk

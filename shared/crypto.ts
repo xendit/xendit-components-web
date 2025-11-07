@@ -1,4 +1,4 @@
-const textEncoder = new TextEncoder();
+import { stringToUtf8Bytes } from "./utils";
 
 /**
  * Throws an error if `signature` is not a valid signature of `signee` with at least one of
@@ -107,7 +107,7 @@ export async function deriveSharedKey(
  * Hashes a string with SHA-256.
  */
 export async function hashText(value: string) {
-  const bytes = textEncoder.encode(value).buffer;
+  const bytes = stringToUtf8Bytes(value).buffer;
   const hashBytes = await crypto.subtle.digest(
     {
       name: "SHA-256",
@@ -127,7 +127,7 @@ export async function encryptText(
   additionalData: ArrayBuffer,
 ) {
   const ivBytes = crypto.getRandomValues(new Uint32Array(12)).buffer;
-  const plainTextBytes = textEncoder.encode(value).buffer;
+  const plainTextBytes = stringToUtf8Bytes(value).buffer;
   const cipherTextBytes = await crypto.subtle.encrypt(
     {
       name: "AES-GCM",

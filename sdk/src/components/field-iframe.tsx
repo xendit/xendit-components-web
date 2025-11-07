@@ -27,13 +27,13 @@ function getIframeByEnv(env: string) {
     case "local": {
       return {
         origin: "https://localhost:4444",
-        src: `https://localhost:4444/iframe.html`,
+        src: `https://localhost:4444/secure-iframe.html`,
       };
     }
     case "demo": {
       return {
         origin: "https://localhost:4442",
-        src: `https://localhost:4442/secure-iframe/iframe.html`,
+        src: `https://localhost:4442/secure-iframe/secure-iframe.html`,
       };
     }
   }
@@ -150,11 +150,11 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
       const data = event.data as IframeEvent;
       switch (data.type) {
-        case "ready": {
+        case "xendit-iframe-ready": {
           setIframeEcdhPublicKey(data.ecdhPublicKey);
           break;
         }
-        case "change": {
+        case "xendit-iframe-change": {
           if (!hiddenFieldRef.current) return;
 
           handleIframeEventResult(data);
@@ -186,22 +186,26 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           onChange?.();
           break;
         }
-        case "focus": {
+        case "xendit-iframe-focus": {
           setFocusWithin(true);
           break;
         }
-        case "blur": {
+        case "xendit-iframe-blur": {
           if (!validationResult.empty) setIsTouched(true);
           handleIframeEventResult();
           setFocusWithin(false);
           break;
         }
-        case "failed_init": {
+        case "xendit-iframe-failed-init": {
+          console.error(
+            `Iframe field for ${field.channel_property} failed to initialize securely`,
+          );
           break;
         }
       }
     },
     [
+      field.channel_property,
       handleIframeEventResult,
       iframeData.origin,
       iframeEcdhPublicKey,

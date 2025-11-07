@@ -22,6 +22,7 @@ export class PollWorker {
 
   constructor(
     private sessionAuthKey: string,
+    private mock: boolean,
     private sessionTokenRequestId: string | null,
     private onPollResult: (
       result: BffPollResponse,
@@ -34,6 +35,11 @@ export class PollWorker {
       throw new Error(
         "PollWorker has been stopped, make a new instance instead of calling start again",
       );
+    }
+
+    if (this.mock) {
+      // in mock mode, do not poll
+      return;
     }
 
     // retry loop with exponential backoff

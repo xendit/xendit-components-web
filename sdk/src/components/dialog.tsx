@@ -2,8 +2,18 @@ import { useCallback, useLayoutEffect, useRef } from "preact/hooks";
 import Icon from "./icon";
 
 type Props = {
+  /**
+   * Title shown above the border.
+   */
   title: string;
+  /**
+   * Called on close (after animation).
+   */
   onClose: () => void;
+  /**
+   * If true, close the dialog on the next render. The animation will play then onClose will be called.
+   */
+  close?: boolean;
   children?: React.ReactNode;
 };
 
@@ -58,6 +68,12 @@ export const Dialog: React.FC<Props> = (props) => {
     dialogRef.current?.animate(foregroundFadeKeyframes, animationOptions);
   }, []);
 
+  useLayoutEffect(() => {
+    if (props.close) {
+      onCloseWithAnimation();
+    }
+  }, [props.close, onCloseWithAnimation]);
+
   return (
     <div
       className="xendit-dialog-backdrop"
@@ -80,6 +96,7 @@ export const Dialog: React.FC<Props> = (props) => {
 const animationOptions: EffectTiming = {
   duration: 200,
   easing: "ease-in-out",
+  fill: "forwards",
 };
 
 const backdropFadeKeyframes: Keyframe[] = [

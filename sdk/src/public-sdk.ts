@@ -48,7 +48,7 @@ import {
   findBehaviorNodeByType,
 } from "./lifecycle/behavior-tree-runner";
 import { behaviorTreeForSdk } from "./lifecycle/behavior-tree";
-import { BffSession, BffSessionType } from "./backend-types/session";
+import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
@@ -64,7 +64,11 @@ import {
 import { BffResponse, BffSucceededChannel } from "./backend-types/common";
 import { mergeIgnoringUndefined, ParsedSdkKey, parseSdkKey } from "./utils";
 import { makeTestSdkKey } from "./test-data";
-import { ChannelValidBehavior } from "./lifecycle/behaviors/channel";
+import {
+  ChannelInvalidBehavior,
+  ChannelValidBehavior,
+} from "./lifecycle/behaviors/channel";
+import { PeRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity";
 
 /**
  * @internal
@@ -266,6 +270,10 @@ export class XenditSessionSdk extends EventTarget {
     }
   }
 
+  protected isMock(): boolean {
+    return false;
+  }
+
   private findChannel(channelCode: string) {
     this.assertInitialized();
 
@@ -339,6 +347,7 @@ export class XenditSessionSdk extends EventTarget {
     behaviorTreeUpdate(this[internal].behaviorTree ?? undefined, newTree, {
       sdkKey: this[internal].sdkKey,
       sdkEvents: this[internal].eventManager,
+      mock: this.isMock(),
     });
     this[internal].behaviorTree = newTree;
   }
@@ -672,6 +681,22 @@ export class XenditSessionSdk extends EventTarget {
   createActionContainerComponent(): HTMLElement {
     this.assertInitialized();
 
+    if (!this[internal].behaviorTree) {
+      throw new Error(
+        "Behavior tree is missing; this is a bug, please contact support.",
+      );
+    }
+
+    const requiresActionBehavior = findBehaviorNodeByType(
+      this[internal].behaviorTree,
+      PeRequiresActionBehavior,
+    );
+    if (requiresActionBehavior) {
+      throw new Error(
+        "Unable to create action container; there is an action in progress. Create an action before or during the `action-begin` event.",
+      );
+    }
+
     const container = document.createElement(
       "xendit-action-container-component",
     );
@@ -777,36 +802,32 @@ export class XenditSessionSdk extends EventTarget {
     const form = component.channelformRef?.current;
     form?.validate(); // force any form fields to display validation errors
 
+    const channelInvalidBehavior = findBehaviorNodeByType(
+      this[internal].behaviorTree,
+      ChannelInvalidBehavior,
+    );
+    if (channelInvalidBehavior) {
+      throw new Error(
+        "Unable to submit; the form for the active channel has errors. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
+      );
+    }
+
     const channelValidBehavior = findBehaviorNodeByType(
       this[internal].behaviorTree,
       ChannelValidBehavior,
     );
     if (!channelValidBehavior) {
       throw new Error(
-        "Unable to submit; the form for the active channel has errors. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
+        "Unable to submit; the SDK is not in a valid state for submission. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
       );
     }
 
     const sessionType = this[internal].worldState.session.session_type;
-    this.internalSubmit(
-      sessionActiveBehavior,
+    sessionActiveBehavior.submit(
       sessionType,
       channelCode,
       component.channelProperties ?? {},
     );
-  }
-
-  /**
-   * @internal
-   * Separate logic for actual submission, to allow overriding in subclasses.
-   */
-  protected internalSubmit(
-    behavior: SessionActiveBehavior,
-    sessionType: BffSessionType,
-    channelCode: string,
-    channelProperties: ChannelProperties,
-  ) {
-    behavior.submit(sessionType, channelCode, channelProperties);
   }
 
   /**
@@ -1094,15 +1115,9 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
 
   /**
    * @internal
-   * Creates a mock submission.
+   * Indicates that this is a mock SDK.
    */
-  protected internalSubmit(
-    behavior: SessionActiveBehavior,
-    sessionType: BffSessionType,
-    channelCode: string,
-    channelProperties: ChannelProperties,
-  ) {
-    // override this method to use mock submission
-    behavior.submitMock(sessionType, channelCode);
+  protected isMock(): boolean {
+    return true;
   }
 }

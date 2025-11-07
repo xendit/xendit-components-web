@@ -28,3 +28,9 @@ export function arrayBufferToBase64(buffer: ArrayBuffer) {
   }
   return btoa(binary);
 }
+
+const textEncoder = new TextEncoder();
+
+export function stringToUtf8Bytes(str: string): Uint8Array<ArrayBuffer> {
+  return textEncoder.encode(str);
+}

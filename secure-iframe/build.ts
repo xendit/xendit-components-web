@@ -100,7 +100,10 @@ async function rollupProductionBuild() {
   const html = await completeRollupBuild(build);
 
   mkdirSync(path.join(import.meta.dirname, "dist"), { recursive: true });
-  await fs.writeFile(path.join(import.meta.dirname, "dist/iframe.html"), html);
+  await fs.writeFile(
+    path.join(import.meta.dirname, "dist/secure-iframe.html"),
+    html,
+  );
 }
 
 async function rollupWatch() {
@@ -165,7 +168,7 @@ async function handleDevServerRequest(
         .end(await generateTestPage());
       return;
     }
-    case "GET /iframe.html": {
+    case "GET /secure-iframe.html": {
       if (!lastSeenBuildOutput) {
         res
           .writeHead(503, { "Content-Type": "text/plain" })
