@@ -61,6 +61,31 @@ export class XenditNotReadyEvent extends Event {
 
 /**
  * @public
+ * Event sometimes fired after submission.
+ */
+export class XenditSubmissionBeginEvent extends Event {
+  static type = "submission-begin" as const;
+
+  constructor() {
+    super(XenditSubmissionBeginEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Event sometimes fired when a submission is complete, including the action.
+ * After this, a session-complete or session-failed event will be fired.
+ */
+export class XenditSubmissionEndEvent extends Event {
+  static type = "submission-end" as const;
+
+  constructor() {
+    super(XenditSubmissionEndEvent.type, {});
+  }
+}
+
+/**
+ * @public
  * Event sometimes fired after submission, if an action is required.
  */
 export class XenditActionBeginEvent extends Event {

@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
 import {
   CardBrand,
@@ -16,6 +16,7 @@ import { InternalInputValidateEvent } from "../private-event-types";
 import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
+import { formFieldName } from "../utils";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -64,7 +65,7 @@ type ValidationState = {
 };
 
 export const IframeField: React.FC<FieldProps> = (props) => {
-  const { field, onChange } = props;
+  const { field, onChange, onError } = props;
 
   const sdk = useSdk();
   const iframeData = useMemo(() => getIframeByEnv(sdk.env), [sdk.env]);
@@ -92,37 +93,43 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
   const { card } = useChannel() ?? {};
 
+  const handleErrorUpdate = useCallback(
+    (validationState: ValidationState) => {
+      const errorMessage = computeFieldError(validationState, field.required);
+      if (onError) onError(id, errorMessage);
+      setError(errorMessage);
+    },
+    [field.required, id, onError],
+  );
+
   const handleIframeEventResult = useCallback(
     (incoming?: IframeChangeEvent) => {
       setValidationResult((prev) => {
         const next = toValidationState(incoming, prev);
         if (!isTouched && incoming) return next;
-        setError(computeFieldError(next, field.required));
+        handleErrorUpdate(next);
         return next;
       });
     },
-    [field.required, isTouched],
+    [handleErrorUpdate, isTouched],
   );
 
   useEffect(() => {
+    // listen to the Input validation event from parent form
     if (!hiddenFieldRef.current) return;
     const input = hiddenFieldRef.current;
     const listener = () => {
-      const errorMessage = computeFieldError(
-        {
-          empty: validationResult.empty,
-          validationErrorCodes: validationResult.validationErrorCodes,
-        } as ValidationState,
-        field.required,
-      );
-      setError(errorMessage);
+      handleErrorUpdate({
+        empty: validationResult.empty,
+        validationErrorCodes: validationResult.validationErrorCodes,
+      } as ValidationState);
       setIsTouched(true);
     };
     input.addEventListener(InternalInputValidateEvent.type, listener);
     return () => {
       input.removeEventListener(InternalInputValidateEvent.type, listener);
     };
-  }, [field.required, id, validationResult]);
+  }, [handleErrorUpdate, validationResult]);
 
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
@@ -248,9 +255,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           />
         )}
       </div>
-      {error && (
-        <span className="xendit-error-message xendit-text-14">{error}</span>
-      )}
     </>
   );
 };

@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useRef } from "preact/hooks";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 import { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
+import { formFieldName } from "../utils";
 
 export const ProvinceField: React.FC<FieldProps> = (props) => {
   const { field, onChange } = props;

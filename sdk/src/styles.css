@@ -59,6 +59,7 @@ html {
   --xendit-color-disabled: #f7f7f7;
   --xendit-color-danger: #d1414d;
   --xendit-color-border: rgba(0, 0, 0, 0.05);
+  --xendit-color-border-subtle: rgba(243, 243, 243);
   --xendit-color-border-default: #ededed;
   --xendit-color-background: #ffffff;
   --xendit-focus-shadow: 0px 0px 0px 2px
@@ -66,6 +67,11 @@ html {
   --xendit-animation-duration: 0.3s;
   --xendit-animation-ease: ease-in-out;
   --xendit-radius-1: 8px;
+  --xendit-z-index-focus: 2;
+
+  /* Browser-specific border collapse margins */
+  --xendit-border-collapse-offset: -0.5px; /* Default for Chrome/Edge */
+  --xendit-border-collapse-webkit-gecko: -1.5px; /* Fix Safari and Firefox subpixel rendering */
 }
 
 /* Set default font for root components */
@@ -243,7 +249,6 @@ xendit-payment-channel[inert] {
 .xendit-form-field-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-gap: 16px 12px;
 }
 
 .xendit-channel-form-field {
@@ -252,7 +257,12 @@ xendit-payment-channel[inert] {
   gap: 8px;
 }
 
-.xendit-channel-form-field label {
+.xendit-channel-form-field-group {
+  display: grid;
+  gap: 8px;
+}
+
+.xendit-channel-form-field-group label {
   width: fit-content;
   cursor: pointer;
 }
@@ -261,11 +271,90 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field select,
 .xendit-channel-form-field .xendit-iframe-container {
   display: flex;
-  border: 1px solid var(--xendit-color-border);
+  border: 1px solid var(--xendit-color-border-subtle);
   border-radius: 8px;
   padding: 12px;
   appearance: none;
 }
+
+/* TODO: Refine these class usages */
+.xendit-channel-form-field.field-radius-tl-0 input,
+.xendit-channel-form-field.field-radius-tl-0 button,
+.xendit-channel-form-field.field-radius-tl-0 .xendit-iframe-container {
+  border-top-left-radius: 0;
+}
+
+.xendit-channel-form-field.field-radius-tr-0 input,
+.xendit-channel-form-field.field-radius-tr-0 button,
+.xendit-channel-form-field.field-radius-tr-0 .xendit-iframe-container {
+  border-top-right-radius: 0;
+}
+
+.xendit-channel-form-field.field-radius-bl-0 input,
+.xendit-channel-form-field.field-radius-bl-0 button,
+.xendit-channel-form-field.field-radius-bl-0 .xendit-iframe-container {
+  border-bottom-left-radius: 0;
+}
+
+.xendit-channel-form-field.field-radius-br-0 input,
+.xendit-channel-form-field.field-radius-br-0 button,
+.xendit-channel-form-field.field-radius-br-0 .xendit-iframe-container {
+  border-bottom-right-radius: 0;
+}
+
+.xendit-channel-form-field.field-collapse-l,
+.xendit-channel-form-field.field-collapse-l {
+  margin-left: var(--xendit-border-collapse-offset);
+}
+
+.xendit-channel-form-field.field-collapse-r,
+.xendit-channel-form-field.field-collapse-r {
+  margin-right: var(--xendit-border-collapse-offset);
+}
+
+.xendit-channel-form-field.field-collapse-l .xendit-iframe-container {
+  margin-left: calc(var(--xendit-border-collapse-offset) * 2);
+  width: calc(100% + abs(var(--xendit-border-collapse-offset) * 2));
+}
+
+.xendit-channel-form-field.field-collapse-r .xendit-iframe-container {
+  margin-right: 0;
+}
+
+.xendit-channel-form-field.field-collapse-t input,
+.xendit-channel-form-field.field-collapse-t button,
+.xendit-channel-form-field.field-collapse-t .xendit-iframe-container {
+  margin-top: var(--xendit-border-collapse-offset);
+}
+
+.xendit-channel-form-field.field-collapse-b input,
+.xendit-channel-form-field.field-collapse-b button,
+.xendit-channel-form-field.field-collapse-b .xendit-iframe-container {
+  margin-bottom: var(--xendit-border-collapse-offset);
+}
+
+/* Safari and Firefox specific adjustments */
+@supports (font: -apple-system-body) or (-moz-appearance: none) {
+  .xendit-channel-form-field.field-collapse-l .xendit-iframe-container {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .xendit-channel-form-field.field-collapse-b input,
+  .xendit-channel-form-field.field-collapse-b button {
+    margin-bottom: var(--xendit-border-collapse-webkit-gecko);
+    height: calc(100% + abs(var(--xendit-border-collapse-webkit-gecko) * 2));
+  }
+}
+
+.xendit-channel-form-field.field-collapse-r .xendit-iframe-container:focus {
+  border-right: none;
+}
+
+.xendit-channel-form-field.field-collapse-l .xendit-iframe-container:focus {
+  border-left: none;
+}
+/* Ends TODO */
 
 .xendit-card-brand-logo {
   width: 32px;
@@ -287,6 +376,12 @@ xendit-payment-channel[inert] {
   border-color: var(--xendit-color-primary);
   box-shadow: var(--xendit-focus-shadow);
   outline: none;
+  z-index: var(--xendit-z-index-focus);
+}
+
+.xendit-channel-form-field button:focus {
+  position: relative;
+  z-index: var(--xendit-z-index-focus);
 }
 
 .xendit-channel-form-field input.invalid,
@@ -299,6 +394,7 @@ xendit-payment-channel[inert] {
   width: 100%;
   padding: 0;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .xendit-channel-form-field .xendit-iframe-container iframe {
@@ -420,7 +516,7 @@ xendit-payment-channel[inert] {
   gap: 8px;
   text-align: left;
   background-color: var(--xendit-color-background);
-  border: 1px solid var(--xendit-color-border);
+  border: 1px solid var(--xendit-color-border-subtle);
   border-radius: var(--xendit-radius-1);
   justify-content: space-between;
   padding: 12px;

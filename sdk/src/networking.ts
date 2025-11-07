@@ -14,20 +14,33 @@ function convertDataToUrlSearchParams<T extends object>(data: T) {
 export function endpoint<ResponseBody, PathArg>(
   method: "GET",
   getPath: (pathArg: PathArg) => string,
-): (pathArg: PathArg) => Promise<ResponseBody>;
+): (
+  pathArg: PathArg,
+  queryArg?: null,
+  abortSignal?: AbortSignal,
+) => Promise<ResponseBody>;
 
 // GET with path param and query param
 export function endpoint<ResponseBody, PathArg, QueryArg = never>(
   method: "GET",
   getPath: (pathArg: PathArg) => string,
   getQuery: (queryArg: QueryArg) => URLSearchParams,
-): (pathArg: PathArg, queryArg?: QueryArg) => Promise<ResponseBody>;
+): (
+  pathArg: PathArg,
+  queryArg?: QueryArg,
+  abortSignal?: AbortSignal,
+) => Promise<ResponseBody>;
 
 // POST with path param
 export function endpoint<RequestBody, ResponseBody, PathArg>(
   method: "POST",
   getPath: (pathArg: PathArg) => string,
-): (requestBody: RequestBody, pathArg: PathArg) => Promise<ResponseBody>;
+): (
+  requestBody: RequestBody,
+  pathArg: PathArg,
+  queryArg?: null,
+  abortSignal?: AbortSignal,
+) => Promise<ResponseBody>;
 
 // POST with path param and query param
 export function endpoint<RequestBody, ResponseBody, PathArg, QueryArg = never>(
@@ -38,6 +51,7 @@ export function endpoint<RequestBody, ResponseBody, PathArg, QueryArg = never>(
   requestBody: RequestBody,
   pathArg: PathArg,
   queryArg?: QueryArg,
+  abortSignal?: AbortSignal,
 ) => Promise<ResponseBody>;
 
 /**
@@ -70,22 +84,27 @@ export function endpoint(
     let pathArg: unknown;
     let queryArg: unknown;
     let requestBody: unknown;
+    let abortSignal: unknown;
 
     switch (method) {
       case "GET":
-        [pathArg, queryArg] = rest;
+        [pathArg, queryArg, abortSignal] = rest;
         break;
       case "POST":
-        [requestBody, pathArg, queryArg] = rest;
+        [requestBody, pathArg, queryArg, abortSignal] = rest;
         break;
       default:
-        throw new Error(`Unsupported method: ${method}`);
+        throw new Error(
+          `Unable to call endpoint with method ${method}; this is a bug, please contact support.`,
+        );
     }
 
     const url = new URL(getPath(pathArg), BACKEND_HOST);
     if (getQuery) {
       if (queryArg === undefined) {
-        throw new Error("queryArg is required but was not provided");
+        throw new Error(
+          "Query string argument is missing; this is a bug, please contact support.",
+        );
       }
       url.search = getQuery(queryArg).toString();
     }
@@ -95,10 +114,14 @@ export function endpoint(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
+      signal: abortSignal as AbortSignal | undefined,
     };
     const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error(`Failed to call ${method} ${getPath(pathArg)}`);
+      throw new Error(
+        // TODO: proper error handling for this
+        `Failed to call ${method} ${getPath(pathArg)}; status ${response.status}`,
+      );
     }
     return response.json();
   };

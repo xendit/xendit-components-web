@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChannelFormField } from "../backend-types/channel";
-import { FieldProps, formFieldName } from "./field";
+import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
+import { formFieldName } from "../utils";
 
 export const TextField: React.FC<FieldProps> = (props) => {
-  const { field, onChange } = props;
+  const { field, onChange, onError } = props;
   const id = formFieldName(field);
   const [error, setError] = useState<string | null>(null);
   const [isTouched, setIsTouched] = useState(false);
@@ -26,11 +27,12 @@ export const TextField: React.FC<FieldProps> = (props) => {
   const validateField = useCallback(
     (value: string) => {
       const errorMessage = validate(field, value) ?? null;
+      if (onError) onError(id, errorMessage);
       setError(errorMessage);
       setIsTouched(true);
       return errorMessage;
     },
-    [field],
+    [field, id, onError],
   );
 
   useEffect(() => {
@@ -60,9 +62,6 @@ export const TextField: React.FC<FieldProps> = (props) => {
         minLength={isTextField(field) ? field.type.min_length : undefined}
         maxLength={isTextField(field) ? field.type.max_length : undefined}
       />
-      {error && (
-        <span className="xendit-error-message xendit-text-14">{error}</span>
-      )}
     </>
   );
 };

@@ -1,13 +1,48 @@
+import { ChannelFormField } from "./backend-types/channel";
+import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   if (arg === null || arg === undefined) {
-    throw new Error("Assertion failed: argument is null or undefined");
+    throw new Error(
+      "Assertion failed: argument is null or undefined; this is a bug, please contact support.",
+    );
   }
 }
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * A sleep function that can be cancelled via an AbortSignal.
+ */
+export function cancellableSleep(
+  ms: number,
+  signal: AbortSignal,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      resolve();
+    }, ms);
+
+    // already aborted
+    if (signal.aborted) {
+      clearTimeout(timeoutId);
+      reject(new Error("Aborted"));
+      return;
+    }
+
+    // abort on signal
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timeoutId);
+        reject(new Error("Aborted"));
+      },
+      { once: true },
+    );
+  });
 }
 
 export function camelCaseToKebabCase(str: string): string {
@@ -57,11 +92,15 @@ export type ParsedSdkKey = {
 
 export function parseSdkKey(componentsSdkKey: string): ParsedSdkKey {
   if (!componentsSdkKey) {
-    throw new Error("componentsSdkKey is missing");
+    throw new Error(
+      "The componentsSdkKey option is missing; check the constructor parameters.",
+    );
   }
   const parts = componentsSdkKey.split("-");
   if (parts.length < 4) {
-    throw new Error("Invalid componentsSdkKey format");
+    throw new Error(
+      "The componentsSdkKey option has the wrong format. Ensure you pass the value returned from the `components_sdk_key` property of the `POST /sessions` response.",
+    );
   }
   return {
     sessionAuthKey: [parts[0], parts[1]].join("-"),
@@ -96,4 +135,31 @@ export function mergeIgnoringUndefined<T>(
     }
   }
   return result;
+}
+
+export function usePrevious<T>(value: T) {
+  const ref = useRef<T>(); // Create a ref to store the previous value
+
+  useLayoutEffect(() => {
+    ref.current = value; // Update the ref's current value after each render
+  });
+
+  // eslint-disable-next-line react-hooks/refs
+  return ref.current; // Return the value stored in the ref (which is the previous value)
+}
+
+/**
+ * Get the form field name for a given channel form field.
+ * @param field The channel form field to get the name for.
+ * @returns The form field name.
+ */
+export function formFieldName(field: ChannelFormField): string {
+  let id: string;
+  if (typeof field.channel_property === "string") {
+    id = field.channel_property;
+  } else {
+    const keys = Object.values(field.channel_property);
+    id = keys.join("__");
+  }
+  return id;
 }
