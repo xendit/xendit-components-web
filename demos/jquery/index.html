@@ -55,13 +55,22 @@
             </div>
           </div>
           <p>Total: <span class="total-contianer"></span></p>
-          <button class="begin-checkout">Begin Checkout</button>
+          <label for="components-sdk-key">Components SDK Key:</label>
+          <input id="components-sdk-key" />
+          <button class="begin-checkout">Begin Checkout (With SDK Key)</button>
+          <button class="begin-checkout" data-mock="true">
+            Begin Checkout (Mock)
+          </button>
         </div>
         <div class="right">
           <div class="payment-container"></div>
           <button class="submit" style="display: none">Submit</button>
         </div>
       </div>
+    </div>
+    <div class="payment-processing" style="display: none">
+      <h2>Payment Processing</h2>
+      <p>Follow the instructions to make payment.</p>
     </div>
     <div class="payment-success" style="display: none">
       <h2>Payment Success</h2>

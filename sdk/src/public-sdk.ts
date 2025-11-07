@@ -10,7 +10,6 @@ import {
   XenditEventListener,
   XenditEventMap,
   XenditInitEvent,
-  XenditNotReadyEvent,
   XenditReadyEvent,
   XenditSessionCompleteEvent,
   XenditSessionFailedEvent,
@@ -57,12 +56,17 @@ import {
   InternalHasInFlightRequestEvent,
   InternalUpdateWorldState,
 } from "./private-event-types";
-import { BffResponse, BffSucceededChannel } from "./backend-types/common";
+import {
+  BffPollResponse,
+  BffResponse,
+  BffSucceededChannel,
+} from "./backend-types/common";
 import {
   canBeSimulated,
   mergeIgnoringUndefined,
   ParsedSdkKey,
   parseSdkKey,
+  sleep,
 } from "./utils";
 import { makeTestSdkKey } from "./test-data";
 import {
@@ -191,9 +195,6 @@ export class XenditSessionSdk extends EventTarget {
    * });
    * ```
    */
-  /**
-   * @internal
-   */
   constructor(options: XenditSdkOptions) {
     super();
 
@@ -240,7 +241,7 @@ export class XenditSessionSdk extends EventTarget {
    * @internal
    * Initialize session data asynchronously
    */
-  protected async initializeAsync() {
+  protected async initializeAsync(): Promise<void> {
     let bff: BffResponse;
     try {
       // Fetch session data from the server
@@ -269,7 +270,7 @@ export class XenditSessionSdk extends EventTarget {
    * @internal
    * Throws if the SDK is not initialized.
    */
-  private assertInitialized(): asserts this is InitializedSdk {
+  public assertInitialized(): asserts this is InitializedSdk {
     if (!this[internal].worldState) {
       throw new Error(
         "The session data is not loaded. Listen for the `init` event. Only `createChannelPickerComponent` can be called before initialization.",
@@ -277,10 +278,16 @@ export class XenditSessionSdk extends EventTarget {
     }
   }
 
-  protected isMock(): boolean {
+  /**
+   * @internal
+   */
+  public isMock(): boolean {
     return false;
   }
 
+  /**
+   * @internal
+   */
   private findChannel(channelCode: string) {
     this.assertInitialized();
 
@@ -873,7 +880,7 @@ export class XenditSessionSdk extends EventTarget {
    * Completes a payment in test mode.
    *
    * The session must be in test mode, and the session type must be PAY, and
-   * the sdk must have an in-progress action, and the channel must be QR, VA, or OTC channel.
+   * the sdk must have an in-progress action, and the channel must be a QR, VA, or OTC channel.
    *
    * @example
    * ```
@@ -1123,6 +1130,13 @@ export class XenditSessionSdk extends EventTarget {
  */
 export class XenditSessionTestSdk extends XenditSessionSdk {
   /**
+   * @internal
+   * The mock to apply on the next poll.
+   */
+  public nextMockUpdate: BffPollResponse | null = null;
+
+  /**
+   * @public
    * Test SDK ignores sessionClientKey and uses a mock key.
    */
   constructor(
@@ -1140,9 +1154,9 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
    * @internal
    * Override to use test data instead of making API calls
    */
-  protected async initializeAsync() {
-    // Emit "not-ready" event initially
-    this.dispatchEvent(new XenditNotReadyEvent());
+  protected async initializeAsync(): Promise<void> {
+    // Simulate network delay and prevent firing the init event before the constructor returns
+    await sleep(50);
 
     // Always use test data for this class
     const bff = (await import("./test-data")).makeTestBffData();
@@ -1166,7 +1180,7 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
    * @internal
    * Indicates that this is a mock SDK.
    */
-  protected isMock(): boolean {
+  public isMock(): boolean {
     return true;
   }
 }

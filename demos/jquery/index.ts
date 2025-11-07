@@ -1,5 +1,5 @@
 import $ from "jquery";
-import { XenditSessionTestSdk } from "../../sdk/dist/index.esm";
+import { XenditSessionSdk, XenditSessionTestSdk } from "xendit-components";
 
 const cart: [string, string][] = [];
 
@@ -7,6 +7,7 @@ $(function () {
   function hidePages() {
     $(".store").hide();
     $(".checkout").hide();
+    $(".payment-processing").hide();
     $(".payment-success").hide();
   }
 
@@ -46,22 +47,49 @@ $(function () {
   });
 
   $(".begin-checkout").on("click", function () {
-    // Using the test SDK class
-    const sdk = new XenditSessionTestSdk({
-      sessionClientKey: "test",
-    });
+    let sdk: XenditSessionSdk;
+    if ($(this).data("mock")) {
+      // Using the test SDK class
+      sdk = new XenditSessionTestSdk({});
+    } else {
+      sdk = new XenditSessionSdk({
+        sessionClientKey: $("#components-sdk-key").val() as string,
+      });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).sdk = sdk;
+
     sdk.env = "demo";
 
     // The channel picker element is returned immediately and populated after initialization
     const channelPicker = sdk.createChannelPickerComponent();
     $(".payment-container").append(channelPicker);
-    $(".submit").show();
+
+    $(sdk).on("init", function () {
+      $(".submit").show();
+
+      // auto-select cards
+      const channel = sdk
+        .getAvailablePaymentChannels()
+        .find((c) => c.channelCode === "CARDS");
+      if (channel) sdk.createPaymentComponentForChannel(channel);
+    });
 
     $(sdk).on("ready", function () {
       $(".submit").prop("disabled", false);
     });
     $(sdk).on("not-ready", function () {
       $(".submit").prop("disabled", true);
+    });
+
+    $(sdk).on("submission-begin", function () {
+      hidePages();
+      $(".payment-processing").show();
+    });
+    $(sdk).on("submission-end", function () {
+      hidePages();
+      $(".checkout").show();
     });
 
     $(sdk).on("session-complete", () => {

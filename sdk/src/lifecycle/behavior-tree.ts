@@ -117,7 +117,7 @@ export function behaviorTreeForForm(data: {
     channelPropertiesAreValid(
       data.session.session_type,
       data.channel,
-      data.channelProperties,
+      data.channelProperties ?? null,
       showBillingDetails,
     )
   ) {

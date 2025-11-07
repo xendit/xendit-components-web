@@ -119,18 +119,23 @@ async function initPinningKeys() {
   const pinningKeysData: JsonWebKey[] = await pinningKeysResponse.json();
 
   pinningKeys = await Promise.all(
-    pinningKeysData.map((jwk) => {
-      return crypto.subtle.importKey(
-        "jwk",
-        jwk,
-        {
-          name: "ECDSA",
-          namedCurve: "P-384",
-        },
-        true,
-        ["sign"],
-      );
-    }),
+    pinningKeysData
+      .filter((jwk) => {
+        // filter to only private keys
+        return jwk.d !== undefined;
+      })
+      .map((jwk) => {
+        return crypto.subtle.importKey(
+          "jwk",
+          jwk,
+          {
+            name: "ECDSA",
+            namedCurve: "P-384",
+          },
+          true,
+          ["sign"],
+        );
+      }),
   );
 }
 
@@ -155,7 +160,7 @@ async function createTestCase(testCaseName: string, inputType: string) {
       name: "ECDSA",
       hash: { name: "SHA-256" },
     },
-    pinningKeys[1],
+    pinningKeys[0],
     ecdhPublicKeyBytes,
   );
 

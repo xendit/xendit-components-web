@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  xendit-components: link:../Library/pnpm/global/5/node_modules/xendit-components
+
 importers:
 
   .:
