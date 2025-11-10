@@ -163,7 +163,7 @@ export function behaviorTreeForPaymentEntity(data: {
     case "FAILED":
     case "EXPIRED":
     case "CANCELED": {
-      return behaviorNode(PeFailedBehavior, [data.paymentEntity]);
+      return behaviorNode(PeFailedBehavior, []);
     }
     case "ACCEPTING_PAYMENTS": {
       // Never happens because sessions don't set the PR type to REUSABLE_PAYMENT_CODE

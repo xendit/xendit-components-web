@@ -1,6 +1,9 @@
 import { pollSession } from "../../api";
 import { BffPollResponse } from "../../backend-types/common";
-import { BffPaymentEntity } from "../../backend-types/payment-entity";
+import {
+  BffPaymentEntity,
+  toPaymentEntity,
+} from "../../backend-types/payment-entity";
 import { retryLoop, sleep } from "../../utils";
 
 /**
@@ -18,10 +21,12 @@ import { retryLoop, sleep } from "../../utils";
  * poller.stop();
  */
 export class PollWorker {
+  started = false;
   stopped = false;
 
   constructor(
     private sessionAuthKey: string,
+    private mock: boolean,
     private sessionTokenRequestId: string | null,
     private onPollResult: (
       result: BffPollResponse,
@@ -34,6 +39,12 @@ export class PollWorker {
       throw new Error(
         "PollWorker has been stopped, make a new instance instead of calling start again",
       );
+    }
+    this.started = true;
+
+    if (this.mock) {
+      // in mock mode, do not poll
+      return;
     }
 
     // retry loop with exponential backoff
@@ -61,15 +72,9 @@ export class PollWorker {
 
       let paymentEntity: BffPaymentEntity | null = null;
       if (response.payment_token) {
-        paymentEntity = {
-          type: "paymentToken",
-          entity: response.payment_token,
-        };
+        paymentEntity = toPaymentEntity(response.payment_token);
       } else if (response.payment_request) {
-        paymentEntity = {
-          type: "paymentRequest",
-          entity: response.payment_request,
-        };
+        paymentEntity = toPaymentEntity(response.payment_request);
       }
 
       this.onPollResult(response, paymentEntity);
@@ -79,7 +84,12 @@ export class PollWorker {
     }
   }
 
+  isPolling() {
+    return this.started && !this.stopped;
+  }
+
   stop() {
+    this.started = false;
     this.stopped = true;
   }
 }

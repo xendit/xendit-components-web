@@ -1,6 +1,6 @@
 import { ChannelFormField } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
-import { BffAction } from "./backend-types/payment-entity";
+import { BffAction, BffPaymentRequest } from "./backend-types/payment-entity";
 
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   if (arg === null || arg === undefined) {
@@ -120,6 +120,7 @@ export function areArraysShallowEqual(a: unknown[], b: unknown[]) {
   }
   return true;
 }
+
 /**
  * Return a copy of original, with properties from updates applied on top, except undefined properties.
  */
@@ -162,4 +163,15 @@ export function formFieldName(field: ChannelFormField): string {
     id = keys.join("__");
   }
   return id;
+}
+
+export function canBeSimulated(paymentRequest: BffPaymentRequest): boolean {
+  switch (paymentRequest.pm_type) {
+    case "QR_CODE":
+    case "VIRTUAL_ACCOUNT":
+    case "OVER_THE_COUNTER":
+      return true;
+    default:
+      return false;
+  }
 }

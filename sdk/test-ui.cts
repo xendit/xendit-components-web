@@ -65,6 +65,14 @@ const submitButton = document.createElement("button");
 submitButton.textContent = "Submit";
 controlsDiv.appendChild(submitButton);
 
+const abortButton = document.createElement("button");
+abortButton.textContent = "Abort";
+controlsDiv.appendChild(abortButton);
+
+const simulateButton = document.createElement("button");
+simulateButton.textContent = "Simulate Payment";
+controlsDiv.appendChild(simulateButton);
+
 const { XenditSessionSdk, XenditSessionTestSdk } = (
   window as unknown as { XenditSdk: typeof import("./src/public-sdk") }
 ).XenditSdk;
@@ -117,7 +125,7 @@ setInterval(() => {
   outputChannelPropertiesLog.value = `Selected Channel: ${internalState.channelCode}
 Channel Properties: ${JSON.stringify(internalState.channelProperties, null, 2)}`;
   outputBehaviorTree.value = stringifyBehaviorTree(
-    internalState.behaviorTree,
+    internalState.behaviorTree.root,
     1,
   );
 }, 200);
@@ -135,4 +143,12 @@ function stringifyBehaviorTree(tree: TreeNode, depth: number): string {
 
 submitButton.addEventListener("click", () => {
   sdk.submit();
+});
+
+abortButton.addEventListener("click", () => {
+  sdk.abortSubmission();
+});
+
+simulateButton.addEventListener("click", () => {
+  sdk.simulatePayment();
 });

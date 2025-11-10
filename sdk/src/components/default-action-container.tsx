@@ -1,19 +1,21 @@
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { XenditSessionSdk } from "../public-sdk";
 import { Dialog } from "./dialog";
+import { internal } from "../internal";
 
 type Props = {
   sdk: XenditSessionSdk;
   title: string;
-  onCloseClick: () => void;
+  close?: boolean;
+  onClose: () => void;
 };
 
 export default function DefaultActionContainer(props: Props) {
-  const { sdk, title, onCloseClick } = props;
+  const { sdk, title, onClose } = props;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    const component = sdk.createActionContainerComponent();
+    const component = sdk.createActionContainerComponent(internal);
     wrapperRef.current?.replaceChildren(component);
     return () => {
       sdk.destroyComponent(component);
@@ -21,7 +23,7 @@ export default function DefaultActionContainer(props: Props) {
   }, [sdk]);
 
   return (
-    <Dialog title={title} onClose={onCloseClick}>
+    <Dialog title={title} onClose={onClose} close={props.close}>
       <div ref={wrapperRef} />
     </Dialog>
   );

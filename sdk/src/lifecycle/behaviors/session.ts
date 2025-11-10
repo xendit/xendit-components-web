@@ -1,7 +1,6 @@
 import { createPaymentRequest, createPaymentToken } from "../../api";
 import { ChannelProperties } from "../../backend-types/channel";
 import {
-  BffPaymentEntity,
   BffPaymentRequest,
   BffPaymentToken,
   toPaymentEntity,
@@ -33,9 +32,29 @@ export class SessionActiveBehavior implements Behavior {
     const abortController = new AbortController();
 
     let promise1: Promise<BffPaymentRequest | BffPaymentToken>;
-    switch (sessionType) {
-      case "PAY":
-        {
+    if (this.data.mock) {
+      // mock implementation
+      switch (sessionType) {
+        case "PAY": {
+          promise1 = cancellableSleep(1000, abortController.signal).then(() => {
+            return makeTestPaymentRequest(channelCode);
+          });
+          break;
+        }
+        case "SAVE": {
+          promise1 = cancellableSleep(1000, abortController.signal).then(() => {
+            return makeTestPaymentToken(channelCode);
+          });
+          break;
+        }
+        default: {
+          throw new Error(`The session type ${sessionType} is not supported.`);
+        }
+      }
+    } else {
+      // real implementation
+      switch (sessionType) {
+        case "PAY": {
           promise1 = createPaymentRequest(
             {
               session_id: this.data.sdkKey.sessionAuthKey,
@@ -47,23 +66,24 @@ export class SessionActiveBehavior implements Behavior {
             null,
             abortController.signal,
           );
+          break;
         }
-        break;
-      case "SAVE": {
-        promise1 = createPaymentToken(
-          {
-            session_id: this.data.sdkKey.sessionAuthKey,
-            channel_code: channelCode,
-            channel_properties: channelProperties,
-          },
-          null,
-          null,
-          abortController.signal,
-        );
-        break;
-      }
-      default: {
-        throw new Error(`The session type ${sessionType} is not supported.`);
+        case "SAVE": {
+          promise1 = createPaymentToken(
+            {
+              session_id: this.data.sdkKey.sessionAuthKey,
+              channel_code: channelCode,
+              channel_properties: channelProperties,
+            },
+            null,
+            null,
+            abortController.signal,
+          );
+          break;
+        }
+        default: {
+          throw new Error(`The session type ${sessionType} is not supported.`);
+        }
       }
     }
 
@@ -85,47 +105,7 @@ export class SessionActiveBehavior implements Behavior {
     };
   }
 
-  submitMock(sessionType: BffSessionType, channelCode: string) {
-    this.data.sdkEvents.setHasInFlightSubmitRequest(true);
-
-    const abortController = new AbortController();
-
-    const promise = cancellableSleep(1000, abortController.signal)
-      .then(() => {
-        let paymentEntity: BffPaymentEntity;
-        switch (sessionType) {
-          case "PAY":
-            paymentEntity = toPaymentEntity(
-              makeTestPaymentRequest(channelCode),
-            );
-            break;
-          case "SAVE":
-            paymentEntity = toPaymentEntity(makeTestPaymentToken(channelCode));
-            break;
-          default:
-            throw new Error(
-              `The session type ${sessionType} is not supported.`,
-            );
-        }
-
-        this.data.sdkEvents.updateWorld({
-          paymentEntity,
-          sessionTokenRequestId: paymentEntity.entity.session_token_request_id,
-        });
-      })
-      .finally(() => {
-        this.submission = null;
-        this.data.sdkEvents.setHasInFlightSubmitRequest(false);
-      });
-
-    this.submission = {
-      abortController,
-      promise,
-    };
-  }
-
   abortSubmission() {
-    // TODO: don't trigger behavior tree updates while updating behavior tree
     this.submission?.abortController.abort();
     this.submission = null;
   }

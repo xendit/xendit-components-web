@@ -97,10 +97,6 @@ export class SdkEventManager {
     this.sdk.dispatchEvent(new XenditWillRedirectEvent());
   }
 
-  setActionContainerLocked(locked: boolean) {
-    // TODO: don't allow users to create or destroy action container when locked
-  }
-
   /**
    * Creates a default action container if the user has not created one already.
    * Returns a cleanup function that destroys the default action container if it was created.
@@ -111,32 +107,51 @@ export class SdkEventManager {
       // TODO: validate it's in the dom and the right size
       return () => {};
     }
+
+    let cleanedUp = false;
+
     const container = document.createElement("div");
     container.setAttribute("id", "xendit-default-action-container");
-    render(
-      createElement(DefaultActionContainer, {
-        sdk: this.sdk,
-        title: "Complete your action",
-        onCloseClick: () => {
-          this.sdk.abortSubmission();
-        },
-      }),
-      container,
-    );
+    const props = {
+      sdk: this.sdk,
+      title: "Complete your action",
+      onClose: () => {
+        cleanedUp = true;
+        render(null, container);
+        container.remove();
+        this.sdk.abortSubmission();
+      },
+    };
+    render(createElement(DefaultActionContainer, props), container);
     document.body.appendChild(container);
+
+    // cleanup function
     return () => {
-      render(null, container);
-      container.remove();
+      if (cleanedUp) return;
+
+      // make the dialog play its close animation before removing it
+      render(
+        createElement(DefaultActionContainer, {
+          ...props,
+          close: true,
+        }),
+        container,
+      );
     };
   }
 
-  populateActionContainerWithIframe(url: string) {
+  populateActionContainerWithIframe(
+    url: string,
+    mock: boolean,
+    onComplete: () => void,
+  ) {
     const container = this.sdk[internal].liveComponents.actionContainer;
     if (!container) {
       throw new Error(
         "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
       );
     }
-    render(createElement(ActionIframe, { url }), container);
+
+    render(createElement(ActionIframe, { url, mock, onComplete }), container);
   }
 }

@@ -5,10 +5,14 @@ import {
   generateOwnKeys,
   hashText,
   pin,
-} from "./crypto";
+} from "../../shared/crypto";
 import { assertIsSecureInputEvent } from "./events";
 import { createInputElement, createWrapperDiv } from "./ui";
-import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
+import {
+  arrayBufferToBase64,
+  assert,
+  base64ToArrayBuffer,
+} from "../../shared/utils";
 import { validate } from "./validation";
 
 function setupCss() {
@@ -105,7 +109,7 @@ export async function init() {
 
   // tell parent frame about our public key
   securePostMessage({
-    type: "ready",
+    type: "xendit-iframe-ready",
     ecdhPublicKey: arrayBufferToBase64(ownPublicKeyBytes),
   });
 
@@ -161,7 +165,7 @@ export async function init() {
     );
 
     securePostMessage({
-      type: "change",
+      type: "xendit-iframe-change",
       encrypted,
       empty: value.length === 0,
       valid: validationResult.valid,
@@ -182,12 +186,12 @@ export async function init() {
         return;
       case "focus":
         securePostMessage({
-          type: "focus",
+          type: "xendit-iframe-focus",
         });
         return;
       case "blur":
         securePostMessage({
-          type: "blur",
+          type: "xendit-iframe-blur",
         });
         return;
     }
@@ -202,7 +206,7 @@ export async function init() {
       return;
     }
     const data = event.data as IframeEvent;
-    if (data.type === "focus") {
+    if (data.type === "xendit-iframe-focus") {
       input.focus();
     }
   });
@@ -211,6 +215,6 @@ export async function init() {
 export function fatalError(err: Error) {
   console.error(`Xendit secure iframe`, err);
   insecurePostMessage({
-    type: "failed_init",
+    type: "xendit-iframe-failed-init",
   });
 }

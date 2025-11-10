@@ -42,13 +42,9 @@ import {
 } from "./components/payment-channel";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
-import {
-  BehaviorNode,
-  behaviorTreeUpdate,
-  findBehaviorNodeByType,
-} from "./lifecycle/behavior-tree-runner";
+import { BehaviorNode, BehaviorTree } from "./lifecycle/behavior-tree-runner";
 import { behaviorTreeForSdk } from "./lifecycle/behavior-tree";
-import { BffSession, BffSessionType } from "./backend-types/session";
+import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
@@ -62,9 +58,18 @@ import {
   InternalUpdateWorldState,
 } from "./private-event-types";
 import { BffResponse, BffSucceededChannel } from "./backend-types/common";
-import { mergeIgnoringUndefined, ParsedSdkKey, parseSdkKey } from "./utils";
+import {
+  canBeSimulated,
+  mergeIgnoringUndefined,
+  ParsedSdkKey,
+  parseSdkKey,
+} from "./utils";
 import { makeTestSdkKey } from "./test-data";
-import { ChannelValidBehavior } from "./lifecycle/behaviors/channel";
+import {
+  ChannelInvalidBehavior,
+  ChannelValidBehavior,
+} from "./lifecycle/behaviors/channel";
+import { PeRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity";
 
 /**
  * @internal
@@ -144,7 +149,7 @@ export class XenditSessionSdk extends EventTarget {
     /**
      * Behavior tree for state management.
      */
-    behaviorTree: BehaviorNode<unknown[]> | null;
+    behaviorTree: BehaviorTree;
 
     /**
      * Components the user has created
@@ -194,18 +199,24 @@ export class XenditSessionSdk extends EventTarget {
 
     // Handle new public constructor format
     const publicOptions = options as XenditSdkOptions;
+    const eventManager = new SdkEventManager(this);
+    const sdkKey = parseSdkKey(publicOptions.sessionClientKey);
     this[internal] = {
-      sdkKey: parseSdkKey(publicOptions.sessionClientKey),
+      sdkKey,
       options: options,
       worldState: null,
-      eventManager: new SdkEventManager(this),
+      eventManager,
       liveComponents: {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
       },
       activeChannelCode: null,
-      behaviorTree: null,
+      behaviorTree: new BehaviorTree({
+        sdkEvents: eventManager,
+        sdkKey,
+        mock: this.isMock(),
+      }),
       hasInFlightSubmissionRequest: false,
     };
 
@@ -264,6 +275,10 @@ export class XenditSessionSdk extends EventTarget {
         "The session data is not loaded. Listen for the `init` event. Only `createChannelPickerComponent` can be called before initialization.",
       );
     }
+  }
+
+  protected isMock(): boolean {
+    return false;
   }
 
   private findChannel(channelCode: string) {
@@ -336,11 +351,7 @@ export class XenditSessionSdk extends EventTarget {
       });
     }
 
-    behaviorTreeUpdate(this[internal].behaviorTree ?? undefined, newTree, {
-      sdkKey: this[internal].sdkKey,
-      sdkEvents: this[internal].eventManager,
-    });
-    this[internal].behaviorTree = newTree;
+    this[internal].behaviorTree.update(newTree);
   }
 
   /**
@@ -669,8 +680,27 @@ export class XenditSessionSdk extends EventTarget {
    * If no action container is created (or if the created container is removed from the DOM or is too small),
    * the SDK will create an action container (in a modal dialog) for you.
    */
-  createActionContainerComponent(): HTMLElement {
+  createActionContainerComponent(): HTMLElement;
+  /**
+   * @internal If isInternal is passed, it bypasses the action-in-progress check.
+   **/
+  createActionContainerComponent(isInternal: typeof internal): HTMLElement;
+  createActionContainerComponent(isInternal?: typeof internal): HTMLElement {
     this.assertInitialized();
+
+    const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
+      PeRequiresActionBehavior,
+    );
+    //
+    if (
+      isInternal !== internal &&
+      requiresActionBehavior &&
+      !requiresActionBehavior.canCreateActionContainer
+    ) {
+      throw new Error(
+        "Unable to create action container; there is an action in progress. Create an action before or during the `action-begin` event.",
+      );
+    }
 
     const container = document.createElement(
       "xendit-action-container-component",
@@ -696,6 +726,7 @@ export class XenditSessionSdk extends EventTarget {
     if (this[internal].liveComponents.channelPicker === component) {
       this[internal].liveComponents.channelPicker = null;
       render(null, component);
+      component.remove();
       return;
     }
 
@@ -707,6 +738,7 @@ export class XenditSessionSdk extends EventTarget {
           this.setActiveChannel(null);
         }
         render(null, component);
+        component.remove();
         return;
       }
     }
@@ -714,6 +746,7 @@ export class XenditSessionSdk extends EventTarget {
     if (this[internal].liveComponents.actionContainer === component) {
       this[internal].liveComponents.actionContainer = null;
       render(null, component);
+      component.remove();
       return;
     }
 
@@ -744,13 +777,7 @@ export class XenditSessionSdk extends EventTarget {
   submit() {
     this.assertInitialized();
 
-    if (!this[internal].behaviorTree) {
-      throw new Error(
-        "Behavior tree is missing; this is a bug, please contact support.",
-      );
-    }
-    const sessionActiveBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
+    const sessionActiveBehavior = this[internal].behaviorTree.findBehavior(
       SessionActiveBehavior,
     );
     if (!sessionActiveBehavior) {
@@ -777,36 +804,29 @@ export class XenditSessionSdk extends EventTarget {
     const form = component.channelformRef?.current;
     form?.validate(); // force any form fields to display validation errors
 
-    const channelValidBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
-      ChannelValidBehavior,
+    const channelInvalidBehavior = this[internal].behaviorTree.findBehavior(
+      ChannelInvalidBehavior,
     );
-    if (!channelValidBehavior) {
+    if (channelInvalidBehavior) {
       throw new Error(
         "Unable to submit; the form for the active channel has errors. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
       );
     }
 
+    const channelValidBehavior =
+      this[internal].behaviorTree.findBehavior(ChannelValidBehavior);
+    if (!channelValidBehavior) {
+      throw new Error(
+        "Unable to submit; the SDK is not in a valid state for submission. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
+      );
+    }
+
     const sessionType = this[internal].worldState.session.session_type;
-    this.internalSubmit(
-      sessionActiveBehavior,
+    sessionActiveBehavior.submit(
       sessionType,
       channelCode,
       component.channelProperties ?? {},
     );
-  }
-
-  /**
-   * @internal
-   * Separate logic for actual submission, to allow overriding in subclasses.
-   */
-  protected internalSubmit(
-    behavior: SessionActiveBehavior,
-    sessionType: BffSessionType,
-    channelCode: string,
-    channelProperties: ChannelProperties,
-  ) {
-    behavior.submit(sessionType, channelCode, channelProperties);
   }
 
   /**
@@ -821,22 +841,13 @@ export class XenditSessionSdk extends EventTarget {
   abortSubmission() {
     this.assertInitialized();
 
-    if (!this[internal].behaviorTree) {
-      throw new Error(
-        "Behavior tree is missing; this is a bug, please contact support.",
-      );
-    }
-
-    const submissionBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
-      SubmissionBehavior,
-    );
+    const submissionBehavior =
+      this[internal].behaviorTree.findBehavior(SubmissionBehavior);
     if (!submissionBehavior) {
       return; // no submission in progress
     }
 
-    const sessionActiveBehavior = findBehaviorNodeByType(
-      this[internal].behaviorTree,
+    const sessionActiveBehavior = this[internal].behaviorTree.findBehavior(
       SessionActiveBehavior,
     );
     if (!sessionActiveBehavior) {
@@ -854,6 +865,65 @@ export class XenditSessionSdk extends EventTarget {
         paymentEntity: null,
         sessionTokenRequestId: null,
       }),
+    );
+  }
+
+  /**
+   * @public
+   * Completes a payment in test mode.
+   *
+   * The session must be in test mode, and the session type must be PAY, and
+   * the sdk must have an in-progress action, and the channel must be QR, VA, or OTC channel.
+   *
+   * @example
+   * ```
+   * xenditSdk.addEventListener("action-begin", () => {
+   *   xenditSdk.simulatePayment();
+   * });
+   * ```
+   */
+  simulatePayment() {
+    this.assertInitialized();
+
+    if (this[internal].worldState.session.session_type !== "PAY") {
+      throw new Error(
+        'Unable to simulate payment, the session type is not "PAY".',
+      );
+    }
+
+    const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
+      PeRequiresActionBehavior,
+    );
+    if (!requiresActionBehavior) {
+      throw new Error(
+        "Unable to simulate payment; there is no action in progress. You can simulate payments any time between the `action-begin` and `action-end` events.",
+      );
+    }
+
+    const paymentEntity = this[internal].worldState.paymentEntity;
+    if (!paymentEntity) {
+      throw new Error(
+        "The PeRequiresActionBehavior is present but there is no payment entity. This is a bug, please contact support.",
+      );
+    }
+
+    const paymentRequest =
+      paymentEntity.type === "paymentRequest" && paymentEntity.entity;
+    if (!paymentRequest) {
+      throw new Error(
+        "Session type is PAY but paymentEntity is not a payment request; this is a bug, please contact support.",
+      );
+    }
+
+    if (!canBeSimulated(paymentRequest)) {
+      throw new Error(
+        "Unable to simulate payment; the payment channel does not support simulation.",
+      );
+    }
+
+    requiresActionBehavior.simulatePayment(
+      paymentRequest.payment_request_id,
+      paymentRequest.channel_code,
     );
   }
 
@@ -1094,15 +1164,9 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
 
   /**
    * @internal
-   * Creates a mock submission.
+   * Indicates that this is a mock SDK.
    */
-  protected internalSubmit(
-    behavior: SessionActiveBehavior,
-    sessionType: BffSessionType,
-    channelCode: string,
-    channelProperties: ChannelProperties,
-  ) {
-    // override this method to use mock submission
-    behavior.submitMock(sessionType, channelCode);
+  protected isMock(): boolean {
+    return true;
   }
 }

@@ -19,7 +19,7 @@
         - "npm install -g pnpm"
         - "pnpm install"
         - "pnpm build"
-        - "cp secure-iframe/dist/iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
+        - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
         - "rm -f .npmrc"
       volume_mappings:
