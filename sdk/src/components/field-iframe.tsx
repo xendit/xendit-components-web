@@ -217,7 +217,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   const giveFocusToIframe = useCallback(() => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
-        { type: "focus" },
+        { type: "xendit-iframe-focus" satisfies IframeEvent["type"] },
         iframeData.origin,
       );
     }

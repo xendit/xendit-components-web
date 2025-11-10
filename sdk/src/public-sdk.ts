@@ -688,17 +688,19 @@ export class XenditSessionSdk extends EventTarget {
    * the SDK will create an action container (in a modal dialog) for you.
    */
   createActionContainerComponent(): HTMLElement;
+
   /**
    * @internal If isInternal is passed, it bypasses the action-in-progress check.
    **/
   createActionContainerComponent(isInternal: typeof internal): HTMLElement;
+
+  // implementation
   createActionContainerComponent(isInternal?: typeof internal): HTMLElement {
     this.assertInitialized();
 
     const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
       PeRequiresActionBehavior,
     );
-    //
     if (
       isInternal !== internal &&
       requiresActionBehavior &&
