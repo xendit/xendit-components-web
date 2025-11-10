@@ -676,6 +676,41 @@ export class XenditSessionSdk extends EventTarget {
 
   /**
    * @public
+   *
+   * Reveals any hidden validation errors in the currently active channel's form. Does nothing if
+   * there are no validation errors to show.
+   *
+   * Normally, validation errors on required fields are not shown if the user did not touch them.
+   */
+  revealValidationErrors(): void {
+    const channelInvalidBehavior = this[internal].behaviorTree.findBehavior(
+      ChannelInvalidBehavior,
+    );
+    if (!channelInvalidBehavior) {
+      // form is not invalid
+      return;
+    }
+
+    const channelCode = this[internal].activeChannelCode;
+    if (!channelCode) {
+      // no active channel
+      return;
+    }
+
+    const component =
+      this[internal].liveComponents.paymentChannels.get(channelCode);
+    if (!component) {
+      throw new Error(
+        "Active channel is set but component is missing; this is a bug, please contact support.",
+      );
+    }
+
+    const form = component.channelformRef?.current;
+    form?.validate();
+  }
+
+  /**
+   * @public
    * Creates a container element for rendering action UIs.
    *
    * For example, 3DS or QR codes.
@@ -810,8 +845,8 @@ export class XenditSessionSdk extends EventTarget {
       );
     }
 
-    const form = component.channelformRef?.current;
-    form?.validate(); // force any form fields to display validation errors
+    // ensure if user submits in invalid state, errors are visible
+    this.revealValidationErrors();
 
     const channelInvalidBehavior = this[internal].behaviorTree.findBehavior(
       ChannelInvalidBehavior,

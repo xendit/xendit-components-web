@@ -100,6 +100,15 @@ const channels = sdk.getAvailablePaymentChannels();
 
 Returns the list of channels available in this session.
 
+### `getAvailablePaymentChannelGroups`
+
+```typescript
+const groups = sdk.getAvailablePaymentChannelGroups();
+```
+
+Returns a list of channel groups. This can be used to categorize channels by type, if you want to build
+your own channel selection UI. Each channel has a `uiGroup` property which matches one group's `id` property.
+
 ### `createPaymentComponentForChannel`
 
 ```typescript
@@ -146,11 +155,11 @@ function onSubmitButtonClick() {
 }
 ```
 
-Begins submission for the selected payment channel.
+Begins submission for the active payment channel.
 
 Call this from the click event of your submit button.
 
-Submission is only available when the session is active, a channel is selected, any required information is collected, and
+Submission is only available when the session is active, a channel is active, any required information is collected, and
 another submission is not in progress. Use the `ready` and `not-ready` events to know when submission is available.
 
 This calls the [create payment request](https://docs.xendit.co/apidocs/create-payment-request)
@@ -174,7 +183,7 @@ to be in-progress.
 sdk.abortSubmission();
 ```
 
-Cancels a submission.
+Cancels the current submission, if any.
 
 ### `destroyComponent`
 
@@ -184,6 +193,16 @@ sdk.destroyComponent(htmlElement);
 
 Destroys a component, deleting any cached data and removing the element from the document. Manual cleanup is not normally required,
 but is made available if you want it.
+
+### `revealValidationErrors`
+
+```typescript
+sdk.revealValidationErrors();
+```
+
+Reveals hidden validation errors in the active channel's form, if any.
+
+Validation errors are normally hidden until the user changes and unfocusses the input.
 
 ### `getActiveChannel`
 
