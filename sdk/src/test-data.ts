@@ -775,6 +775,7 @@ export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {
     payment_request_id: `pr-${makeTestRandomId()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
+    pm_type: "CARDS",
     actions: [
       {
         type: "REDIRECT_CUSTOMER",
@@ -791,6 +792,7 @@ export function makeTestPaymentToken(channelCode: string): BffPaymentToken {
     payment_token_id: `pr-${makeTestRandomId()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
+    pm_type: "CARDS",
     actions: [
       {
         type: "REDIRECT_CUSTOMER",

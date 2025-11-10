@@ -58,7 +58,12 @@ import {
   InternalUpdateWorldState,
 } from "./private-event-types";
 import { BffResponse, BffSucceededChannel } from "./backend-types/common";
-import { mergeIgnoringUndefined, ParsedSdkKey, parseSdkKey } from "./utils";
+import {
+  canBeSimulated,
+  mergeIgnoringUndefined,
+  ParsedSdkKey,
+  parseSdkKey,
+} from "./utils";
 import { makeTestSdkKey } from "./test-data";
 import {
   ChannelInvalidBehavior,
@@ -721,6 +726,7 @@ export class XenditSessionSdk extends EventTarget {
     if (this[internal].liveComponents.channelPicker === component) {
       this[internal].liveComponents.channelPicker = null;
       render(null, component);
+      component.remove();
       return;
     }
 
@@ -732,6 +738,7 @@ export class XenditSessionSdk extends EventTarget {
           this.setActiveChannel(null);
         }
         render(null, component);
+        component.remove();
         return;
       }
     }
@@ -739,6 +746,7 @@ export class XenditSessionSdk extends EventTarget {
     if (this[internal].liveComponents.actionContainer === component) {
       this[internal].liveComponents.actionContainer = null;
       render(null, component);
+      component.remove();
       return;
     }
 
@@ -857,6 +865,65 @@ export class XenditSessionSdk extends EventTarget {
         paymentEntity: null,
         sessionTokenRequestId: null,
       }),
+    );
+  }
+
+  /**
+   * @public
+   * Completes a payment in test mode.
+   *
+   * The session must be in test mode, and the session type must be PAY, and
+   * the sdk must have an in-progress action, and the channel must be QR, VA, or OTC channel.
+   *
+   * @example
+   * ```
+   * xenditSdk.addEventListener("action-begin", () => {
+   *   xenditSdk.simulatePayment();
+   * });
+   * ```
+   */
+  simulatePayment() {
+    this.assertInitialized();
+
+    if (this[internal].worldState.session.session_type !== "PAY") {
+      throw new Error(
+        'Unable to simulate payment, the session type is not "PAY".',
+      );
+    }
+
+    const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
+      PeRequiresActionBehavior,
+    );
+    if (!requiresActionBehavior) {
+      throw new Error(
+        "Unable to simulate payment; there is no action in progress. You can simulate payments any time between the `action-begin` and `action-end` events.",
+      );
+    }
+
+    const paymentEntity = this[internal].worldState.paymentEntity;
+    if (!paymentEntity) {
+      throw new Error(
+        "The PeRequiresActionBehavior is present but there is no payment entity. This is a bug, please contact support.",
+      );
+    }
+
+    const paymentRequest =
+      paymentEntity.type === "paymentRequest" && paymentEntity.entity;
+    if (!paymentRequest) {
+      throw new Error(
+        "Session type is PAY but paymentEntity is not a payment request; this is a bug, please contact support.",
+      );
+    }
+
+    if (!canBeSimulated(paymentRequest)) {
+      throw new Error(
+        "Unable to simulate payment; the payment channel does not support simulation.",
+      );
+    }
+
+    requiresActionBehavior.simulatePayment(
+      paymentRequest.payment_request_id,
+      paymentRequest.channel_code,
     );
   }
 

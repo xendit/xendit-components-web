@@ -50,6 +50,7 @@ export type BffPaymentToken = {
   failure_code?: BffPaymentTokenFailureCode;
   actions: BffAction[];
   channel_code: string;
+  pm_type: string;
   /**
    * Only returned when the payment request is created, not on polling
    */
@@ -100,6 +101,7 @@ export type BffPaymentRequest = {
   failure_code?: BffPaymentRequestFailureCode;
   actions: BffAction[];
   channel_code: string;
+  pm_type: string;
   /**
    * Only returned when the payment request is created, not on polling
    */
@@ -108,10 +110,12 @@ export type BffPaymentRequest = {
 
 export type BffPaymentEntity =
   | {
+      id: string;
       type: "paymentRequest";
       entity: BffPaymentRequest;
     }
   | {
+      id: string;
       type: "paymentToken";
       entity: BffPaymentToken;
     };
@@ -121,11 +125,13 @@ export function toPaymentEntity(
 ): BffPaymentEntity {
   if ("payment_request_id" in prOrPt) {
     return {
+      id: prOrPt.payment_request_id,
       type: "paymentRequest",
       entity: prOrPt,
     };
   } else {
     return {
+      id: prOrPt.payment_token_id,
       type: "paymentToken",
       entity: prOrPt,
     };

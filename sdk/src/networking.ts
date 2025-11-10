@@ -100,14 +100,15 @@ export function endpoint(
     }
 
     const url = new URL(getPath(pathArg), BACKEND_HOST);
-    if (getQuery) {
-      if (queryArg === undefined) {
-        throw new Error(
-          "Query string argument is missing; this is a bug, please contact support.",
-        );
-      }
-      url.search = getQuery(queryArg).toString();
+    if (getQuery && !queryArg) {
+      throw new Error(
+        "Query string argument is missing; this is a bug, please contact support.",
+      );
     }
+    const query = getQuery?.(queryArg) ?? new URLSearchParams();
+    query.set("component_version", "v0.0.0"); // TODO: populate this
+    url.search = query.toString();
+
     const options: RequestInit = {
       method,
       body: requestBody ? convertDataToUrlSearchParams(requestBody) : undefined,
@@ -116,6 +117,7 @@ export function endpoint(
       },
       signal: abortSignal as AbortSignal | undefined,
     };
+
     const response = await fetch(url, options);
     if (!response.ok) {
       throw new Error(
