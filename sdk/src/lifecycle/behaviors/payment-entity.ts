@@ -39,6 +39,8 @@ export class PePendingBehavior implements Behavior {
 
 export class PeRequiresActionBehavior implements Behavior {
   private pollWorker: PollWorker;
+  public canCreateActionContainer: boolean = true;
+
   constructor(
     private data: SdkData,
     private sessionTokenRequestId: string | null,
@@ -53,6 +55,7 @@ export class PeRequiresActionBehavior implements Behavior {
 
   enter() {
     this.data.sdkEvents.setHasAction(true);
+    this.canCreateActionContainer = false;
     this.pollWorker.start();
   }
 

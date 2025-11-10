@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { XenditSessionSdk } from "../public-sdk";
 import { Dialog } from "./dialog";
+import { internal } from "../internal";
 
 type Props = {
   sdk: XenditSessionSdk;
@@ -14,7 +15,7 @@ export default function DefaultActionContainer(props: Props) {
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    const component = sdk.createActionContainerComponent();
+    const component = sdk.createActionContainerComponent(internal);
     wrapperRef.current?.replaceChildren(component);
     return () => {
       sdk.destroyComponent(component);
