@@ -43,11 +43,6 @@
       cache_control: "no-cache"
       metadata:
         - "Content-Security-Policy: default-src 'none'; script-src 'sha256-$DYNAMIC_CSP_HASH'; style-src 'unsafe-inline'; base-uri 'none'; object-src 'none'; require-trusted-types-for 'script'"
-        - "Permissions-Policy: microphone=(), camera=(), geolocation=(), payment=(), usb=(), bluetooth=()"
-        - "X-Content-Type-Options: nosniff"
-        - "Referrer-Policy: no-referrer"
-        - "Cross-Origin-Embedder-Policy: require-corp"
-        - "Cross-Origin-Resource-Policy: cross-origin"
       integration_hash: "5e85761fc5f225000f97dd99"
     - action: "Purge cache at CloudFront"
       type: "CLOUD_FRONT"
