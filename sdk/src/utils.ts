@@ -165,6 +165,12 @@ export function formFieldName(field: ChannelFormField): string {
   return id;
 }
 
+export function computeInputFieldErrorCode(input: ChannelFormField): string {
+  if (input.label)
+    return `${input.label.replace(/\s+/g, "_").toUpperCase()}_IS_REQUIRED`;
+  return "";
+}
+
 export function canBeSimulated(paymentRequest: BffPaymentRequest): boolean {
   switch (paymentRequest.pm_type) {
     case "QR_CODE":

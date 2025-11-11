@@ -16,7 +16,7 @@ import { InternalInputValidateEvent } from "../private-event-types";
 import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
-import { formFieldName } from "../utils";
+import { computeInputFieldErrorCode, formFieldName } from "../utils";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -39,12 +39,6 @@ function getIframeByEnv(env: string) {
   }
   throw new Error(`Unknown env: ${env}`);
 }
-
-const computeFieldError = (state: ValidationState, required: boolean) => {
-  if (state.empty && required) return "FIELD_IS_REQUIRED";
-  if (!state.validationErrorCodes?.length) return null;
-  return state.validationErrorCodes[0] ?? null;
-};
 
 const toValidationState = (
   incoming: IframeChangeEvent | undefined,
@@ -93,13 +87,22 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
   const { card } = useChannel() ?? {};
 
+  const computeFieldError = useCallback(
+    (state: ValidationState, required: boolean) => {
+      if (state.empty && required) return computeInputFieldErrorCode(field);
+      if (!state.validationErrorCodes?.length) return null;
+      return state.validationErrorCodes[0] ?? null;
+    },
+    [field],
+  );
+
   const handleErrorUpdate = useCallback(
     (validationState: ValidationState) => {
       const errorMessage = computeFieldError(validationState, field.required);
       if (onError) onError(id, errorMessage);
       setError(errorMessage);
     },
-    [field.required, id, onError],
+    [computeFieldError, field.required, id, onError],
   );
 
   const handleIframeEventResult = useCallback(

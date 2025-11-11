@@ -19,7 +19,7 @@ export default defineConfig({
     coverage: {
       enabled: true,
       reporter: ["html"],
-      include: ["sdk/src/**", "secure-iframe/src/**"],
+      include: ["sdk/src/**/*.{ts,tsx}", "secure-iframe/src/**/*.{ts,tsx}"],
     },
   },
 });

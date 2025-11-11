@@ -8,37 +8,88 @@ import {
 
 import type { CountryCode } from "libphonenumber-js";
 import { ChannelFormField } from "../backend-types/channel";
+import { computeInputFieldErrorCode } from "../utils";
+
+// Helper mock objects for field types
+const mockEmailField = (
+  required = false,
+): ChannelFormField & { type: { name: "email" } } => ({
+  label: "Email",
+  placeholder: "Enter email",
+  type: { name: "email" },
+  channel_property: "email",
+  required,
+  span: 2,
+});
+
+const mockPhoneField = (
+  required = false,
+): ChannelFormField & { type: { name: "phone_number" } } => ({
+  label: "Phone Number",
+  placeholder: "Enter phone number",
+  type: { name: "phone_number" },
+  channel_property: "phone_number",
+  required,
+  span: 2,
+});
+
+const mockPostalCodeField = (
+  required = false,
+): ChannelFormField & { type: { name: "postal_code" } } => ({
+  label: "Postal Code",
+  placeholder: "Enter postal code",
+  type: { name: "postal_code" },
+  channel_property: "postal_code",
+  required,
+  span: 2,
+});
 
 // --- validateEmail ---
 describe("validateEmail", () => {
   it("returns undefined for valid email", () => {
-    expect(validateEmail("test@example.com")).toBeUndefined();
-    expect(validateEmail("user.name+tag@sub.domain.co")).toBeUndefined();
+    const field = mockEmailField();
+    expect(validateEmail(field, "test@example.com")).toBeUndefined();
+    expect(validateEmail(field, "user.name+tag@sub.domain.co")).toBeUndefined();
   });
 
   it("returns error for missing @", () => {
-    expect(validateEmail("testexample.com")).toBe("INVALID_EMAIL_FORMAT");
+    const field = mockEmailField();
+    expect(validateEmail(field, "testexample.com")).toBe(
+      "INVALID_EMAIL_FORMAT",
+    );
   });
 
   it("returns error for missing domain", () => {
-    expect(validateEmail("test@")).toBe("INVALID_EMAIL_FORMAT");
+    const field = mockEmailField();
+    expect(validateEmail(field, "test@")).toBe("INVALID_EMAIL_FORMAT");
   });
 
   it("returns error for missing TLD", () => {
-    expect(validateEmail("test@example")).toBe("INVALID_EMAIL_FORMAT");
+    const field = mockEmailField();
+    expect(validateEmail(field, "test@example")).toBe("INVALID_EMAIL_FORMAT");
   });
 
   it("returns error for invalid characters", () => {
-    expect(validateEmail("test@exa mple.com")).toBe("INVALID_EMAIL_FORMAT");
-    expect(validateEmail("test@.com")).toBe("INVALID_EMAIL_FORMAT");
+    const field = mockEmailField();
+    expect(validateEmail(field, "test@exa mple.com")).toBe(
+      "INVALID_EMAIL_FORMAT",
+    );
+    expect(validateEmail(field, "test@.com")).toBe("INVALID_EMAIL_FORMAT");
   });
 
-  it("returns undefined for empty string", () => {
-    expect(validateEmail("")).toBeUndefined();
+  it("returns undefined for empty string when not required", () => {
+    const field = mockEmailField(false);
+    expect(validateEmail(field, "")).toBeUndefined();
+  });
+
+  it("returns EMAIL_IS_REQUIRED for empty string when required", () => {
+    const field = mockEmailField(true);
+    expect(validateEmail(field, "")).toBe("EMAIL_IS_REQUIRED");
   });
 
   it("trims input before validation", () => {
-    expect(validateEmail("  test@example.com ")).toBeUndefined();
+    const field = mockEmailField();
+    expect(validateEmail(field, "  test@example.com ")).toBeUndefined();
   });
 });
 
@@ -68,26 +119,36 @@ describe("validatePhoneNumber", () => {
     describe(`Country: ${country}`, () => {
       validNumbers[country].forEach((number) => {
         it(`validates valid number: ${number}`, () => {
-          const result = validatePhoneNumber(number);
+          const field = mockPhoneField();
+          const result = validatePhoneNumber(field, number);
           expect(result).toBeUndefined();
         });
       });
 
       invalidNumbers[country].forEach((number) => {
         it(`invalidates invalid number: ${number}`, () => {
-          const result = validatePhoneNumber(number);
+          const field = mockPhoneField();
+          const result = validatePhoneNumber(field, number);
           expect(result).toBe("INVALID_PHONE_NUMBER");
         });
       });
 
-      it("returns error for empty input", () => {
-        const result = validatePhoneNumber("");
-        expect(result).toBe("INVALID_PHONE_NUMBER");
+      it("returns PHONE_NUMBER_IS_REQUIRED for empty input when required", () => {
+        const field = mockPhoneField(true);
+        const result = validatePhoneNumber(field, "");
+        expect(result).toBe("PHONE_NUMBER_IS_REQUIRED");
+      });
+
+      it("returns undefined for empty input when not required", () => {
+        const field = mockPhoneField(false);
+        const result = validatePhoneNumber(field, "");
+        expect(result).toBeUndefined();
       });
 
       it("handles whitespace input", () => {
-        const result = validatePhoneNumber("   ");
-        expect(result).toBe("INVALID_PHONE_NUMBER");
+        const field = mockPhoneField(true);
+        const result = validatePhoneNumber(field, "   ");
+        expect(result).toBe("PHONE_NUMBER_IS_REQUIRED");
       });
     });
   });
@@ -96,29 +157,38 @@ describe("validatePhoneNumber", () => {
 // --- validatePostalCode ---
 describe("validatePostalCode", () => {
   it("returns undefined for valid postal code", () => {
-    expect(validatePostalCode("12345")).toBeUndefined();
-    expect(validatePostalCode("A1B 2C3")).toBeUndefined();
-    expect(validatePostalCode("123-456")).toBeUndefined();
+    const field = mockPostalCodeField();
+    expect(validatePostalCode(field, "12345")).toBeUndefined();
+    expect(validatePostalCode(field, "A1B 2C3")).toBeUndefined();
+    expect(validatePostalCode(field, "123-456")).toBeUndefined();
   });
 
-  it("returns error for empty string", () => {
-    expect(validatePostalCode("")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode("   ")).toBe("INVALID_POSTAL_CODE");
+  it("returns POSTAL_CODE_IS_REQUIRED for empty string when required", () => {
+    const field = mockPostalCodeField(true);
+    expect(validatePostalCode(field, "")).toBe("POSTAL_CODE_IS_REQUIRED");
+    expect(validatePostalCode(field, "   ")).toBe("POSTAL_CODE_IS_REQUIRED");
+  });
+
+  it("returns undefined for empty string when not required", () => {
+    const field = mockPostalCodeField(false);
+    expect(validatePostalCode(field, "")).toBeUndefined();
   });
 
   it("returns error for invalid characters", () => {
-    expect(validatePostalCode("123$456")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode("!@#")).toBe("INVALID_POSTAL_CODE");
+    const field = mockPostalCodeField();
+    expect(validatePostalCode(field, "123$456")).toBe("INVALID_POSTAL_CODE");
+    expect(validatePostalCode(field, "!@#")).toBe("INVALID_POSTAL_CODE");
   });
 
   it("returns error for only spaces or hyphens", () => {
-    expect(validatePostalCode("   ")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode("---")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode(" - ")).toBe("INVALID_POSTAL_CODE");
+    const field = mockPostalCodeField();
+    expect(validatePostalCode(field, "---")).toBe("INVALID_POSTAL_CODE");
+    expect(validatePostalCode(field, " - ")).toBe("INVALID_POSTAL_CODE");
   });
 
   it("trims input before validation", () => {
-    expect(validatePostalCode(" 12345 ")).toBeUndefined();
+    const field = mockPostalCodeField();
+    expect(validatePostalCode(field, " 12345 ")).toBeUndefined();
   });
 });
 
@@ -140,6 +210,23 @@ describe("validateText", () => {
     label: "Test Field",
   };
 
+  it("returns TEXT_IS_REQUIRED for empty string when required", () => {
+    const field = {
+      ...baseField,
+      required: true,
+    };
+    expect(validateText(field, "")).toBe(computeInputFieldErrorCode(field));
+    expect(validateText(field, "   ")).toBe(computeInputFieldErrorCode(field));
+  });
+
+  it("returns undefined for empty string when not required", () => {
+    const field = {
+      ...baseField,
+      required: false,
+    };
+    expect(validateText(field, "")).toBeUndefined();
+  });
+
   it("returns undefined for valid text within length", () => {
     expect(validateText(baseField, "abcd")).toBeUndefined();
     expect(validateText(baseField, "abcde")).toBeUndefined();
@@ -147,8 +234,6 @@ describe("validateText", () => {
 
   it("returns TEXT_TOO_SHORT for text shorter than min_length", () => {
     expect(validateText(baseField, "a")).toBe("TEXT_TOO_SHORT");
-    expect(validateText(baseField, "")).toBe("TEXT_TOO_SHORT");
-    expect(validateText(baseField, " ")).toBe("TEXT_TOO_SHORT");
   });
 
   it("returns TEXT_TOO_LONG for text longer than max_length", () => {
@@ -240,7 +325,7 @@ describe("validateText", () => {
     expect(validateText(field, "abcd")).toBeUndefined();
   });
 
-  it("returns TEXT_TOO_SHORT if min_length is not defined and input is empty", () => {
+  it("returns TEXT_IS_REQUIRED if min_length is not defined and input is empty but required", () => {
     const field = {
       ...baseField,
       type: {
@@ -248,7 +333,7 @@ describe("validateText", () => {
         min_length: undefined,
       },
     };
-    expect(validateText(field, "")).toBe("TEXT_TOO_SHORT");
+    expect(validateText(field, "")).toBe(computeInputFieldErrorCode(field));
   });
 
   it("returns TEXT_TOO_LONG if max_length is exceeded", () => {
@@ -275,7 +360,9 @@ describe("validateText", () => {
     expect(validateText(field, "abcd")).toBeUndefined();
   });
 
-  it("returns TEXT_TOO_SHORT for whitespace-only input", () => {
-    expect(validateText(baseField, "   ")).toBe("TEXT_TOO_SHORT");
+  it("returns TEXT_IS_REQUIRED for whitespace-only input when required", () => {
+    expect(validateText(baseField, "   ")).toBe(
+      computeInputFieldErrorCode(baseField),
+    );
   });
 });

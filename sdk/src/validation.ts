@@ -8,41 +8,62 @@ import {
 import parsePhoneNumberFromString from "libphonenumber-js/min";
 import { filterFormFields } from "./components/channel-form";
 import { BffSessionType } from "./backend-types/session";
+import { computeInputFieldErrorCode } from "./utils";
 
 export type ValidationResult = {
   errorCode: FormFieldValidationError | undefined;
 };
 
 export const validateEmail = (
+  input: ChannelFormField & {
+    type: { name: "email" };
+  },
   value: string,
 ): FormFieldValidationError | undefined => {
   const trimmedValue = value.trim();
+
+  if (!trimmedValue || trimmedValue.length === 0) {
+    return input.required ? "EMAIL_IS_REQUIRED" : undefined;
+  }
+
   // Allows letters, numbers, dots, underscores, hyphens before the @
   // Domain must be letters, numbers, hyphens (no leading/trailing hyphen)
   // TLD must be at least 2 letters
   const emailRegex =
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[A-Za-z]{2,}$/;
 
-  if (trimmedValue.length > 0 && !emailRegex.test(trimmedValue))
-    return "INVALID_EMAIL_FORMAT";
+  if (!emailRegex.test(trimmedValue)) return "INVALID_EMAIL_FORMAT";
 };
 
 export const validatePhoneNumber = (
+  input: ChannelFormField & {
+    type: { name: "phone_number" };
+  },
   value: string,
 ): FormFieldValidationError | undefined => {
-  const input = value?.trim();
-  if (!input) return "INVALID_PHONE_NUMBER";
+  const trimmedValue = value?.trim();
 
-  const phone = parsePhoneNumberFromString(input);
+  if (!trimmedValue || trimmedValue.length === 0) {
+    return input.required ? "PHONE_NUMBER_IS_REQUIRED" : undefined;
+  }
+
+  const phone = parsePhoneNumberFromString(trimmedValue);
   if (!phone) return "INVALID_PHONE_NUMBER";
 
   return phone.isValid() ? undefined : "INVALID_PHONE_NUMBER";
 };
 
 export const validatePostalCode = (
+  input: ChannelFormField & {
+    type: { name: "postal_code" };
+  },
   value: string,
 ): FormFieldValidationError | undefined => {
   const trimmedValue = value.trim();
+
+  if (!trimmedValue || trimmedValue.length === 0) {
+    return input.required ? "POSTAL_CODE_IS_REQUIRED" : undefined;
+  }
 
   // Basic validation: must be non-empty and contain only letters, numbers, spaces, or hyphens
   if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)) {
@@ -60,6 +81,9 @@ export const validateText = (
   value: string,
 ): FormFieldValidationError | LocalizedString | undefined => {
   const trimmedValue = value.trim();
+  if (!trimmedValue || trimmedValue.length === 0) {
+    return input.required ? computeInputFieldErrorCode(input) : undefined;
+  }
 
   if (Array.isArray(input.type.regex_validators)) {
     for (const pattern of input.type.regex_validators) {
@@ -77,22 +101,29 @@ export const validateText = (
   }
 };
 
-function sanitizeRegex(pattern: string): string {
-  // Remove leading and trailing slashes if present
-  if (pattern.startsWith("/") && pattern.endsWith("/")) {
-    return pattern.slice(1, -1);
+export const validateProvince = (
+  input: ChannelFormField & { type: { name: "province" } },
+  value: string,
+): FormFieldValidationError | undefined => {
+  const trimmedValue = value?.trim();
+
+  if (!trimmedValue || trimmedValue.length === 0) {
+    return input.required ? "PROVINCE_IS_REQUIRED" : undefined;
   }
-  return pattern;
+
+  return undefined;
+};
+function validateCountry(
+  input: ChannelFormField & { type: { name: "country" } },
+  value: string,
+): FormFieldValidationError | undefined {
+  throw new Error("Function not implemented.");
 }
 
 export function validate(
   input: ChannelFormField,
   value: string,
 ): FormFieldValidationError | LocalizedString | undefined {
-  if (input.required && value.trim().length === 0) {
-    return "FIELD_IS_REQUIRED";
-  }
-
   switch (input.type.name) {
     case "credit_card_number":
     case "credit_card_expiry":
@@ -101,11 +132,26 @@ export function validate(
       return undefined;
     }
     case "phone_number":
-      return validatePhoneNumber(value);
+      return validatePhoneNumber(
+        input as ChannelFormField & {
+          type: { name: "phone_number" };
+        },
+        value,
+      );
     case "email":
-      return validateEmail(value);
+      return validateEmail(
+        input as ChannelFormField & {
+          type: { name: "email" };
+        },
+        value,
+      );
     case "postal_code":
-      return validatePostalCode(value);
+      return validatePostalCode(
+        input as ChannelFormField & {
+          type: { name: "postal_code" };
+        },
+        value,
+      );
     case "text":
       return validateText(
         input as ChannelFormField & {
@@ -114,7 +160,19 @@ export function validate(
         value,
       );
     case "country":
+      return validateCountry(
+        input as ChannelFormField & {
+          type: { name: "country" };
+        },
+        value,
+      );
     case "province":
+      return validateProvince(
+        input as ChannelFormField & {
+          type: { name: "province" };
+        },
+        value,
+      );
     case "dropdown": {
       // no validation required for now
       return undefined;
@@ -186,4 +244,12 @@ export function getChannelPropertyValue(
   } else {
     return getChannelPropertyValue(value, parts.slice(1).join("."));
   }
+}
+
+function sanitizeRegex(pattern: string): string {
+  // Remove leading and trailing slashes if present
+  if (pattern.startsWith("/") && pattern.endsWith("/")) {
+    return pattern.slice(1, -1);
+  }
+  return pattern;
 }
