@@ -26,11 +26,11 @@ export const TextField: React.FC<FieldProps> = (props) => {
 
   const validateField = useCallback(
     (value: string) => {
-      const errorMessage = validate(field, value) ?? null;
-      if (onError) onError(id, errorMessage);
-      setError(errorMessage);
+      const errorCode = validate(field, value) ?? null;
+      if (onError) onError(id, errorCode);
+      setError(errorCode);
       setIsTouched(true);
-      return errorMessage;
+      return errorCode;
     },
     [field, id, onError],
   );
