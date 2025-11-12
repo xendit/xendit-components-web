@@ -2,6 +2,8 @@
 This must be a single file with no imports.
 */
 
+import { IframeEvent } from "../shared/types";
+
 const sessionId = "ps-12345678901234567890";
 
 let pinningKeys: CryptoKey[] = [];
@@ -193,14 +195,16 @@ async function createTestCase(testCaseName: string, inputType: string) {
         console.warn("Received message from unexpected origin:", event.origin);
         return;
       }
-      console.log("Received message:", event.data);
-      switch (event.data.type) {
-        case "ready": {
-          iframePublicKeyBytes = base64ToArrayBuffer(event.data.ecdhPublicKey);
+
+      const data = event.data as IframeEvent;
+      console.log("Received message:", data);
+      switch (data.type) {
+        case "xendit-iframe-ready": {
+          iframePublicKeyBytes = base64ToArrayBuffer(data.ecdhPublicKey);
           break;
         }
-        case "change": {
-          const encrypted = event.data.encrypted;
+        case "xendit-iframe-change": {
+          const encrypted = data.encrypted;
           for (const enc of encrypted) {
             checkDecryptionWorks(
               ecdhKeyPair,

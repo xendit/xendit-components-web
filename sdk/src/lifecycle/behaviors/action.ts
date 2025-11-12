@@ -1,14 +1,21 @@
 import { IframeActionCompleteEvent } from "../../../../shared/types";
-import { Behavior, SdkData } from "../behavior-tree-runner";
+import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import { BlackboardType } from "../behavior-tree";
+import { Behavior } from "../behavior-tree-runner";
+
+export class ActionCompletedBehavior implements Behavior {
+  constructor(private bb: BlackboardType) {}
+  enter() {}
+}
 
 export class ActionRedirectBehavior implements Behavior {
   constructor(
-    private data: SdkData,
+    private bb: BlackboardType,
     private url: string,
   ) {}
 
   enter() {
-    this.data.sdkEvents.setWillRedirect();
+    this.bb.sdkEvents.setWillRedirect();
     window.location.href = this.url;
   }
 }
@@ -17,28 +24,35 @@ export class ActionIframeBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
 
   constructor(
-    private data: SdkData,
+    private bb: BlackboardType,
     private url: string,
   ) {}
 
   enter() {
-    this.cleanupFn = this.data.sdkEvents.ensureHasActionContainer();
-    this.data.sdkEvents.populateActionContainerWithIframe(
+    this.cleanupFn = this.bb.sdkEvents.ensureHasActionContainer();
+    this.bb.sdkEvents.populateActionContainerWithIframe(
       this.url,
-      this.data.mock,
+      this.bb.mock,
       (event: IframeActionCompleteEvent) => {
         this.cleanupActionContainer(false);
         this.updateMocksOnIframeCompletion(event.mockStatus === "success");
+
+        // setting actionCompleted will ensure the action UI isn't shown again
+        this.bb.actionCompleted = true;
+        // request immediate poll on next update
+        this.bb.pollImmedientlyRequested = true;
+
+        this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
       },
     );
   }
 
   updateMocksOnIframeCompletion(success: boolean) {
-    if (this.data.mock) {
+    if (this.bb.mock) {
       if (success) {
-        this.data.sdkEvents.scheduleMockUpdate("ACTION_SUCCESS");
+        this.bb.sdkEvents.scheduleMockUpdate("ACTION_SUCCESS");
       } else {
-        this.data.sdkEvents.scheduleMockUpdate("ACTION_FAILURE");
+        this.bb.sdkEvents.scheduleMockUpdate("ACTION_FAILURE");
       }
     }
   }

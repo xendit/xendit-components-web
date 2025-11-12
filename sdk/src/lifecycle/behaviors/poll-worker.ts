@@ -5,7 +5,7 @@ import {
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
 import { XenditSessionSdk, XenditSessionTestSdk } from "../../public-sdk";
-import { retryLoop, sleep } from "../../utils";
+import { MOCK_NETWORK_DELAY_MS, retryLoop, sleep } from "../../utils";
 
 /**
  * Polls the session status forever until stop() is called.
@@ -58,6 +58,7 @@ export class PollWorker {
           this.sdk instanceof XenditSessionTestSdk &&
           this.sdk.nextMockUpdate
         ) {
+          await sleep(MOCK_NETWORK_DELAY_MS); // simulate network delay
           response = this.sdk.nextMockUpdate;
           this.sdk.nextMockUpdate = null;
         } else {

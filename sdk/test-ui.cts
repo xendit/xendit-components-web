@@ -106,8 +106,8 @@ function logEvent(event: Event) {
 
 sdk.addEventListener("init", logEvent);
 
-sdk.addEventListener("ready", logEvent);
-sdk.addEventListener("not-ready", logEvent);
+sdk.addEventListener("submission-ready", logEvent);
+sdk.addEventListener("submission-not-ready", logEvent);
 
 sdk.addEventListener("submission-begin", logEvent);
 sdk.addEventListener("submission-end", logEvent);
@@ -116,28 +116,45 @@ sdk.addEventListener("action-end", logEvent);
 sdk.addEventListener("will-redirect", logEvent);
 
 sdk.addEventListener("session-complete", logEvent);
-sdk.addEventListener("session-failed", logEvent);
+sdk.addEventListener("session-expired-or-canceled", logEvent);
 
-sdk.addEventListener("error", logEvent);
+sdk.addEventListener("payment-request-created", logEvent);
+sdk.addEventListener("payment-request-discarded", logEvent);
+
+sdk.addEventListener("payment-token-created", logEvent);
+sdk.addEventListener("payment-token-discarded", logEvent);
+
+sdk.addEventListener("fatal-error", logEvent);
 
 setInterval(() => {
   const internalState = sdk.getState();
-  outputChannelPropertiesLog.value = `Selected Channel: ${internalState.channelCode}
-Channel Properties: ${JSON.stringify(internalState.channelProperties, null, 2)}`;
+  const { world, channel, dispatchEvent, sdkEvents, ...bbFlags } =
+    internalState.behaviorTree.bb;
+  outputChannelPropertiesLog.value = JSON.stringify(
+    {
+      selectedChannel: internalState.channelCode,
+      ...bbFlags,
+    },
+    null,
+    2,
+  );
   outputBehaviorTree.value = stringifyBehaviorTree(
     internalState.behaviorTree.root,
     1,
   );
-}, 200);
+}, 50);
 
 type TreeNode = { impl: { name: string }; child: TreeNode } | null | undefined;
 function stringifyBehaviorTree(tree: TreeNode, depth: number): string {
+  if (!tree) {
+    return "";
+  }
   return (
     "-".repeat(depth) +
     " " +
-    (tree
-      ? tree.impl.name + "\n" + stringifyBehaviorTree(tree?.child, depth + 1)
-      : "(no child)")
+    tree.impl.name +
+    "\n" +
+    stringifyBehaviorTree(tree?.child, depth + 1)
   );
 }
 

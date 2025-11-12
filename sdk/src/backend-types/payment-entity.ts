@@ -50,7 +50,6 @@ export type BffPaymentToken = {
   failure_code?: BffPaymentTokenFailureCode;
   actions: BffAction[];
   channel_code: string;
-  pm_type: string;
   /**
    * Only returned when the payment request is created, not on polling
    */
@@ -101,7 +100,6 @@ export type BffPaymentRequest = {
   failure_code?: BffPaymentRequestFailureCode;
   actions: BffAction[];
   channel_code: string;
-  pm_type: string;
   /**
    * Only returned when the payment request is created, not on polling
    */

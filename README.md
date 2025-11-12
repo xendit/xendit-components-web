@@ -58,7 +58,7 @@ mySubmitButton.addEventListener("click", () => {
 sdk.addEventListener("session-complete", () => {
   alert("Payment Success");
 });
-sdk.addEventListener("session-failed", () => {
+sdk.addEventListener("session-expired-or-canceled", () => {
   alert("Payment cancelled or expired");
 });
 ```
@@ -160,7 +160,7 @@ Begins submission for the active payment channel.
 Call this from the click event of your submit button.
 
 Submission is only available when the session is active, a channel is active, any required information is collected, and
-another submission is not in progress. Use the `ready` and `not-ready` events to know when submission is available.
+another submission is not in progress. Use the `submission-ready` and `submission-not-ready` events to know when submission is available.
 
 This calls the [create payment request](https://docs.xendit.co/apidocs/create-payment-request)
 or [create payment token](https://docs.xendit.co/apidocs/create-payment-token) endpoint depending on the session type. You
@@ -240,13 +240,13 @@ Notifies you when the session information is loaded. Most SDK functions require 
 
 `createChannelPickerComponent` is available before the init event.
 
-### `session-complete` and `session-failed`
+### `session-complete` and `session-expired-or-canceled`
 
 Notifies you when the session is in a terminal state.
 
-`session-complete` means the session was successful, `session-failed` means the session was cancelled or expired.
+`session-complete` means the session was successful, `session-expired-or-canceled` means the session was cancelled or expired.
 
-### `ready` and `not-ready`
+### `submission-ready` and `submission-not-ready`
 
 Notifies you when the user is ready to submit the payment, meaning a channel is selected and all required information is collected.
 

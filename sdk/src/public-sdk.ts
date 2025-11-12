@@ -6,13 +6,17 @@ import {
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
-  XenditErrorEvent,
+  XenditFatalErrorEvent,
   XenditEventListener,
   XenditEventMap,
   XenditInitEvent,
+  XenditPaymentRequestCreatedEvent,
+  XenditPaymentRequestDiscardedEvent,
+  XenditPaymentTokenCreatedEvent,
+  XenditPaymentTokenDiscardedEvent,
   XenditReadyEvent,
   XenditSessionCompleteEvent,
-  XenditSessionFailedEvent,
+  XenditSessionExpiredOrCanceledEvent,
   XenditSubmissionBeginEvent,
   XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
@@ -41,19 +45,16 @@ import {
 } from "./components/payment-channel";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
-import { BehaviorNode, BehaviorTree } from "./lifecycle/behavior-tree-runner";
-import { behaviorTreeForSdk } from "./lifecycle/behavior-tree";
+import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
+import { behaviorTreeForSdk, BlackboardType } from "./lifecycle/behavior-tree";
 import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
 import { SdkEventManager } from "./sdk-event-manager";
+import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
 import {
-  SessionActiveBehavior,
-  SubmissionBehavior,
-} from "./lifecycle/behaviors/session";
-import {
-  InternalHasInFlightRequestEvent,
+  InternalBehaviorTreeUpdateEvent,
   InternalUpdateWorldState,
 } from "./private-event-types";
 import {
@@ -63,7 +64,9 @@ import {
 } from "./backend-types/common";
 import {
   canBeSimulated,
+  errorToString,
   mergeIgnoringUndefined,
+  MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
   parseSdkKey,
   sleep,
@@ -74,6 +77,7 @@ import {
   ChannelValidBehavior,
 } from "./lifecycle/behaviors/channel";
 import { PeRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity";
+import { SubmissionBehavior } from "./lifecycle/behaviors/submission";
 
 /**
  * @internal
@@ -87,7 +91,7 @@ type CachedChannelComponent = {
 
 /**
  * @internal
- * The session and associated entities.
+ * The session and associated entities that we get from the backend.
  */
 export type WorldState = {
   business: BffBusiness;
@@ -153,7 +157,7 @@ export class XenditSessionSdk extends EventTarget {
     /**
      * Behavior tree for state management.
      */
-    behaviorTree: BehaviorTree;
+    behaviorTree: BehaviorTree<BlackboardType>;
 
     /**
      * Components the user has created
@@ -169,11 +173,6 @@ export class XenditSessionSdk extends EventTarget {
      * This is used as a key into `paymentChannelComponents`.
      */
     activeChannelCode: string | null;
-
-    /**
-     * If true, a submission request is in-flight (this triggers the submission-begin and submission-end events).
-     */
-    hasInFlightSubmissionRequest: boolean;
   };
 
   /**
@@ -212,13 +211,22 @@ export class XenditSessionSdk extends EventTarget {
         paymentChannels: new Map(),
         actionContainer: null,
       },
-      activeChannelCode: null,
-      behaviorTree: new BehaviorTree({
+      behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
         sdkEvents: eventManager,
         sdkKey,
         mock: this.isMock(),
+        sdkStatus: "LOADING",
+        sdkFatalErrorMessage: null,
+        channel: null,
+        channelProperties: null,
+        dispatchEvent: this.dispatchEvent.bind(this),
+        world: null,
+        submissionRequested: false,
+        simulatePaymentRequested: false,
+        actionCompleted: false,
+        pollImmedientlyRequested: false,
       }),
-      hasInFlightSubmissionRequest: false,
+      activeChannelCode: null,
     };
 
     this.behaviorTreeUpdate();
@@ -226,11 +234,11 @@ export class XenditSessionSdk extends EventTarget {
     // internal event listeners
     (this as EventTarget).addEventListener(
       InternalUpdateWorldState.type,
-      this.onUpdateWorldState,
+      this.onUpdateWorldState.bind(this),
     );
     (this as EventTarget).addEventListener(
-      InternalHasInFlightRequestEvent.type,
-      this.onUpdateHasInFlightRequest,
+      InternalBehaviorTreeUpdateEvent.type,
+      this.behaviorTreeUpdate.bind(this),
     );
 
     // Initialize session data asynchronously
@@ -246,8 +254,10 @@ export class XenditSessionSdk extends EventTarget {
     try {
       // Fetch session data from the server
       bff = await fetchSessionData(this[internal].sdkKey.sessionAuthKey);
-    } catch (_error) {
-      this.dispatchEvent(new XenditErrorEvent());
+    } catch (error) {
+      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+        errorToString(error);
       return;
     }
 
@@ -302,63 +312,45 @@ export class XenditSessionSdk extends EventTarget {
    * @internal
    * Updates the session or other ascociated entities and syncs everything that depends on them.
    */
-  private onUpdateWorldState = (event: Event) => {
+  private onUpdateWorldState(event: Event) {
     const data = (event as InternalUpdateWorldState).data;
     this[internal].worldState = mergeIgnoringUndefined(
       this[internal].worldState ?? ({} as WorldState),
       data,
     );
-
-    // update behavior tree
     this.behaviorTreeUpdate();
     this.rerenderAllComponents();
-  };
-
-  /**
-   * @internal
-   * Event handler for in-flight request updates.
-   */
-  private onUpdateHasInFlightRequest = (event: Event) => {
-    const castedEvent = event as InternalHasInFlightRequestEvent;
-    this[internal].hasInFlightSubmissionRequest =
-      castedEvent.hasInFlightRequest;
-    this.behaviorTreeUpdate();
-  };
+  }
 
   /**
    * @internal
    * Creates a new behavior tree based on the internal state and runs the update process.
    */
   private behaviorTreeUpdate(): void {
-    let newTree: BehaviorNode<unknown[]>;
-    if (!this[internal].worldState) {
-      newTree = behaviorTreeForSdk({
-        sdkStatus: "LOADING",
-        session: null,
-        sessionTokenRequestId: null,
-        paymentEntity: null,
-        channel: null,
-        channelProperties: null,
-        submissionRequestInFlight: false,
-      });
-    } else {
-      newTree = behaviorTreeForSdk({
-        sdkStatus: "ACTIVE",
-        session: this[internal].worldState.session,
-        sessionTokenRequestId: this[internal].worldState.sessionTokenRequestId,
-        paymentEntity: this[internal].worldState.paymentEntity,
-        channel: this[internal].activeChannelCode
-          ? this.findChannel(this[internal].activeChannelCode)
-          : null,
-        channelProperties:
-          this[internal].liveComponents.paymentChannels.get(
-            this[internal].activeChannelCode ?? "",
-          )?.channelProperties ?? null,
-        submissionRequestInFlight: this[internal].hasInFlightSubmissionRequest,
-      });
-    }
+    const bb = this[internal].behaviorTree.bb;
 
-    this[internal].behaviorTree.update(newTree);
+    if (bb.sdkStatus === "LOADING" && this[internal].worldState) {
+      bb.sdkStatus = "ACTIVE";
+    }
+    bb.world = this[internal].worldState;
+    bb.channel = this[internal].activeChannelCode
+      ? this.findChannel(this[internal].activeChannelCode)
+      : null;
+    bb.channelProperties = this[internal].activeChannelCode
+      ? (this[internal].liveComponents.paymentChannels.get(
+          this[internal].activeChannelCode,
+        )?.channelProperties ?? null)
+      : null;
+
+    try {
+      this[internal].behaviorTree.update();
+    } catch (error) {
+      // crash handler, move to fatal error state
+      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+        errorToString(error);
+      this[internal].behaviorTree.update();
+    }
   }
 
   /**
@@ -804,15 +796,16 @@ export class XenditSessionSdk extends EventTarget {
    * Submit, makes a payment or saves a payment method for the active payment channel.
    *
    * Call this when your submit button is clicked. Listen to the events to know the status:
-   *  - `submission-begin` and `submission-end` to know when submission is in progress (you should disable your UI during this time)
+   *  - `submission-begin` and `submission-end` to know when submission is in progress (you should disable your UI during this time). Submission-end also provides a reason.
    *  - `action-begin` and `action-end` to know when user action is in progress
    *  - `will-redirect` when the user will be redirected to another page
+   *  - `payment-[request|token]-[created|discarded]` informs you of the ID of the resource we create on the backend, and if/when it is discarded
    *  - `session-complete` when the payment request or token is successfully created (you should redirect the user to your confirmation page)
-   *  - `session-failed` can happen at any time, but it's likely to happen on submission if the session expired or was cancelled during checkout
-   *  - `not-ready` fires before `submission-begin` to indicate that you cannot submit while a submission is in progress
+   *  - `session-expired-or-canceled` can happen at any time, but it's likely to happen on submission if the session expired or was cancelled during checkout
+   *  - `submission-not-ready` fires before `submission-begin` to indicate that you cannot submit while a submission is in progress
    *
    * When a submission fails, you can try again by calling `submit()` again.
-   * (`session-failed` and `error` are fatal, submission failure is not)
+   * (The `session-expired-or-canceled` and `fatal-error` events are fatal, submission failure is normal and recoverable)
    *
    * This corresponds to the endpoints:
    *  - `POST /v3/payment_requests` for PAY sessions
@@ -826,7 +819,7 @@ export class XenditSessionSdk extends EventTarget {
     );
     if (!sessionActiveBehavior) {
       throw new Error(
-        "Unable to submit; the session is not in the active state. Listen to the `session-complete` and `session-failed` events and display success or failure states accordingly.",
+        "Unable to submit; the session is not in the active state. Listen to the `session-complete` and `session-expired-or-canceled` events and display success or failure states accordingly.",
       );
     }
 
@@ -853,7 +846,7 @@ export class XenditSessionSdk extends EventTarget {
     );
     if (channelInvalidBehavior) {
       throw new Error(
-        "Unable to submit; the form for the active channel has errors. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
+        "Unable to submit; the form for the active channel has errors. Listen to the `submission-ready` and `submission-not-ready` events, do not allow submission while in the not-ready state.",
       );
     }
 
@@ -861,16 +854,12 @@ export class XenditSessionSdk extends EventTarget {
       this[internal].behaviorTree.findBehavior(ChannelValidBehavior);
     if (!channelValidBehavior) {
       throw new Error(
-        "Unable to submit; the SDK is not in a valid state for submission. Listen to the `ready` and `not-ready` events, do not allow submission while in the not-ready state.",
+        "Unable to submit; the SDK is not in a valid state for submission. Listen to the `submission-ready` and `submission-not-ready` events, do not allow submission while in the not-ready state.",
       );
     }
 
-    const sessionType = this[internal].worldState.session.session_type;
-    sessionActiveBehavior.submit(
-      sessionType,
-      channelCode,
-      component.channelProperties ?? {},
-    );
+    this[internal].behaviorTree.bb.submissionRequested = true;
+    this.behaviorTreeUpdate();
   }
 
   /**
@@ -891,25 +880,8 @@ export class XenditSessionSdk extends EventTarget {
       return; // no submission in progress
     }
 
-    const sessionActiveBehavior = this[internal].behaviorTree.findBehavior(
-      SessionActiveBehavior,
-    );
-    if (!sessionActiveBehavior) {
-      throw new Error(
-        "Submission state found but active state missing. This is a bug, please contact support.",
-      );
-    }
-
-    // abort any in-flight submission
-    sessionActiveBehavior.abortSubmission();
-
-    // if we have a PR/PT, clear it
-    this.dispatchEvent(
-      new InternalUpdateWorldState({
-        paymentEntity: null,
-        sessionTokenRequestId: null,
-      }),
-    );
+    this[internal].behaviorTree.bb.submissionRequested = false;
+    this.behaviorTreeUpdate();
   }
 
   /**
@@ -951,24 +923,22 @@ export class XenditSessionSdk extends EventTarget {
       );
     }
 
-    const paymentRequest =
-      paymentEntity.type === "paymentRequest" && paymentEntity.entity;
-    if (!paymentRequest) {
+    const channel = this.findChannel(paymentEntity.entity.channel_code);
+
+    if (!channel) {
       throw new Error(
-        "Session type is PAY but paymentEntity is not a payment request; this is a bug, please contact support.",
+        "Channel not found; this is a bug, please contact support.",
       );
     }
 
-    if (!canBeSimulated(paymentRequest)) {
+    if (!canBeSimulated(channel)) {
       throw new Error(
         "Unable to simulate payment; the payment channel does not support simulation.",
       );
     }
 
-    requiresActionBehavior.simulatePayment(
-      paymentRequest.payment_request_id,
-      paymentRequest.channel_code,
-    );
+    this[internal].behaviorTree.bb.simulatePaymentRequested = true;
+    this.behaviorTreeUpdate();
   }
 
   /**
@@ -1009,31 +979,31 @@ export class XenditSessionSdk extends EventTarget {
 
   /**
    * @public
-   * The `ready` and `not-ready` events let you know when submission should be available.
+   * The `submission-ready` and `submission-not-ready` events let you know when submission should be available.
    * If ready, you can call `submit()` to begin the payment or token creation process.
    *
-   * "ready" means a channel has been selected, and all required fields are populated,
+   * "submission-ready" means a channel has been selected, and all required fields are populated,
    * and all fields are valid.
    *
    * Use this to enable/disable your submit button.
    *
    * @example
    * ```
-   * xenditSdk.addEventListener("ready", () => {
+   * xenditSdk.addEventListener("submission-ready", () => {
    *   submitButton.disabled = false;
    * });
-   * xenditSdk.addEventListener("not-ready", () => {
+   * xenditSdk.addEventListener("submission-not-ready", () => {
    *   submitButton.disabled = true;
    * });
    * ```
    */
   addEventListener(
-    name: "ready",
+    name: "submission-ready",
     listener: XenditEventListener<XenditReadyEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
   addEventListener(
-    name: "not-ready",
+    name: "submission-not-ready",
     listener: XenditEventListener<XenditReadyEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
@@ -1055,6 +1025,33 @@ export class XenditSessionSdk extends EventTarget {
   addEventListener(
     name: "submission-end",
     listener: XenditEventListener<XenditSubmissionEndEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * The events `payment-request-created`, `payment-token-created`, `payment-request-discarded`, and `payment-token-discarded`
+   * let you know when a payment request or payment token has been created (as part of a submission) or
+   * discarded (by cancelling or failing a submission).
+   */
+  addEventListener(
+    name: "payment-request-created",
+    listener: XenditEventListener<XenditPaymentRequestCreatedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    name: "payment-token-created",
+    listener: XenditEventListener<XenditPaymentTokenCreatedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    name: "payment-request-discarded",
+    listener: XenditEventListener<XenditPaymentRequestDiscardedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    name: "payment-token-discarded",
+    listener: XenditEventListener<XenditPaymentTokenDiscardedEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
@@ -1111,19 +1108,19 @@ export class XenditSessionSdk extends EventTarget {
    * Event handler called when the session has expired or been cancelled.
    */
   addEventListener(
-    name: "session-failed",
-    listener: XenditEventListener<XenditSessionFailedEvent>,
+    name: "session-expired-or-canceled",
+    listener: XenditEventListener<XenditSessionExpiredOrCanceledEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
   /**
    * @public
-   * Event handler called when something unrecoverable has happened. You should re-initialize
-   * the session or reload the page.
+   * Event handler called when something unrecoverable has happened. You should create a new
+   * session and a new SDK instance.
    */
   addEventListener(
-    name: "error",
-    listener: XenditEventListener<XenditErrorEvent>,
+    name: "fatal-error",
+    listener: XenditEventListener<XenditFatalErrorEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
@@ -1138,18 +1135,16 @@ export class XenditSessionSdk extends EventTarget {
   ): void;
 
   /**
-   * @public
-   * Fallback overload.
+   * @internal
+   * Implementation.
    */
   addEventListener(
     type: string,
-    listener:
-      | XenditEventListener<Event>
-      | EventListenerOrEventListenerObject
-      | null,
+    listener: unknown,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    return super.addEventListener(type, listener, options);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return super.addEventListener(type, listener as any, options);
   }
 }
 
@@ -1193,7 +1188,7 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
    */
   protected async initializeAsync(): Promise<void> {
     // Simulate network delay and prevent firing the init event before the constructor returns
-    await sleep(50);
+    await sleep(MOCK_NETWORK_DELAY_MS);
 
     // Always use test data for this class
     const bff = (await import("./test-data")).makeTestBffData();

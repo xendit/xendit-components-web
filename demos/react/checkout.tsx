@@ -124,10 +124,10 @@ const Payment: React.FC<{
       setIsInitialized(true);
     });
 
-    sdk.addEventListener("ready", () => {
+    sdk.addEventListener("submission-ready", () => {
       setReady(true);
     });
-    sdk.addEventListener("not-ready", () => {
+    sdk.addEventListener("submission-not-ready", () => {
       setReady(false);
     });
 

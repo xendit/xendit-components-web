@@ -1,20 +1,13 @@
 import { createElement, render } from "preact";
 import { BffSessionStatus } from "./backend-types/session";
 import { internal } from "./internal";
-import {
-  InternalHasInFlightRequestEvent,
-  InternalUpdateWorldState,
-} from "./private-event-types";
+import { InternalUpdateWorldState } from "./private-event-types";
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
   XenditInitEvent,
-  XenditNotReadyEvent,
-  XenditReadyEvent,
   XenditSessionCompleteEvent,
-  XenditSessionFailedEvent,
-  XenditSubmissionBeginEvent,
-  XenditSubmissionEndEvent,
+  XenditSessionExpiredOrCanceledEvent,
   XenditWillRedirectEvent,
 } from "./public-event-types";
 import {
@@ -33,7 +26,6 @@ import { IframeActionCompleteEvent } from "../../shared/types";
 export class SdkEventManager {
   sdk: XenditSessionSdk;
 
-  ready = false;
   hasInFlightRequest = false;
   submitting = false;
   action = false;
@@ -73,39 +65,6 @@ export class SdkEventManager {
     this.sdk.dispatchEvent(new XenditInitEvent());
   }
 
-  setReady(ready: boolean) {
-    if (this.ready === ready) return;
-    this.ready = ready;
-
-    if (ready) {
-      this.sdk.dispatchEvent(new XenditReadyEvent());
-    } else {
-      this.sdk.dispatchEvent(new XenditNotReadyEvent());
-    }
-  }
-
-  setHasInFlightSubmitRequest(hasInFlightRequest: boolean) {
-    if (this.hasInFlightRequest === hasInFlightRequest) return;
-    this.hasInFlightRequest = hasInFlightRequest;
-
-    if (hasInFlightRequest) {
-      this.sdk.dispatchEvent(new InternalHasInFlightRequestEvent(true));
-    } else {
-      this.sdk.dispatchEvent(new InternalHasInFlightRequestEvent(false));
-    }
-  }
-
-  setSubmitting(submitting: boolean) {
-    if (this.submitting === submitting) return;
-    this.submitting = submitting;
-
-    if (submitting) {
-      this.sdk.dispatchEvent(new XenditSubmissionBeginEvent());
-    } else {
-      this.sdk.dispatchEvent(new XenditSubmissionEndEvent());
-    }
-  }
-
   setHasAction(action: boolean) {
     if (this.action === action) return;
     this.action = action;
@@ -121,7 +80,7 @@ export class SdkEventManager {
     if (state === "COMPLETED") {
       this.sdk.dispatchEvent(new XenditSessionCompleteEvent());
     } else {
-      this.sdk.dispatchEvent(new XenditSessionFailedEvent());
+      this.sdk.dispatchEvent(new XenditSessionExpiredOrCanceledEvent());
     }
   }
 
@@ -144,7 +103,7 @@ export class SdkEventManager {
     let success = false;
 
     const container = document.createElement("div");
-    container.setAttribute("id", "xendit-default-action-container");
+    container.setAttribute("class", "xendit-default-action-container");
     const props = {
       sdk: this.sdk,
       title: "Complete your action",

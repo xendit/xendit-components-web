@@ -1,19 +1,17 @@
-import { simulatePaymentRequest } from "../../api";
 import { BffPollResponse } from "../../backend-types/common";
 import { BffPaymentEntity } from "../../backend-types/payment-entity";
-import { Behavior, SdkData } from "../behavior-tree-runner";
+import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import { BlackboardType } from "../behavior-tree";
+import { Behavior } from "../behavior-tree-runner";
 import { PollWorker } from "./poll-worker";
 
 export class PePendingBehavior implements Behavior {
   private pollWorker: PollWorker;
-  constructor(
-    private data: SdkData,
-    private sessionTokenRequestId: string | null,
-  ) {
+  constructor(private bb: BlackboardType) {
     this.pollWorker = new PollWorker(
-      this.data.sdkKey.sessionAuthKey,
-      this.data.sdkEvents.sdk,
-      this.sessionTokenRequestId,
+      this.bb.sdkKey.sessionAuthKey,
+      this.bb.sdkEvents.sdk,
+      this.bb.world?.sessionTokenRequestId ?? null,
       this.onPollResult,
     );
   }
@@ -30,7 +28,7 @@ export class PePendingBehavior implements Behavior {
     pollResponse: BffPollResponse,
     paymentEntity: BffPaymentEntity | null,
   ) => {
-    this.data.sdkEvents.updateWorld({
+    this.bb.sdkEvents.updateWorld({
       session: pollResponse.session,
       paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
       succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
@@ -42,35 +40,36 @@ export class PeRequiresActionBehavior implements Behavior {
   private pollWorker: PollWorker | null = null;
   public canCreateActionContainer: boolean = true;
 
-  private simulationRequest: {
-    promise: Promise<void>;
-    abortController: AbortController;
-  } | null = null;
-
-  constructor(
-    private data: SdkData,
-    private sessionTokenRequestId: string | null,
-  ) {
+  constructor(private bb: BlackboardType) {
     this.resetPolling();
   }
 
   enter() {
-    this.data.sdkEvents.setHasAction(true);
+    this.bb.sdkEvents.setHasAction(true);
     this.canCreateActionContainer = false;
     this.pollWorker?.start();
   }
 
+  update() {
+    if (this.bb.pollImmedientlyRequested) {
+      this.bb.pollImmedientlyRequested = false;
+      this.resetPolling();
+    }
+  }
+
   exit() {
-    this.abortSimulation();
     this.pollWorker?.stop();
-    this.data.sdkEvents.setHasAction(false);
+    this.bb.sdkEvents.setHasAction(false);
+
+    // clear flag for next time
+    this.bb.actionCompleted = false;
   }
 
   onPollResult = (
     pollResponse: BffPollResponse,
     paymentEntity: BffPaymentEntity | null,
   ) => {
-    this.data.sdkEvents.updateWorld({
+    this.bb.sdkEvents.updateWorld({
       session: pollResponse.session,
       paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
       succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
@@ -84,67 +83,22 @@ export class PeRequiresActionBehavior implements Behavior {
     const polling = this.pollWorker?.isPolling() ?? false;
     this.pollWorker?.stop();
     this.pollWorker = new PollWorker(
-      this.data.sdkKey.sessionAuthKey,
-      this.data.sdkEvents.sdk,
-      this.sessionTokenRequestId,
+      this.bb.sdkKey.sessionAuthKey,
+      this.bb.sdkEvents.sdk,
+      this.bb.world?.sessionTokenRequestId ?? null,
       this.onPollResult,
     );
     if (polling) {
       this.pollWorker.start();
     }
   }
-
-  abortSimulation() {
-    if (this.simulationRequest) {
-      this.simulationRequest.abortController.abort("Aborted");
-      this.simulationRequest = null;
-    }
-  }
-
-  simulatePayment(paymentRequestId: string, channelCode: string) {
-    if (this.simulationRequest) {
-      this.abortSimulation();
-    }
-
-    if (this.data.mock) {
-      // TODO: implement simulate payment for mocks
-      return;
-    }
-
-    const abortController = new AbortController();
-    const promise = simulatePaymentRequest(
-      {
-        channel_code: channelCode,
-      },
-      {
-        sessionAuthKey: this.data.sdkKey.sessionAuthKey,
-        paymentRequestId: paymentRequestId,
-      },
-    )
-      .then(() => {
-        this.resetPolling();
-      })
-      .finally(() => {
-        this.simulationRequest = null;
-      });
-
-    this.simulationRequest = {
-      promise,
-      abortController,
-    };
-  }
 }
 
 export class PeFailedBehavior implements Behavior {
-  constructor(private data: SdkData) {}
+  constructor(private bb: BlackboardType) {}
 
   enter() {
-    // TODO: emit payment attempt failed event
-
-    // Clear payment entity on failure
-    this.data.sdkEvents.updateWorld({
-      paymentEntity: null,
-      sessionTokenRequestId: null,
-    });
+    this.bb.submissionRequested = false;
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 }
