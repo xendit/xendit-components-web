@@ -775,27 +775,21 @@ export function makeTestPollResponseForSuccess(
   paymentEntity: BffPaymentEntity,
 ): BffPollResponse {
   const baseData = makeTestBffData();
+
+  const paymentRequest =
+    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+  const paymentToken =
+    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+
   return {
     session: {
       ...baseData.session,
       status: "COMPLETED",
-      payment_request_id:
-        paymentEntity.type === "paymentRequest"
-          ? paymentEntity.entity.payment_request_id
-          : undefined,
-      payment_token_id:
-        paymentEntity.type === "paymentToken"
-          ? paymentEntity.entity.payment_token_id
-          : undefined,
+      payment_request_id: paymentRequest?.payment_request_id,
+      payment_token_id: paymentToken?.payment_token_id,
     },
-    payment_request:
-      paymentEntity.type === "paymentRequest"
-        ? withStatus(paymentEntity.entity, "SUCCEEDED")
-        : undefined,
-    payment_token:
-      paymentEntity.type === "paymentToken"
-        ? withStatus(paymentEntity.entity, "ACTIVE")
-        : undefined,
+    payment_request: withStatus(paymentRequest, "SUCCEEDED"),
+    payment_token: withStatus(paymentToken, "ACTIVE"),
     succeeded_channel: {
       channel_code: paymentEntity.entity.channel_code,
       logo_url: "https://placehold.co/48",
@@ -807,35 +801,35 @@ export function makeTestPollResponseForFailure(
   paymentEntity: BffPaymentEntity,
 ): BffPollResponse {
   const baseData = makeTestBffData();
+
+  const paymentRequest =
+    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+  const paymentToken =
+    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+
   return {
     session: {
       ...baseData.session,
       status: "ACTIVE",
     },
-    payment_request:
-      paymentEntity.type === "paymentRequest"
-        ? withStatus(paymentEntity.entity, "FAILED")
-        : undefined,
-    payment_token:
-      paymentEntity.type === "paymentToken"
-        ? withStatus(paymentEntity.entity, "FAILED")
-        : undefined,
-    succeeded_channel: {
-      channel_code: paymentEntity.entity.channel_code,
-      logo_url: "https://placehold.co/48",
-    },
+    payment_request: withStatus(paymentRequest, "FAILED"),
+    payment_token: withStatus(paymentToken, "FAILED"),
   };
 }
 
 function withStatus(
-  paymentRequest: BffPaymentRequest,
+  paymentRequest: BffPaymentRequest | undefined,
   status: BffPaymentRequest["status"],
-): BffPaymentRequest;
+): BffPaymentRequest | undefined;
 function withStatus(
-  paymentRequest: BffPaymentToken,
+  paymentRequest: BffPaymentToken | undefined,
   status: BffPaymentToken["status"],
-): BffPaymentToken;
-function withStatus(prOrPt: object, status: string): object {
+): BffPaymentToken | undefined;
+function withStatus(
+  prOrPt: object | undefined,
+  status: string,
+): object | undefined {
+  if (!prOrPt) return undefined;
   return {
     ...prOrPt,
     status: status,
