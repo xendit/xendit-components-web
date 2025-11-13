@@ -129,7 +129,7 @@ function updateTree(
 ) {
   assertMaxRecursionDepth(depth);
 
-  // decend down the tree until there's a change
+  // descend down the tree until there's a change
   const isChanged =
     prev === undefined ||
     next === undefined ||

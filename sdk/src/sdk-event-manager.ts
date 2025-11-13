@@ -17,9 +17,18 @@ import {
   XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
 } from "./public-event-types";
-import { UpdatableWorldState, XenditSessionSdk } from "./public-sdk";
+import {
+  UpdatableWorldState,
+  XenditSessionSdk,
+  XenditSessionTestSdk,
+} from "./public-sdk";
 import { ActionIframe } from "./components/action-iframe";
 import DefaultActionContainer from "./components/default-action-container";
+import {
+  makeTestPollResponseForFailure,
+  makeTestPollResponseForSuccess,
+} from "./test-data";
+import { IframeActionCompleteEvent } from "../../shared/types";
 
 export class SdkEventManager {
   sdk: XenditSessionSdk;
@@ -35,6 +44,29 @@ export class SdkEventManager {
 
   updateWorld(data: UpdatableWorldState) {
     this.sdk.dispatchEvent(new InternalUpdateWorldState(data));
+  }
+
+  scheduleMockUpdate(kind: "NONE" | "ACTION_SUCCESS" | "ACTION_FAILURE") {
+    if (this.sdk.isMock() && this.sdk instanceof XenditSessionTestSdk) {
+      this.sdk.assertInitialized();
+      switch (kind) {
+        case "NONE":
+          this.sdk.nextMockUpdate = null;
+          break;
+        case "ACTION_SUCCESS":
+          if (!this.sdk[internal].worldState.paymentEntity) break;
+          this.sdk.nextMockUpdate = makeTestPollResponseForSuccess(
+            this.sdk[internal].worldState.paymentEntity,
+          );
+          break;
+        case "ACTION_FAILURE":
+          if (!this.sdk[internal].worldState.paymentEntity) break;
+          this.sdk.nextMockUpdate = makeTestPollResponseForFailure(
+            this.sdk[internal].worldState.paymentEntity,
+          );
+          break;
+      }
+    }
   }
 
   setInitialized() {
@@ -109,6 +141,7 @@ export class SdkEventManager {
     }
 
     let cleanedUp = false;
+    let success = false;
 
     const container = document.createElement("div");
     container.setAttribute("id", "xendit-default-action-container");
@@ -119,14 +152,21 @@ export class SdkEventManager {
         cleanedUp = true;
         render(null, container);
         container.remove();
-        this.sdk.abortSubmission();
+        if (!success) {
+          this.sdk.abortSubmission();
+        }
       },
     };
     render(createElement(DefaultActionContainer, props), container);
     document.body.appendChild(container);
 
-    // cleanup function
-    return () => {
+    // Cleanup function
+    // (if actionCancelledByUser is true, abort the submission after the modal closes)
+    return (actionCancelledByUser: boolean) => {
+      if (!actionCancelledByUser) {
+        success = true;
+      }
+
       if (cleanedUp) return;
 
       // make the dialog play its close animation before removing it
@@ -143,7 +183,7 @@ export class SdkEventManager {
   populateActionContainerWithIframe(
     url: string,
     mock: boolean,
-    onComplete: () => void,
+    onIframeComplete: (event: IframeActionCompleteEvent) => void,
   ) {
     const container = this.sdk[internal].liveComponents.actionContainer;
     if (!container) {
@@ -152,6 +192,9 @@ export class SdkEventManager {
       );
     }
 
-    render(createElement(ActionIframe, { url, mock, onComplete }), container);
+    render(
+      createElement(ActionIframe, { url, mock, onIframeComplete }),
+      container,
+    );
   }
 }

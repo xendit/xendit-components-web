@@ -1,5 +1,6 @@
-import { BffResponse } from "./backend-types/common";
+import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
+  BffPaymentEntity,
   BffPaymentRequest,
   BffPaymentToken,
 } from "./backend-types/payment-entity";
@@ -768,6 +769,71 @@ function makeTestRandomId() {
   return Array.from({ length: 32 })
     .map(() => Math.floor(Math.random() * 16).toString(16))
     .join("");
+}
+
+export function makeTestPollResponseForSuccess(
+  paymentEntity: BffPaymentEntity,
+): BffPollResponse {
+  const baseData = makeTestBffData();
+
+  const paymentRequest =
+    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+  const paymentToken =
+    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+
+  return {
+    session: {
+      ...baseData.session,
+      status: "COMPLETED",
+      payment_request_id: paymentRequest?.payment_request_id,
+      payment_token_id: paymentToken?.payment_token_id,
+    },
+    payment_request: withStatus(paymentRequest, "SUCCEEDED"),
+    payment_token: withStatus(paymentToken, "ACTIVE"),
+    succeeded_channel: {
+      channel_code: paymentEntity.entity.channel_code,
+      logo_url: "https://placehold.co/48",
+    },
+  };
+}
+
+export function makeTestPollResponseForFailure(
+  paymentEntity: BffPaymentEntity,
+): BffPollResponse {
+  const baseData = makeTestBffData();
+
+  const paymentRequest =
+    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+  const paymentToken =
+    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+
+  return {
+    session: {
+      ...baseData.session,
+      status: "ACTIVE",
+    },
+    payment_request: withStatus(paymentRequest, "FAILED"),
+    payment_token: withStatus(paymentToken, "FAILED"),
+  };
+}
+
+function withStatus(
+  paymentRequest: BffPaymentRequest | undefined,
+  status: BffPaymentRequest["status"],
+): BffPaymentRequest | undefined;
+function withStatus(
+  paymentRequest: BffPaymentToken | undefined,
+  status: BffPaymentToken["status"],
+): BffPaymentToken | undefined;
+function withStatus(
+  prOrPt: object | undefined,
+  status: string,
+): object | undefined {
+  if (!prOrPt) return undefined;
+  return {
+    ...prOrPt,
+    status: status,
+  };
 }
 
 export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {

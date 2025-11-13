@@ -12,7 +12,7 @@ export class PePendingBehavior implements Behavior {
   ) {
     this.pollWorker = new PollWorker(
       this.data.sdkKey.sessionAuthKey,
-      this.data.mock,
+      this.data.sdkEvents.sdk,
       this.sessionTokenRequestId,
       this.onPollResult,
     );
@@ -85,7 +85,7 @@ export class PeRequiresActionBehavior implements Behavior {
     this.pollWorker?.stop();
     this.pollWorker = new PollWorker(
       this.data.sdkKey.sessionAuthKey,
-      this.data.mock,
+      this.data.sdkEvents.sdk,
       this.sessionTokenRequestId,
       this.onPollResult,
     );
@@ -96,7 +96,7 @@ export class PeRequiresActionBehavior implements Behavior {
 
   abortSimulation() {
     if (this.simulationRequest) {
-      this.simulationRequest.abortController.abort();
+      this.simulationRequest.abortController.abort("Aborted");
       this.simulationRequest = null;
     }
   }
@@ -140,5 +140,11 @@ export class PeFailedBehavior implements Behavior {
 
   enter() {
     // TODO: emit payment attempt failed event
+
+    // Clear payment entity on failure
+    this.data.sdkEvents.updateWorld({
+      paymentEntity: null,
+      sessionTokenRequestId: null,
+    });
   }
 }

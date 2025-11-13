@@ -38,6 +38,10 @@ type IframeFailedInitEvent = {
 
 type IframeActionCompleteEvent = {
   type: "xendit-iframe-action-complete";
+  /**
+   * Used to decide which mock update to perform.
+   */
+  mockStatus?: "success" | "fail";
 };
 
 export type IframeEvent =

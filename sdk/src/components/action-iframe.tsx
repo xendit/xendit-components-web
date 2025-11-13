@@ -4,11 +4,11 @@ import { IframeActionCompleteEvent } from "../../../shared/types";
 type Props = {
   url: string;
   mock: boolean;
-  onComplete: () => void;
+  onIframeComplete: (event: IframeActionCompleteEvent) => void;
 };
 
 export function ActionIframe(props: Props) {
-  const { url, mock, onComplete } = props;
+  const { url, mock, onIframeComplete } = props;
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -27,10 +27,10 @@ export function ActionIframe(props: Props) {
         event.data?.type ===
         ("xendit-iframe-action-complete" satisfies IframeActionCompleteEvent["type"])
       ) {
-        onComplete();
+        onIframeComplete(event.data as IframeActionCompleteEvent);
       }
     },
-    [onComplete],
+    [onIframeComplete],
   );
 
   useEffect(() => {
@@ -72,8 +72,11 @@ const MOCK_IFRAME_SRCDOC = `
     <body>
       <p>This is a mock action iframe.</p>
       <p>Click the button below to simulate completion of the action.</p>
-      <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete'}, '*')">
-        Complete Action
+      <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete', mockStatus: 'success'}, '*')">
+        Simulate Success
+      </button>
+      <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete', mockStatus: 'fail'}, '*')">
+        Simulate Failure
       </button>
     </body>
   </html>

@@ -106,7 +106,7 @@ export class SessionActiveBehavior implements Behavior {
   }
 
   abortSubmission() {
-    this.submission?.abortController.abort();
+    this.submission?.abortController.abort("Aborted");
     this.submission = null;
   }
 
@@ -120,6 +120,7 @@ export class SubmissionBehavior implements Behavior {
 
   enter() {
     this.data.sdkEvents.setSubmitting(true);
+    this.data.sdkEvents.scheduleMockUpdate("NONE");
   }
   exit() {
     this.data.sdkEvents.setSubmitting(false);
