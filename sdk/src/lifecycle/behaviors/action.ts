@@ -40,7 +40,7 @@ export class ActionIframeBehavior implements Behavior {
         // setting actionCompleted will ensure the action UI isn't shown again
         this.bb.actionCompleted = true;
         // request immediate poll on next update
-        this.bb.pollImmedientlyRequested = true;
+        this.bb.pollImmediatelyRequested = true;
 
         this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
       },

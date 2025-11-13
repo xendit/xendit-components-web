@@ -1,6 +1,7 @@
 import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
   BffPaymentEntity,
+  BffPaymentEntityType,
   BffPaymentRequest,
   BffPaymentToken,
 } from "./backend-types/payment-entity";
@@ -778,9 +779,13 @@ export function makeTestPollResponseForSuccess(
   const baseData = makeTestBffData();
 
   const paymentRequest =
-    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
   const paymentToken =
-    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
 
   return {
     session: {
@@ -804,9 +809,13 @@ export function makeTestPollResponseForFailure(
   const baseData = makeTestBffData();
 
   const paymentRequest =
-    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
   const paymentToken =
-    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
 
   return {
     session: {

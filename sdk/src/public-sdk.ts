@@ -224,7 +224,7 @@ export class XenditSessionSdk extends EventTarget {
         submissionRequested: false,
         simulatePaymentRequested: false,
         actionCompleted: false,
-        pollImmedientlyRequested: false,
+        pollImmediatelyRequested: false,
       }),
       activeChannelCode: null,
     };

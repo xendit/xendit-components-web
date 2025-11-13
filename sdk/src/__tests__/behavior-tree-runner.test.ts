@@ -177,7 +177,7 @@ describe("Behavior Tree", () => {
     tree.bb.updateAgain = () => {
       tree.update();
     };
-    tree.update(); // create TestBehavior3 which should immediently switch to TestBehavior
+    tree.update(); // create TestBehavior3 which should immediately switch to TestBehavior
 
     const node = tree.findBehavior(TestBehavior);
     expect(node).toBeDefined();

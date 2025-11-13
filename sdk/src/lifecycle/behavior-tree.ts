@@ -67,7 +67,7 @@ export type BlackboardType = {
   // if true, do not show the current action UI
   actionCompleted: boolean;
   // if true, poll the payment entity immediately on the next update
-  pollImmedientlyRequested: boolean;
+  pollImmediatelyRequested: boolean;
 };
 
 export function behaviorTreeForSdk(bb: BlackboardType) {

@@ -51,8 +51,8 @@ export class PeRequiresActionBehavior implements Behavior {
   }
 
   update() {
-    if (this.bb.pollImmedientlyRequested) {
-      this.bb.pollImmedientlyRequested = false;
+    if (this.bb.pollImmediatelyRequested) {
+      this.bb.pollImmediatelyRequested = false;
       this.resetPolling();
     }
   }

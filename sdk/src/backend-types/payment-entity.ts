@@ -106,15 +106,20 @@ export type BffPaymentRequest = {
   session_token_request_id?: string;
 };
 
+export enum BffPaymentEntityType {
+  PaymentRequest = "pr",
+  PaymentToken = "pt",
+}
+
 export type BffPaymentEntity =
   | {
       id: string;
-      type: "paymentRequest";
+      type: BffPaymentEntityType.PaymentRequest;
       entity: BffPaymentRequest;
     }
   | {
       id: string;
-      type: "paymentToken";
+      type: BffPaymentEntityType.PaymentToken;
       entity: BffPaymentToken;
     };
 
@@ -124,13 +129,13 @@ export function toPaymentEntity(
   if ("payment_request_id" in prOrPt) {
     return {
       id: prOrPt.payment_request_id,
-      type: "paymentRequest",
+      type: BffPaymentEntityType.PaymentRequest,
       entity: prOrPt,
     };
   } else {
     return {
       id: prOrPt.payment_token_id,
-      type: "paymentToken",
+      type: BffPaymentEntityType.PaymentToken,
       entity: prOrPt,
     };
   }

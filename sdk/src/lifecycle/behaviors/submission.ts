@@ -1,9 +1,13 @@
 import { createPaymentRequest, createPaymentToken } from "../../api";
+import { ChannelProperties } from "../../backend-types/channel";
 import {
+  BffPaymentEntity,
+  BffPaymentEntityType,
   BffPaymentRequest,
   BffPaymentToken,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
+import { BffSessionType } from "../../backend-types/session";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import {
   XenditPaymentRequestCreatedEvent,
@@ -14,7 +18,12 @@ import {
   XenditSubmissionEndEvent,
 } from "../../public-event-types";
 import { makeTestPaymentRequest, makeTestPaymentToken } from "../../test-data";
-import { assert, cancellableSleep, MOCK_NETWORK_DELAY_MS } from "../../utils";
+import {
+  assert,
+  cancellableSleep,
+  MOCK_NETWORK_DELAY_MS,
+  ParsedSdkKey,
+} from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 
@@ -51,12 +60,12 @@ export class SubmissionBehavior implements Behavior {
     ) {
       const paymentEntity = this.bb.world.paymentEntity;
       switch (paymentEntity.type) {
-        case "paymentRequest":
+        case BffPaymentEntityType.PaymentRequest:
           this.bb.dispatchEvent(
             new XenditPaymentRequestDiscardedEvent(paymentEntity.id),
           );
           break;
-        case "paymentToken":
+        case BffPaymentEntityType.PaymentToken:
           this.bb.dispatchEvent(
             new XenditPaymentTokenDiscardedEvent(paymentEntity.id),
           );
@@ -108,79 +117,22 @@ export class SubmissionBehavior implements Behavior {
 
     const abortController = new AbortController();
 
-    let promise1: Promise<BffPaymentRequest | BffPaymentToken>;
-    if (this.bb.mock) {
-      // mock implementation
-      switch (sessionType) {
-        case "PAY": {
-          promise1 = cancellableSleep(
-            MOCK_NETWORK_DELAY_MS,
-            abortController.signal,
-          ).then(() => {
-            return makeTestPaymentRequest(channelCode);
-          });
-          break;
-        }
-        case "SAVE": {
-          promise1 = cancellableSleep(
-            MOCK_NETWORK_DELAY_MS,
-            abortController.signal,
-          ).then(() => {
-            return makeTestPaymentToken(channelCode);
-          });
-          break;
-        }
-        default: {
-          throw new Error(`The session type ${sessionType} is not supported.`);
-        }
-      }
-    } else {
-      // real implementation
-      switch (sessionType) {
-        case "PAY": {
-          promise1 = createPaymentRequest(
-            {
-              session_id: this.bb.sdkKey.sessionAuthKey,
-              channel_code: channelCode,
-              channel_properties: channelProperties,
-              // TODO: pass customer for VA channels
-            },
-            null,
-            null,
-            abortController.signal,
-          );
-          break;
-        }
-        case "SAVE": {
-          promise1 = createPaymentToken(
-            {
-              session_id: this.bb.sdkKey.sessionAuthKey,
-              channel_code: channelCode,
-              channel_properties: channelProperties,
-            },
-            null,
-            null,
-            abortController.signal,
-          );
-          break;
-        }
-        default: {
-          throw new Error(`The session type ${sessionType} is not supported.`);
-        }
-      }
-    }
-
-    const promise2 = promise1
-      .then((prOrPt: BffPaymentRequest | BffPaymentToken) => {
-        const paymentEntity = toPaymentEntity(prOrPt);
-
+    const promise = asyncSubmit(
+      this.bb.sdkKey,
+      this.bb.mock,
+      sessionType,
+      channelCode,
+      channelProperties,
+      abortController,
+    )
+      .then((paymentEntity: BffPaymentEntity) => {
         switch (paymentEntity.type) {
-          case "paymentRequest":
+          case BffPaymentEntityType.PaymentRequest:
             this.bb.dispatchEvent(
               new XenditPaymentRequestCreatedEvent(paymentEntity.id),
             );
             break;
-          case "paymentToken":
+          case BffPaymentEntityType.PaymentToken:
             this.bb.dispatchEvent(
               new XenditPaymentTokenCreatedEvent(paymentEntity.id),
             );
@@ -192,7 +144,7 @@ export class SubmissionBehavior implements Behavior {
         // TODO: the payment-entity-created event should be sent only after the updateWorld call but that causes a behavior tree update which would cause events to fire in the wrong order
         this.bb.sdkEvents.updateWorld({
           paymentEntity,
-          sessionTokenRequestId: prOrPt.session_token_request_id,
+          sessionTokenRequestId: paymentEntity.entity.session_token_request_id,
         });
       })
       .finally(() => {
@@ -210,7 +162,73 @@ export class SubmissionBehavior implements Behavior {
 
     this.submission = {
       abortController,
-      promise: promise2,
+      promise,
     };
   }
+}
+
+async function asyncSubmit(
+  sdkKey: ParsedSdkKey,
+  mock: boolean,
+  sessionType: BffSessionType,
+  channelCode: string,
+  channelProperties: ChannelProperties,
+  abortController: AbortController,
+): Promise<BffPaymentEntity> {
+  let result: BffPaymentToken | BffPaymentRequest;
+
+  if (mock) {
+    // mock implementation
+    switch (sessionType) {
+      case "PAY": {
+        await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
+        result = makeTestPaymentRequest(channelCode);
+        break;
+      }
+      case "SAVE": {
+        await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
+        result = makeTestPaymentToken(channelCode);
+        break;
+      }
+      default: {
+        throw new Error(`The session type ${sessionType} is not supported.`);
+      }
+    }
+  } else {
+    // real implementation
+    switch (sessionType) {
+      case "PAY": {
+        result = await createPaymentRequest(
+          {
+            session_id: sdkKey.sessionAuthKey,
+            channel_code: channelCode,
+            channel_properties: channelProperties,
+            // TODO: pass customer for VA channels
+          },
+          null,
+          null,
+          abortController.signal,
+        );
+        break;
+      }
+      case "SAVE": {
+        result = await createPaymentToken(
+          {
+            session_id: sdkKey.sessionAuthKey,
+            channel_code: channelCode,
+            channel_properties: channelProperties,
+          },
+          null,
+          null,
+          abortController.signal,
+        );
+        break;
+      }
+      default: {
+        throw new Error(`The session type ${sessionType} is not supported.`);
+      }
+    }
+  }
+
+  return toPaymentEntity(result);
 }

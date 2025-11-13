@@ -1,4 +1,5 @@
 import { simulatePaymentRequest } from "../../api";
+import { BffPaymentEntityType } from "../../backend-types/payment-entity";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
@@ -37,7 +38,9 @@ export class SimulatePaymentBehavior implements Behavior {
     if (!this.bb.world?.paymentEntity) {
       throw new Error("Payment entity is missing");
     }
-    if (this.bb.world?.paymentEntity?.type !== "paymentRequest") {
+    if (
+      this.bb.world?.paymentEntity?.type !== BffPaymentEntityType.PaymentRequest
+    ) {
       throw new Error("Payment entity is not a payment request");
     }
 
