@@ -17,49 +17,63 @@ export const CheckoutPage: React.FC<{
     return cart.reduce((total, item) => total + item.price, 0);
   };
 
+  const [processing, setProcessing] = useState(false);
+
   return (
-    <div className="checkout">
-      <h2>Checkout</h2>
-      <div className="columns">
-        <div className="left">
-          <div className="cart-items">
-            {cart.map((item, index) => (
-              <CartItemComponent key={index} item={item} index={index} />
-            ))}
-          </div>
-          <p>
-            Total:{" "}
-            <span className="total-contianer">
-              IDR {calculateTotal().toLocaleString()}
-            </span>
-          </p>
-          <input
-            type="text"
-            id="components-sdk-key"
-            placeholder="Enter Components SDK Key"
-            value={componentsKey}
-            onInput={(e) =>
-              setComponentsKey((e.target as HTMLInputElement).value)
-            }
-          />
-          <br />
-          <button className="begin-checkout" onClick={onBeginCheckout}>
-            Begin Checkout (with SDK key)
-          </button>
-          <button className="begin-checkout" onClick={onBeginCheckout}>
-            Begin Checkout (mock)
-          </button>
+    <>
+      {processing ? (
+        <div class="payment-processing">
+          <h2>Payment Processing</h2>
+          <p>Follow the instructions to make payment.</p>
         </div>
-        <div className="right">
-          {checkingOut && (
-            <Payment
-              componentsKey={componentsKey}
-              onSuccess={onPaymentSuccess}
+      ) : null}
+      <div
+        className="checkout"
+        style={{ display: processing ? "none" : "block" }}
+      >
+        <h2>Checkout</h2>
+        <div className="columns">
+          <div className="left">
+            <div className="cart-items">
+              {cart.map((item, index) => (
+                <CartItemComponent key={index} item={item} index={index} />
+              ))}
+            </div>
+            <p>
+              Total:{" "}
+              <span className="total-contianer">
+                IDR {calculateTotal().toLocaleString()}
+              </span>
+            </p>
+            <input
+              type="text"
+              id="components-sdk-key"
+              placeholder="Enter Components SDK Key"
+              value={componentsKey}
+              onInput={(e) =>
+                setComponentsKey((e.target as HTMLInputElement).value)
+              }
             />
-          )}
+            <br />
+            <button className="begin-checkout" onClick={onBeginCheckout}>
+              Begin Checkout (with SDK key)
+            </button>
+            <button className="begin-checkout" onClick={onBeginCheckout}>
+              Begin Checkout (mock)
+            </button>
+          </div>
+          <div className="right">
+            {checkingOut && (
+              <Payment
+                componentsKey={componentsKey}
+                setProcessing={setProcessing}
+                onSuccess={onPaymentSuccess}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -79,15 +93,15 @@ const CartItemComponent: React.FC<{ item: CartItem; index: number }> = ({
   );
 };
 
-const Payment: React.FC<{ componentsKey: string; onSuccess: () => void }> = ({
-  componentsKey,
-  onSuccess,
-}) => {
+const Payment: React.FC<{
+  componentsKey: string;
+  onSuccess: () => void;
+  setProcessing: (processing: boolean) => void;
+}> = ({ componentsKey, onSuccess, setProcessing }) => {
   const el = useRef<HTMLDivElement | null>(null);
   const [sdk, setSdk] = useState<XenditSessionSdk | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [ready, setReady] = useState(false);
-  const [pending, setPending] = useState(false);
 
   useEffect(() => {
     // Using the test SDK class
@@ -105,10 +119,6 @@ const Payment: React.FC<{ componentsKey: string; onSuccess: () => void }> = ({
     // The channel picker element is returned immediately and populated after initialization
     const channelPicker = sdk.createChannelPickerComponent();
     el.current?.appendChild(channelPicker);
-  }, [componentsKey]);
-
-  useLayoutEffect(() => {
-    if (!sdk) return;
 
     sdk.addEventListener("init", () => {
       setIsInitialized(true);
@@ -122,11 +132,15 @@ const Payment: React.FC<{ componentsKey: string; onSuccess: () => void }> = ({
     });
 
     sdk.addEventListener("submission-begin", () => {
-      setPending(true);
+      setProcessing(true);
     });
     sdk.addEventListener("submission-end", () => {
-      setPending(false);
+      setProcessing(false);
     });
+  }, [componentsKey, setProcessing]);
+
+  useLayoutEffect(() => {
+    if (!sdk) return;
 
     sdk.addEventListener("session-complete", () => {
       onSuccess();
@@ -138,7 +152,7 @@ const Payment: React.FC<{ componentsKey: string; onSuccess: () => void }> = ({
   }
 
   return (
-    <div style={{ opacity: pending ? 0.3 : 1 }}>
+    <div>
       <div ref={el}></div>
       {isInitialized ? (
         <button className="submit" onClick={onSubmit} disabled={!ready}>
