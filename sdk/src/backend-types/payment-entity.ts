@@ -50,7 +50,6 @@ export type BffPaymentToken = {
   failure_code?: BffPaymentTokenFailureCode;
   actions: BffAction[];
   channel_code: string;
-  pm_type: string;
   /**
    * Only returned when the payment request is created, not on polling
    */
@@ -101,22 +100,26 @@ export type BffPaymentRequest = {
   failure_code?: BffPaymentRequestFailureCode;
   actions: BffAction[];
   channel_code: string;
-  pm_type: string;
   /**
    * Only returned when the payment request is created, not on polling
    */
   session_token_request_id?: string;
 };
 
+export enum BffPaymentEntityType {
+  PaymentRequest = "pr",
+  PaymentToken = "pt",
+}
+
 export type BffPaymentEntity =
   | {
       id: string;
-      type: "paymentRequest";
+      type: BffPaymentEntityType.PaymentRequest;
       entity: BffPaymentRequest;
     }
   | {
       id: string;
-      type: "paymentToken";
+      type: BffPaymentEntityType.PaymentToken;
       entity: BffPaymentToken;
     };
 
@@ -126,13 +129,13 @@ export function toPaymentEntity(
   if ("payment_request_id" in prOrPt) {
     return {
       id: prOrPt.payment_request_id,
-      type: "paymentRequest",
+      type: BffPaymentEntityType.PaymentRequest,
       entity: prOrPt,
     };
   } else {
     return {
       id: prOrPt.payment_token_id,
-      type: "paymentToken",
+      type: BffPaymentEntityType.PaymentToken,
       entity: prOrPt,
     };
   }

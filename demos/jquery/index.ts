@@ -76,10 +76,10 @@ $(function () {
       if (channel) sdk.createPaymentComponentForChannel(channel);
     });
 
-    $(sdk).on("ready", function () {
+    $(sdk).on("submission-ready", function () {
       $(".submit").prop("disabled", false);
     });
-    $(sdk).on("not-ready", function () {
+    $(sdk).on("submission-not-ready", function () {
       $(".submit").prop("disabled", true);
     });
 

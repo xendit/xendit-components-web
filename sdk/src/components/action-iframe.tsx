@@ -56,8 +56,8 @@ export function ActionIframe(props: Props) {
     <iframe
       ref={iframeRef}
       src={url}
-      width="250"
-      height="400"
+      width="500"
+      height="600"
       // sandbox="allow-scripts"
       className="xendit-action-iframe"
     />

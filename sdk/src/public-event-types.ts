@@ -1,16 +1,11 @@
 /**
  * @public
  */
-export type XenditEventListener<T extends Event> = ((event: T) => void) | null;
-
-/**
- * @public
- */
 export type XenditEventMap = {
   init: XenditInitEvent;
 
-  ready: XenditReadyEvent;
-  "not-ready": XenditReadyEvent;
+  "submission-ready": XenditReadyEvent;
+  "submission-not-ready": XenditReadyEvent;
 
   "action-begin": XenditActionBeginEvent;
   "action-end": XenditActionEndEvent;
@@ -18,14 +13,26 @@ export type XenditEventMap = {
   "will-redirect": XenditWillRedirectEvent;
 
   "session-complete": XenditSessionCompleteEvent;
-  "session-failed": XenditSessionFailedEvent;
+  "session-expired-or-canceled": XenditSessionExpiredOrCanceledEvent;
 
-  error: XenditErrorEvent;
+  "payment-request-created": XenditPaymentRequestCreatedEvent;
+  "payment-request-discarded": XenditPaymentRequestDiscardedEvent;
+  "payment-token-created": XenditPaymentTokenCreatedEvent;
+  "payment-token-discarded": XenditPaymentTokenDiscardedEvent;
+
+  "fatal-error": XenditFatalErrorEvent;
 };
 
 /**
  * @public
- * Event fired when the SDK is ready to submit.
+ */
+export type XenditEventListener<
+  T extends Event | XenditEventMap[keyof XenditEventMap],
+> = ((event: T) => void) | null;
+
+/**
+ * @public
+ * Event fired when the Session is loaded.
  */
 export class XenditInitEvent extends Event {
   static type = "init" as const;
@@ -37,12 +44,24 @@ export class XenditInitEvent extends Event {
 
 /**
  * @public
+ * Event fired when the SDK fails in an unrecoverable way.
+ */
+export class XenditFatalErrorEvent extends Event {
+  static type = "fatal-error" as const;
+
+  constructor(public message: string) {
+    super(XenditFatalErrorEvent.type, {});
+  }
+}
+
+/**
+ * @public
  * Event fired when the SDK is ready to submit.
  */
 export class XenditReadyEvent extends Event {
-  static type = "ready" as const;
+  static type = "submission-ready" as const;
 
-  constructor() {
+  constructor(public channelCode: string) {
     super(XenditReadyEvent.type, {});
   }
 }
@@ -52,7 +71,7 @@ export class XenditReadyEvent extends Event {
  * Event fired when the SDK is not ready to submit.
  */
 export class XenditNotReadyEvent extends Event {
-  static type = "not-ready" as const;
+  static type = "submission-not-ready" as const;
 
   constructor() {
     super(XenditNotReadyEvent.type, {});
@@ -74,12 +93,12 @@ export class XenditSubmissionBeginEvent extends Event {
 /**
  * @public
  * Event sometimes fired when a submission is complete, including the action.
- * After this, a session-complete or session-failed event will be fired.
+ * After this, a session-complete or session-expired-or-canceled event will be fired.
  */
 export class XenditSubmissionEndEvent extends Event {
   static type = "submission-end" as const;
 
-  constructor() {
+  constructor(public reason: string) {
     super(XenditSubmissionEndEvent.type, {});
   }
 }
@@ -137,23 +156,54 @@ export class XenditSessionCompleteEvent extends Event {
  * @public
  * Event fired when the session has failed, meaning expired or cancelled.
  */
-export class XenditSessionFailedEvent extends Event {
-  static type = "session-failed" as const;
+export class XenditSessionExpiredOrCanceledEvent extends Event {
+  static type = "session-expired-or-canceled" as const;
 
   constructor() {
-    super(XenditSessionFailedEvent.type, {});
+    super(XenditSessionExpiredOrCanceledEvent.type, {});
   }
 }
 
 /**
  * @public
- * Event fired when an error occurs within the SDK and it should be
- * re-initialized or the page should be reloaded.
  */
-export class XenditErrorEvent extends Event {
-  static type = "error" as const;
+export class XenditPaymentRequestCreatedEvent extends Event {
+  static type = "payment-request-created" as const;
 
-  constructor() {
-    super(XenditErrorEvent.type, {});
+  constructor(public paymentRequestId: string) {
+    super(XenditPaymentRequestCreatedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ */
+export class XenditPaymentTokenCreatedEvent extends Event {
+  static type = "payment-token-created" as const;
+
+  constructor(public paymentTokenId: string) {
+    super(XenditPaymentTokenCreatedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ */
+export class XenditPaymentRequestDiscardedEvent extends Event {
+  static type = "payment-request-discarded" as const;
+
+  constructor(public paymentRequestId: string) {
+    super(XenditPaymentRequestDiscardedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ */
+export class XenditPaymentTokenDiscardedEvent extends Event {
+  static type = "payment-token-discarded" as const;
+
+  constructor(public paymentTokenId: string) {
+    super(XenditPaymentTokenDiscardedEvent.type, {});
   }
 }

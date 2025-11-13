@@ -1,6 +1,7 @@
 import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
   BffPaymentEntity,
+  BffPaymentEntityType,
   BffPaymentRequest,
   BffPaymentToken,
 } from "./backend-types/payment-entity";
@@ -716,6 +717,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/QRIS.svg",
         ui_group: "qr_code",
+        pm_type: "QR_CODE",
         allow_pay_without_save: true,
         allow_save: false,
         brand_color: "#000000",
@@ -777,9 +779,13 @@ export function makeTestPollResponseForSuccess(
   const baseData = makeTestBffData();
 
   const paymentRequest =
-    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
   const paymentToken =
-    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
 
   return {
     session: {
@@ -803,9 +809,13 @@ export function makeTestPollResponseForFailure(
   const baseData = makeTestBffData();
 
   const paymentRequest =
-    paymentEntity.type === "paymentRequest" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
   const paymentToken =
-    paymentEntity.type === "paymentToken" ? paymentEntity.entity : undefined;
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
 
   return {
     session: {
@@ -841,7 +851,6 @@ export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {
     payment_request_id: `pr-${makeTestRandomId()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
-    pm_type: "CARDS",
     actions: [
       {
         type: "REDIRECT_CUSTOMER",
@@ -858,7 +867,6 @@ export function makeTestPaymentToken(channelCode: string): BffPaymentToken {
     payment_token_id: `pr-${makeTestRandomId()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
-    pm_type: "CARDS",
     actions: [
       {
         type: "REDIRECT_CUSTOMER",
