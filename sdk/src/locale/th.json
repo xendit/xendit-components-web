@@ -1,10 +1,12 @@
 {
-  "validation.card_cvn_invalid": "CVN ไม่ถูกต้อง",
-  "validation.card_expiry_invalid": "วันหมดอายุของบัตรไม่ถูกต้อง",
-  "validation.card_number_incomplete": "หมายเลขบัตรไม่ครบถ้วน",
-  "validation.card_number_invalid": "หมายเลขบัตรไม่ถูกต้อง",
-  "validation.generic_invalid": "{{field}} ไม่ถูกต้อง",
-  "validation.required": "กรุณากรอก {{field}}",
-  "validation.text_too_long": "{{field}} ยาวเกินไป",
-  "validation.text_too_short": "{{field}} สั้นเกินไป"
+  "session": {
+    "validation.card_cvn_invalid": "CVN ไม่ถูกต้อง",
+    "validation.card_expiry_invalid": "วันหมดอายุของบัตรไม่ถูกต้อง",
+    "validation.card_number_incomplete": "หมายเลขบัตรไม่ครบถ้วน",
+    "validation.card_number_invalid": "หมายเลขบัตรไม่ถูกต้อง",
+    "validation.generic_invalid": "{{field}} ไม่ถูกต้อง",
+    "validation.required": "กรุณากรอก {{field}}",
+    "validation.text_too_long": "{{field}} ยาวเกินไป",
+    "validation.text_too_short": "{{field}} สั้นเกินไป"
+  }
 }

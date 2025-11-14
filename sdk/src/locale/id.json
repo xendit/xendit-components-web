@@ -1,10 +1,12 @@
 {
-  "validation.card_cvn_invalid": "CVN tidak valid",
-  "validation.card_expiry_invalid": "Tanggal kedaluwarsa kartu tidak valid",
-  "validation.card_number_incomplete": "Nomor kartu tidak lengkap",
-  "validation.card_number_invalid": "Nomor kartu tidak valid",
-  "validation.generic_invalid": "{{field}} tidak valid",
-  "validation.required": "{{field}} wajib diisi",
-  "validation.text_too_long": "{{field}} terlalu panjang",
-  "validation.text_too_short": "{{field}} terlalu pendek"
+  "session": {
+    "validation.card_cvn_invalid": "CVN tidak valid",
+    "validation.card_expiry_invalid": "Tanggal kedaluwarsa kartu tidak valid",
+    "validation.card_number_incomplete": "Nomor kartu tidak lengkap",
+    "validation.card_number_invalid": "Nomor kartu tidak valid",
+    "validation.generic_invalid": "{{field}} tidak valid",
+    "validation.required": "{{field}} wajib diisi",
+    "validation.text_too_long": "{{field}} terlalu panjang",
+    "validation.text_too_short": "{{field}} terlalu pendek"
+  }
 }

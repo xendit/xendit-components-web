@@ -1,19 +1,21 @@
-import { FormFieldValidationError } from "../../shared/types";
+import { FormFieldValidationError, LocalizedString } from "../../shared/types";
 import { ChannelFormField } from "./backend-types/channel";
-import i18next from "i18next";
-
-// Import locale files
+import { createInstance } from "i18next";
 import en from "./locale/en.json";
 import id from "./locale/id.json";
 import th from "./locale/th.json";
-import vn from "./locale/vn.json";
+import vi from "./locale/vi.json";
 
-// Initialize i18next
+// Create our own isolated i18next instance to avoid conflicts with merchant's i18n
+const xenditI18n = createInstance();
+
+// Initialize our i18next instance
 const initI18n = (locale: string) => {
-  if (!i18next.isInitialized) {
-    i18next.init({
+  if (!xenditI18n.isInitialized) {
+    xenditI18n.init({
       lng: locale,
       fallbackLng: "en",
+      supportedLngs: ["en", "id", "th", "vi"],
       debug: false,
       interpolation: {
         escapeValue: false, // not needed for react as it escapes by default
@@ -22,12 +24,11 @@ const initI18n = (locale: string) => {
         en: { translation: en },
         id: { translation: id },
         th: { translation: th },
-        vn: { translation: vn },
+        vi: { translation: vi },
       },
     });
   } else {
-    // Change language if already initialized
-    i18next.changeLanguage(locale);
+    xenditI18n.changeLanguage(locale);
   }
 };
 
@@ -56,26 +57,29 @@ const errorCodeToI18nKey = (
 
 // Get localized error message
 export const getLocalizedErrorMessage = (
-  errorCode: FormFieldValidationError | string | null,
+  errorCode: FormFieldValidationError | LocalizedString | null,
   field: ChannelFormField,
   locale: string,
 ): string | null => {
   if (!errorCode) return null;
 
-  // Initialize i18n only if not already initialized, then set locale
-  if (!i18next.isInitialized) {
+  console.log("This is a FormFieldValidationError:", errorCode);
+  // Initialize our i18n instance only if not already initialized, then set locale
+  if (!xenditI18n.isInitialized) {
     initI18n(locale);
-  } else if (i18next.language !== locale) {
-    i18next.changeLanguage(locale);
+  } else if (xenditI18n.language !== locale) {
+    xenditI18n.changeLanguage(locale);
   }
 
-  const i18nKey = errorCodeToI18nKey(errorCode);
+  const i18nKey = errorCodeToI18nKey(errorCode as string);
 
-  // If the error code is not a standard validation key (i.e., it's a custom message), return it as-is
-  if (!i18nKey.startsWith("validation.")) {
-    return i18nKey; // This is already a custom localized message from regex validators
+  const translationKey =
+    `session.${i18nKey}` as `session.${keyof typeof en.session}`;
+
+  if (!xenditI18n.exists(translationKey)) {
+    return i18nKey;
   }
 
   // Get localized message with field name interpolation
-  return i18next.t(i18nKey, { field: field.label });
+  return xenditI18n.t(translationKey, { field: field.label });
 };

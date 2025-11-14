@@ -43,7 +43,7 @@ describe("getLocalizedErrorMessage", () => {
     const result = getLocalizedErrorMessage(
       "FIELD_IS_REQUIRED",
       mockField,
-      "vn",
+      "vi",
     );
     expect(result).toBe("Vui lòng nhập Email");
   });

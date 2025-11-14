@@ -1,4 +1,4 @@
-import { FormFieldValidationError } from "../../shared/types";
+import { FormFieldValidationError, LocalizedString } from "../../shared/types";
 import {
   BffChannel,
   ChannelFormField,
@@ -51,7 +51,6 @@ export const validatePostalCode = (
 };
 
 // TODO: implement localization for error messages
-type LocalizedString = string;
 
 export const validateText = (
   input: ChannelFormField & {
@@ -65,7 +64,7 @@ export const validateText = (
     for (const pattern of input.type.regex_validators) {
       const regex = new RegExp(sanitizeRegex(pattern.regex));
       if (!regex.test(trimmedValue)) {
-        return pattern.message;
+        return pattern.message as LocalizedString;
       }
     }
   }

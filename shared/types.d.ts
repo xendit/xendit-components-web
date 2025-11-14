@@ -81,3 +81,5 @@ export type FormFieldValidationError =
   | "PHONE_NUMBER_TOO_LONG"
   | "NOT_A_VALID_PHONE_NUMBER"
   | "FIELD_IS_REQUIRED";
+
+export type LocalizedString = string;
