@@ -1,15 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CartItem } from "./types";
-import {
-  XenditSessionSdk,
-  XenditSessionTestSdk,
-} from "../../sdk/dist/index.esm";
+import { XenditSessionSdk, XenditSessionTestSdk } from "xendit-components";
 
 export const CheckoutPage: React.FC<{
   cart: CartItem[];
   onPaymentSuccess: () => void;
 }> = ({ cart, onPaymentSuccess }) => {
   const [checkingOut, setCheckingOut] = useState(false);
+  const [componentsKey, setComponentsKey] = useState("");
 
   const onBeginCheckout = () => {
     setCheckingOut(true);
@@ -19,31 +17,63 @@ export const CheckoutPage: React.FC<{
     return cart.reduce((total, item) => total + item.price, 0);
   };
 
+  const [processing, setProcessing] = useState(false);
+
   return (
-    <div className="checkout">
-      <h2>Checkout</h2>
-      <div className="columns">
-        <div className="left">
-          <div className="cart-items">
-            {cart.map((item, index) => (
-              <CartItemComponent key={index} item={item} index={index} />
-            ))}
-          </div>
-          <p>
-            Total:{" "}
-            <span className="total-contianer">
-              IDR {calculateTotal().toLocaleString()}
-            </span>
-          </p>
-          <button className="begin-checkout" onClick={onBeginCheckout}>
-            Begin Checkout
-          </button>
+    <>
+      {processing ? (
+        <div class="payment-processing">
+          <h2>Payment Processing</h2>
+          <p>Follow the instructions to make payment.</p>
         </div>
-        <div className="right">
-          {checkingOut && <Payment onSuccess={onPaymentSuccess} />}
+      ) : null}
+      <div
+        className="checkout"
+        style={{ display: processing ? "none" : "block" }}
+      >
+        <h2>Checkout</h2>
+        <div className="columns">
+          <div className="left">
+            <div className="cart-items">
+              {cart.map((item, index) => (
+                <CartItemComponent key={index} item={item} index={index} />
+              ))}
+            </div>
+            <p>
+              Total:{" "}
+              <span className="total-contianer">
+                IDR {calculateTotal().toLocaleString()}
+              </span>
+            </p>
+            <input
+              type="text"
+              id="components-sdk-key"
+              placeholder="Enter Components SDK Key"
+              value={componentsKey}
+              onInput={(e) =>
+                setComponentsKey((e.target as HTMLInputElement).value)
+              }
+            />
+            <br />
+            <button className="begin-checkout" onClick={onBeginCheckout}>
+              Begin Checkout (with SDK key)
+            </button>
+            <button className="begin-checkout" onClick={onBeginCheckout}>
+              Begin Checkout (mock)
+            </button>
+          </div>
+          <div className="right">
+            {checkingOut && (
+              <Payment
+                componentsKey={componentsKey}
+                setProcessing={setProcessing}
+                onSuccess={onPaymentSuccess}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -63,33 +93,54 @@ const CartItemComponent: React.FC<{ item: CartItem; index: number }> = ({
   );
 };
 
-const Payment: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
+const Payment: React.FC<{
+  componentsKey: string;
+  onSuccess: () => void;
+  setProcessing: (processing: boolean) => void;
+}> = ({ componentsKey, onSuccess, setProcessing }) => {
   const el = useRef<HTMLDivElement | null>(null);
   const [sdk, setSdk] = useState<XenditSessionSdk | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     // Using the test SDK class
-    const sdk = new XenditSessionTestSdk({
-      sessionClientKey: "test",
-    });
+    let sdk: XenditSessionSdk;
+    if (componentsKey) {
+      sdk = new XenditSessionSdk({
+        sessionClientKey: componentsKey,
+      });
+    } else {
+      sdk = new XenditSessionTestSdk({});
+    }
     sdk.env = "demo";
     setSdk(sdk);
 
     // The channel picker element is returned immediately and populated after initialization
     const channelPicker = sdk.createChannelPickerComponent();
     el.current?.appendChild(channelPicker);
-  }, []);
 
-  useEffect(() => {
-    if (!sdk) return;
+    sdk.addEventListener("init", () => {
+      setIsInitialized(true);
+    });
 
-    sdk.addEventListener("ready", () => {
+    sdk.addEventListener("submission-ready", () => {
       setReady(true);
     });
-    sdk.addEventListener("not-ready", () => {
+    sdk.addEventListener("submission-not-ready", () => {
       setReady(false);
     });
+
+    sdk.addEventListener("submission-begin", () => {
+      setProcessing(true);
+    });
+    sdk.addEventListener("submission-end", () => {
+      setProcessing(false);
+    });
+  }, [componentsKey, setProcessing]);
+
+  useLayoutEffect(() => {
+    if (!sdk) return;
 
     sdk.addEventListener("session-complete", () => {
       onSuccess();
@@ -103,9 +154,11 @@ const Payment: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   return (
     <div>
       <div ref={el}></div>
-      <button className="submit" onClick={onSubmit} disabled={!ready}>
-        Submit
-      </button>
+      {isInitialized ? (
+        <button className="submit" onClick={onSubmit} disabled={!ready}>
+          Submit
+        </button>
+      ) : null}
     </div>
   );
 };

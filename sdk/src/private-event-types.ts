@@ -28,12 +28,12 @@ export class InternalInputValidateEvent extends CustomEvent<{ value: string }> {
 
 /**
  * @internal
- * Event fired to indicate whether a create PR or create PT request is in-flight.
+ * Schedules a behavior tree update.
  */
-export class InternalHasInFlightRequestEvent extends Event {
-  static type = "xendit-has-in-flight-submission-request" as const;
+export class InternalBehaviorTreeUpdateEvent extends Event {
+  static type = "xendit-internal-behavior-tree-update" as const;
 
-  constructor(public hasInFlightRequest: boolean) {
-    super(InternalHasInFlightRequestEvent.type, { bubbles: false });
+  constructor() {
+    super(InternalBehaviorTreeUpdateEvent.type, {});
   }
 }

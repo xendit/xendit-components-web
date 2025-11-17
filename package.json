@@ -14,8 +14,14 @@
   ],
   "types": "./sdk/dist/index.d.ts",
   "exports": {
-    "import": "./sdk/dist/index.esm.js",
-    "require": "./sdk/dist/index.umd.js"
+    "import": {
+      "types": "./sdk/dist/index.d.ts",
+      "default": "./sdk/dist/index.esm.js"
+    },
+    "require": {
+      "types": "./sdk/dist/index.d.ts",
+      "default": "./sdk/dist/index.umd.js"
+    }
   },
   "scripts": {
     "dev": "./build.ts dev",

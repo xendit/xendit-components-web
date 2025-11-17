@@ -4,7 +4,8 @@ import {
   BffPaymentEntity,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
-import { retryLoop, sleep } from "../../utils";
+import { XenditSessionSdk, XenditSessionTestSdk } from "../../public-sdk";
+import { MOCK_NETWORK_DELAY_MS, retryLoop, sleep } from "../../utils";
 
 /**
  * Polls the session status forever until stop() is called.
@@ -26,7 +27,7 @@ export class PollWorker {
 
   constructor(
     private sessionAuthKey: string,
-    private mock: boolean,
+    private sdk: XenditSessionSdk,
     private sessionTokenRequestId: string | null,
     private onPollResult: (
       result: BffPollResponse,
@@ -42,11 +43,6 @@ export class PollWorker {
     }
     this.started = true;
 
-    if (this.mock) {
-      // in mock mode, do not poll
-      return;
-    }
-
     // retry loop with exponential backoff
     // chart of retry times:
     // https://www.desmos.com/calculator/3sihry02vd
@@ -55,14 +51,30 @@ export class PollWorker {
       if (this.stopped) return;
 
       let response: BffPollResponse;
-      try {
-        response = await pollSession(
-          this.sessionAuthKey,
-          this.sessionTokenRequestId,
-        );
-      } catch (_err) {
-        // TODO: error handling
-        continue;
+
+      if (this.sdk.isMock()) {
+        // mock polling
+        if (
+          this.sdk instanceof XenditSessionTestSdk &&
+          this.sdk.nextMockUpdate
+        ) {
+          await sleep(MOCK_NETWORK_DELAY_MS); // simulate network delay
+          response = this.sdk.nextMockUpdate;
+          this.sdk.nextMockUpdate = null;
+        } else {
+          continue;
+        }
+      } else {
+        // real polling request
+        try {
+          response = await pollSession(
+            this.sessionAuthKey,
+            this.sessionTokenRequestId,
+          );
+        } catch (_err) {
+          // TODO: error handling
+          continue;
+        }
       }
       if (this.stopped) return;
 

@@ -1,10 +1,17 @@
 import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { BffAction, BffPaymentEntity } from "../backend-types/payment-entity";
 import { BffSession } from "../backend-types/session";
-import { pickAction, redirectCanBeHandledInIframe } from "../utils";
+import { WorldState } from "../public-sdk";
+import { SdkEventManager } from "../sdk-event-manager";
+import {
+  ParsedSdkKey,
+  pickAction,
+  redirectCanBeHandledInIframe,
+} from "../utils";
 import { channelPropertiesAreValid } from "../validation";
 import { behaviorNode } from "./behavior-tree-runner";
 import {
+  ActionCompletedBehavior,
   ActionIframeBehavior,
   ActionRedirectBehavior,
 } from "./behaviors/action";
@@ -26,144 +33,156 @@ import {
   SessionActiveBehavior,
   SessionCompletedBehavior,
   SessionFailedBehavior,
-  SubmissionBehavior,
 } from "./behaviors/session";
+import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
+import { SubmissionBehavior } from "./behaviors/submission";
 
 type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
-export function behaviorTreeForSdk(data: {
+/**
+ * "Blackboard" means mutable state available to the behavior tree and all behavior instances.
+ */
+export type BlackboardType = {
+  readonly mock: boolean;
+  readonly sdkKey: ParsedSdkKey;
+  readonly sdkEvents: SdkEventManager; // TODO: factor this out
+
+  // backend state
+  world: WorldState | null;
+
+  // current UI state
   sdkStatus: SdkStatus;
-  session: BffSession | null;
-  sessionTokenRequestId: string | null;
-  paymentEntity: BffPaymentEntity | null;
+  sdkFatalErrorMessage: string | null;
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
-  submissionRequestInFlight: boolean;
-}) {
-  switch (data.sdkStatus) {
+
+  // dispatch event on the SDK instance
+  dispatchEvent(event: Event): boolean;
+
+  // flags
+  // if true, start a submission, if false abort submission
+  submissionRequested: boolean;
+  // if true, start simulate payment, if false abort simulate payment
+  simulatePaymentRequested: boolean;
+  // if true, do not show the current action UI
+  actionCompleted: boolean;
+  // if true, poll the payment entity immediately on the next update
+  pollImmediatelyRequested: boolean;
+};
+
+export function behaviorTreeForSdk(bb: BlackboardType) {
+  switch (bb.sdkStatus) {
     case "LOADING": {
-      return behaviorNode(SdkLoadingBehavior, []);
+      return behaviorNode(SdkLoadingBehavior);
     }
     case "ACTIVE": {
-      if (!data.session) {
+      if (!bb.world?.session) {
         throw new Error("Session is required when SDK is active");
       }
       return behaviorNode(
         SdkActiveBehavior,
-        [],
-        behaviorTreeForSession({
-          ...data,
-          session: data.session,
-        }),
+        "active",
+        behaviorTreeForSession(bb),
       );
     }
     case "FATAL_ERROR": {
-      return behaviorNode(SdkFatalErrorBehavior, []);
+      return behaviorNode(SdkFatalErrorBehavior);
     }
     default: {
-      data.sdkStatus satisfies never;
-      throw new Error(`Unknown SDK status: ${data.sdkStatus as SdkStatus}`);
+      bb.sdkStatus satisfies never;
+      throw new Error(`Unknown SDK status: ${bb.sdkStatus as SdkStatus}`);
     }
   }
 }
 
-export function behaviorTreeForSession(data: {
-  session: BffSession;
-  sessionTokenRequestId: string | null;
-  paymentEntity: BffPaymentEntity | null;
-  channel: BffChannel | null;
-  channelProperties: ChannelProperties | null;
-  submissionRequestInFlight: boolean;
-}) {
-  switch (data.session.status) {
+export function behaviorTreeForSession(bb: BlackboardType) {
+  if (!bb.world?.session) {
+    throw new Error("Session is required to create behavior tree for session");
+  }
+  switch (bb.world.session.status) {
     case "ACTIVE": {
       return behaviorNode(
         SessionActiveBehavior,
-        [],
-        data.submissionRequestInFlight || data.paymentEntity
-          ? behaviorTreeForSubmission(data)
-          : behaviorTreeForForm(data),
+        "active",
+        bb.submissionRequested
+          ? behaviorTreeForSubmission(bb)
+          : behaviorTreeForForm(bb),
       );
     }
     case "COMPLETED": {
-      return behaviorNode(SessionCompletedBehavior, []);
+      return behaviorNode(SessionCompletedBehavior);
     }
     case "EXPIRED": {
-      return behaviorNode(SessionFailedBehavior, [data.session.status]);
+      return behaviorNode(SessionFailedBehavior, bb.world.session.status);
     }
     case "CANCELED": {
-      return behaviorNode(SessionFailedBehavior, [data.session.status]);
+      return behaviorNode(SessionFailedBehavior, bb.world.session.status);
     }
     default: {
-      data.session.status satisfies never;
+      bb.world.session.status satisfies never;
       throw new Error(
-        `Unknown session status: ${(data.session as BffSession).status}`,
+        `Unknown session status: ${(bb.world.session as BffSession).status}`,
       );
     }
   }
 }
 
-export function behaviorTreeForForm(data: {
-  session: BffSession;
-  channel: BffChannel | null;
-  channelProperties?: ChannelProperties | null;
-}) {
-  if (!data.channel) {
+export function behaviorTreeForForm(bb: BlackboardType) {
+  if (!bb.channel || !bb.world?.session) {
     return undefined;
   }
 
   const showBillingDetails = false; // TODO
   if (
     channelPropertiesAreValid(
-      data.session.session_type,
-      data.channel,
-      data.channelProperties,
+      bb.world.session.session_type,
+      bb.channel,
+      bb.channelProperties ?? null,
       showBillingDetails,
     )
   ) {
-    return behaviorNode(ChannelValidBehavior, []);
+    return behaviorNode(ChannelValidBehavior);
   } else {
-    return behaviorNode(ChannelInvalidBehavior, [
-      data.channel?.channel_code ?? null,
-    ]);
+    return behaviorNode(ChannelInvalidBehavior);
   }
 }
 
-export function behaviorTreeForSubmission(data: {
-  sessionTokenRequestId: string | null;
-  paymentEntity: BffPaymentEntity | null;
-}) {
+export function behaviorTreeForSubmission(bb: BlackboardType) {
+  if (!bb.world) {
+    throw new Error("SDK not initialized in behaviorTreeForSubmission");
+  }
+
   return behaviorNode(
     SubmissionBehavior,
-    [],
-    data.paymentEntity
-      ? behaviorTreeForPaymentEntity({
-          ...data,
-          paymentEntity: data.paymentEntity,
-        })
+    "submission",
+    bb.world.paymentEntity && bb.world.sessionTokenRequestId !== null
+      ? behaviorTreeForPaymentEntity(bb)
       : undefined,
   );
 }
 
-export function behaviorTreeForPaymentEntity(data: {
-  sessionTokenRequestId: string | null;
-  paymentEntity: BffPaymentEntity;
-}) {
-  switch (data.paymentEntity.entity.status) {
+export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
+  if (!bb.world?.paymentEntity) {
+    throw new Error(
+      "Payment entity is required to create behavior tree for payment entity",
+    );
+  }
+
+  switch (bb.world.paymentEntity.entity.status) {
     case "PENDING": {
-      return behaviorNode(PePendingBehavior, [data.sessionTokenRequestId]);
+      return behaviorNode(PePendingBehavior);
     }
     case "REQUIRES_ACTION": {
       return behaviorNode(
         PeRequiresActionBehavior,
-        [data.sessionTokenRequestId],
-        behaviorTreeForAction(pickAction(data.paymentEntity.entity.actions)),
+        bb.world.paymentEntity.id,
+        behaviorTreeForAction(bb),
       );
     }
     case "FAILED":
     case "EXPIRED":
     case "CANCELED": {
-      return behaviorNode(PeFailedBehavior, []);
+      return behaviorNode(PeFailedBehavior);
     }
     case "ACCEPTING_PAYMENTS": {
       // Never happens because sessions don't set the PR type to REUSABLE_PAYMENT_CODE
@@ -176,26 +195,40 @@ export function behaviorTreeForPaymentEntity(data: {
     case "ACTIVE":
     case "SUCCEEDED": {
       // The payemnt entity is completed but the session is still active, it should automatically switch to completed soon
-      return behaviorNode(PePendingBehavior, [data.sessionTokenRequestId]);
+      return behaviorNode(PePendingBehavior, bb.world.paymentEntity.id);
     }
     default: {
-      data.paymentEntity.entity satisfies never;
+      bb.world.paymentEntity.entity satisfies never;
       throw new Error(
-        `Unknown payment entity status: ${(data.paymentEntity as BffPaymentEntity).entity.status}`,
+        `Unknown payment entity status: ${(bb.world.paymentEntity as BffPaymentEntity).entity.status}`,
       );
     }
   }
 }
 
-export function behaviorTreeForAction(action: BffAction) {
+export function behaviorTreeForAction(bb: BlackboardType) {
+  if (!bb.world?.paymentEntity) {
+    throw new Error("Payment entity is missing");
+  }
+
+  if (bb.actionCompleted) {
+    // action completed is for when we want to close the action UI and go back to polling
+    return behaviorNode(ActionCompletedBehavior);
+  }
+
+  if (bb.simulatePaymentRequested) {
+    return behaviorNode(SimulatePaymentBehavior); // TODO: simulate action should be run in parallel with action behavior
+  }
+
+  const action = pickAction(bb.world.paymentEntity.entity.actions);
   switch (action.type) {
     case "REDIRECT_CUSTOMER": {
       switch (action.descriptor) {
         case "WEB_URL": {
           if (redirectCanBeHandledInIframe(action)) {
-            return behaviorNode(ActionIframeBehavior, [action.value]);
+            return behaviorNode(ActionIframeBehavior, action.value);
           } else {
-            return behaviorNode(ActionRedirectBehavior, [action.value]);
+            return behaviorNode(ActionRedirectBehavior, action.value);
           }
         }
         case "DEEPLINK_URL": {

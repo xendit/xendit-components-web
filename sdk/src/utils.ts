@@ -1,6 +1,8 @@
-import { ChannelFormField } from "./backend-types/channel";
+import { BffChannel, ChannelFormField } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
-import { BffAction, BffPaymentRequest } from "./backend-types/payment-entity";
+import { BffAction } from "./backend-types/payment-entity";
+
+export const MOCK_NETWORK_DELAY_MS = 300;
 
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   if (arg === null || arg === undefined) {
@@ -165,13 +167,27 @@ export function formFieldName(field: ChannelFormField): string {
   return id;
 }
 
-export function canBeSimulated(paymentRequest: BffPaymentRequest): boolean {
-  switch (paymentRequest.pm_type) {
+export function canBeSimulated(channel: BffChannel): boolean {
+  switch (channel.pm_type) {
     case "QR_CODE":
     case "VIRTUAL_ACCOUNT":
     case "OVER_THE_COUNTER":
       return true;
     default:
       return false;
+  }
+}
+
+export function errorToString(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack ?? error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  try {
+    return `Unknown error: ${JSON.stringify(error)}`;
+  } catch {
+    return "Unknown error";
   }
 }
