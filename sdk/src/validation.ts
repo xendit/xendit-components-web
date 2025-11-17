@@ -13,6 +13,31 @@ export type ValidationResult = {
   errorCode: FormFieldValidationError | undefined;
 };
 
+const FORM_FIELD_VALIDATION_ERRORS = [
+  "INVALID_EMAIL_FORMAT",
+  "INVALID_POSTAL_CODE",
+  "INVALID_COUNTRY",
+  "INVALID_PHONE_NUMBER",
+  "TEXT_TOO_SHORT",
+  "TEXT_TOO_LONG",
+  "TEXT_REGEX_MISMATCH",
+  "NOT_A_STRING",
+  "NOT_A_NUMBER",
+  "PHONE_NUMBER_TOO_SHORT",
+  "PHONE_NUMBER_TOO_LONG",
+  "NOT_A_VALID_PHONE_NUMBER",
+  "FIELD_IS_REQUIRED",
+] as const;
+
+export function isLocalizedString(
+  value: FormFieldValidationError | LocalizedString | undefined,
+): value is LocalizedString {
+  return (
+    typeof value === "string" &&
+    !FORM_FIELD_VALIDATION_ERRORS.includes(value as FormFieldValidationError)
+  );
+}
+
 export const validateEmail = (
   value: string,
 ): FormFieldValidationError | undefined => {

@@ -1,5 +1,6 @@
 import { FormFieldValidationError, LocalizedString } from "../../shared/types";
 import { ChannelFormField } from "./backend-types/channel";
+import { isLocalizedString } from "./validation";
 import { createInstance } from "i18next";
 import en from "./locale/en.json";
 import id from "./locale/id.json";
@@ -63,7 +64,11 @@ export const getLocalizedErrorMessage = (
 ): string | null => {
   if (!errorCode) return null;
 
-  console.log("This is a FormFieldValidationError:", errorCode);
+  // If it's already a localized string, return it directly
+  if (isLocalizedString(errorCode)) {
+    return errorCode;
+  }
+
   // Initialize our i18n instance only if not already initialized, then set locale
   if (!xenditI18n.isInitialized) {
     initI18n(locale);
@@ -71,13 +76,18 @@ export const getLocalizedErrorMessage = (
     xenditI18n.changeLanguage(locale);
   }
 
-  const i18nKey = errorCodeToI18nKey(errorCode as string);
+  const i18nKey = errorCodeToI18nKey(errorCode);
 
   const translationKey =
     `session.${i18nKey}` as `session.${keyof typeof en.session}`;
 
   if (!xenditI18n.exists(translationKey)) {
-    return i18nKey;
+    // Fallback to English if translation doesn't exist in current locale
+    const englishTranslation = xenditI18n.t(translationKey, {
+      field: field.label,
+      lng: "en",
+    });
+    return englishTranslation !== translationKey ? englishTranslation : i18nKey;
   }
 
   // Get localized message with field name interpolation
