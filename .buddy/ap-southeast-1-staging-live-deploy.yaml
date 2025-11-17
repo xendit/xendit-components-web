@@ -40,8 +40,6 @@
       remote_path: "/components/"
       bucket_name: "xendit-checkout-assets-staging"
       acl: "PRIVATE"
-      metadata:
-        - "Content-Security-Policy: default-src 'none'; script-src 'sha256-$DYNAMIC_CSP_HASH'; style-src 'unsafe-inline'; base-uri 'none'; object-src 'none'; require-trusted-types-for 'script'"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
     - action: "Purge cache at CloudFront"
       type: "CLOUD_FRONT"
