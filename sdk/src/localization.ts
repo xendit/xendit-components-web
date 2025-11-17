@@ -18,14 +18,15 @@ const initI18n = (locale: string) => {
       fallbackLng: "en",
       supportedLngs: ["en", "id", "th", "vi"],
       debug: false,
+      defaultNS: "session",
       interpolation: {
         escapeValue: false, // not needed for react as it escapes by default
       },
       resources: {
-        en: { translation: en },
-        id: { translation: id },
-        th: { translation: th },
-        vi: { translation: vi },
+        en: { session: en.session },
+        id: { session: id.session },
+        th: { session: th.session },
+        vi: { session: vi.session },
       },
     });
   } else {
@@ -78,18 +79,15 @@ export const getLocalizedErrorMessage = (
 
   const i18nKey = errorCodeToI18nKey(errorCode);
 
-  const translationKey =
-    `session.${i18nKey}` as `session.${keyof typeof en.session}`;
-
-  if (!xenditI18n.exists(translationKey)) {
+  if (!xenditI18n.exists(i18nKey)) {
     // Fallback to English if translation doesn't exist in current locale
-    const englishTranslation = xenditI18n.t(translationKey, {
+    const englishTranslation = xenditI18n.t(i18nKey, {
       field: field.label,
       lng: "en",
     });
-    return englishTranslation !== translationKey ? englishTranslation : i18nKey;
+    return englishTranslation !== i18nKey ? englishTranslation : i18nKey;
   }
 
   // Get localized message with field name interpolation
-  return xenditI18n.t(translationKey, { field: field.label });
+  return xenditI18n.t(i18nKey, { field: field.label });
 };
