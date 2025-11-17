@@ -1,5 +1,4 @@
-// TODO: inject hostname from environment variable
-const BACKEND_HOST = "https://checkout-ui-gateway-dev.stg.tidnex.dev";
+import { assert, hostFromHostId, MOCK_HOST_ID, ParsedSdkKey } from "./utils";
 
 /**
  * Encode data for x-www-form-urlencoded content type
@@ -15,6 +14,7 @@ export function endpoint<ResponseBody, PathArg>(
   method: "GET",
   getPath: (pathArg: PathArg) => string,
 ): (
+  sdkKey: ParsedSdkKey,
   pathArg: PathArg,
   queryArg?: null,
   abortSignal?: AbortSignal,
@@ -26,6 +26,7 @@ export function endpoint<ResponseBody, PathArg, QueryArg = never>(
   getPath: (pathArg: PathArg) => string,
   getQuery: (queryArg: QueryArg) => URLSearchParams,
 ): (
+  sdkKey: ParsedSdkKey,
   pathArg: PathArg,
   queryArg?: QueryArg,
   abortSignal?: AbortSignal,
@@ -36,6 +37,7 @@ export function endpoint<RequestBody, ResponseBody, PathArg>(
   method: "POST",
   getPath: (pathArg: PathArg) => string,
 ): (
+  sdkKey: ParsedSdkKey,
   requestBody: RequestBody,
   pathArg: PathArg,
   queryArg?: null,
@@ -48,6 +50,7 @@ export function endpoint<RequestBody, ResponseBody, PathArg, QueryArg = never>(
   getPath: (pathArg: PathArg) => string,
   getQuery: (queryArg: QueryArg) => URLSearchParams,
 ): (
+  sdkKey: ParsedSdkKey,
   requestBody: RequestBody,
   pathArg: PathArg,
   queryArg?: QueryArg,
@@ -81,6 +84,7 @@ export function endpoint(
   getQuery?: (queryArg: unknown) => URLSearchParams,
 ) {
   return async function (...rest: unknown[]): Promise<unknown> {
+    let sdkKey: unknown;
     let pathArg: unknown;
     let queryArg: unknown;
     let requestBody: unknown;
@@ -88,10 +92,10 @@ export function endpoint(
 
     switch (method) {
       case "GET":
-        [pathArg, queryArg, abortSignal] = rest;
+        [sdkKey, pathArg, queryArg, abortSignal] = rest;
         break;
       case "POST":
-        [requestBody, pathArg, queryArg, abortSignal] = rest;
+        [sdkKey, requestBody, pathArg, queryArg, abortSignal] = rest;
         break;
       default:
         throw new Error(
@@ -99,14 +103,31 @@ export function endpoint(
         );
     }
 
-    const url = new URL(getPath(pathArg), BACKEND_HOST);
+    const versionNumber = process.env.XENDIT_COMPONENTS_VERSION;
+    assert(versionNumber);
+    assert(versionNumber.startsWith("v"));
+
+    const hostId = (sdkKey as ParsedSdkKey).hostId;
+    if (hostId === MOCK_HOST_ID) {
+      throw new Error(
+        "A network request was made in mock mode; this is a bug.",
+      );
+    }
+    const host = hostFromHostId(hostId);
+    if (!host) {
+      throw new Error(
+        `Unknown hostId ${hostId} in sdkKey; this is a bug, please contact support.`,
+      );
+    }
+
+    const url = new URL(getPath(pathArg), host);
     if (getQuery && !queryArg) {
       throw new Error(
         "Query string argument is missing; this is a bug, please contact support.",
       );
     }
     const query = getQuery?.(queryArg) ?? new URLSearchParams();
-    query.set("component_version", "v0.0.0"); // TODO: populate this
+    query.set("component_version", versionNumber);
     url.search = query.toString();
 
     const options: RequestInit = {

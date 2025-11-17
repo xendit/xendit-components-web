@@ -13,15 +13,14 @@
       working_directory: "/buddy/xendit-components-web"
       docker_image_name: "library/node"
       docker_image_tag: "22"
-      variables:
       execute_commands:
-        - "cp .npmrc.example .npmrc"
+        - export XENDIT_COMPONENTS_SECURE_IFRAME_URL="https://assets.stg.tidnex.dev/components/secure-iframe-$BUDDY_EXECUTION_TAG.html"
+        - export XENDIT_COMPONENTS_VERSION="$BUDDY_EXECUTION_TAG"
         - "npm install -g pnpm"
         - "pnpm install"
         - "pnpm build"
-        - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
+        - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
-        - "rm -f .npmrc"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
       shell: "BASH"
@@ -29,32 +28,20 @@
       type: "AMAZON_S3"
       input_type: "BUILD_ARTIFACTS"
       local_path: "sdk/dist/"
-      remote_path: "/components/$BUDDY_EXECUTION_REVISION_SHORT/"
+      remote_path: "/components/$BUDDY_EXECUTION_TAG/"
       bucket_name: "xendit-checkout-assets-staging"
       acl: "PRIVATE"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
+      deletion_disabled: true
     - action: "Upload iframe files to Amazon S3"
       type: "AMAZON_S3"
       input_type: "BUILD_ARTIFACTS"
-      local_path: "secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
+      local_path: "secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
       remote_path: "/components/"
       bucket_name: "xendit-checkout-assets-staging"
       acl: "PRIVATE"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
-    - action: "Purge cache at CloudFront"
-      type: "CLOUD_FRONT"
-      input_type: "SCM_REPOSITORY"
-      local_path: "/components/*"
-      distribution_id: "E2BM8Z7S9KCS8C"
-      purge_all: true
-      purge_by_change_set_limit: 10
-      trigger_conditions:
-        - trigger_condition: "ALWAYS"
-          zone_id: ""
-          trigger_hours: []
-          trigger_days: []
-      timeout: 0
-      integration_hash: "5f69e5f01a22366a8e6adfa7"
+      deletion_disabled: true
     - action: "Deployment finished notif"
       type: "SLACK"
       content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME Finished execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"

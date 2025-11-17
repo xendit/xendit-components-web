@@ -199,6 +199,7 @@ async function asyncSubmit(
     switch (sessionType) {
       case "PAY": {
         result = await createPaymentRequest(
+          sdkKey,
           {
             session_id: sdkKey.sessionAuthKey,
             channel_code: channelCode,
@@ -213,6 +214,7 @@ async function asyncSubmit(
       }
       case "SAVE": {
         result = await createPaymentToken(
+          sdkKey,
           {
             session_id: sdkKey.sessionAuthKey,
             channel_code: channelCode,

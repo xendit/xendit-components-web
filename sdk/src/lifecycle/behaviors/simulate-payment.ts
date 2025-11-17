@@ -53,6 +53,7 @@ export class SimulatePaymentBehavior implements Behavior {
 
     const abortController = new AbortController();
     const promise = simulatePaymentRequest(
+      this.bb.sdkKey,
       {
         channel_code: channelCode,
       },
