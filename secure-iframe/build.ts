@@ -5,6 +5,7 @@ import * as http from "http";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { mkdirSync, readFileSync } from "fs";
+import * as crypto from "crypto";
 import * as rollup from "rollup";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
@@ -41,8 +42,14 @@ async function generateIframeHtml(js: string) {
     throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
   }
 
+  // Calculate hash of the jsWithPinningKeys for CSP
+  const jsHash = crypto
+    .createHash("sha256")
+    .update(jsWithPinningKeys)
+    .digest("base64");
+
   // generate html
-  return `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html>
   <head>
     <title>Xendit Secure Iframe</title>
@@ -52,6 +59,8 @@ async function generateIframeHtml(js: string) {
   </body>
 </html>
 `;
+
+  return { html, jsHash };
 }
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
@@ -97,12 +106,18 @@ async function completeRollupBuild(build: rollup.RollupBuild) {
 async function rollupProductionBuild() {
   const options = rollupConfig(true);
   const build = await rollup.rollup(options);
-  const html = await completeRollupBuild(build);
+  const result = await completeRollupBuild(build);
 
   mkdirSync(path.join(import.meta.dirname, "dist"), { recursive: true });
   await fs.writeFile(
     path.join(import.meta.dirname, "dist/secure-iframe.html"),
-    html,
+    result.html,
+  );
+
+  // Write hash metadata for deployment script
+  await fs.writeFile(
+    path.join(import.meta.dirname, "dist/js-hash.txt"),
+    result.jsHash,
   );
 }
 
@@ -114,8 +129,8 @@ async function rollupWatch() {
     switch (event.code) {
       case "BUNDLE_END": {
         if (event.result) {
-          const html = await completeRollupBuild(event.result);
-          lastSeenBuildOutput = html;
+          const result = await completeRollupBuild(event.result);
+          lastSeenBuildOutput = result.html;
           await event.result.close();
         }
         break;
