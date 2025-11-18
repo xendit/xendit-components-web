@@ -17,6 +17,11 @@ export type BffChannel = {
   brand_color: string;
 
   /**
+   * Type of payment method.
+   */
+  pm_type?: string;
+
+  /**
    * The group to which this channel belongs.
    * A reference to one of the group ids in the channel_ui_groups list.
    **/

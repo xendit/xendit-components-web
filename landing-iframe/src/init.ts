@@ -46,7 +46,6 @@ export async function init() {
     // tell parent frame that the action is done
     insecurePostMessage({
       type: "xendit-iframe-action-complete",
-      originalUrl: queryInputs.originalUrl,
     });
   } else {
     // otherwise, just redirect

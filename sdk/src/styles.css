@@ -77,7 +77,8 @@ html {
 /* Set default font for root components */
 xendit-channel-picker,
 xendit-action-handler,
-xendit-payment-channel {
+xendit-payment-channel,
+.xendit-default-action-container {
   font-family: var(--xendit-font-family, sans-serif);
 }
 

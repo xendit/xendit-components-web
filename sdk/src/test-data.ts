@@ -1,5 +1,7 @@
-import { BffResponse } from "./backend-types/common";
+import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
+  BffPaymentEntity,
+  BffPaymentEntityType,
   BffPaymentRequest,
   BffPaymentToken,
 } from "./backend-types/payment-entity";
@@ -715,6 +717,7 @@ export function makeTestBffData(): BffResponse {
         brand_logo_url:
           "https://assets.xendit.co/payment-session/logos/QRIS.svg",
         ui_group: "qr_code",
+        pm_type: "QR_CODE",
         allow_pay_without_save: true,
         allow_save: false,
         brand_color: "#000000",
@@ -770,12 +773,84 @@ function makeTestRandomId() {
     .join("");
 }
 
+export function makeTestPollResponseForSuccess(
+  paymentEntity: BffPaymentEntity,
+): BffPollResponse {
+  const baseData = makeTestBffData();
+
+  const paymentRequest =
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
+  const paymentToken =
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
+
+  return {
+    session: {
+      ...baseData.session,
+      status: "COMPLETED",
+      payment_request_id: paymentRequest?.payment_request_id,
+      payment_token_id: paymentToken?.payment_token_id,
+    },
+    payment_request: withStatus(paymentRequest, "SUCCEEDED"),
+    payment_token: withStatus(paymentToken, "ACTIVE"),
+    succeeded_channel: {
+      channel_code: paymentEntity.entity.channel_code,
+      logo_url: "https://placehold.co/48",
+    },
+  };
+}
+
+export function makeTestPollResponseForFailure(
+  paymentEntity: BffPaymentEntity,
+): BffPollResponse {
+  const baseData = makeTestBffData();
+
+  const paymentRequest =
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
+  const paymentToken =
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
+
+  return {
+    session: {
+      ...baseData.session,
+      status: "ACTIVE",
+    },
+    payment_request: withStatus(paymentRequest, "FAILED"),
+    payment_token: withStatus(paymentToken, "FAILED"),
+  };
+}
+
+function withStatus(
+  paymentRequest: BffPaymentRequest | undefined,
+  status: BffPaymentRequest["status"],
+): BffPaymentRequest | undefined;
+function withStatus(
+  paymentRequest: BffPaymentToken | undefined,
+  status: BffPaymentToken["status"],
+): BffPaymentToken | undefined;
+function withStatus(
+  prOrPt: object | undefined,
+  status: string,
+): object | undefined {
+  if (!prOrPt) return undefined;
+  return {
+    ...prOrPt,
+    status: status,
+  };
+}
+
 export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {
   return {
     payment_request_id: `pr-${makeTestRandomId()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
-    pm_type: "CARDS",
     actions: [
       {
         type: "REDIRECT_CUSTOMER",
@@ -792,7 +867,6 @@ export function makeTestPaymentToken(channelCode: string): BffPaymentToken {
     payment_token_id: `pr-${makeTestRandomId()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
-    pm_type: "CARDS",
     actions: [
       {
         type: "REDIRECT_CUSTOMER",

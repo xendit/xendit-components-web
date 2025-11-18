@@ -19,7 +19,8 @@
         - "npm install -g pnpm"
         - "pnpm install"
         - "pnpm build"
-        - "cp secure-iframe/dist/iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
+        - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
+        - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
         - "rm -f .npmrc"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
@@ -45,7 +46,7 @@
       type: "CLOUD_FRONT"
       input_type: "SCM_REPOSITORY"
       local_path: "/components/*"
-      distribution_id: "E29DVLNWK1GMOS"
+      distribution_id: "E147G3U7WB0LPJ"
       purge_all: true
       purge_by_change_set_limit: 10
       trigger_conditions:

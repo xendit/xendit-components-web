@@ -155,8 +155,8 @@ export function validate(
 export function channelPropertiesAreValid(
   sessionType: BffSessionType,
   channel: BffChannel,
-  channelProperties?: ChannelProperties | null,
-  showBillingDetails = false,
+  channelProperties: ChannelProperties | null,
+  showBillingDetails: boolean,
 ): boolean {
   if (!channelProperties) channelProperties = {};
 

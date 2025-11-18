@@ -38,7 +38,7 @@ function rollupConfig(demoName: string): rollup.RollupOptions {
         include: ["**/node_modules/**"],
       }),
       typescript({
-        tsconfig: path.join(import.meta.dirname, "tsconfig.demos.json"),
+        tsconfig: path.join(import.meta.dirname, "demos/tsconfig.json"),
       }),
       replace({
         "process.env.NODE_ENV": JSON.stringify("development"),
@@ -145,8 +145,11 @@ async function handleDevServerRequest(
   }
 
   // Secure iframe
-  if (req.method === "GET" && pathname === "/secure-iframe/iframe.html") {
-    await serveFile("secure-iframe/dist/iframe.html", "text/html");
+  if (
+    req.method === "GET" &&
+    pathname === "/secure-iframe/secure-iframe.html"
+  ) {
+    await serveFile("secure-iframe/dist/secure-iframe.html", "text/html");
     return;
   }
 

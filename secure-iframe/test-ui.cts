@@ -2,6 +2,8 @@
 This must be a single file with no imports.
 */
 
+import { IframeEvent } from "../shared/types";
+
 const sessionId = "ps-12345678901234567890";
 
 let pinningKeys: CryptoKey[] = [];
@@ -119,18 +121,23 @@ async function initPinningKeys() {
   const pinningKeysData: JsonWebKey[] = await pinningKeysResponse.json();
 
   pinningKeys = await Promise.all(
-    pinningKeysData.map((jwk) => {
-      return crypto.subtle.importKey(
-        "jwk",
-        jwk,
-        {
-          name: "ECDSA",
-          namedCurve: "P-384",
-        },
-        true,
-        ["sign"],
-      );
-    }),
+    pinningKeysData
+      .filter((jwk) => {
+        // filter to only private keys
+        return jwk.d !== undefined;
+      })
+      .map((jwk) => {
+        return crypto.subtle.importKey(
+          "jwk",
+          jwk,
+          {
+            name: "ECDSA",
+            namedCurve: "P-384",
+          },
+          true,
+          ["sign"],
+        );
+      }),
   );
 }
 
@@ -155,7 +162,7 @@ async function createTestCase(testCaseName: string, inputType: string) {
       name: "ECDSA",
       hash: { name: "SHA-256" },
     },
-    pinningKeys[1],
+    pinningKeys[0],
     ecdhPublicKeyBytes,
   );
 
@@ -188,14 +195,16 @@ async function createTestCase(testCaseName: string, inputType: string) {
         console.warn("Received message from unexpected origin:", event.origin);
         return;
       }
-      console.log("Received message:", event.data);
-      switch (event.data.type) {
-        case "ready": {
-          iframePublicKeyBytes = base64ToArrayBuffer(event.data.ecdhPublicKey);
+
+      const data = event.data as IframeEvent;
+      console.log("Received message:", data);
+      switch (data.type) {
+        case "xendit-iframe-ready": {
+          iframePublicKeyBytes = base64ToArrayBuffer(data.ecdhPublicKey);
           break;
         }
-        case "change": {
-          const encrypted = event.data.encrypted;
+        case "xendit-iframe-change": {
+          const encrypted = data.encrypted;
           for (const enc of encrypted) {
             checkDecryptionWorks(
               ecdhKeyPair,

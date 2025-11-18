@@ -73,7 +73,8 @@ button:disabled {
 .submit {
   margin-top: 32px;
 }
-.payment-success {
+.payment-success,
+.payment-processing {
   max-width: 800px;
   margin: 0 auto;
 }
