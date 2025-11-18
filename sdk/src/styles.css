@@ -541,6 +541,7 @@ xendit-payment-channel[inert] {
 
 .xendit-dropdown-menu {
   position: absolute;
+  z-index: 1;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
   border-radius: 4px;

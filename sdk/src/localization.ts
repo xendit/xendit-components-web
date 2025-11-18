@@ -23,21 +23,17 @@ const initI18n = (locale: string) => {
         escapeValue: false, // not needed for react as it escapes by default
       },
       resources: {
-        en: { session: en.session },
-        id: { session: id.session },
-        th: { session: th.session },
-        vi: { session: vi.session },
+        en: en,
+        id: id,
+        th: th,
+        vi: vi,
       },
     });
-  } else {
-    xenditI18n.changeLanguage(locale);
   }
 };
 
 // Map error codes to i18n keys
-const errorCodeToI18nKey = (
-  errorCode: FormFieldValidationError | string,
-): string => {
+const errorCodeToI18nKey = (errorCode: FormFieldValidationError | string) => {
   switch (errorCode) {
     case "FIELD_IS_REQUIRED":
       return "validation.required";
@@ -51,9 +47,7 @@ const errorCodeToI18nKey = (
     case "TEXT_TOO_LONG":
       return "validation.text_too_long";
     default:
-      // For unknown error codes (likely custom regex validation messages),
-      // return the error code as-is since it's already a localized message
-      return errorCode;
+      throw new Error(`Unrecognized error code: ${errorCode}`);
   }
 };
 
@@ -73,21 +67,11 @@ export const getLocalizedErrorMessage = (
   // Initialize our i18n instance only if not already initialized, then set locale
   if (!xenditI18n.isInitialized) {
     initI18n(locale);
-  } else if (xenditI18n.language !== locale) {
-    xenditI18n.changeLanguage(locale);
   }
 
   const i18nKey = errorCodeToI18nKey(errorCode);
 
-  if (!xenditI18n.exists(i18nKey)) {
-    // Fallback to English if translation doesn't exist in current locale
-    const englishTranslation = xenditI18n.t(i18nKey, {
-      field: field.label,
-      lng: "en",
-    });
-    return englishTranslation !== i18nKey ? englishTranslation : i18nKey;
-  }
-
+  const t = xenditI18n.getFixedT(locale, "session");
   // Get localized message with field name interpolation
-  return xenditI18n.t(i18nKey, { field: field.label });
+  return t(i18nKey, { field: field.label });
 };
