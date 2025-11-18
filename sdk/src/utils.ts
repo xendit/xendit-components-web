@@ -1,4 +1,8 @@
-import { BffChannel, ChannelFormField } from "./backend-types/channel";
+import {
+  BffChannel,
+  ChannelFormField,
+  ChannelProperties,
+} from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 
@@ -29,6 +33,17 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export class AbortError extends Error {
+  constructor() {
+    super("AbortError");
+    this.name = "AbortError";
+  }
+}
+
+export function isAbortError(error: unknown): error is AbortError {
+  return error instanceof AbortError && error.name === "AbortError";
+}
+
 /**
  * A sleep function that can be cancelled via an AbortSignal.
  */
@@ -37,26 +52,25 @@ export function cancellableSleep(
   signal: AbortSignal,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    function onAbort() {
+      signal.removeEventListener("abort", onAbort);
+      clearTimeout(timeoutId);
+      reject(new AbortError());
+    }
+
     const timeoutId = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
       resolve();
     }, ms);
 
     // already aborted
     if (signal.aborted) {
-      clearTimeout(timeoutId);
-      reject(new Error("Aborted"));
+      onAbort();
       return;
     }
 
     // abort on signal
-    signal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timeoutId);
-        reject(new Error("Aborted"));
-      },
-      { once: true },
-    );
+    signal.addEventListener("abort", onAbort);
   });
 }
 
@@ -229,4 +243,22 @@ export function removeUndefinedPropertiesFromObject<T extends object>(
 ): T {
   // TODO: filter out undefined properties while leaving symbol properties and getters intact
   return object;
+}
+
+export function getCardNunberFromChannelProperties(
+  channelProperties: ChannelProperties | null,
+) {
+  const cardDetails = channelProperties?.card_details;
+  if (
+    !cardDetails ||
+    typeof cardDetails !== "object" ||
+    Array.isArray(cardDetails)
+  ) {
+    return;
+  }
+  const cardNumber = cardDetails.card_number;
+  if (!cardNumber || typeof cardNumber !== "string") {
+    return null;
+  }
+  return cardNumber;
 }

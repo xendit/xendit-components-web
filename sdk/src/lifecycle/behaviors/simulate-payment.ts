@@ -1,10 +1,13 @@
 import { simulatePaymentRequest } from "../../api";
 import { BffPaymentEntityType } from "../../backend-types/payment-entity";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import { AbortError, isAbortError } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 
 export class SimulatePaymentBehavior implements Behavior {
+  exited = false;
+
   private simulationRequest: {
     promise: Promise<void>;
     abortController: AbortController;
@@ -17,12 +20,14 @@ export class SimulatePaymentBehavior implements Behavior {
   }
 
   exit() {
+    this.exited = true;
+    this.bb.simulatePaymentRequested = false;
     this.abortSimulation();
   }
 
   abortSimulation() {
     if (this.simulationRequest) {
-      this.simulationRequest.abortController.abort("Aborted");
+      this.simulationRequest.abortController.abort(new AbortError());
       this.simulationRequest = null;
     }
   }
@@ -61,15 +66,24 @@ export class SimulatePaymentBehavior implements Behavior {
         sessionAuthKey: this.bb.sdkKey.sessionAuthKey,
         paymentRequestId: paymentRequestId,
       },
+      undefined,
+      abortController.signal,
     )
       .then(() => {
+        // close the action while we wait for the payment entity to update
         this.bb.actionCompleted = true;
+        this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
         return undefined;
       })
-      .finally(() => {
-        this.simulationRequest = null;
-        this.bb.simulatePaymentRequested = false;
-        this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+      .catch((error) => {
+        if (isAbortError(error)) return;
+
+        // ignore if we already exited
+        if (!this.exited) {
+          // exit the simulate payment state and log the error
+          this.bb.simulatePaymentRequested = false;
+          console.error("Simulate Payment failed:", error);
+        }
       });
 
     this.simulationRequest = {

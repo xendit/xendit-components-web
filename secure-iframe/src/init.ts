@@ -119,6 +119,8 @@ export async function init() {
   const input = createInputElement(queryInputs.inputType);
   wrapper.appendChild(input);
 
+  let lastValue: string[] = [];
+
   // event handlers
   async function handleChangeEvent(value: string) {
     const inputValue = value;
@@ -150,6 +152,13 @@ export async function init() {
       }
     }
 
+    // skip sending the change event if value didn't change
+    if (JSON.stringify(lastValue) === JSON.stringify(extractedInputValues)) {
+      return;
+    }
+    lastValue = extractedInputValues;
+
+    // encrypt each value
     const encrypted = await Promise.all(
       extractedInputValues.map(async (value) => {
         const { ivBytes, cipherTextBytes } = await encryptText(

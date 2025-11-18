@@ -5,6 +5,7 @@ import { BffBusiness } from "../backend-types/business";
 import { BffCustomer } from "../backend-types/customer";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { internal } from "../internal";
+import { BffCardDetails } from "../backend-types/card-details";
 
 // Create contexts
 const SessionContext = createContext<BffSession | null>(null);
@@ -21,6 +22,12 @@ ChannelsContext.displayName = "ChannelsContext";
 
 const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | null>(null);
 ChannelUiGroupsContext.displayName = "ChannelUiGroupsContext";
+
+const CardDetailsContext = createContext<{
+  cardNumber: string | null;
+  details: BffCardDetails | null;
+}>({ cardNumber: null, details: null });
+CardDetailsContext.displayName = "CardDetailsContext";
 
 const SdkContext = createContext<XenditSessionSdk | null>(null);
 SdkContext.displayName = "SdkContext";
@@ -71,6 +78,11 @@ export const useChannelUiGroups = () => {
   return context;
 };
 
+export const useCardDetails = () => {
+  const context = useContext(CardDetailsContext);
+  return context;
+};
+
 export const useSdk = () => {
   const context = useContext(SdkContext);
   if (context === null) {
@@ -106,7 +118,9 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
             <CustomerContext.Provider value={customer}>
               <ChannelsContext.Provider value={channels}>
                 <ChannelUiGroupsContext.Provider value={channelUiGroups}>
-                  {children}
+                  <CardDetailsContext.Provider value={data.cardDetails}>
+                    {children}
+                  </CardDetailsContext.Provider>
                 </ChannelUiGroupsContext.Provider>
               </ChannelsContext.Provider>
             </CustomerContext.Provider>

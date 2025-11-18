@@ -107,8 +107,8 @@ export type BffPaymentRequest = {
 };
 
 export enum BffPaymentEntityType {
-  PaymentRequest = "pr",
-  PaymentToken = "pt",
+  PaymentRequest = "REQUEST",
+  PaymentToken = "TOKEN",
 }
 
 export type BffPaymentEntity =
