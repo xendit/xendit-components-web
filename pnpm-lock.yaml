@@ -8,18 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@preact/preset-vite':
-        specifier: ^2.10.2
-        version: 2.10.2(@babel/core@7.28.5)(preact@10.27.2)(vite@7.1.12(@types/node@24.10.1)(terser@5.44.0)(yaml@2.8.1))
-      '@rollup/plugin-commonjs':
-        specifier: ^28.0.9
-        version: 28.0.9(rollup@4.53.2)
-      '@rollup/plugin-json':
-        specifier: ^6.1.0
-        version: 6.1.0(rollup@4.53.2)
-      '@rollup/plugin-replace':
-        specifier: ^6.0.2
-        version: 6.0.2(rollup@4.53.2)
       card-validator:
         specifier: ^10.0.3
         version: 10.0.3
@@ -51,12 +39,24 @@ importers:
       '@microsoft/api-extractor':
         specifier: ^7.55.0
         version: 7.55.0(@types/node@24.10.1)
+      '@preact/preset-vite':
+        specifier: ^2.10.2
+        version: 2.10.2(@babel/core@7.28.5)(preact@10.27.2)(vite@7.1.12(@types/node@24.10.1)(terser@5.44.0)(yaml@2.8.1))
       '@rollup/plugin-alias':
         specifier: ^6.0.0
         version: 6.0.0(rollup@4.53.2)
+      '@rollup/plugin-commonjs':
+        specifier: ^29.0.0
+        version: 29.0.0(rollup@4.53.2)
+      '@rollup/plugin-json':
+        specifier: ^6.1.0
+        version: 6.1.0(rollup@4.53.2)
       '@rollup/plugin-node-resolve':
         specifier: ^16.0.3
         version: 16.0.3(rollup@4.53.2)
+      '@rollup/plugin-replace':
+        specifier: ^6.0.3
+        version: 6.0.3(rollup@4.53.2)
       '@rollup/plugin-terser':
         specifier: ^0.4.4
         version: 0.4.4(rollup@4.53.2)
@@ -555,8 +555,8 @@ packages:
       rollup:
         optional: true
 
-  '@rollup/plugin-commonjs@28.0.9':
-    resolution: {integrity: sha512-PIR4/OHZ79romx0BVVll/PkwWpJ7e5lsqFa3gFfcrFPWwLXLV39JVUzQV9RKjWerE7B845Hqjj9VYlQeieZ2dA==}
+  '@rollup/plugin-commonjs@29.0.0':
+    resolution: {integrity: sha512-U2YHaxR2cU/yAiwKJtJRhnyLk7cifnQw0zUpISsocBDoHDJn+HTV74ABqnwr5bEgWUwFZC9oFL6wLe21lHu5eQ==}
     engines: {node: '>=16.0.0 || 14 >= 14.17'}
     peerDependencies:
       rollup: ^2.68.0||^3.0.0||^4.0.0
@@ -582,8 +582,8 @@ packages:
       rollup:
         optional: true
 
-  '@rollup/plugin-replace@6.0.2':
-    resolution: {integrity: sha512-7QaYCf8bqF04dOy7w/eHmJeNExxTYwvKAmlSAH/EaWWUzbT0h5sbF6bktFoX/0F/0qwng5/dWFMyf3gzaM8DsQ==}
+  '@rollup/plugin-replace@6.0.3':
+    resolution: {integrity: sha512-J4RZarRvQAm5IF0/LwUUg+obsm+xZhYnbMXmXROyoSE1ATJe3oXSb9L5MMppdxP2ylNSjv6zFBwKYjcKMucVfA==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
@@ -2562,7 +2562,7 @@ snapshots:
     optionalDependencies:
       rollup: 4.53.2
 
-  '@rollup/plugin-commonjs@28.0.9(rollup@4.53.2)':
+  '@rollup/plugin-commonjs@29.0.0(rollup@4.53.2)':
     dependencies:
       '@rollup/pluginutils': 5.3.0(rollup@4.53.2)
       commondir: 1.0.1
@@ -2590,7 +2590,7 @@ snapshots:
     optionalDependencies:
       rollup: 4.53.2
 
-  '@rollup/plugin-replace@6.0.2(rollup@4.53.2)':
+  '@rollup/plugin-replace@6.0.3(rollup@4.53.2)':
     dependencies:
       '@rollup/pluginutils': 5.3.0(rollup@4.53.2)
       magic-string: 0.30.21
