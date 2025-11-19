@@ -4,7 +4,11 @@ import Field from "./field";
 import classNames from "classnames";
 import { formFieldName } from "../utils";
 import { useSession } from "./session-provider";
-import { getLocalizedErrorMessage } from "../localization";
+import {
+  getLocalizedErrorMessage,
+  LocaleKey,
+  LocalizedString,
+} from "../localization";
 
 const CSS_CLASSES = {
   BOTTOM_LEFT_0: "field-radius-bl-0",
@@ -26,7 +30,7 @@ interface Props {
 const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
   const { locale } = useSession();
   const [fieldGroupErrors, setFieldGroupErrors] = useState<
-    Record<string, string>
+    Record<string, LocaleKey | LocalizedString>
   >({});
 
   const fieldGroupSpans = fieldGroup.map((f) => f.span);
@@ -66,17 +70,20 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     });
   };
 
-  const handleFieldError = useCallback((id: string, error: string | null) => {
-    setFieldGroupErrors((prev) => {
-      return error
-        ? { ...prev, [id]: error }
-        : (() => {
-            const newErrors = { ...prev };
-            delete newErrors[id];
-            return newErrors;
-          })();
-    });
-  }, []);
+  const handleFieldError = useCallback(
+    (id: string, error: LocaleKey | LocalizedString | null) => {
+      setFieldGroupErrors((prev) => {
+        return error
+          ? { ...prev, [id]: error }
+          : (() => {
+              const newErrors = { ...prev };
+              delete newErrors[id];
+              return newErrors;
+            })();
+      });
+    },
+    [],
+  );
 
   const renderFirstFoundError = () => {
     const firstFieldWithError = fieldGroup.find(

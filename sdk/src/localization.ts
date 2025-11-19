@@ -1,15 +1,22 @@
-import { FormFieldValidationError, LocalizedString } from "../../shared/types";
 import { ChannelFormField } from "./backend-types/channel";
-import { isLocalizedString } from "./validation";
 import { createInstance } from "i18next";
 import en from "./locale/en.json";
 import id from "./locale/id.json";
 import th from "./locale/th.json";
 import vi from "./locale/vi.json";
 
+const DEFAULT_NAMESPACE = "session";
+
+export type LocaleKey = {
+  localeKey: keyof (typeof en)[typeof DEFAULT_NAMESPACE];
+};
+
+export type LocalizedString = {
+  value: string;
+};
+
 // Create our own isolated i18next instance to avoid conflicts with merchant's i18n
 const xenditI18n = createInstance();
-
 // Initialize our i18next instance
 const initI18n = (locale: string) => {
   if (!xenditI18n.isInitialized) {
@@ -18,7 +25,7 @@ const initI18n = (locale: string) => {
       fallbackLng: "en",
       supportedLngs: ["en", "id", "th", "vi"],
       debug: false,
-      defaultNS: "session",
+      defaultNS: DEFAULT_NAMESPACE,
       interpolation: {
         escapeValue: false, // not needed for react as it escapes by default
       },
@@ -32,46 +39,35 @@ const initI18n = (locale: string) => {
   }
 };
 
-// Map error codes to i18n keys
-const errorCodeToI18nKey = (errorCode: FormFieldValidationError | string) => {
-  switch (errorCode) {
-    case "FIELD_IS_REQUIRED":
-      return "validation.required";
-    case "INVALID_EMAIL_FORMAT":
-    case "INVALID_PHONE_NUMBER":
-    case "INVALID_POSTAL_CODE":
-    case "INVALID_COUNTRY":
-      return "validation.generic_invalid";
-    case "TEXT_TOO_SHORT":
-      return "validation.text_too_short";
-    case "TEXT_TOO_LONG":
-      return "validation.text_too_long";
-    default:
-      throw new Error(`Unrecognized error code: ${errorCode}`);
-  }
+// Type guard function to check if errorCode is LocaleKey
+export const isLocaleKey = (
+  errorCode: LocaleKey | LocalizedString,
+): errorCode is LocaleKey => {
+  return (
+    typeof errorCode === "object" &&
+    errorCode !== null &&
+    "localeKey" in errorCode
+  );
 };
 
 // Get localized error message
 export const getLocalizedErrorMessage = (
-  errorCode: FormFieldValidationError | LocalizedString | null,
+  errorCode: LocaleKey | LocalizedString,
   field: ChannelFormField,
   locale: string,
 ): string | null => {
   if (!errorCode) return null;
 
-  // If it's already a localized string, return it directly
-  if (isLocalizedString(errorCode)) {
-    return errorCode;
+  if (!isLocaleKey(errorCode)) {
+    return errorCode.value;
   }
-
   // Initialize our i18n instance only if not already initialized, then set locale
   if (!xenditI18n.isInitialized) {
     initI18n(locale);
   }
 
-  const i18nKey = errorCodeToI18nKey(errorCode);
-
   const t = xenditI18n.getFixedT(locale, "session");
-  // Get localized message with field name interpolation
-  return t(i18nKey, { field: field.label });
+
+  // Get localized message with field name interpolation using i18n key directly
+  return t(errorCode.localeKey, { field: field.label });
 };

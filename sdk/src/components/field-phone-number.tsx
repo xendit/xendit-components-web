@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { FieldProps } from "./field";
 import { validate } from "../validation";
-import { InternalInputValidateEvent } from "../private-event-types";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
 import { COUNTRIES_AS_DROPDOWN_OPTIONS } from "./field-country";
@@ -14,7 +13,7 @@ import { useSession } from "./session-provider";
 import { formFieldName } from "../utils";
 
 export const PhoneNumberField: React.FC<FieldProps> = (props) => {
-  const { field, onChange } = props;
+  const { field, onChange, onError } = props;
   const id = formFieldName(field);
 
   const session = useSession();
@@ -33,8 +32,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS[countryCodeIndex];
 
   const [localNumber, setLocalNumber] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isTouched, setIsTouched] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const formatPhoneNumber = useCallback(
@@ -54,10 +52,11 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const updateValidity = useCallback(
     (nextCountry: DropdownOptionWithDial, localNumber: string) => {
       const phoneNumberString = formatPhoneNumber(nextCountry, localNumber);
-      const errorMessage = validate(field, phoneNumberString) ?? null;
-      setError(errorMessage);
+      const errorCode = validate(field, phoneNumberString) ?? null;
+      if (onError) onError(id, errorCode);
+      setHasError(errorCode !== null);
     },
-    [field, formatPhoneNumber],
+    [field, formatPhoneNumber, id, onError],
   );
 
   const updateHiddenField = useCallback(
@@ -111,24 +110,11 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   }
 
   function handleBlur(): void {
-    setIsTouched(true);
     formatForUser();
   }
 
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input) return;
-    const listener = (e: Event) => {
-      setIsTouched(true);
-    };
-    input.addEventListener(InternalInputValidateEvent.type, listener);
-    return () => {
-      input.removeEventListener(InternalInputValidateEvent.type, listener);
-    };
-  }, [error]);
-
   return (
-    <div className={`xendit-input-phone ${error?.length ? "invalid" : ""}`}>
+    <div className={`xendit-input-phone ${hasError ? "invalid" : ""}`}>
       <div className="xendit-combobox">
         <Dropdown
           options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
@@ -151,10 +137,6 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
 
       {/* Hidden canonical value (useful for non-JS form posts) */}
       <input type="hidden" name={id} ref={hiddenFieldRef} />
-
-      {error && isTouched ? (
-        <span className="xendit-error-message xendit-text-14">{error}</span>
-      ) : null}
     </div>
   );
 };

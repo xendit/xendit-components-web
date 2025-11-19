@@ -4,11 +4,12 @@ import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { formFieldName } from "../utils";
+import { LocaleKey, LocalizedString } from "../localization";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
   const id = formFieldName(field);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LocaleKey | LocalizedString | null>(null);
   const [isTouched, setIsTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 

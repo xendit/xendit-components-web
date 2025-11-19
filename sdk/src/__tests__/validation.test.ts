@@ -17,20 +17,30 @@ describe("validateEmail", () => {
   });
 
   it("returns error for missing @", () => {
-    expect(validateEmail("testexample.com")).toBe("INVALID_EMAIL_FORMAT");
+    expect(validateEmail("testexample.com")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
   });
 
   it("returns error for missing domain", () => {
-    expect(validateEmail("test@")).toBe("INVALID_EMAIL_FORMAT");
+    expect(validateEmail("test@")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
   });
 
   it("returns error for missing TLD", () => {
-    expect(validateEmail("test@example")).toBe("INVALID_EMAIL_FORMAT");
+    expect(validateEmail("test@example")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
   });
 
   it("returns error for invalid characters", () => {
-    expect(validateEmail("test@exa mple.com")).toBe("INVALID_EMAIL_FORMAT");
-    expect(validateEmail("test@.com")).toBe("INVALID_EMAIL_FORMAT");
+    expect(validateEmail("test@exa mple.com")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
+    expect(validateEmail("test@.com")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
   });
 
   it("returns undefined for empty string", () => {
@@ -76,18 +86,18 @@ describe("validatePhoneNumber", () => {
       invalidNumbers[country].forEach((number) => {
         it(`invalidates invalid number: ${number}`, () => {
           const result = validatePhoneNumber(number);
-          expect(result).toBe("INVALID_PHONE_NUMBER");
+          expect(result?.localeKey).toBe("validation.generic_invalid");
         });
       });
 
       it("returns error for empty input", () => {
         const result = validatePhoneNumber("");
-        expect(result).toBe("INVALID_PHONE_NUMBER");
+        expect(result?.localeKey).toBe("validation.generic_invalid");
       });
 
       it("handles whitespace input", () => {
         const result = validatePhoneNumber("   ");
-        expect(result).toBe("INVALID_PHONE_NUMBER");
+        expect(result?.localeKey).toBe("validation.generic_invalid");
       });
     });
   });
@@ -102,19 +112,33 @@ describe("validatePostalCode", () => {
   });
 
   it("returns error for empty string", () => {
-    expect(validatePostalCode("")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode("   ")).toBe("INVALID_POSTAL_CODE");
+    expect(validatePostalCode("")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
+    expect(validatePostalCode("   ")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
   });
 
   it("returns error for invalid characters", () => {
-    expect(validatePostalCode("123$456")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode("!@#")).toBe("INVALID_POSTAL_CODE");
+    expect(validatePostalCode("123$456")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
+    expect(validatePostalCode("!@#")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
   });
 
   it("returns error for only spaces or hyphens", () => {
-    expect(validatePostalCode("   ")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode("---")).toBe("INVALID_POSTAL_CODE");
-    expect(validatePostalCode(" - ")).toBe("INVALID_POSTAL_CODE");
+    expect(validatePostalCode("   ")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
+    expect(validatePostalCode("---")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
+    expect(validatePostalCode(" - ")?.localeKey).toBe(
+      "validation.generic_invalid",
+    );
   });
 
   it("trims input before validation", () => {
@@ -145,20 +169,32 @@ describe("validateText", () => {
     expect(validateText(baseField, "abcde")).toBeUndefined();
   });
 
-  it("returns TEXT_TOO_SHORT for text shorter than min_length", () => {
-    expect(validateText(baseField, "a")).toBe("TEXT_TOO_SHORT");
-    expect(validateText(baseField, "")).toBe("TEXT_TOO_SHORT");
-    expect(validateText(baseField, " ")).toBe("TEXT_TOO_SHORT");
+  it("returns validation.text_too_short for text shorter than min_length", () => {
+    expect(validateText(baseField, "a")).toStrictEqual({
+      localeKey: "validation.text_too_short",
+    });
+    expect(validateText(baseField, "")).toStrictEqual({
+      localeKey: "validation.text_too_short",
+    });
+    expect(validateText(baseField, " ")).toStrictEqual({
+      localeKey: "validation.text_too_short",
+    });
   });
 
-  it("returns TEXT_TOO_LONG for text longer than max_length", () => {
-    expect(validateText(baseField, "abcdef")).toBe("TEXT_TOO_LONG");
+  it("returns validation.text_too_long for text longer than max_length", () => {
+    expect(validateText(baseField, "abcdef")).toStrictEqual({
+      localeKey: "validation.text_too_long",
+    });
   });
 
   it("trims input before length validation", () => {
     expect(validateText(baseField, " abcd ")).toBeUndefined();
-    expect(validateText(baseField, " a ")).toBe("TEXT_TOO_SHORT");
-    expect(validateText(baseField, " abcdef ")).toBe("TEXT_TOO_LONG");
+    expect(validateText(baseField, " a ")).toStrictEqual({
+      localeKey: "validation.text_too_short",
+    });
+    expect(validateText(baseField, " abcdef ")).toStrictEqual({
+      localeKey: "validation.text_too_long",
+    });
   });
 
   it("returns undefined if regex_validators pass", () => {
@@ -185,10 +221,12 @@ describe("validateText", () => {
         ],
       },
     };
-    expect(validateText(field, "ABC")).toBe("Should only be lowercase");
+    expect(validateText(field, "ABC")).toStrictEqual({
+      value: "Should only be lowercase",
+    });
   });
 
-  it("returns TEXT_TOO_SHORT if regex passes but length fails", () => {
+  it("returns validation.text_too_short if regex passes but length fails", () => {
     const field = {
       ...baseField,
       type: {
@@ -198,10 +236,12 @@ describe("validateText", () => {
         ],
       },
     };
-    expect(validateText(field, "a")).toBe("TEXT_TOO_SHORT");
+    expect(validateText(field, "a")).toStrictEqual({
+      localeKey: "validation.text_too_short",
+    });
   });
 
-  it("returns TEXT_TOO_LONG if regex passes but length fails", () => {
+  it("returns validation.text_too_long if regex passes but length fails", () => {
     const field = {
       ...baseField,
       type: {
@@ -211,7 +251,9 @@ describe("validateText", () => {
         ],
       },
     };
-    expect(validateText(field, "abcdef")).toBe("TEXT_TOO_LONG");
+    expect(validateText(field, "abcdef")).toStrictEqual({
+      localeKey: "validation.text_too_long",
+    });
   });
 
   it("handles multiple regex_validators", () => {
@@ -226,7 +268,9 @@ describe("validateText", () => {
       },
     };
     expect(validateText(field, "ab")).toBeUndefined();
-    expect(validateText(field, "a")).toBe("Should be at least two characters");
+    expect(validateText(field, "a")).toStrictEqual({
+      value: "Should be at least two characters",
+    });
   });
 
   it("returns undefined if no regex_validators and valid length", () => {
@@ -240,7 +284,7 @@ describe("validateText", () => {
     expect(validateText(field, "abcd")).toBeUndefined();
   });
 
-  it("returns TEXT_TOO_SHORT if min_length is not defined and input is empty", () => {
+  it("returns validation.text_too_short if min_length is not defined and input is empty", () => {
     const field = {
       ...baseField,
       type: {
@@ -248,10 +292,12 @@ describe("validateText", () => {
         min_length: undefined,
       },
     };
-    expect(validateText(field, "")).toBe("TEXT_TOO_SHORT");
+    expect(validateText(field, "")).toStrictEqual({
+      localeKey: "validation.text_too_short",
+    });
   });
 
-  it("returns TEXT_TOO_LONG if max_length is exceeded", () => {
+  it("returns validation.text_too_long if max_length is exceeded", () => {
     const field = {
       ...baseField,
       type: {
@@ -259,7 +305,9 @@ describe("validateText", () => {
         max_length: 3,
       },
     };
-    expect(validateText(field, "abcd")).toBe("TEXT_TOO_LONG");
+    expect(validateText(field, "abcd")).toStrictEqual({
+      localeKey: "validation.text_too_long",
+    });
   });
 
   it("returns undefined for exact min_length and max_length", () => {
@@ -275,7 +323,9 @@ describe("validateText", () => {
     expect(validateText(field, "abcd")).toBeUndefined();
   });
 
-  it("returns TEXT_TOO_SHORT for whitespace-only input", () => {
-    expect(validateText(baseField, "   ")).toBe("TEXT_TOO_SHORT");
+  it("returns validation.text_too_short for whitespace-only input", () => {
+    expect(validateText(baseField, "   ")).toStrictEqual({
+      localeKey: "validation.text_too_short",
+    });
   });
 });

@@ -1,24 +1,23 @@
-import {
-  CardBrand,
-  IframeFieldType,
-  IframeValidationError,
-} from "../../shared/types";
+import { LocaleKey } from "../../sdk/src/localization";
+import { CardBrand, IframeFieldType } from "../../shared/types";
 import cardValidator from "card-validator";
 
 export type ValidationResult = {
   empty: boolean;
   valid: boolean;
-  errorCodes: IframeValidationError[];
+  errorCodes: LocaleKey[];
   cardBrand?: CardBrand;
 };
 
 export const validateCreditCardNumber = (value: string): ValidationResult => {
   const trimmedValue = value.replace(/\s+/g, "");
-  const errorCodes: IframeValidationError[] = [];
+  const errorCodes: LocaleKey[] = [];
 
   // Check for non-numeric input
   if (!/^\d*$/.test(trimmedValue)) {
-    errorCodes.push("NOT_A_NUMBER");
+    errorCodes.push({
+      localeKey: "validation.card_number_invalid",
+    });
   }
 
   const cardInfo = cardValidator.number(trimmedValue);
@@ -28,25 +27,37 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
 
   // Brand detection
   if (!cardBrand && trimmedValue.length >= 6) {
-    errorCodes.push("CREDIT_CARD_UNKNOWN_BRAND");
+    // Unable to detect brand from IIN range
+    errorCodes.push({
+      localeKey: "validation.card_number_invalid",
+    });
   }
 
   // Length validation
   if (cardBrand) {
     const validLengths = cardInfo.card?.lengths || [];
     if (!validLengths.includes(trimmedValue.length)) {
-      errorCodes.push("CREDIT_CARD_NUMBER_INVALID_LENGTH");
+      // Invalid length for detected brand
+      errorCodes.push({
+        localeKey: "validation.card_number_invalid",
+      });
     }
   } else {
     if (trimmedValue.length < 12 || trimmedValue.length > 19) {
-      errorCodes.push("CREDIT_CARD_NUMBER_INVALID_LENGTH");
+      // Too short or too long for any card brand
+      errorCodes.push({
+        localeKey: "validation.card_number_invalid",
+      });
     }
   }
 
   // Luhn validation (only if length is valid for the brand)
   if (cardBrand && cardInfo.card?.lengths?.includes(trimmedValue.length)) {
     if (!cardInfo.isValid) {
-      errorCodes.push("CREDIT_CARD_NUMBER_LUHN");
+      // Luhn check failed
+      errorCodes.push({
+        localeKey: "validation.card_number_invalid",
+      });
     }
   }
 
@@ -60,12 +71,12 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
 
 export const validateCreditCardExpiry = (value: string): ValidationResult => {
   const trimmedValue = value.replace(/\s+/g, "");
-  const errorCodes: IframeValidationError[] = [];
+  const errorCodes: LocaleKey[] = [];
 
   const expiryInfo = cardValidator.expirationDate(trimmedValue);
   const { isPotentiallyValid, isValid, month, year } = expiryInfo;
   if (!isPotentiallyValid || month === null || year === null) {
-    errorCodes.push("CREDIT_CARD_EXPIRY_INVALID");
+    errorCodes.push({ localeKey: "validation.card_expiry_invalid" });
   }
 
   return {
@@ -77,23 +88,33 @@ export const validateCreditCardExpiry = (value: string): ValidationResult => {
 
 export const validateCreditCardCVN = (value: string): ValidationResult => {
   const trimmedValue = value.replace(/\s+/g, "");
-  const errorCodes: IframeValidationError[] = [];
+  const errorCodes: LocaleKey[] = [];
   const cvnInfo = cardValidator.cvv(trimmedValue);
 
   if (!/^\d*$/.test(trimmedValue)) {
-    errorCodes.push("NOT_A_NUMBER");
+    errorCodes.push({
+      localeKey: "validation.card_cvn_invalid",
+    });
   } else {
     if (!cvnInfo.isPotentiallyValid && trimmedValue.length > 0) {
       if (trimmedValue.length < 3) {
-        errorCodes.push("CREDIT_CARD_CVN_TOO_SHORT");
+        errorCodes.push({
+          localeKey: "validation.text_too_short",
+        });
       } else if (trimmedValue.length > 4) {
-        errorCodes.push("CREDIT_CARD_CVN_TOO_LONG");
+        errorCodes.push({
+          localeKey: "validation.text_too_long",
+        });
       }
     } else if (!cvnInfo.isValid && trimmedValue.length > 0) {
       if (trimmedValue.length < 3) {
-        errorCodes.push("CREDIT_CARD_CVN_TOO_SHORT");
+        errorCodes.push({
+          localeKey: "validation.text_too_short",
+        });
       } else if (trimmedValue.length > 4) {
-        errorCodes.push("CREDIT_CARD_CVN_TOO_LONG");
+        errorCodes.push({
+          localeKey: "validation.text_too_long",
+        });
       }
     }
   }

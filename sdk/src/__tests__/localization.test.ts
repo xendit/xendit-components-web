@@ -14,7 +14,9 @@ describe("getLocalizedErrorMessage", () => {
 
   it("returns localized required message in English", () => {
     const result = getLocalizedErrorMessage(
-      "FIELD_IS_REQUIRED",
+      {
+        localeKey: "validation.required",
+      },
       mockField,
       "en",
     );
@@ -23,7 +25,9 @@ describe("getLocalizedErrorMessage", () => {
 
   it("returns localized required message in Indonesian", () => {
     const result = getLocalizedErrorMessage(
-      "FIELD_IS_REQUIRED",
+      {
+        localeKey: "validation.required",
+      },
       mockField,
       "id",
     );
@@ -32,7 +36,9 @@ describe("getLocalizedErrorMessage", () => {
 
   it("returns localized required message in Thai", () => {
     const result = getLocalizedErrorMessage(
-      "FIELD_IS_REQUIRED",
+      {
+        localeKey: "validation.required",
+      },
       mockField,
       "th",
     );
@@ -41,7 +47,9 @@ describe("getLocalizedErrorMessage", () => {
 
   it("returns localized required message in Vietnamese", () => {
     const result = getLocalizedErrorMessage(
-      "FIELD_IS_REQUIRED",
+      {
+        localeKey: "validation.required",
+      },
       mockField,
       "vi",
     );
@@ -50,7 +58,9 @@ describe("getLocalizedErrorMessage", () => {
 
   it("returns localized generic invalid message in English", () => {
     const result = getLocalizedErrorMessage(
-      "INVALID_EMAIL_FORMAT",
+      {
+        localeKey: "validation.generic_invalid",
+      },
       mockField,
       "en",
     );
@@ -59,7 +69,9 @@ describe("getLocalizedErrorMessage", () => {
 
   it("returns localized invalid phone number message in English", () => {
     const result = getLocalizedErrorMessage(
-      "INVALID_PHONE_NUMBER",
+      {
+        localeKey: "validation.generic_invalid",
+      },
       mockField,
       "en",
     );
@@ -68,7 +80,9 @@ describe("getLocalizedErrorMessage", () => {
 
   it("returns localized invalid postal code message in English", () => {
     const result = getLocalizedErrorMessage(
-      "INVALID_POSTAL_CODE",
+      {
+        localeKey: "validation.generic_invalid",
+      },
       mockField,
       "en",
     );
@@ -76,24 +90,33 @@ describe("getLocalizedErrorMessage", () => {
   });
 
   it("returns localized text too long message", () => {
-    const result = getLocalizedErrorMessage("TEXT_TOO_LONG", mockField, "en");
+    const result = getLocalizedErrorMessage(
+      {
+        localeKey: "validation.text_too_long",
+      },
+      mockField,
+      "en",
+    );
     expect(result).toBe("Email is too long");
   });
 
-  it("returns null for null error code", () => {
-    const result = getLocalizedErrorMessage(null, mockField, "en");
-    expect(result).toBe(null);
-  });
-
   it("returns custom regex message as-is", () => {
-    const customMessage = "This is a custom validation message";
-    const result = getLocalizedErrorMessage(customMessage, mockField, "en");
+    const customMessage = "This is a LocalizedString validation message";
+    const result = getLocalizedErrorMessage(
+      {
+        value: customMessage,
+      },
+      mockField,
+      "en",
+    );
     expect(result).toBe(customMessage);
   });
 
   it("fallback to English when locale is not supported", () => {
     const result = getLocalizedErrorMessage(
-      "FIELD_IS_REQUIRED",
+      {
+        localeKey: "validation.required",
+      },
       mockField,
       "fr",
     );
