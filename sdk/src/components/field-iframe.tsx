@@ -17,6 +17,7 @@ import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
 import { formFieldName } from "../utils";
+import { LocaleKey } from "../localization";
 
 function getIframeByEnv(env: string) {
   switch (env) {
@@ -40,8 +41,14 @@ function getIframeByEnv(env: string) {
   throw new Error(`Unknown env: ${env}`);
 }
 
-const computeFieldError = (state: ValidationState, required: boolean) => {
-  if (state.empty && required) return "FIELD_IS_REQUIRED";
+const computeFieldError = (
+  state: ValidationState,
+  required: boolean,
+): LocaleKey | null => {
+  if (state.empty && required)
+    return {
+      localeKey: "validation.required",
+    };
   if (!state.validationErrorCodes?.length) return null;
   return state.validationErrorCodes[0] ?? null;
 };
@@ -61,7 +68,7 @@ const toValidationState = (
 type ValidationState = {
   valid: boolean;
   empty: boolean;
-  validationErrorCodes: string[];
+  validationErrorCodes: LocaleKey[];
 };
 
 export const IframeField: React.FC<FieldProps> = (props) => {
@@ -87,7 +94,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     valid: false,
     validationErrorCodes: [],
   });
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LocaleKey | null>(null);
 
   const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
 

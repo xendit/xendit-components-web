@@ -388,6 +388,7 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field input.invalid,
 .xendit-channel-form-field .xendit-iframe-container.invalid {
   border-color: var(--xendit-color-danger);
+  position: relative;
 }
 
 .xendit-channel-form-field .xendit-iframe-container {
@@ -540,6 +541,7 @@ xendit-payment-channel[inert] {
 
 .xendit-dropdown-menu {
   position: absolute;
+  z-index: 1;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
   border-radius: 4px;

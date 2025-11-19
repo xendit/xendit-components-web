@@ -16,6 +16,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 import { createReadStream, existsSync } from "fs";
 import mime from "mime-types";
+import json from "@rollup/plugin-json";
 
 const SDK_PORT = 4443;
 
@@ -61,6 +62,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
         },
       }),
       css(),
+      json(),
       copy({
         targets: [
           {

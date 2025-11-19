@@ -32,34 +32,44 @@ describe("validateCreditCardNumber - card brand detection", () => {
     });
   });
 
-  it("returns CREDIT_CARD_UNKNOWN_BRAND for unknown prefix", () => {
+  it("returns validation.card_number_invalid for unknown prefix", () => {
     const result = validateCreditCardNumber("1234 5678 9012 3456");
     expect(result.cardBrand).toBeUndefined();
-    expect(result.errorCodes).toContain("CREDIT_CARD_UNKNOWN_BRAND");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_number_invalid",
+    );
   });
 
-  it("returns NOT_A_NUMBER for non-numeric input", () => {
+  it("returns validation.card_number_invalid for non-numeric input", () => {
     const result = validateCreditCardNumber("lorem ipsum dolor sit");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("NOT_A_NUMBER");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_number_invalid",
+    );
   });
 
-  it("returns CREDIT_CARD_NUMBER_INVALID_LENGTH for short input", () => {
+  it("returns validation.card_number_invalid for short input", () => {
     const result = validateCreditCardNumber("4111");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_NUMBER_INVALID_LENGTH");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_number_invalid",
+    );
   });
 
-  it("returns CREDIT_CARD_NUMBER_TOO_LONG for long input", () => {
+  it("returns validation.card_number_invalid for long input", () => {
     const result = validateCreditCardNumber("4111111111111111111111");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_NUMBER_INVALID_LENGTH");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_number_invalid",
+    );
   });
 
-  it("returns CREDIT_CARD_NUMBER_LUHN for invalid Luhn", () => {
+  it("returns validation.card_number_invalid for invalid Luhn", () => {
     const result = validateCreditCardNumber("4111111111111112");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_NUMBER_LUHN");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_number_invalid",
+    );
   });
 });
 
@@ -71,42 +81,54 @@ describe("validateCreditCardExpiry", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID for empty input", () => {
+  it("returns validation.card_expiry_invalid for empty input", () => {
     const result = validateCreditCardExpiry("");
     expect(result.empty).toBe(true);
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toEqual(["CREDIT_CARD_EXPIRY_INVALID"]);
+    expect(result.errorCodes.map((code) => code.localeKey)).toEqual([
+      "validation.card_expiry_invalid",
+    ]);
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID for non-numeric input", () => {
+  it("returns validation.card_expiry_invalid for non-numeric input", () => {
     const result = validateCreditCardExpiry("abcd");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_expiry_invalid",
+    );
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID for incomplete input", () => {
+  it("returns validation.card_expiry_invalid for incomplete input", () => {
     const result = validateCreditCardExpiry("12");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_expiry_invalid",
+    );
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID for month 00", () => {
+  it("returns validation.card_expiry_invalid for month 00", () => {
     const result = validateCreditCardExpiry("00/30");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_expiry_invalid",
+    );
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID for month 13", () => {
+  it("returns validation.card_expiry_invalid for month 13", () => {
     const result = validateCreditCardExpiry("13/30");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_expiry_invalid",
+    );
   });
 
-  it("returns CREDIT_CARD_EXPIRY_INVALID for past date", () => {
+  it("returns validation.card_expiry_invalid for past date", () => {
     // Use a date far in the past
     const result = validateCreditCardExpiry("01/20");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_EXPIRY_INVALID");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_expiry_invalid",
+    );
   });
 });
 
@@ -125,45 +147,57 @@ describe("validateCreditCardCVN", () => {
     expect(result.empty).toBe(false);
   });
 
-  it("returns NOT_A_NUMBER for non-numeric input", () => {
+  it("returns validation.card_cvn_invalid for non-numeric input", () => {
     const result = validateCreditCardCVN("abc");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("NOT_A_NUMBER");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_cvn_invalid",
+    );
     expect(result.empty).toBe(false);
   });
 
-  it("returns CREDIT_CARD_CVN_TOO_SHORT for 1-digit CVN", () => {
+  it("returns validation.text_too_short for 1-digit CVN", () => {
     const result = validateCreditCardCVN("1");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_SHORT");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.text_too_short",
+    );
     expect(result.empty).toBe(false);
   });
 
-  it("returns CREDIT_CARD_CVN_TOO_SHORT for 2-digit CVN", () => {
+  it("returns validation.text_too_short for 2-digit CVN", () => {
     const result = validateCreditCardCVN("12");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_SHORT");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.text_too_short",
+    );
     expect(result.empty).toBe(false);
   });
 
-  it("returns CREDIT_CARD_CVN_TOO_LONG for 5-digit CVN", () => {
+  it("returns validation.text_too_long for 5-digit CVN", () => {
     const result = validateCreditCardCVN("12345");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_LONG");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.text_too_long",
+    );
     expect(result.empty).toBe(false);
   });
 
-  it("returns CREDIT_CARD_CVN_TOO_LONG for 6-digit CVN", () => {
+  it("returns validation.text_too_long for 6-digit CVN", () => {
     const result = validateCreditCardCVN("123456");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("CREDIT_CARD_CVN_TOO_LONG");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.text_too_long",
+    );
     expect(result.empty).toBe(false);
   });
 
-  it("returns NOT_A_NUMBER for CVN with special characters", () => {
+  it("returns validation.card_cvn_invalid for CVN with special characters", () => {
     const result = validateCreditCardCVN("12@");
     expect(result.valid).toBe(false);
-    expect(result.errorCodes).toContain("NOT_A_NUMBER");
+    expect(result.errorCodes.map((code) => code.localeKey)).toContain(
+      "validation.card_cvn_invalid",
+    );
     expect(result.empty).toBe(false);
   });
 

@@ -264,7 +264,7 @@ export function makeTestBffData(): BffResponse {
               max_length: 50,
               regex_validators: [
                 {
-                  regex: "/^[ -~]+$/",
+                  regex: "/^[a-zA-Z\\u00C0-\\u017F\\s]+$/",
                   message:
                     "Invalid input. Please use alphabetic characters only",
                 },

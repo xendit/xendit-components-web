@@ -1,4 +1,3 @@
-import { FormFieldValidationError } from "../../shared/types";
 import {
   BffChannel,
   ChannelFormField,
@@ -8,14 +7,13 @@ import {
 import parsePhoneNumberFromString from "libphonenumber-js/min";
 import { filterFormFields } from "./components/channel-form";
 import { BffSessionType } from "./backend-types/session";
+import { LocaleKey, LocalizedString } from "./localization";
 
 export type ValidationResult = {
-  errorCode: FormFieldValidationError | undefined;
+  errorCode: LocaleKey | LocalizedString | undefined;
 };
 
-export const validateEmail = (
-  value: string,
-): FormFieldValidationError | undefined => {
+export const validateEmail = (value: string): LocaleKey | undefined => {
   const trimmedValue = value.trim();
   // Allows letters, numbers, dots, underscores, hyphens before the @
   // Domain must be letters, numbers, hyphens (no leading/trailing hyphen)
@@ -24,56 +22,67 @@ export const validateEmail = (
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[A-Za-z]{2,}$/;
 
   if (trimmedValue.length > 0 && !emailRegex.test(trimmedValue))
-    return "INVALID_EMAIL_FORMAT";
+    return {
+      localeKey: "validation.generic_invalid",
+    };
 };
 
-export const validatePhoneNumber = (
-  value: string,
-): FormFieldValidationError | undefined => {
+export const validatePhoneNumber = (value: string): LocaleKey | undefined => {
   const input = value?.trim();
-  if (!input) return "INVALID_PHONE_NUMBER";
+  if (!input)
+    return {
+      localeKey: "validation.generic_invalid",
+    };
 
   const phone = parsePhoneNumberFromString(input);
-  if (!phone) return "INVALID_PHONE_NUMBER";
+  if (!phone)
+    return {
+      localeKey: "validation.generic_invalid",
+    };
 
-  return phone.isValid() ? undefined : "INVALID_PHONE_NUMBER";
+  return phone.isValid()
+    ? undefined
+    : {
+        localeKey: "validation.generic_invalid",
+      };
 };
 
-export const validatePostalCode = (
-  value: string,
-): FormFieldValidationError | undefined => {
+export const validatePostalCode = (value: string): LocaleKey | undefined => {
   const trimmedValue = value.trim();
 
   // Basic validation: must be non-empty and contain only letters, numbers, spaces, or hyphens
   if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)) {
-    return "INVALID_POSTAL_CODE";
+    return {
+      localeKey: "validation.generic_invalid",
+    };
   }
 };
 
 // TODO: implement localization for error messages
-type LocalizedString = string;
 
 export const validateText = (
   input: ChannelFormField & {
     type: { name: "text" };
   },
   value: string,
-): FormFieldValidationError | LocalizedString | undefined => {
+): LocaleKey | LocalizedString | undefined => {
   const trimmedValue = value.trim();
 
   if (Array.isArray(input.type.regex_validators)) {
     for (const pattern of input.type.regex_validators) {
       const regex = new RegExp(sanitizeRegex(pattern.regex));
       if (!regex.test(trimmedValue)) {
-        return pattern.message;
+        return {
+          value: pattern.message,
+        };
       }
     }
   }
 
   if (trimmedValue.length < (input.type.min_length ?? 1)) {
-    return "TEXT_TOO_SHORT";
+    return { localeKey: "validation.text_too_short" };
   } else if (trimmedValue.length > input.type.max_length) {
-    return "TEXT_TOO_LONG";
+    return { localeKey: "validation.text_too_long" };
   }
 };
 
@@ -88,9 +97,9 @@ function sanitizeRegex(pattern: string): string {
 export function validate(
   input: ChannelFormField,
   value: string,
-): FormFieldValidationError | LocalizedString | undefined {
+): LocaleKey | LocalizedString | undefined {
   if (input.required && value.trim().length === 0) {
-    return "FIELD_IS_REQUIRED";
+    return { localeKey: "validation.required" };
   }
 
   switch (input.type.name) {

@@ -4,11 +4,12 @@ import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { formFieldName } from "../utils";
+import { LocaleKey, LocalizedString } from "../localization";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
   const id = formFieldName(field);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LocaleKey | LocalizedString | null>(null);
   const [isTouched, setIsTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -26,11 +27,11 @@ export const TextField: React.FC<FieldProps> = (props) => {
 
   const validateField = useCallback(
     (value: string) => {
-      const errorMessage = validate(field, value) ?? null;
-      if (onError) onError(id, errorMessage);
-      setError(errorMessage);
+      const errorCode = validate(field, value) ?? null;
+      if (onError) onError(id, errorCode);
+      setError(errorCode);
       setIsTouched(true);
-      return errorMessage;
+      return errorCode;
     },
     [field, id, onError],
   );

@@ -1,0 +1,12 @@
+{
+  "session": {
+    "validation.card_cvn_invalid": "CVN is not valid",
+    "validation.card_expiry_invalid": "Card expiry is not valid",
+    "validation.card_number_incomplete": "Card number is incomplete",
+    "validation.card_number_invalid": "Card number is not valid",
+    "validation.generic_invalid": "{{field}} is not valid",
+    "validation.required": "{{field}} is required",
+    "validation.text_too_long": "{{field}} is too long",
+    "validation.text_too_short": "{{field}} is too short"
+  }
+}
