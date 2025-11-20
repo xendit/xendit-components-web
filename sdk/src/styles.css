@@ -507,6 +507,11 @@ xendit-payment-channel[inert] {
 .xendit-input-phone.invalid .xendit-phone-number-input {
   border: 1px solid var(--xendit-color-danger);
 }
+
+.invalid .xendit-dropdown button {
+  border: 1px solid var(--xendit-color-danger);
+  position: relative;
+}
 /* Phone input Dropdown ends */
 
 /* Dropdown */

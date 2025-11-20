@@ -1,15 +1,43 @@
-import { useCallback, useRef } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { CircleFlag } from "react-circle-flags";
 import { formFieldName } from "../utils";
+import { validate } from "../validation";
+import { InternalInputValidateEvent } from "../private-event-types";
+import { LocaleKey, LocalizedString } from "../localization";
 
 export const CountryField: React.FC<FieldProps> = (props) => {
-  const { field, onChange } = props;
+  const { field, onChange, onError } = props;
   const id = formFieldName(field);
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<LocaleKey | LocalizedString | null>(null);
+
+  const validateField = useCallback(
+    (value: string) => {
+      const errorCode = validate(field, value) ?? null;
+      console.log("CountryField validateField", { value, errorCode });
+      if (onError) onError(id, errorCode);
+      setError(errorCode);
+      return errorCode;
+    },
+    [field, id, onError],
+  );
+
+  useEffect(() => {
+    const input = hiddenFieldRef.current;
+    if (!input) return;
+    const listener = (e: Event) => {
+      const value = (e as CustomEvent).detail.value;
+      validateField(value);
+    };
+    input.addEventListener(InternalInputValidateEvent.type, listener);
+    return () => {
+      input.removeEventListener(InternalInputValidateEvent.type, listener);
+    };
+  }, [id, validateField]);
 
   const onChangeWrapper = useCallback(
     (option: DropdownOption) => {
@@ -22,7 +50,7 @@ export const CountryField: React.FC<FieldProps> = (props) => {
   );
 
   return (
-    <>
+    <div className={error ? "invalid" : ""}>
       <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
       <Dropdown
         id={id}
@@ -30,7 +58,7 @@ export const CountryField: React.FC<FieldProps> = (props) => {
         onChange={onChangeWrapper}
         placeholder={field.placeholder}
       />
-    </>
+    </div>
   );
 };
 
