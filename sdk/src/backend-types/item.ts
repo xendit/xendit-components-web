@@ -3,8 +3,7 @@ export type BffItemType =
   | "PHYSICAL_PRODUCT"
   | "DIGITAL_SERVICE"
   | "PHYSICAL_SERVICE"
-  | "FEES"
-  | "DISCOUNT";
+  | "FEE";
 
 export type BffItem = {
   type: BffItemType;
@@ -17,5 +16,5 @@ export type BffItem = {
   category?: string;
   subcategory?: string;
   description?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, string>;
 };

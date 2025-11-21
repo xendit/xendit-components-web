@@ -55,6 +55,7 @@ export function makeTestBffData(): BffResponse {
     },
     customer: {
       type: "INDIVIDUAL",
+      reference_id: "testreferenceid",
       id: "cust-78f95e42-4e9d-4556-827b-0e0b8ead68fc",
       email: "sim**@xendit.co",
       mobile_number: null,
