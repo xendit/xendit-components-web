@@ -208,12 +208,6 @@ export function errorToString(error: unknown): string {
 export function removeUndefinedPropertiesFromObject<T extends object>(
   object: T,
 ): T {
-  const result: Partial<T> = {};
-  for (const key in object) {
-    const value = object[key];
-    if (value !== undefined) {
-      result[key] = value;
-    }
-  }
-  return result as T;
+  // TODO: filter out undefined properties while leaving symbol properties and getters intact
+  return object;
 }
