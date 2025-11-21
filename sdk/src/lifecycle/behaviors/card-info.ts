@@ -66,7 +66,7 @@ export class CardInfoBehavior implements Behavior {
           // mock card details
           return {
             schemes: ["VISA"],
-            countries: ["US"],
+            country_codes: ["US"],
             require_billing_information: true,
           };
         } else {

@@ -3,7 +3,11 @@ import { WorldState, XenditSessionSdk } from "../public-sdk";
 import { BffSession } from "../backend-types/session";
 import { BffBusiness } from "../backend-types/business";
 import { BffCustomer } from "../backend-types/customer";
-import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
+import {
+  BffChannel,
+  BffChannelUiGroup,
+  ChannelProperties,
+} from "../backend-types/channel";
 import { internal } from "../internal";
 import { BffCardDetails } from "../backend-types/card-details";
 
@@ -32,7 +36,13 @@ CardDetailsContext.displayName = "CardDetailsContext";
 const SdkContext = createContext<XenditSessionSdk | null>(null);
 SdkContext.displayName = "SdkContext";
 
-const ActiveChannelContext = createContext<BffChannel | null>(null);
+const ActiveChannelContext = createContext<{
+  channel: BffChannel | null;
+  channelProperties: ChannelProperties | null;
+}>({
+  channel: null,
+  channelProperties: null,
+});
 ActiveChannelContext.displayName = "ActiveChannelContext";
 
 // Custom hooks for consuming contexts
@@ -108,10 +118,19 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
 }) => {
   const { session, business, customer, channels, channelUiGroups } = data;
 
+  const channel = sdk.getActiveChannel()?.[internal] ?? null;
+  const channelProperties =
+    sdk[internal].liveComponents.paymentChannels.get(
+      sdk.getActiveChannel()?.[internal]?.channel_code ?? "",
+    )?.channelProperties ?? null;
+
   return (
     <SdkContext.Provider value={sdk}>
       <ActiveChannelContext.Provider
-        value={sdk.getActiveChannel()?.[internal] ?? null}
+        value={{
+          channel,
+          channelProperties,
+        }}
       >
         <SessionContext.Provider value={session}>
           <BusinessContext.Provider value={business}>
