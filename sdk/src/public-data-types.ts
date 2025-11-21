@@ -117,6 +117,9 @@ export interface XenditSession {
   }[];
 }
 
+/**
+ * @public
+ */
 export interface XenditCustomer {
   id: string;
   type: "INDIVIDUAL";
