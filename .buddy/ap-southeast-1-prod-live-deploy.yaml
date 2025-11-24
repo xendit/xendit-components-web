@@ -38,20 +38,6 @@
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
         - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --cache-control no-cache --acl private"
       integration_hash: "5e85761fc5f225000f97dd99"
-    - action: "Purge cache at CloudFront"
-      type: "CLOUD_FRONT"
-      input_type: "SCM_REPOSITORY"
-      local_path: "/components/*"
-      distribution_id: "E147G3U7WB0LPJ"
-      purge_all: true
-      purge_by_change_set_limit: 10
-      trigger_conditions:
-        - trigger_condition: "ALWAYS"
-          zone_id: ""
-          trigger_hours: []
-          trigger_days: []
-      timeout: 0
-      integration_hash: "5e85761fc5f225000f97dd99"
     - action: "Deployment finished notif"
       type: "SLACK"
       content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME Finished execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
