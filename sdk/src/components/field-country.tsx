@@ -22,7 +22,6 @@ const FlagIcon: React.FC<FlagIconProps> = ({ countryCode, size = 16 }) => {
         backgroundImage: `url(https://assets.xendit.co/payment-session/flags/circle/${countryCode.toLowerCase()}.svg)`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        flexShrink: 0,
       }}
     />
   );
@@ -38,7 +37,6 @@ export const CountryField: React.FC<FieldProps> = (props) => {
   const validateField = useCallback(
     (value: string) => {
       const errorCode = validate(field, value) ?? null;
-      console.log("CountryField validateField", { value, errorCode });
       if (onError) onError(id, errorCode);
       setError(errorCode);
       return errorCode;

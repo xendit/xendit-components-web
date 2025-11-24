@@ -17,6 +17,11 @@ export type DropdownOption = {
   value: string;
 };
 
+type FilteredOption = {
+  option: DropdownOption;
+  originalIndex: number;
+};
+
 export type DropdownProps = {
   /** Unique id for aria attributes */
   id?: string;
@@ -79,9 +84,19 @@ export const Dropdown = (props: DropdownProps) => {
 
   // Filter options based on search query
   const filteredOptions = useMemo(() => {
-    if (!searchQuery) return options;
+    const mapToFiltered = (
+      opt: DropdownOption,
+      index: number,
+    ): FilteredOption => ({
+      option: opt,
+      originalIndex: index,
+    });
 
-    const filtered = options.filter((opt) => {
+    if (!searchQuery) {
+      return options.map(mapToFiltered);
+    }
+
+    const filtered = options.map(mapToFiltered).filter(({ option: opt }) => {
       const query = searchQuery.toLowerCase();
       return (
         opt.title.toLowerCase().includes(query) ||
@@ -91,7 +106,7 @@ export const Dropdown = (props: DropdownProps) => {
     });
 
     // Show all options if no results found
-    return filtered.length > 0 ? filtered : options;
+    return filtered.length > 0 ? filtered : options.map(mapToFiltered);
   }, [searchQuery, options]);
 
   // Ids for ARIA wiring
@@ -126,7 +141,7 @@ export const Dropdown = (props: DropdownProps) => {
   }, [open, currentIndex]);
 
   const scrollActiveIntoView = useCallback((el: HTMLElement | null) => {
-    el?.scrollIntoView({ block: "center", behavior: "instant" });
+    el?.scrollIntoView({ block: "nearest", behavior: "instant" });
   }, []);
 
   const commit = useCallback(
@@ -189,7 +204,10 @@ export const Dropdown = (props: DropdownProps) => {
           return;
         }
         e.preventDefault();
-        commit(clampedActive);
+        const activeItem = filteredOptions[clampedActive];
+        if (activeItem) {
+          commit(activeItem.originalIndex, activeItem.option.disabled);
+        }
         return;
       }
       if (e.key === "ArrowDown") {
@@ -213,14 +231,14 @@ export const Dropdown = (props: DropdownProps) => {
         return;
       }
     },
-    [clampedActive, closeList, commit, filteredOptions.length],
+    [clampedActive, closeList, commit, filteredOptions],
   );
 
   const onOptionClick = useCallback(
     (event: React.MouseEvent<HTMLLIElement>) => {
       commit(
-        Number((event.currentTarget as HTMLLIElement).dataset.index),
-        Boolean((event.currentTarget as HTMLLIElement).dataset.disabled),
+        Number(event.currentTarget.dataset.index),
+        Boolean(event.currentTarget.dataset.disabled),
       );
     },
     [commit],
@@ -293,14 +311,14 @@ export const Dropdown = (props: DropdownProps) => {
             aria-activedescendant={activeOptionId}
             onKeyDown={onListKeyDown}
           >
-            {filteredOptions.map((opt, i) => {
-              const isSelected = i === currentIndex;
+            {filteredOptions.map(({ option: opt, originalIndex }, i) => {
+              const isSelected = originalIndex === currentIndex;
               const isActive = i === clampedActive;
               return (
                 <li
-                  key={i}
+                  key={originalIndex}
                   role="option"
-                  data-index={i}
+                  data-index={originalIndex}
                   data-disabled={opt.disabled ? true : undefined}
                   aria-disabled={opt.disabled ? true : undefined}
                   aria-selected={isSelected}

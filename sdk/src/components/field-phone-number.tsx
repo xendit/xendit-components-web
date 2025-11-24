@@ -19,6 +19,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const session = useSession();
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
+  const [isTouched, setIsTouched] = useState(false);
 
   const [countryCode, setCountryCode] = useState(session.country);
   const countryCodeIndex = useMemo(() => {
@@ -52,7 +53,8 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const updateValidity = useCallback(
     (nextCountry: DropdownOptionWithDial, localNumber: string) => {
       const phoneNumberString = formatPhoneNumber(nextCountry, localNumber);
-      const errorCode = validate(field, phoneNumberString) ?? null;
+      const errorCode =
+        validate(field, localNumber.length ? phoneNumberString : "") ?? null;
       if (onError) onError(id, errorCode);
       setHasError(errorCode !== null);
     },
@@ -72,6 +74,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     const nextLocal = (event.target as HTMLInputElement).value;
     setLocalNumber(nextLocal);
     updateHiddenField(country, nextLocal);
+    setIsTouched(true);
     updateValidity(country, nextLocal);
     onChange(); // keep parity with other fields
   }
@@ -80,7 +83,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     const nextCountry = option as DropdownOptionWithDial;
     setCountryCode(nextCountry.value as string);
     updateHiddenField(nextCountry, localNumber);
-    updateValidity(nextCountry, localNumber);
+    if (isTouched) updateValidity(nextCountry, localNumber);
     onChange(); // keep parity with other fields
   }
 
@@ -110,7 +113,9 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   }
 
   function handleBlur(): void {
+    setIsTouched(true);
     formatForUser();
+    updateValidity(country, localNumber);
   }
 
   return (

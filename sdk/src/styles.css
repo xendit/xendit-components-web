@@ -568,7 +568,8 @@ xendit-payment-channel[inert] {
 .xendit-dropdown-search {
   position: sticky;
   top: 0;
-  padding: 12px;
+  padding-block: 12px;
+  padding-inline: 4px;
   min-width: 257px;
 }
 
