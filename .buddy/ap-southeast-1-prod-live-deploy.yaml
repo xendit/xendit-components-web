@@ -15,12 +15,10 @@
       docker_image_tag: "22"
       variables:
       execute_commands:
-        - "cp .npmrc.example .npmrc"
         - "npm install -g pnpm"
         - "pnpm install"
         - "pnpm build"
         - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
-        - "rm -f .npmrc"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
       shell: "BASH"
