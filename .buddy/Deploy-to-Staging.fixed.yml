@@ -1,6 +1,6 @@
 - pipeline: Deploy to Staging
   refs:
-  - refs/heads/feat/upload-secure-iframe-with-metadata
+  - refs/heads/main
   always_from_scratch: true
   auto_clear_cache: true
   fetch_all_refs: true
