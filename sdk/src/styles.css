@@ -503,6 +503,19 @@ xendit-payment-channel[inert] {
   display: none;
 }
 
+.xendit-dropdown .xendit-dropdown-search input {
+  padding: 8px;
+  border: 1px solid var(--xendit-color-border-subtle);
+  border-radius: var(--xendit-radius-1);
+  box-sizing: border-box;
+}
+
+.xendit-dropdown-search input:focus {
+  outline: none;
+  border-color: var(--xendit-color-primary);
+  box-shadow: var(--xendit-focus-shadow);
+}
+
 .xendit-input-phone.invalid .xendit-dropdown button,
 .xendit-input-phone.invalid .xendit-phone-number-input {
   border: 1px solid var(--xendit-color-danger);
