@@ -20,7 +20,6 @@
         - "pnpm install"
         - "pnpm build"
         - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
-        - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
       shell: "BASH"
@@ -33,13 +32,13 @@
       acl: "PRIVATE"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
       deletion_disabled: true
-    - action: "Upload iframe files to Amazon S3"
-      type: "AMAZON_S3"
+    - action: "Upload iframe file to Amazon S3"
+      type: "AWS_CLI_2"
+      region: "ap-southeast-1"
       input_type: "BUILD_ARTIFACTS"
-      local_path: "secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
-      remote_path: "/components/"
-      bucket_name: "xendit-checkout-assets-staging"
-      acl: "PRIVATE"
+      execute_commands:
+        - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
+        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets-staging/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --cache-control no-cache --acl private"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
       deletion_disabled: true
     - action: "Deployment finished notif"
