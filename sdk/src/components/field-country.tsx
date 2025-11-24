@@ -2,11 +2,31 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
-import { CircleFlag } from "react-circle-flags";
 import { formFieldName } from "../utils";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { LocaleKey, LocalizedString } from "../localization";
+
+type FlagIconProps = {
+  countryCode: string;
+  size?: number;
+};
+
+const FlagIcon: React.FC<FlagIconProps> = ({ countryCode, size = 16 }) => {
+  return (
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: "50%",
+        backgroundImage: `url(https://assets.xendit.co/payment-session/flags/circle/${countryCode.toLowerCase()}.svg)`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        flexShrink: 0,
+      }}
+    />
+  );
+};
 
 export const CountryField: React.FC<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
@@ -71,15 +91,7 @@ export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
     return {
       title: country,
       value: countryCode,
-      leadingAsset: (
-        <CircleFlag
-          key={countryCode}
-          countryCode={countryCode.toLowerCase()}
-          width={16}
-          height={16}
-          cdnUrl={`https://assets.xendit.co/payment-session/flags/circle/`}
-        />
-      ),
+      leadingAsset: <FlagIcon countryCode={countryCode} />,
     } as DropdownOption;
   })
   .sort((a, b) => a.title.localeCompare(b.title));
