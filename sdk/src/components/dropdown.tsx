@@ -141,7 +141,7 @@ export const Dropdown = (props: DropdownProps) => {
   }, [open, currentIndex]);
 
   const scrollActiveIntoView = useCallback((el: HTMLElement | null) => {
-    el?.scrollIntoView({ block: "nearest", behavior: "instant" });
+    el?.scrollIntoView({ block: "end", behavior: "instant" });
   }, []);
 
   const commit = useCallback(
