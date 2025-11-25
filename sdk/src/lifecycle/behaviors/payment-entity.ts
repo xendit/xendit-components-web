@@ -9,7 +9,7 @@ export class PePendingBehavior implements Behavior {
   private pollWorker: PollWorker;
   constructor(private bb: BlackboardType) {
     this.pollWorker = new PollWorker(
-      this.bb.sdkKey.sessionAuthKey,
+      this.bb.sdkKey,
       this.bb.sdkEvents.sdk,
       this.bb.world?.sessionTokenRequestId ?? null,
       this.onPollResult,
@@ -83,7 +83,7 @@ export class PeRequiresActionBehavior implements Behavior {
     const polling = this.pollWorker?.isPolling() ?? false;
     this.pollWorker?.stop();
     this.pollWorker = new PollWorker(
-      this.bb.sdkKey.sessionAuthKey,
+      this.bb.sdkKey,
       this.bb.sdkEvents.sdk,
       this.bb.world?.sessionTokenRequestId ?? null,
       this.onPollResult,

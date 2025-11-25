@@ -12,7 +12,7 @@ const exampleSignature =
   "NKf7whM9meUs/eRCvG0oc180MDiyeli3kH6EQ3ZahECHsZQi5G2IpH6vk3cYMtf01Y1L4OBn1SZCOv1kwpjIUet4DJeoTwwq2nM5b+K7rD+/WFTi3AEX4NWJNkKi0a91";
 
 export function makeTestSdkKey() {
-  return `session-12345678901234567890-${examplePublicKey}-${exampleSignature}`;
+  return `session-12345678901234567890-mock-${examplePublicKey}-${exampleSignature}`;
 }
 
 export function makeTestBffData(): BffResponse {

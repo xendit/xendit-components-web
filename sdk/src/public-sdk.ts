@@ -255,11 +255,15 @@ export class XenditSessionSdk extends EventTarget {
     let bff: BffResponse;
     try {
       // Fetch session data from the server
-      bff = await fetchSessionData(this[internal].sdkKey.sessionAuthKey);
+      bff = await fetchSessionData(
+        this[internal].sdkKey,
+        this[internal].sdkKey.sessionAuthKey,
+      );
     } catch (error) {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
+      this.behaviorTreeUpdate();
       return;
     }
 
