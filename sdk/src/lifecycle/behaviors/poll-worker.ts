@@ -5,7 +5,12 @@ import {
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
 import { XenditSessionSdk, XenditSessionTestSdk } from "../../public-sdk";
-import { MOCK_NETWORK_DELAY_MS, retryLoop, sleep } from "../../utils";
+import {
+  MOCK_NETWORK_DELAY_MS,
+  ParsedSdkKey,
+  retryLoop,
+  sleep,
+} from "../../utils";
 
 /**
  * Polls the session status forever until stop() is called.
@@ -26,7 +31,7 @@ export class PollWorker {
   stopped = false;
 
   constructor(
-    private sessionAuthKey: string,
+    private sdkKey: ParsedSdkKey,
     private sdk: XenditSessionSdk,
     private sessionTokenRequestId: string | null,
     private onPollResult: (
@@ -68,7 +73,8 @@ export class PollWorker {
         // real polling request
         try {
           response = await pollSession(
-            this.sessionAuthKey,
+            this.sdkKey,
+            this.sdkKey.sessionAuthKey,
             this.sessionTokenRequestId,
           );
         } catch (_err) {

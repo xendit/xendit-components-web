@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
 import {
@@ -16,30 +10,8 @@ import { InternalInputValidateEvent } from "../private-event-types";
 import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
-import { formFieldName } from "../utils";
 import { LocaleKey } from "../localization";
-
-function getIframeByEnv(env: string) {
-  switch (env) {
-    case "production": {
-      // TODO
-      throw new Error("Production iframe not implemented yet");
-    }
-    case "local": {
-      return {
-        origin: "https://localhost:4444",
-        src: `https://localhost:4444/secure-iframe.html`,
-      };
-    }
-    case "demo": {
-      return {
-        origin: "https://localhost:4442",
-        src: `https://localhost:4442/secure-iframe/secure-iframe.html`,
-      };
-    }
-  }
-  throw new Error(`Unknown env: ${env}`);
-}
+import { assert, formFieldName } from "../utils";
 
 const computeFieldError = (
   state: ValidationState,
@@ -71,11 +43,18 @@ type ValidationState = {
   validationErrorCodes: LocaleKey[];
 };
 
+// read iframe data from environment variable
+assert(process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL);
+const parsedIframeUrl = new URL(
+  process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL,
+);
+const IFRAME_SRC = parsedIframeUrl.toString();
+const IFRAME_ORIGIN = parsedIframeUrl.origin;
+
 export const IframeField: React.FC<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
 
   const sdk = useSdk();
-  const iframeData = useMemo(() => getIframeByEnv(sdk.env), [sdk.env]);
 
   const id = formFieldName(field);
   const session = useSession();
@@ -149,8 +128,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
         return;
       }
 
-      const expectedOrigin = iframeData.origin;
-      if (event.origin !== expectedOrigin) {
+      if (event.origin !== IFRAME_ORIGIN) {
         // this is not normal, something fishy is happening
         return;
       }
@@ -214,7 +192,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     [
       field.channel_property,
       handleIframeEventResult,
-      iframeData.origin,
       iframeEcdhPublicKey,
       onChange,
       validationResult.empty,
@@ -225,10 +202,10 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         { type: "xendit-iframe-focus" satisfies IframeEvent["type"] },
-        iframeData.origin,
+        IFRAME_ORIGIN,
       );
     }
-  }, [iframeData.origin]);
+  }, []);
 
   useEffect(() => {
     window.addEventListener("message", handleEventFromIframe);
@@ -237,7 +214,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     };
   }, [handleEventFromIframe]);
 
-  const iframeUrl = new URL(iframeData.src);
+  const iframeUrl = new URL(IFRAME_SRC);
   iframeUrl.searchParams.set("input_type", field.type.name);
   iframeUrl.searchParams.set("embedder", window.location.origin);
   iframeUrl.searchParams.set("session_id", session.payment_session_id);

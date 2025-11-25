@@ -17,10 +17,49 @@ import copy from "rollup-plugin-copy";
 import { createReadStream, existsSync } from "fs";
 import mime from "mime-types";
 import json from "@rollup/plugin-json";
+import replace from "@rollup/plugin-replace";
+import assert from "assert";
 
 const SDK_PORT = 4443;
 
 let lastSeenBuildOutput: Map<string, Buffer> | null = null;
+
+const packageJson = JSON.parse(
+  readFileSync(path.join(import.meta.dirname, "../package.json"), "utf-8"),
+) as typeof import("../package.json");
+const checkoutUiGatewayHosts = JSON.parse(
+  readFileSync(path.join(import.meta.dirname, "../hosts.json"), "utf-8"),
+);
+
+if (process.env.CI) {
+  // in prod builds, validate env vars
+  assert(
+    process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL,
+    "env XENDIT_COMPONENTS_SECURE_IFRAME_URL is missing",
+  );
+  assert(
+    process.env.XENDIT_COMPONENTS_VERSION,
+    "env XENDIT_COMPONENTS_VERSION is missing",
+  );
+  assert(
+    process.env.XENDIT_COMPONENTS_VERSION === "v0.0.0" ||
+      process.env.XENDIT_COMPONENTS_VERSION === `v${packageJson.version}`,
+    `env XENDIT_COMPONENTS_VERSION does not match package.json`,
+  );
+} else {
+  // dev mode defaults
+  process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL ??=
+    "https://localhost:4444/secure-iframe.html";
+  process.env.XENDIT_COMPONENTS_VERSION ??= `v${packageJson.version}`;
+}
+
+// environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
+const envs = {
+  XENDIT_COMPONENTS_SECURE_IFRAME_URL:
+    process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL,
+  XENDIT_COMPONENTS_VERSION: process.env.XENDIT_COMPONENTS_VERSION,
+  ...checkoutUiGatewayHosts,
+};
 
 function resolveModule(moduleName: string): string {
   return path.join(import.meta.dirname, "..", "node_modules", moduleName);
@@ -70,6 +109,15 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
             dest: "sdk/dist/assets/fonts/proxima-nova",
           },
         ],
+      }),
+      replace({
+        preventAssignment: true,
+        ...Object.fromEntries(
+          Object.entries(envs).map(([key, value]) => [
+            `process.env.${key}`,
+            JSON.stringify(value),
+          ]),
+        ),
       }),
       alias({
         entries: [
@@ -234,6 +282,10 @@ async function startDevServer() {
 
   server.listen(SDK_PORT, () => {
     console.log(`Server for sdk running at https://localhost:${SDK_PORT}/`);
+    console.log(
+      `SDK pointing to secure iframe URL: ${process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL}`,
+    );
+    console.log(`SDK version: ${process.env.XENDIT_COMPONENTS_VERSION}`);
   });
 }
 

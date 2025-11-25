@@ -1,9 +1,4 @@
 import {
-  bffChannelsToPublicChannelGroups,
-  bffChannelsToPublicChannels,
-  bffSessionToPublicSession,
-} from "./bff-marshal";
-import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
   XenditFatalErrorEvent,
@@ -23,6 +18,7 @@ import {
 } from "./public-event-types";
 import { XenditSdkOptions } from "./public-options-types";
 import {
+  XenditCustomer,
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
@@ -78,6 +74,12 @@ import {
 } from "./lifecycle/behaviors/channel";
 import { PeRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity";
 import { SubmissionBehavior } from "./lifecycle/behaviors/submission";
+import {
+  bffChannelsToPublic,
+  bffCustomerToPublic,
+  bffSessionToPublic,
+  bffUiGroupsToPublic,
+} from "./bff-marshal";
 
 /**
  * @internal
@@ -253,11 +255,15 @@ export class XenditSessionSdk extends EventTarget {
     let bff: BffResponse;
     try {
       // Fetch session data from the server
-      bff = await fetchSessionData(this[internal].sdkKey.sessionAuthKey);
+      bff = await fetchSessionData(
+        this[internal].sdkKey,
+        this[internal].sdkKey.sessionAuthKey,
+      );
     } catch (error) {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
+      this.behaviorTreeUpdate();
       return;
     }
 
@@ -379,7 +385,17 @@ export class XenditSessionSdk extends EventTarget {
    */
   getSession(): XenditSession {
     this.assertInitialized();
-    return bffSessionToPublicSession(this[internal].worldState.session);
+    return bffSessionToPublic(this[internal].worldState.session);
+  }
+
+  /**
+   * @public
+   * Retrieve the customer ascociated with the session.
+   */
+  getCustomer(): XenditCustomer | null {
+    this.assertInitialized();
+    if (!this[internal].worldState.customer) return null;
+    return bffCustomerToPublic(this[internal].worldState.customer);
   }
 
   /**
@@ -391,7 +407,7 @@ export class XenditSessionSdk extends EventTarget {
    */
   getAvailablePaymentChannelGroups(): XenditPaymentChannelGroup[] {
     this.assertInitialized();
-    return bffChannelsToPublicChannelGroups(
+    return bffUiGroupsToPublic(
       this[internal].worldState.channels,
       this[internal].worldState.channelUiGroups,
     );
@@ -406,7 +422,10 @@ export class XenditSessionSdk extends EventTarget {
    */
   getAvailablePaymentChannels(): XenditPaymentChannel[] {
     this.assertInitialized();
-    return bffChannelsToPublicChannels(this[internal].worldState.channels);
+    return bffChannelsToPublic(
+      this[internal].worldState.channels,
+      this[internal].worldState.channelUiGroups,
+    );
   }
 
   /**

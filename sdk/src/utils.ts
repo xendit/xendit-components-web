@@ -12,6 +12,19 @@ export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   }
 }
 
+export function assertEquals<T>(a: unknown, b: T): asserts a is T {
+  if (a !== b) {
+    throw new Error(`Assertion failed; this is a bug, please contact support.`);
+  }
+}
+
+type Not<T> = T extends true ? false : true;
+export function assertNotEquals<T>(a: unknown, b: T): asserts a is Not<T> {
+  if (a === b) {
+    throw new Error(`Assertion failed; this is a bug, please contact support.`);
+  }
+}
+
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -86,8 +99,22 @@ export function pickAction(actions: BffAction[]): BffAction {
   return actions[0];
 }
 
+export const MOCK_HOST_ID = "mock";
+
+const hosts: Record<string, string | undefined> = {
+  pl: process.env.XENDIT_CHECKOUT_UI_GATEWAY_PROD_LIVE,
+  pd: process.env.XENDIT_CHECKOUT_UI_GATEWAY_PROD_DEV,
+  sl: process.env.XENDIT_CHECKOUT_UI_GATEWAY_STAGING_LIVE,
+  sd: process.env.XENDIT_CHECKOUT_UI_GATEWAY_STAGING_DEV,
+};
+
+export function hostFromHostId(hostId: string): string | null {
+  return hosts[hostId] ?? null;
+}
+
 export type ParsedSdkKey = {
   sessionAuthKey: string;
+  hostId: string;
   publicKey: string;
   signature: string;
 };
@@ -99,15 +126,20 @@ export function parseSdkKey(componentsSdkKey: string): ParsedSdkKey {
     );
   }
   const parts = componentsSdkKey.split("-");
-  if (parts.length < 4) {
+  if (
+    parts.length < 4 ||
+    (parts[2] !== MOCK_HOST_ID && hostFromHostId(parts[2]) === null)
+  ) {
     throw new Error(
       "The componentsSdkKey option has the wrong format. Ensure you pass the value returned from the `components_sdk_key` property of the `POST /sessions` response.",
     );
   }
+
   return {
     sessionAuthKey: [parts[0], parts[1]].join("-"),
-    publicKey: parts[2],
-    signature: parts[3],
+    hostId: parts[2],
+    publicKey: parts[3],
+    signature: parts[4],
   };
 }
 
@@ -190,4 +222,11 @@ export function errorToString(error: unknown): string {
   } catch {
     return "Unknown error";
   }
+}
+
+export function removeUndefinedPropertiesFromObject<T extends object>(
+  object: T,
+): T {
+  // TODO: filter out undefined properties while leaving symbol properties and getters intact
+  return object;
 }

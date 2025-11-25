@@ -1,0 +1,6 @@
+{
+  "XENDIT_CHECKOUT_UI_GATEWAY_PROD_LIVE": "https://checkout-ui-gateway.xendit.co",
+  "XENDIT_CHECKOUT_UI_GATEWAY_PROD_DEV": "https://checkout-ui-gateway-prod-dev.xendit.co",
+  "XENDIT_CHECKOUT_UI_GATEWAY_STAGING_LIVE": "https://checkout-ui-gateway-live.stg.tidnex.dev",
+  "XENDIT_CHECKOUT_UI_GATEWAY_STAGING_DEV": "https://checkout-ui-gateway-dev.stg.tidnex.dev"
+}
