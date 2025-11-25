@@ -12,6 +12,19 @@ export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   }
 }
 
+export function assertEquals<T>(a: unknown, b: T): asserts a is T {
+  if (a !== b) {
+    throw new Error(`Assertion failed; this is a bug, please contact support.`);
+  }
+}
+
+type Not<T> = T extends true ? false : true;
+export function assertNotEquals<T>(a: unknown, b: T): asserts a is Not<T> {
+  if (a === b) {
+    throw new Error(`Assertion failed; this is a bug, please contact support.`);
+  }
+}
+
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -209,4 +222,11 @@ export function errorToString(error: unknown): string {
   } catch {
     return "Unknown error";
   }
+}
+
+export function removeUndefinedPropertiesFromObject<T extends object>(
+  object: T,
+): T {
+  // TODO: filter out undefined properties while leaving symbol properties and getters intact
+  return object;
 }
