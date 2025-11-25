@@ -13,8 +13,9 @@
       working_directory: "/buddy/xendit-components-web"
       docker_image_name: "library/node"
       docker_image_tag: "22"
-      variables:
       execute_commands:
+        - export XENDIT_COMPONENTS_SECURE_IFRAME_URL="https://assets.xendit.co/components/secure-iframe-$BUDDY_EXECUTION_TAG.html"
+        - export XENDIT_COMPONENTS_VERSION="$BUDDY_EXECUTION_TAG"
         - "npm install -g pnpm"
         - "pnpm install"
         - "pnpm build"
@@ -26,7 +27,7 @@
       type: "AMAZON_S3"
       input_type: "BUILD_ARTIFACTS"
       local_path: "sdk/dist/"
-      remote_path: "/components/$BUDDY_EXECUTION_TAG/"
+      remote_path: "/prod-live/components/$BUDDY_EXECUTION_TAG/"
       bucket_name: "xendit-checkout-assets"
       acl: "PRIVATE"
       integration_hash: "5e85761fc5f225000f97dd99"
@@ -36,7 +37,7 @@
       input_type: "BUILD_ARTIFACTS"
       execute_commands:
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
-        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --cache-control no-cache --acl private"
+        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets/prod-live/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --cache-control no-cache --acl private"
       integration_hash: "5e85761fc5f225000f97dd99"
     - action: "Deployment finished notif"
       type: "SLACK"

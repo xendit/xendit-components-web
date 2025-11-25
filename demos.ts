@@ -181,6 +181,8 @@ async function startDevServer() {
 }
 
 execSync("cd ./demos && npm i", { stdio: "inherit" });
+process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL =
+  "https://localhost:4442/secure-iframe/secure-iframe.html";
 process.argv[2] = "prod"; // demos need a prod build first
 await import("./build.ts");
 

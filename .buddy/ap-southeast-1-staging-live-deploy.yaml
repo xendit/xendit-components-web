@@ -13,12 +13,13 @@
       working_directory: "/buddy/xendit-components-web"
       docker_image_name: "library/node"
       docker_image_tag: "22"
-      variables:
       execute_commands:
+        - export XENDIT_COMPONENTS_SECURE_IFRAME_URL="https://assets.stg.tidnex.dev/components/secure-iframe-$BUDDY_EXECUTION_TAG.html"
+        - export XENDIT_COMPONENTS_VERSION="$BUDDY_EXECUTION_TAG"
         - "npm install -g pnpm"
         - "pnpm install"
         - "pnpm build"
-        - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html"
+        - "cp secure-iframe/dist/secure-iframe.html secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
       shell: "BASH"
@@ -26,18 +27,20 @@
       type: "AMAZON_S3"
       input_type: "BUILD_ARTIFACTS"
       local_path: "sdk/dist/"
-      remote_path: "/components/$BUDDY_EXECUTION_REVISION_SHORT/"
+      remote_path: "/components/$BUDDY_EXECUTION_TAG/"
       bucket_name: "xendit-checkout-assets-staging"
       acl: "PRIVATE"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
+      deletion_disabled: true
     - action: "Upload iframe file to Amazon S3"
       type: "AWS_CLI_2"
       region: "ap-southeast-1"
       input_type: "BUILD_ARTIFACTS"
       execute_commands:
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
-        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_REVISION_SHORT.html s3://xendit-checkout-assets-staging/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --cache-control no-cache --acl private"
+        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets-staging/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --cache-control no-cache --acl private"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
+      deletion_disabled: true
     - action: "Deployment finished notif"
       type: "SLACK"
       content: "[#$BUDDY_EXECUTION_ID] $BUDDY_PIPELINE_NAME Finished execution by <$BUDDY_INVOKER_URL|$BUDDY_INVOKER_NAME>"
