@@ -15,7 +15,7 @@ npm install xendit-components-web --save
 Or load it directly from our CDN:
 
 ```html
-<script src="TBD"></script>
+<script src="https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.umd.js"></script>
 ```
 
 ## Sessions

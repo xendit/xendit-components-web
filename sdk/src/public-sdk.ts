@@ -387,12 +387,6 @@ export class XenditSessionSdk extends EventTarget {
 
   /**
    * @public
-   * Environment name. Affects which version of the secure iframe is used.
-   */
-  public env = "production";
-
-  /**
-   * @public
    * Retrieve the xendit session object.
    */
   getSession(): XenditSession {
