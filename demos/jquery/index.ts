@@ -60,8 +60,6 @@ $(function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).sdk = sdk;
 
-    sdk.env = "demo";
-
     // The channel picker element is returned immediately and populated after initialization
     const channelPicker = sdk.createChannelPickerComponent();
     $(".payment-container").append(channelPicker);

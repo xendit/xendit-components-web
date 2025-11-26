@@ -87,7 +87,6 @@ if (savedKey) {
 } else {
   sdk = new XenditSessionTestSdk({});
 }
-sdk.env = "local";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).sdk = sdk;
