@@ -49,7 +49,7 @@
       input_type: "BUILD_ARTIFACTS"
       execute_commands:
         - "aws s3 cp action-landing-iframe/dist/action-landing-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets-staging/components/ --cache-control no-cache --acl private"
-      integration_hash: "5e85761fc5f225000f97dd99"
+      integration_hash: "5f69e5f01a22366a8e6adfa7"
       deletion_disabled: true
     - action: "Deployment finished notif"
       type: "SLACK"
