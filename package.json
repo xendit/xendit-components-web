@@ -1,6 +1,6 @@
 {
   "name": "xendit-components",
-  "version": "0.0.3",
+  "version": "0.0.4-alpha-1",
   "description": "Public web frontend API",
   "type": "module",
   "author": "invoice-team",
