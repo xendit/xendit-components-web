@@ -1,18 +1,21 @@
-import { forwardRef } from "react";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { BffSession, BffSessionType } from "../backend-types/session";
 import {
   useCallback,
+  useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from "preact/hooks";
 import { useCardDetails, useSession } from "./session-provider";
 import FieldGroup from "./field-group";
 import { BffCardDetails } from "../backend-types/card-details";
 import { usePrevious } from "../utils";
+import { createContext } from "preact";
+import { forwardRef } from "react";
 
 interface Props {
   form: ChannelFormField[];
@@ -28,6 +31,9 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     const cardDetails = useCardDetails();
 
     const formRef = useRef<HTMLFormElement>(null);
+
+    const [channelProperties, setChannelProperties] =
+      useState<ChannelProperties | null>(null);
 
     useImperativeHandle(ref, () => ({
       validate() {
@@ -59,7 +65,9 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
 
     const handleFieldChanged = useCallback(() => {
       if (!formRef.current) return;
-      onChannelPropertiesChanged(getChannelProperties());
+      const channelProperties = getChannelProperties();
+      setChannelProperties(channelProperties);
+      onChannelPropertiesChanged(channelProperties);
     }, [getChannelProperties, onChannelPropertiesChanged]);
 
     const filteredForm = useFilteredFormFields(
@@ -83,19 +91,29 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     return (
       <div class="xendit-channel-form">
         <form ref={formRef}>
-          {filteredFieldGroups.map((fieldGroup, index) => (
-            <FieldGroup
-              key={index}
-              fieldGroup={fieldGroup}
-              groupIndex={index}
-              handleFieldChanged={handleFieldChanged}
-            />
-          ))}
+          <ChannelPropertiesContext.Provider value={channelProperties}>
+            {filteredFieldGroups.map((fieldGroup, index) => (
+              <FieldGroup
+                key={index}
+                fieldGroup={fieldGroup}
+                groupIndex={index}
+                handleFieldChanged={handleFieldChanged}
+              />
+            ))}
+          </ChannelPropertiesContext.Provider>
         </form>
       </div>
     );
   },
 );
+
+export const ChannelPropertiesContext = createContext<ChannelProperties | null>(
+  null,
+);
+
+export const useChannelProperties = (): ChannelProperties | null => {
+  return useContext(ChannelPropertiesContext);
+};
 
 function groupFields(fields: ChannelFormField[]): ChannelFormField[][] {
   // Group fields for rendering

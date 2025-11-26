@@ -2,6 +2,7 @@ import {
   BffChannel,
   ChannelFormField,
   ChannelProperties,
+  ChannelProperty,
 } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
@@ -245,20 +246,54 @@ export function removeUndefinedPropertiesFromObject<T extends object>(
   return object;
 }
 
+export function getValueFromChannelProperty(
+  channelProperty: string | string[],
+  channelProperties: ChannelProperties | null,
+) {
+  let str = channelProperty;
+  if (!channelProperties) {
+    return undefined;
+  }
+  if (Array.isArray(str)) {
+    throw new Error(
+      "Getting values from channel property arrays is not supported.",
+    );
+  }
+
+  let cursor: ChannelProperties | ChannelProperty = channelProperties;
+  while (true) {
+    if (!cursor || typeof cursor !== "object" || Array.isArray(cursor)) {
+      return undefined;
+    }
+    const dotIndex = str.indexOf(".");
+    if (dotIndex === -1) {
+      return cursor ? cursor[str] : undefined;
+    } else {
+      const key = str.slice(0, dotIndex);
+      cursor = cursor ? cursor[key] : undefined;
+      str = str.slice(dotIndex + 1);
+    }
+  }
+}
+
 export function getCardNunberFromChannelProperties(
   channelProperties: ChannelProperties | null,
 ) {
-  const cardDetails = channelProperties?.card_details;
-  if (
-    !cardDetails ||
-    typeof cardDetails !== "object" ||
-    Array.isArray(cardDetails)
-  ) {
-    return;
-  }
-  const cardNumber = cardDetails.card_number;
-  if (!cardNumber || typeof cardNumber !== "string") {
+  const cardNumber = getValueFromChannelProperty(
+    "card_details.card_number",
+    channelProperties,
+  );
+  if (typeof cardNumber !== "string") {
     return null;
   }
   return cardNumber;
+}
+
+const objectIdMap = new WeakMap<object, number>();
+let objectIdCounter = 1;
+export function objectId(object: object): string {
+  if (!objectIdMap.has(object)) {
+    objectIdMap.set(object, objectIdCounter++);
+  }
+  return objectIdMap.get(object)!.toString();
 }

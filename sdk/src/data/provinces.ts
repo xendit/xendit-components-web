@@ -1,10 +1,20 @@
-type NameValuePair = {
-  name: string;
+type TitleValuePair = {
+  title: string;
   value: string;
 };
 
+function toTitleValuePair(nameValue: {
+  name: string;
+  value: string;
+}): TitleValuePair {
+  return {
+    title: nameValue.name,
+    value: nameValue.value,
+  };
+}
+
 // https://gist.github.com/mshafrir/2646763
-export const PROVINCES_US: NameValuePair[] = [
+export const PROVINCES_US: TitleValuePair[] = [
   {
     name: "Alabama",
     value: "AL",
@@ -241,10 +251,10 @@ export const PROVINCES_US: NameValuePair[] = [
     name: "Wyoming",
     value: "WY",
   },
-];
+].map(toTitleValuePair);
 
 // https://gist.github.com/pbojinov/a87adf559d2f7e81d86ae67e7bd883c7
-export const PROVINCES_CA: NameValuePair[] = [
+export const PROVINCES_CA: TitleValuePair[] = [
   {
     name: "Alberta",
     value: "AB",
@@ -297,9 +307,9 @@ export const PROVINCES_CA: NameValuePair[] = [
     name: "Yukon Territory",
     value: "YT",
   },
-];
+].map(toTitleValuePair);
 
-export const PROVINCES_GB: NameValuePair[] = [
+export const PROVINCES_GB: TitleValuePair[] = [
   { name: "Avon" },
   { name: "Bedfordshire" },
   { name: "Berkshire" },
@@ -393,4 +403,4 @@ export const PROVINCES_GB: NameValuePair[] = [
   { name: "Fermanagh" },
   { name: "Londonderry" },
   { name: "Tyrone" },
-].map((province) => ({ name: province.name, value: province.name }));
+].map((province) => ({ title: province.name, value: province.name }));

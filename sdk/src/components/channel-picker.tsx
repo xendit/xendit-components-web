@@ -14,7 +14,7 @@ type Props = object;
 export const XenditChannelPicker: React.FC<Props> = (props) => {
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
-  const activeChannel = useActiveChannel();
+  const activeChannel = useActiveChannel().channel;
 
   const thisRef = React.useRef<HTMLDivElement>(null);
 

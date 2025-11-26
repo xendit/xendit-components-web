@@ -1,5 +1,5 @@
 export type BffCardDetails = {
   require_billing_information: boolean;
-  countries: string[];
+  country_codes: string[];
   schemes: string[];
 };
