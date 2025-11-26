@@ -11,7 +11,7 @@ execSync(`rm -rf "./temp-dts" "./temp" "./sdk/dist" "./secure-iframe/dist"`, {
 await Promise.all([
   await import("./sdk/build.ts"),
   await import("./secure-iframe/build.ts"),
-  await import("./landing-iframe/build.ts"),
+  await import("./action-landing-iframe/build.ts"),
 ]);
 
 // if prod, build .d.ts file for sdk
