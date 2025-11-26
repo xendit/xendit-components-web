@@ -94,7 +94,7 @@ async function rollupProductionBuild() {
 
   mkdirSync(path.join(import.meta.dirname, "dist"), { recursive: true });
   await fs.writeFile(
-    path.join(import.meta.dirname, "dist/landing-iframe.html"),
+    path.join(import.meta.dirname, "dist/action-landing-iframe.html"),
     html,
   );
 }
