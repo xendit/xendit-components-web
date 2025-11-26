@@ -19,15 +19,15 @@ import {
 } from "../../public-event-types";
 import { makeTestPaymentRequest, makeTestPaymentToken } from "../../test-data";
 import {
+  AbortError,
   assert,
   cancellableSleep,
+  isAbortError,
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
 } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
-
-const ABORT_ERROR_NAME = "AbortError";
 
 export class SubmissionBehavior implements Behavior {
   private exited = false;
@@ -54,11 +54,8 @@ export class SubmissionBehavior implements Behavior {
     assert(this.bb.world?.session);
 
     // If session is not complete, discard payment entity
-    if (
-      this.bb.world.session.status !== "COMPLETED" &&
-      this.bb.world.paymentEntity
-    ) {
-      const paymentEntity = this.bb.world.paymentEntity;
+    const paymentEntity = this.bb.world.paymentEntity;
+    if (this.bb.world.session.status !== "COMPLETED" && paymentEntity) {
       switch (paymentEntity.type) {
         case BffPaymentEntityType.PaymentRequest:
           this.bb.dispatchEvent(
@@ -80,10 +77,16 @@ export class SubmissionBehavior implements Behavior {
     }
 
     // Send event for submission end
-    let reason;
+    let reason: string;
     if (this.bb.world && this.bb.world.session.status !== "ACTIVE") {
       // if status is not active, that's why we ended submission
       reason = `SESSION_${this.bb.world.session.status}`;
+    } else if (
+      paymentEntity &&
+      ["FAILED", "CANCELED", "EXPIRED"].includes(paymentEntity.entity.status)
+    ) {
+      // the payment entity failed, was canceled or expired
+      reason = `PAYMENT_${paymentEntity.type}_${paymentEntity.entity.status}`;
     } else if (this.submissionHadError) {
       // there was an error during submission
       reason = "REQUEST_FAILED";
@@ -98,7 +101,7 @@ export class SubmissionBehavior implements Behavior {
 
     // Abort ongoing submission request
     if (this.submission) {
-      this.submission?.abortController.abort(ABORT_ERROR_NAME);
+      this.submission?.abortController.abort(new AbortError());
       this.submission = null;
     }
 
@@ -147,13 +150,14 @@ export class SubmissionBehavior implements Behavior {
           sessionTokenRequestId: paymentEntity.entity.session_token_request_id,
         });
       })
-      .finally(() => {
-        this.submission = null;
-      })
       .catch((error) => {
+        if (isAbortError(error)) return;
+
         console.error("Submission failed:", error);
 
+        // avoid dispatching an event after exit
         if (!this.exited) {
+          // set the error flag an exit the submission
           this.bb.submissionRequested = false;
           this.submissionHadError = true;
           this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());

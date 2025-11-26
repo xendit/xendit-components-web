@@ -34,6 +34,8 @@ import {
   BffChannel,
   BffChannelUiGroup,
   ChannelProperties,
+  ChannelProperty,
+  ChannelPropertyPrimative,
 } from "./backend-types/channel";
 import {
   PaymentChannel,
@@ -80,6 +82,7 @@ import {
   bffSessionToPublic,
   bffUiGroupsToPublic,
 } from "./bff-marshal";
+import { BffCardDetails } from "./backend-types/card-details";
 
 /**
  * @internal
@@ -104,6 +107,10 @@ export type WorldState = {
   paymentEntity: BffPaymentEntity | null;
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
+  cardDetails: {
+    cardNumber: string | null;
+    details: BffCardDetails | null;
+  };
 };
 
 /**
@@ -115,7 +122,8 @@ export type UpdatableWorldState = {
     | "session"
     | "paymentEntity"
     | "sessionTokenRequestId"
-    | "succeededChannel"]?: WorldState[K] | undefined;
+    | "succeededChannel"
+    | "cardDetails"]?: WorldState[K] | undefined;
 };
 
 /**
@@ -278,6 +286,10 @@ export class XenditSessionSdk extends EventTarget {
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
+        cardDetails: {
+          cardNumber: null,
+          details: null,
+        },
       } satisfies WorldState),
     );
   }
@@ -1223,6 +1235,10 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
+        cardDetails: {
+          cardNumber: null,
+          details: null,
+        },
       } satisfies WorldState),
     );
   }
@@ -1235,3 +1251,6 @@ export class XenditSessionTestSdk extends XenditSessionSdk {
     return true;
   }
 }
+
+// re-exports
+export type { ChannelProperties, ChannelProperty, ChannelPropertyPrimative };
