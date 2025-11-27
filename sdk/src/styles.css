@@ -147,8 +147,13 @@ xendit-payment-channel input::placeholder {
   align-items: center;
   cursor: pointer;
   padding: 24px 16px;
-  color: var(--xendit-color-primary);
+  color: var(--xendit-color-text);
   border-radius: 8px;
+}
+
+.xendit-accordion-item.xendit-accordion-item-open
+  .xendit-accordion-item-header {
+  color: var(--xendit-color-primary);
 }
 
 .xendit-accordion-item-chevron {
@@ -160,7 +165,7 @@ xendit-payment-channel input::placeholder {
     var(--xendit-animation-ease);
 }
 
-.xendit-accordion-item-header:focus {
+.xendit-accordion-item-header:focus-visible {
   border-radius: 8px;
   box-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
@@ -173,11 +178,13 @@ xendit-payment-channel input::placeholder {
     var(--xendit-animation-ease);
 }
 
-.xendit-accordion-item-content.xendit-accordion-item-closed {
+.xendit-accordion-item.xendit-accordion-item-closed
+  .xendit-accordion-item-content {
   height: 0;
 }
 
-.xendit-accordion-item-content.xendit-accordion-item-open {
+.xendit-accordion-item.xendit-accordion-item-open
+  .xendit-accordion-item-content {
   height: calc-size(auto, size);
 }
 
@@ -475,13 +482,6 @@ xendit-payment-channel[inert] {
   padding: 8px;
 }
 
-.xendit-3ds-iframe {
-  width: 400px;
-  height: 390px;
-  border: none;
-  background-color: var(--xendit-color-background);
-}
-
 .xendit-error-message {
   color: var(--xendit-color-danger);
 }
@@ -561,10 +561,17 @@ xendit-payment-channel[inert] {
 .xendit-dropdown-menu {
   position: absolute;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 168px;
+  width: 257px;
+  padding: 4px;
+  margin: 4px 0;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
-  border-radius: 4px;
-  height: 168px;
+  border-radius: var(--xendit-radius-1);
+  list-style: none;
   box-shadow: 0px 4px 8px 0px #25252514;
   overflow-y: auto;
 }
@@ -582,9 +589,6 @@ xendit-payment-channel[inert] {
 .xendit-dropdown-search {
   position: sticky;
   top: 0;
-  padding-block: 12px;
-  padding-inline: 4px;
-  min-width: 257px;
 }
 
 .xendit-dropdown-search input {
@@ -596,7 +600,7 @@ xendit-payment-channel[inert] {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 4px;
   border-radius: var(--xendit-radius-1);
   cursor: pointer;
 }

@@ -8,7 +8,13 @@ import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { BffSession } from "../backend-types/session";
 import { usePrevious } from "../utils";
-import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { singleBffChannelToPublic } from "../bff-marshal";
 
 interface ChannelPickerGroupProps {
@@ -23,6 +29,8 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
 
   const sdk = useSdk();
   const session = useSession();
+
+  const dropdownId = useId();
 
   // container for the selected channel component
   const containerRef = useRef<HTMLDivElement>(null);
@@ -150,16 +158,23 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   return (
     <div className="xendit-channel-picker-group">
       {hideDropdown ? null : (
-        <Dropdown
-          selectedIndex={
-            channelOptions.findIndex((channel) => {
-              return channel.value === explicitSelectedChannel?.channel_code;
-            }) ?? 0
-          }
-          options={channelOptions}
-          onChange={onSelectedChannelChange}
-          placeholder={"Select a payment method"}
-        />
+        <div className="xendit-channel-form-field-group">
+          <label htmlFor={dropdownId} className="xendit-text-14">
+            {/* TODO: dynamic text here */}
+            Pay with:
+          </label>
+          <Dropdown
+            id={dropdownId}
+            selectedIndex={
+              channelOptions.findIndex((channel) => {
+                return channel.value === explicitSelectedChannel?.channel_code;
+              }) ?? 0
+            }
+            options={channelOptions}
+            onChange={onSelectedChannelChange}
+            placeholder={"Select a payment method"}
+          />
+        </div>
       )}
       <div ref={containerRef} />
     </div>

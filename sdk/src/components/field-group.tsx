@@ -103,7 +103,7 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     );
 
     return (
-      <span className="xendit-error-message xendit-text-14">
+      <span className="xendit-error-message xendit-text-12">
         {localizedMessage}
       </span>
     );
