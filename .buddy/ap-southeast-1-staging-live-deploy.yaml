@@ -14,6 +14,7 @@
       docker_image_name: "library/node"
       docker_image_tag: "22"
       execute_commands:
+        - export XENDIT_COMPONENTS_PINNING_KEYS="$IFRAME_PINNING_KEYS_STG"
         - export XENDIT_COMPONENTS_SECURE_IFRAME_URL="https://assets.stg.tidnex.dev/components/secure-iframe-$BUDDY_EXECUTION_TAG.html"
         - export XENDIT_COMPONENTS_VERSION="$BUDDY_EXECUTION_TAG"
         - "npm install -g pnpm"
@@ -40,7 +41,7 @@
       input_type: "BUILD_ARTIFACTS"
       execute_commands:
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
-        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets-staging/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --cache-control no-cache --acl private"
+        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets-staging/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --acl private"
       integration_hash: "5f69e5f01a22366a8e6adfa7"
       deletion_disabled: true
     - action: "Upload landing iframe file to Amazon S3"

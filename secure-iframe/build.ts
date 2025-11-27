@@ -14,17 +14,18 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 
 const PORT = 4444;
+const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
 
 let lastSeenBuildOutput: string | null = null;
-
 async function generateIframeHtml(js: string) {
+  const pinningKeysRaw = XENDIT_COMPONENTS_PINNING_KEYS
+    ? Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8")
+    : await fs.readFile(
+        path.join(import.meta.dirname, "../test-pinning-keys.json"),
+        "utf-8",
+      );
   // copy pinning keys into the js
-  const testPinningKeys = JSON.parse(
-    await fs.readFile(
-      path.join(import.meta.dirname, "../test-pinning-keys.json"),
-      "utf-8",
-    ),
-  ).map((key: JsonWebKey) => {
+  const pinningKeys = JSON.parse(pinningKeysRaw).map((key: JsonWebKey) => {
     // convert private keys to public keys
     return {
       kty: key.kty,
@@ -36,7 +37,7 @@ async function generateIframeHtml(js: string) {
 
   const jsWithPinningKeys = js.replace(
     /PINNING_KEYS_MACRO/,
-    JSON.stringify(testPinningKeys),
+    JSON.stringify(pinningKeys),
   );
   if (js === jsWithPinningKeys) {
     throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
