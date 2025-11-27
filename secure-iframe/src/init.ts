@@ -5,55 +5,29 @@ import {
   generateOwnKeys,
   hashText,
   pin,
-} from "../../shared/crypto";
+} from "./crypto";
 import { assertIsSecureInputEvent } from "./events";
-import { createInputElement, createWrapperDiv } from "./ui";
 import {
-  arrayBufferToBase64,
-  assert,
-  base64ToArrayBuffer,
-} from "../../shared/utils";
+  createFatalErrorComponent,
+  createInputElement,
+  createWrapperDiv,
+} from "./ui";
+import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
 import { validate } from "./validation";
-
-function setupCss() {
-  const css = `
-    body {
-      margin: 0;
-    }
-    .input-wrapper {
-      width: 100%;
-      height: 100%;
-      display: flex
-    }
-    input {
-      width: 100%;
-      font-size: 14px;
-      line-height: 16px;
-      padding: 12px;
-      border: none;
-      outline: none;
-    }
-`;
-
-  const style = document.createElement("style");
-  style.textContent = css;
-  document.head.appendChild(style);
-}
-setupCss();
 
 function getQueryInputs() {
   const query = new URLSearchParams(location.search);
 
   const inputType = query.get("input_type");
-  assert(inputType, "Missing query parameter: input_type");
+  assert(inputType, "missing qs input_type");
   const embedderOrigin = query.get("embedder");
-  assert(embedderOrigin, "Missing query parameter: embedder");
+  assert(embedderOrigin, "missing qs embedder");
   const sessionId = query.get("session_id");
-  assert(sessionId, "Missing query parameter: session_id");
+  assert(sessionId, "missing qs session_id");
   const serverPublicKeyBase64 = query.get("pk");
-  assert(serverPublicKeyBase64, "Missing query parameter: pk");
+  assert(serverPublicKeyBase64, "missing qs pk");
   const serverPublicKeySignatureBase64 = query.get("sig");
-  assert(serverPublicKeySignatureBase64, "Missing query parameter: sig");
+  assert(serverPublicKeySignatureBase64, "missing qs sig");
 
   return {
     inputType: inputType as IframeFieldType,
@@ -67,17 +41,23 @@ function getQueryInputs() {
 // @ts-expect-error This macro is replaced with a JSON array by the build script
 const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
-const queryInputs = getQueryInputs();
-
-function securePostMessage<T extends IframeEvent>(message: T) {
-  window.parent.postMessage(message, queryInputs.embedderOrigin);
-}
-
 function insecurePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, "*");
 }
 
 export async function init() {
+  document.body.style.margin = "0";
+
+  assert(masterPinningKeys.length > 0, "missing pinning keys");
+  assert(origin !== "null", "null origin");
+  assert(window.crypto?.subtle, "crypto unsupported");
+
+  const queryInputs = getQueryInputs();
+
+  function securePostMessage<T extends IframeEvent>(message: T) {
+    window.parent.postMessage(message, queryInputs.embedderOrigin);
+  }
+
   const serverPublicKeyBytes = base64ToArrayBuffer(
     queryInputs.serverPublicKeyBase64,
   );
@@ -223,6 +203,10 @@ export async function init() {
 
 export function fatalError(err: Error) {
   console.error(`Xendit secure iframe`, err);
+  const errorComponent = createFatalErrorComponent(
+    (err as unknown as { code?: string }).code ?? "error",
+  );
+  document.body.replaceChildren(errorComponent);
   insecurePostMessage({
     type: "xendit-iframe-failed-init",
   });
