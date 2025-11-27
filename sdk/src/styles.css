@@ -138,6 +138,7 @@ xendit-payment-channel input::placeholder {
 .xendit-accordion-item {
   border: 1px solid var(--xendit-color-border);
   border-radius: 8px;
+  background: var(--xendit-color-background);
 }
 
 .xendit-accordion-item-header {
@@ -194,6 +195,12 @@ xendit-payment-channel input::placeholder {
 
 /* Channel picker group */
 
+.xendit-channel-picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .xendit-channel-picker-group select {
   border: 1px solid var(--xendit-color-border);
   border-radius: 8px;
@@ -214,7 +221,7 @@ xendit-payment-channel input::placeholder {
   padding: 4px;
   border: 1px solid var(--xendit-color-border-default);
   border-radius: 4px;
-  background-color: var(--xendit-color-background);
+  background-color: white; /* always white, not --xendit-color-background */
 }
 
 /* Payment channel */
@@ -223,11 +230,16 @@ xendit-payment-channel[inert] {
   filter: opacity(0.5) grayscale(1);
 }
 
+.xendit-payment-channel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .xendit-payment-channel-instructions {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-gap: 12px;
-  margin-top: 16px;
   color: var(--xendit-color-text-secondary);
 }
 
@@ -280,6 +292,7 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field .xendit-iframe-container {
   display: flex;
   border: 1px solid var(--xendit-color-border-subtle);
+  background: var(--xendit-color-background);
   border-radius: 8px;
   padding: 12px;
   appearance: none;
@@ -370,6 +383,7 @@ xendit-payment-channel[inert] {
   border: 1px solid var(--xendit-color-border-default);
   border-radius: 4px;
   padding: 4px;
+  background-color: white; /* always white, not --xendit-color-background */
 }
 
 .xendit-card-brands-list {
@@ -600,7 +614,7 @@ xendit-payment-channel[inert] {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 8px;
-  padding: 8px 4px;
+  padding: 8px 12px 8px 4px;
   border-radius: var(--xendit-radius-1);
   cursor: pointer;
 }

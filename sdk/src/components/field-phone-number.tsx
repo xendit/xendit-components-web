@@ -167,6 +167,7 @@ const COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS =
       if (!dial) return null;
       return {
         ...country,
+        shortTitle: `+${dial}`,
         title: `${country.title} (+${dial})`,
         dial,
       };

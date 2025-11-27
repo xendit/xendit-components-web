@@ -176,7 +176,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
           />
         </div>
       )}
-      <div ref={containerRef} />
+      {explicitSelectedChannel ? <div ref={containerRef} /> : null}
     </div>
   );
 };
