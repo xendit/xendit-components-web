@@ -1,13 +1,41 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useEffect,
+} from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode, getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
-import { CircleFlag } from "react-circle-flags";
+import { validate } from "../validation";
+import { InternalInputValidateEvent } from "../private-event-types";
+import { LocaleKey, LocalizedString } from "../localization";
 import { formFieldName, usePrevious } from "../utils";
 import { useCardDetails } from "./session-provider";
 
+type FlagIconProps = {
+  countryCode: string;
+  size?: number;
+};
+
+const FlagIcon: React.FC<FlagIconProps> = ({ countryCode, size = 16 }) => {
+  return (
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: "50%",
+        backgroundImage: `url(https://assets.xendit.co/payment-session/flags/circle/${countryCode.toLowerCase()}.svg)`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    />
+  );
+};
+
 export const CountryField: React.FC<FieldProps> = (props) => {
-  const { field, onChange } = props;
+  const { field, onChange, onError } = props;
   const id = formFieldName(field);
 
   const [selectedCountry, setSelectedCountry] = useState<
@@ -18,6 +46,30 @@ export const CountryField: React.FC<FieldProps> = (props) => {
   );
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<LocaleKey | LocalizedString | null>(null);
+
+  const validateField = useCallback(
+    (value: string) => {
+      const errorCode = validate(field, value) ?? null;
+      if (onError) onError(id, errorCode);
+      setError(errorCode);
+      return errorCode;
+    },
+    [field, id, onError],
+  );
+
+  useEffect(() => {
+    const input = hiddenFieldRef.current;
+    if (!input) return;
+    const listener = (e: Event) => {
+      const value = (e as CustomEvent).detail.value;
+      validateField(value);
+    };
+    input.addEventListener(InternalInputValidateEvent.type, listener);
+    return () => {
+      input.removeEventListener(InternalInputValidateEvent.type, listener);
+    };
+  }, [id, validateField]);
 
   useOnCardCountryChange((newCountry: CountryCode) => {
     if (hiddenFieldRef.current) {
@@ -40,7 +92,7 @@ export const CountryField: React.FC<FieldProps> = (props) => {
   );
 
   return (
-    <>
+    <div className={error ? "invalid" : ""}>
       <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
       <Dropdown
         id={id}
@@ -49,7 +101,7 @@ export const CountryField: React.FC<FieldProps> = (props) => {
         placeholder={field.placeholder}
         selectedIndex={selectedCountryIndex}
       />
-    </>
+    </div>
   );
 };
 
@@ -62,15 +114,7 @@ export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
     return {
       title: country,
       value: countryCode,
-      leadingAsset: (
-        <CircleFlag
-          key={countryCode}
-          countryCode={countryCode.toLowerCase()}
-          width={16}
-          height={16}
-          cdnUrl={`https://assets.xendit.co/payment-session/flags/circle/`}
-        />
-      ),
+      leadingAsset: <FlagIcon countryCode={countryCode} />,
     } as DropdownOption;
   })
   .sort((a, b) => a.title.localeCompare(b.title));

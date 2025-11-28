@@ -504,9 +504,27 @@ xendit-payment-channel[inert] {
   display: none;
 }
 
+.xendit-dropdown .xendit-dropdown-search input {
+  padding: 8px;
+  border: 1px solid var(--xendit-color-border-subtle);
+  border-radius: var(--xendit-radius-1);
+  box-sizing: border-box;
+}
+
+.xendit-dropdown-search input:focus {
+  outline: none;
+  border-color: var(--xendit-color-primary);
+  box-shadow: var(--xendit-focus-shadow);
+}
+
 .xendit-input-phone.invalid .xendit-dropdown button,
 .xendit-input-phone.invalid .xendit-phone-number-input {
   border: 1px solid var(--xendit-color-danger);
+}
+
+.invalid .xendit-dropdown button {
+  border: 1px solid var(--xendit-color-danger);
+  position: relative;
 }
 /* Phone input Dropdown ends */
 
@@ -546,12 +564,31 @@ xendit-payment-channel[inert] {
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
   border-radius: 4px;
-  padding: 4px;
-  min-width: 257px;
   height: 168px;
-  list-style: none;
   box-shadow: 0px 4px 8px 0px #25252514;
   overflow-y: auto;
+}
+
+.xendit-dropdown-menu * {
+  box-sizing: border-box;
+}
+
+.xendit-dropdown-menu ul {
+  list-style: none;
+  padding: 4px;
+  margin-top: 0;
+}
+
+.xendit-dropdown-search {
+  position: sticky;
+  top: 0;
+  padding-block: 12px;
+  padding-inline: 4px;
+  min-width: 257px;
+}
+
+.xendit-dropdown-search input {
+  width: 100%;
 }
 
 .xendit-dropdown-item {
