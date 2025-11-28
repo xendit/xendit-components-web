@@ -53,6 +53,7 @@ async function generateIframeHtml(js: string) {
   const html = `<!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8"/>
     <title>Xendit Secure Iframe</title>
   </head>
   <body>

@@ -9,42 +9,16 @@ import terser from "@rollup/plugin-terser";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 
-const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
-
 async function generateIframeHtml(js: string) {
-  const pinningKeysRaw = XENDIT_COMPONENTS_PINNING_KEYS
-    ? Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8")
-    : await fs.readFile(
-        path.join(import.meta.dirname, "../test-pinning-keys.json"),
-        "utf-8",
-      );
-  // copy pinning keys into the js
-  const pinningKeys = JSON.parse(pinningKeysRaw).map((key: JsonWebKey) => {
-    // convert private keys to public keys
-    return {
-      kty: key.kty,
-      crv: key.crv,
-      x: key.x,
-      y: key.y,
-    };
-  });
-
-  const jsWithPinningKeys = js.replace(
-    /PINNING_KEYS_MACRO/,
-    JSON.stringify(pinningKeys),
-  );
-  if (js === jsWithPinningKeys) {
-    throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
-  }
-
   // generate html
   return `<!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8"/>
     <title>Xendit</title>
   </head>
   <body>
-    <script type="application/javascript">${jsWithPinningKeys}</script>
+    <script type="application/javascript">${js}</script>
   </body>
 </html>
 `;
