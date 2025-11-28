@@ -83,6 +83,8 @@ import {
   bffUiGroupsToPublic,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
+import { initI18n } from "./localization";
+import { TFunction } from "i18next";
 
 /**
  * @internal
@@ -140,6 +142,13 @@ type InitializedSdk = {
  * @public
  */
 export class XenditSessionSdk extends EventTarget {
+  /**
+   * @internal
+   */
+  public t: TFunction<"session"> = ((str: string): string => {
+    throw new Error("Localization used before initialization; this is a bug.");
+  }) as TFunction<"session">;
+
   /**
    * @internal
    */
@@ -336,6 +345,13 @@ export class XenditSessionSdk extends EventTarget {
       this[internal].worldState ?? ({} as WorldState),
       data,
     );
+
+    // update locale
+    const locale = this[internal].worldState.session.locale;
+    const i18n = initI18n(locale);
+    this.t = i18n.getFixedT(locale, "session");
+
+    // update everything
     this.behaviorTreeUpdate();
     this.rerenderAllComponents();
   }

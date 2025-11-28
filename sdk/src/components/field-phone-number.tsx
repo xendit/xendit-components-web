@@ -95,7 +95,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     const newOption = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
       (option) => option.value === newCountry,
     );
-    if (newOption) {
+    if (newOption && newOption.value !== countryCode) {
       handleCountryChange(newOption);
     }
   });
