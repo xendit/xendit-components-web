@@ -1,4 +1,4 @@
-import { stringToUtf8Bytes } from "./utils";
+import { assert, stringToUtf8Bytes } from "./utils";
 
 /**
  * Throws an error if `signature` is not a valid signature of `signee` with at least one of
@@ -33,7 +33,7 @@ export async function pin(
       return;
     }
   }
-  throw new Error("Invalid server public key signature");
+  assert(false, "pin failure");
 }
 
 /**
