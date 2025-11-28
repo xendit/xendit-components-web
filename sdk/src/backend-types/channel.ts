@@ -142,9 +142,21 @@ export type FieldType =
       }[];
     };
 
+/**
+ * @public
+ */
 export type ChannelPropertyPrimative = string | number | boolean | undefined;
+
+/**
+ * @public
+ */
 export type ChannelProperty =
   | ChannelPropertyPrimative
   | ChannelPropertyPrimative[]
   | Record<string, ChannelPropertyPrimative>;
+
+/**
+ * @public
+ * Channel properties for a payment method or payment token.
+ */
 export type ChannelProperties = Record<string, ChannelProperty>;

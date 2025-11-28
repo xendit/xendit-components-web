@@ -29,7 +29,8 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   // reference to the selected channel element
   const selectedChannelElementRef = useRef<HTMLElement>(null);
 
-  const sdkSelectedChannelCode = useActiveChannel()?.channel_code ?? null;
+  const sdkSelectedChannelCode =
+    useActiveChannel().channel?.channel_code ?? null;
 
   const [explicitSelectedChannel, setExplicitSelectedChannel] =
     useState<BffChannel | null>(null);

@@ -4,6 +4,9 @@ import { SecureInputEvent } from "./events";
 export function createWrapperDiv() {
   const wrapper = document.createElement("div");
   wrapper.className = "input-wrapper";
+  wrapper.style.width = "100%";
+  wrapper.style.height = "100%";
+  wrapper.style.display = "flex";
   return wrapper;
 }
 
@@ -11,6 +14,12 @@ export function createInputElement(type: IframeFieldType) {
   const input = document.createElement("input");
   input.type = "text";
   input.id = "secure-iframe-input";
+  input.style.width = "100%";
+  input.style.fontSize = "14px";
+  input.style.lineHeight = "16px";
+  input.style.padding = "12px";
+  input.style.border = "none";
+  input.style.outline = "none";
 
   function onFocus(event: Event) {
     input.dispatchEvent(new SecureInputEvent("focus", {}));
@@ -39,6 +48,7 @@ export function createInputElement(type: IframeFieldType) {
       break;
     }
     case "credit_card_cvn": {
+      input.type = "password";
       input.placeholder = "123";
       input.inputMode = "numeric";
       input.autocomplete = "cc-csc";
@@ -60,8 +70,8 @@ function creditCardNumberEvents(input: HTMLInputElement) {
     const { hasCollapsedSelection, beforeCursor, afterCursor, cursorPosition } =
       inputStats(input);
 
-    // prevent non-numeric characters
-    if (event.data && !/^\d+$/.test(event.data)) {
+    // prevent non-numeric characters except space
+    if (event.data && !/^[\d ]+$/.test(event.data)) {
       event.preventDefault();
       return;
     }
@@ -253,6 +263,15 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
 function creditCardCVNEvents(input: HTMLInputElement) {
   input.addEventListener("change", onChange);
   input.addEventListener("input", onInput);
+  input.addEventListener("beforeinput", onBeforeInput);
+
+  function onBeforeInput(event: InputEvent) {
+    // prevent non-numeric characters
+    if (event.data && !/^[\d]+$/.test(event.data)) {
+      event.preventDefault();
+      return;
+    }
+  }
 
   function onChange(event: Event) {
     input.dispatchEvent(new SecureInputEvent("change", { value: input.value }));
@@ -282,4 +301,13 @@ function inputStats(input: HTMLInputElement) {
     beforeCursor,
     afterCursor,
   };
+}
+
+export function createFatalErrorComponent(code: string) {
+  const div = document.createElement("div");
+  div.style.color = "red";
+  div.style.fontFamily = "monospace";
+  div.style.fontSize = "10px";
+  div.textContent = `✕ ${code}`;
+  return div;
 }

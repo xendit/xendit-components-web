@@ -15,6 +15,7 @@ import {
   ActionIframeBehavior,
   ActionRedirectBehavior,
 } from "./behaviors/action";
+import { CardInfoBehavior } from "./behaviors/card-info";
 import {
   ChannelInvalidBehavior,
   ChannelValidBehavior,
@@ -132,18 +133,24 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     return undefined;
   }
 
-  const showBillingDetails = false; // TODO
-  if (
-    channelPropertiesAreValid(
-      bb.world.session.session_type,
-      bb.channel,
-      bb.channelProperties ?? null,
-      showBillingDetails,
-    )
-  ) {
-    return behaviorNode(ChannelValidBehavior);
+  const billingInformationRequired =
+    bb.world.cardDetails.details?.require_billing_information ?? false;
+
+  const channelPropertiesValid = channelPropertiesAreValid(
+    bb.world.session.session_type,
+    bb.channel,
+    bb.channelProperties ?? null,
+    billingInformationRequired,
+  );
+
+  const formValidityBehavior = channelPropertiesValid
+    ? behaviorNode(ChannelValidBehavior)
+    : behaviorNode(ChannelInvalidBehavior);
+
+  if (bb.channel.channel_code === "CARDS") {
+    return behaviorNode(CardInfoBehavior, "card-info", formValidityBehavior);
   } else {
-    return behaviorNode(ChannelInvalidBehavior);
+    return formValidityBehavior;
   }
 }
 

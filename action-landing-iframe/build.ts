@@ -10,38 +10,15 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 
 async function generateIframeHtml(js: string) {
-  // copy pinning keys into the js
-  const testPinningKeys = JSON.parse(
-    await fs.readFile(
-      path.join(import.meta.dirname, "../test-pinning-keys.json"),
-      "utf-8",
-    ),
-  ).map((key: JsonWebKey) => {
-    // convert private keys to public keys
-    return {
-      kty: key.kty,
-      crv: key.crv,
-      x: key.x,
-      y: key.y,
-    };
-  });
-
-  const jsWithPinningKeys = js.replace(
-    /PINNING_KEYS_MACRO/,
-    JSON.stringify(testPinningKeys),
-  );
-  if (js === jsWithPinningKeys) {
-    throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
-  }
-
   // generate html
   return `<!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8"/>
     <title>Xendit</title>
   </head>
   <body>
-    <script type="application/javascript">${jsWithPinningKeys}</script>
+    <script type="application/javascript">${js}</script>
   </body>
 </html>
 `;
@@ -94,7 +71,7 @@ async function rollupProductionBuild() {
 
   mkdirSync(path.join(import.meta.dirname, "dist"), { recursive: true });
   await fs.writeFile(
-    path.join(import.meta.dirname, "dist/landing-iframe.html"),
+    path.join(import.meta.dirname, "dist/action-landing-iframe.html"),
     html,
   );
 }

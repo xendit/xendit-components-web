@@ -113,7 +113,6 @@ const Payment: React.FC<{
     } else {
       sdk = new XenditSessionTestSdk({});
     }
-    sdk.env = "demo";
     setSdk(sdk);
 
     // The channel picker element is returned immediately and populated after initialization

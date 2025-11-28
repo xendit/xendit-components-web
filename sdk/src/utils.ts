@@ -1,4 +1,9 @@
-import { BffChannel, ChannelFormField } from "./backend-types/channel";
+import {
+  BffChannel,
+  ChannelFormField,
+  ChannelProperties,
+  ChannelProperty,
+} from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 
@@ -29,6 +34,17 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export class AbortError extends Error {
+  constructor() {
+    super("AbortError");
+    this.name = "AbortError";
+  }
+}
+
+export function isAbortError(error: unknown): error is AbortError {
+  return error instanceof AbortError && error.name === "AbortError";
+}
+
 /**
  * A sleep function that can be cancelled via an AbortSignal.
  */
@@ -37,26 +53,25 @@ export function cancellableSleep(
   signal: AbortSignal,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    function onAbort() {
+      signal.removeEventListener("abort", onAbort);
+      clearTimeout(timeoutId);
+      reject(new AbortError());
+    }
+
     const timeoutId = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
       resolve();
     }, ms);
 
     // already aborted
     if (signal.aborted) {
-      clearTimeout(timeoutId);
-      reject(new Error("Aborted"));
+      onAbort();
       return;
     }
 
     // abort on signal
-    signal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timeoutId);
-        reject(new Error("Aborted"));
-      },
-      { once: true },
-    );
+    signal.addEventListener("abort", onAbort);
   });
 }
 
@@ -229,4 +244,56 @@ export function removeUndefinedPropertiesFromObject<T extends object>(
 ): T {
   // TODO: filter out undefined properties while leaving symbol properties and getters intact
   return object;
+}
+
+export function getValueFromChannelProperty(
+  channelProperty: string | string[],
+  channelProperties: ChannelProperties | null,
+) {
+  let str = channelProperty;
+  if (!channelProperties) {
+    return undefined;
+  }
+  if (Array.isArray(str)) {
+    throw new Error(
+      "Getting values from channel property arrays is not supported.",
+    );
+  }
+
+  let cursor: ChannelProperties | ChannelProperty = channelProperties;
+  while (true) {
+    if (!cursor || typeof cursor !== "object" || Array.isArray(cursor)) {
+      return undefined;
+    }
+    const dotIndex = str.indexOf(".");
+    if (dotIndex === -1) {
+      return cursor ? cursor[str] : undefined;
+    } else {
+      const key = str.slice(0, dotIndex);
+      cursor = cursor ? cursor[key] : undefined;
+      str = str.slice(dotIndex + 1);
+    }
+  }
+}
+
+export function getCardNunberFromChannelProperties(
+  channelProperties: ChannelProperties | null,
+) {
+  const cardNumber = getValueFromChannelProperty(
+    "card_details.card_number",
+    channelProperties,
+  );
+  if (typeof cardNumber !== "string") {
+    return null;
+  }
+  return cardNumber;
+}
+
+const objectIdMap = new WeakMap<object, number>();
+let objectIdCounter = 1;
+export function objectId(object: object): string {
+  if (!objectIdMap.has(object)) {
+    objectIdMap.set(object, objectIdCounter++);
+  }
+  return objectIdMap.get(object)!.toString();
 }

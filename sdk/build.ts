@@ -204,7 +204,7 @@ async function generateTestPage() {
   return `<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>Xendit SDK Test Page</title>
   </head>
   <body>

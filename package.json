@@ -1,6 +1,6 @@
 {
   "name": "xendit-components",
-  "version": "1.0.0",
+  "version": "0.0.4-alpha-2",
   "description": "Public web frontend API",
   "type": "module",
   "author": "invoice-team",
@@ -37,18 +37,18 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "i18next": "^25.6.2",
     "card-validator": "^10.0.3",
     "classnames": "^2.5.1",
     "credit-card-type": "^10.1.0",
-    "libphonenumber-js": "^1.12.26",
+    "i18next": "^25.6.3",
+    "libphonenumber-js": "^1.12.29",
     "preact": "^10.27.2",
     "react-circle-flags": "^0.0.24",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@microsoft/api-extractor": "^7.55.0",
+    "@microsoft/api-extractor": "^7.55.1",
     "@preact/preset-vite": "^2.10.2",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-commonjs": "^29.0.0",
@@ -64,15 +64,15 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "husky": "^9.1.7",
     "jsdom": "^27.2.0",
-    "lint-staged": "^16.2.6",
-    "mime-types": "^3.0.1",
+    "lint-staged": "^16.2.7",
+    "mime-types": "^3.0.2",
     "prettier": "^3.6.2",
-    "rollup": "^4.53.2",
+    "rollup": "^4.53.3",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-import-css": "^4.1.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.47.0",
-    "vitest": "^4.0.10"
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.14"
   },
   "packageManager": "pnpm@10.15.1"
 }

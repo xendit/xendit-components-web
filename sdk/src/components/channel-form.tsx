@@ -1,15 +1,21 @@
-import { forwardRef } from "react";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { BffSession, BffSessionType } from "../backend-types/session";
 import {
   useCallback,
+  useContext,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from "preact/hooks";
-import { useSession } from "./session-provider";
+import { useCardDetails, useSession } from "./session-provider";
 import FieldGroup from "./field-group";
+import { BffCardDetails } from "../backend-types/card-details";
+import { usePrevious } from "../utils";
+import { createContext } from "preact";
+import { forwardRef } from "react";
 
 interface Props {
   form: ChannelFormField[];
@@ -22,8 +28,12 @@ export interface ChannelFormHandle {
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
+    const cardDetails = useCardDetails();
 
     const formRef = useRef<HTMLFormElement>(null);
+
+    const [channelProperties, setChannelProperties] =
+      useState<ChannelProperties | null>(null);
 
     useImperativeHandle(ref, () => ({
       validate() {
@@ -55,10 +65,24 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
 
     const handleFieldChanged = useCallback(() => {
       if (!formRef.current) return;
-      onChannelPropertiesChanged(getChannelProperties());
+      const channelProperties = getChannelProperties();
+      setChannelProperties(channelProperties);
+      onChannelPropertiesChanged(channelProperties);
     }, [getChannelProperties, onChannelPropertiesChanged]);
 
-    const filteredForm = useFilteredFormFields(session, form);
+    const filteredForm = useFilteredFormFields(
+      session,
+      form,
+      cardDetails.details ?? null,
+    );
+
+    // trigger a field changed callback when the form changes
+    const previousFilteredForm = usePrevious(filteredForm);
+    useEffect(() => {
+      if (previousFilteredForm !== filteredForm) {
+        handleFieldChanged();
+      }
+    }, [filteredForm, handleFieldChanged, previousFilteredForm]);
 
     const filteredFieldGroups = groupFields(filteredForm).filter(
       (group) => group.length,
@@ -67,19 +91,29 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     return (
       <div class="xendit-channel-form">
         <form ref={formRef}>
-          {filteredFieldGroups.map((fieldGroup, index) => (
-            <FieldGroup
-              key={index}
-              fieldGroup={fieldGroup}
-              groupIndex={index}
-              handleFieldChanged={handleFieldChanged}
-            />
-          ))}
+          <ChannelPropertiesContext.Provider value={channelProperties}>
+            {filteredFieldGroups.map((fieldGroup, index) => (
+              <FieldGroup
+                key={index}
+                fieldGroup={fieldGroup}
+                groupIndex={index}
+                handleFieldChanged={handleFieldChanged}
+              />
+            ))}
+          </ChannelPropertiesContext.Provider>
         </form>
       </div>
     );
   },
 );
+
+export const ChannelPropertiesContext = createContext<ChannelProperties | null>(
+  null,
+);
+
+export const useChannelProperties = (): ChannelProperties | null => {
+  return useContext(ChannelPropertiesContext);
+};
 
 function groupFields(fields: ChannelFormField[]): ChannelFormField[][] {
   // Group fields for rendering
@@ -193,17 +227,15 @@ function formValueToStringArray(subkeys: string[], value: string): string[] {
 export function useFilteredFormFields(
   session: BffSession,
   form: ChannelFormField[],
+  cardInfo: BffCardDetails | null,
 ) {
-  // TODO: implement billing details feature
-  const showBillingDetailsFields = true;
-
   const filteredForm = useMemo(() => {
     return filterFormFields(
       session.session_type,
       form,
-      showBillingDetailsFields,
+      cardInfo?.require_billing_information ?? false,
     );
-  }, [form, session.session_type, showBillingDetailsFields]);
+  }, [cardInfo?.require_billing_information, form, session.session_type]);
 
   return filteredForm;
 }

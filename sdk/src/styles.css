@@ -358,10 +358,11 @@ xendit-payment-channel[inert] {
 /* Ends TODO */
 
 .xendit-card-brand-logo {
-  width: 32px;
-  height: 24px;
+  width: 24px;
+  height: 16px;
   border: 1px solid var(--xendit-color-border-default);
   border-radius: 4px;
+  padding: 4px;
 }
 
 .xendit-card-brands-list {

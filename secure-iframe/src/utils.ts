@@ -1,9 +1,8 @@
-export function assert<T>(
-  value: T,
-  msg?: string,
-): asserts value is NonNullable<T> {
-  if (value === null || value === undefined) {
-    throw new Error(msg ?? "Assertion failure");
+export function assert(value: unknown, iframeErrorCode: string): asserts value {
+  if (!value) {
+    const err = new Error("Assertion failure");
+    (err as unknown as { code: string }).code = iframeErrorCode;
+    throw err;
   }
 }
 

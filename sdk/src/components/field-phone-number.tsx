@@ -3,7 +3,10 @@ import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
-import { COUNTRIES_AS_DROPDOWN_OPTIONS } from "./field-country";
+import {
+  COUNTRIES_AS_DROPDOWN_OPTIONS,
+  useOnCardCountryChange,
+} from "./field-country";
 import parsePhoneNumberFromString, {
   getExampleNumber,
   PhoneNumber,
@@ -86,6 +89,16 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     if (isTouched) updateValidity(nextCountry, localNumber);
     onChange(); // keep parity with other fields
   }
+
+  // when the user inputs a card number, update the phone number field to match
+  useOnCardCountryChange((newCountry: CountryCode) => {
+    const newOption = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
+      (option) => option.value === newCountry,
+    );
+    if (newOption) {
+      handleCountryChange(newOption);
+    }
+  });
 
   function getExampleLocalNumber() {
     return (

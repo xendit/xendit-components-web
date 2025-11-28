@@ -4,7 +4,7 @@
   "compilerOptions": {},
   "include": [
     "secure-iframe/**/*",
-    "landing-iframe/**/*",
+    "action-landing-iframe/**/*",
     "sdk/**/*",
     "shared/**/*"
   ]
