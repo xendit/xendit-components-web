@@ -13,7 +13,6 @@ import { stripTypeScriptTypes } from "module";
 import css from "rollup-plugin-import-css";
 import alias from "@rollup/plugin-alias";
 import commonjs from "@rollup/plugin-commonjs";
-import copy from "rollup-plugin-copy";
 import { createReadStream, existsSync } from "fs";
 import mime from "mime-types";
 import json from "@rollup/plugin-json";
@@ -102,14 +101,6 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       }),
       css(),
       json(),
-      copy({
-        targets: [
-          {
-            src: "sdk/src/assets/fonts/proxima-nova/*",
-            dest: "sdk/dist/assets/fonts/proxima-nova",
-          },
-        ],
-      }),
       replace({
         preventAssignment: true,
         ...Object.fromEntries(
