@@ -268,6 +268,14 @@ xendit-payment-channel[inert] {
   cursor: pointer;
 }
 
+.xendit-form-field-group.invalid .xendit-channel-form-field input,
+.xendit-form-field-group.invalid
+  .xendit-channel-form-field
+  .xendit-iframe-container,
+.xendit-form-field-group.invalid .xendit-dropdown button {
+  border: 1px solid var(--xendit-color-danger);
+}
+
 .xendit-channel-form-field input:not([type="checkbox"]),
 .xendit-channel-form-field select,
 .xendit-channel-form-field .xendit-iframe-container {
@@ -384,12 +392,6 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field button:focus {
   position: relative;
   z-index: var(--xendit-z-index-focus);
-}
-
-.xendit-channel-form-field input.invalid,
-.xendit-channel-form-field .xendit-iframe-container.invalid {
-  border-color: var(--xendit-color-danger);
-  position: relative;
 }
 
 .xendit-channel-form-field .xendit-iframe-container {
@@ -517,15 +519,6 @@ xendit-payment-channel[inert] {
   box-shadow: var(--xendit-focus-shadow);
 }
 
-.xendit-input-phone.invalid .xendit-dropdown button,
-.xendit-input-phone.invalid .xendit-phone-number-input {
-  border: 1px solid var(--xendit-color-danger);
-}
-
-.invalid .xendit-dropdown button {
-  border: 1px solid var(--xendit-color-danger);
-  position: relative;
-}
 /* Phone input Dropdown ends */
 
 /* Dropdown */

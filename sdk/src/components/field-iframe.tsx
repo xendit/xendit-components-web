@@ -73,7 +73,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     valid: false,
     validationErrorCodes: [],
   });
-  const [error, setError] = useState<LocaleKey | null>(null);
 
   const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
 
@@ -83,7 +82,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     (validationState: ValidationState) => {
       const errorMessage = computeFieldError(validationState, field.required);
       if (onError) onError(id, errorMessage);
-      setError(errorMessage);
     },
     [field.required, id, onError],
   );
@@ -226,9 +224,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 
   return (
     <>
-      <div
-        className={`xendit-iframe-container ${focusClass} ${error ? "invalid" : ""}`}
-      >
+      <div className={`xendit-iframe-container ${focusClass}`}>
         <XenditFormAssociatedFocusTrap.tag
           id={id}
           onFocus={giveFocusToIframe}

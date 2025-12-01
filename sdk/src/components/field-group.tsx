@@ -109,12 +109,17 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     );
   };
 
+  const hasError = Object.keys(fieldGroupErrors).length > 0;
+
   return (
     <div className="xendit-channel-form-field-group">
       <label htmlFor={formFieldName(fieldGroup[0])} className="xendit-text-14">
         {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
       </label>
-      <div key={groupIndex} className="xendit-form-field-group">
+      <div
+        key={groupIndex}
+        className={`xendit-form-field-group ${hasError ? "invalid" : ""}`}
+      >
         {fieldGroup.map((field, index) => {
           const position = calculateFieldPosition(index);
           const className = getFieldClassNames(field, index, position);
@@ -130,7 +135,7 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
           );
         })}
       </div>
-      {Object.keys(fieldGroupErrors).length > 0 && renderFirstFoundError()}
+      {hasError && renderFirstFoundError()}
     </div>
   );
 };

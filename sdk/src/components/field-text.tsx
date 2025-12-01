@@ -4,12 +4,10 @@ import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { formFieldName } from "../utils";
-import { LocaleKey, LocalizedString } from "../localization";
 
 export const TextField: React.FC<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
   const id = formFieldName(field);
-  const [error, setError] = useState<LocaleKey | LocalizedString | null>(null);
   const [isTouched, setIsTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -29,7 +27,6 @@ export const TextField: React.FC<FieldProps> = (props) => {
     (value: string) => {
       const errorCode = validate(field, value) ?? null;
       if (onError) onError(id, errorCode);
-      setError(errorCode);
       setIsTouched(true);
       return errorCode;
     },
@@ -57,7 +54,7 @@ export const TextField: React.FC<FieldProps> = (props) => {
         ref={inputRef}
         type="text"
         placeholder={field.placeholder}
-        className={`xendit-text-14 ${error ? "invalid" : ""}`}
+        className={`xendit-text-14`}
         onBlur={handleBlur}
         onChange={handleChange}
         minLength={isTextField(field) ? field.type.min_length : undefined}
