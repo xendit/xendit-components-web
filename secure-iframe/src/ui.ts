@@ -128,7 +128,7 @@ function creditCardNumberEvents(input: HTMLInputElement) {
     }
 
     // update input value
-    const newValue = out.join("").trim();
+    const newValue = out.join("").trimStart();
     input.value = newValue;
 
     if (hasCollapsedSelection) {

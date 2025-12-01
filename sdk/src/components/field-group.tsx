@@ -3,7 +3,7 @@ import { ChannelFormField } from "../backend-types/channel";
 import Field from "./field";
 import classNames from "classnames";
 import { formFieldName } from "../utils";
-import { useSession } from "./session-provider";
+import { useSdk } from "./session-provider";
 import {
   getLocalizedErrorMessage,
   LocaleKey,
@@ -28,7 +28,8 @@ interface Props {
 }
 
 const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
-  const { locale } = useSession();
+  const { t } = useSdk();
+
   const [fieldGroupErrors, setFieldGroupErrors] = useState<
     Record<string, LocaleKey | LocalizedString>
   >({});
@@ -97,13 +98,13 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
 
     // Localize the error code at render time
     const localizedMessage = getLocalizedErrorMessage(
+      t,
       errorCode,
       firstFieldWithError,
-      locale,
     );
 
     return (
-      <span className="xendit-error-message xendit-text-14">
+      <span className="xendit-error-message xendit-text-12">
         {localizedMessage}
       </span>
     );

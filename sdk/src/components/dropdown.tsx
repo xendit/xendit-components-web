@@ -12,6 +12,7 @@ import Icon from "./icon";
 export type DropdownOption = {
   leadingAsset?: ComponentChildren; // e.g. flag/icon URL
   title: string; // primary line
+  shortTitle?: string;
   description?: string; // secondary line
   disabled?: boolean;
   value: string;
@@ -270,7 +271,7 @@ export const Dropdown = (props: DropdownProps) => {
 
         {selected ? (
           <span className="xendit-dropdown-button-title xendit-text-14">
-            {selected.title}
+            {selected.shortTitle ?? selected.title}
           </span>
         ) : (
           <span className="xendit-dropdown-button-title xendit-text-14 xendit-text-secondary">

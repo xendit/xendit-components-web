@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import Icon from "./icon";
+import classNames from "classnames";
 
 interface Props {
   id: number;
@@ -12,10 +13,7 @@ interface Props {
 export const AccordionItem: React.FC<Props> = (props) => {
   const { id, title, open, onClick, children } = props;
 
-  const containerOpenClass = open
-    ? "xendit-accordion-item-open"
-    : "xendit-accordion-item-closed";
-  const chevronDirection = open ? "down" : "up";
+  const chevronDirection = open ? "up" : "down";
 
   const toggleOpen = useCallback(() => {
     onClick(id);
@@ -36,7 +34,12 @@ export const AccordionItem: React.FC<Props> = (props) => {
   }, [toggleOpen]);
 
   return (
-    <div className="xendit-accordion-item">
+    <div
+      className={classNames(
+        "xendit-accordion-item",
+        open ? "xendit-accordion-item-open" : "xendit-accordion-item-closed",
+      )}
+    >
       <div
         className="xendit-accordion-item-header"
         onClick={handleClick}
@@ -59,10 +62,7 @@ export const AccordionItem: React.FC<Props> = (props) => {
           direction={chevronDirection}
         />
       </div>
-      <div
-        className={`xendit-accordion-item-content ${containerOpenClass}`}
-        inert={!open}
-      >
+      <div className="xendit-accordion-item-content" inert={!open}>
         <div className="xendit-accordion-item-padding">{children}</div>
       </div>
     </div>
