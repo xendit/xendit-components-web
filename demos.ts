@@ -1,7 +1,7 @@
 #!/usr/bin/env -S node --experimental-transform-types
 
 import typescript from "@rollup/plugin-typescript";
-import path, { extname } from "path";
+import path from "path";
 import * as rollup from "rollup";
 import { createServer } from "https";
 import { readFileSync } from "fs";
@@ -11,6 +11,8 @@ import resolve from "@rollup/plugin-node-resolve";
 import { execSync } from "child_process";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
+import json from "@rollup/plugin-json";
+import mime from "mime-types";
 
 const DEMO_SERVER_PORT = 4442;
 
@@ -40,6 +42,7 @@ function rollupConfig(demoName: string): rollup.RollupOptions {
       typescript({
         tsconfig: path.join(import.meta.dirname, "demos/tsconfig.json"),
       }),
+      json(),
       replace({
         "process.env.NODE_ENV": JSON.stringify("development"),
       }),
@@ -89,21 +92,6 @@ async function rollupWatch() {
   }
 }
 
-function extToMime(ext: string) {
-  switch (ext) {
-    case ".html":
-      return "text/html";
-    case ".js":
-      return "application/javascript";
-    case ".css":
-      return "text/css";
-    case ".map":
-      return "application/json";
-    default:
-      return "text/plain";
-  }
-}
-
 async function handleDevServerRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -120,7 +108,8 @@ async function handleDevServerRequest(
   try {
     const stats = await stat(filePart);
     if (stats.isFile()) {
-      return await serveFile(filePart, extToMime(extname(filePart)));
+      const mimeType = mime.lookup(filePart) || "application/octet-stream";
+      return await serveFile(filePart, mimeType);
     }
   } catch (e) {
     void e;

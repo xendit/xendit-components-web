@@ -85,6 +85,7 @@ import {
 import { BffCardDetails } from "./backend-types/card-details";
 import { initI18n } from "./localization";
 import { TFunction } from "i18next";
+import { moneyFormat } from "./money-format";
 
 /**
  * @internal
@@ -1186,6 +1187,10 @@ export class XenditSessionSdk extends EventTarget {
   ): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.addEventListener(type, listener as any, options);
+  }
+
+  static moneyFormat(amount: number, currency: string): string {
+    return moneyFormat(amount, currency);
   }
 }
 
