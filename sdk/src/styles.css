@@ -6,7 +6,8 @@
   src:
     local("Proxima Nova Light"),
     local("Proxima Nova"),
-    url("./assets/fonts/proxima-nova/proxima_nova_light.otf") format("opentype");
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_light.otf")
+      format("opentype");
 }
 
 @font-face {
@@ -17,7 +18,7 @@
   src:
     local("Proximanova Regular"),
     local("Proxima Nova"),
-    url("./assets/fonts/proxima-nova/proximanova_regular.ttf")
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf")
       format("truetype");
 }
 
@@ -29,9 +30,11 @@
   src:
     local("Proxima Nova Bold"),
     local("Proxima Nova"),
-    url("./assets/fonts/proxima-nova/proximanova_bold.otf") format("opentype"),
-    url("./assets/fonts/proxima-nova/proximanova_boldit.otf") format("opentype"),
-    url("./assets/fonts/proxima-nova/proximanova_extrabold.otf")
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_bold.otf")
+      format("opentype"),
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_boldit.otf")
+      format("opentype"),
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_extrabold.otf")
       format("opentype");
 }
 
@@ -43,10 +46,12 @@
   src:
     local("Proxima Nova Black"),
     local("Proxima Nova"),
-    url("./assets/fonts/proxima-nova/proximanova_black.otf") format("opentype"),
-    url("./assets/fonts/proxima-nova/proximanova_blackit.otf")
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_black.otf")
       format("opentype"),
-    url("./assets/fonts/proxima-nova/proximanova_black.ttf") format("truetype");
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_blackit.otf")
+      format("opentype"),
+    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_black.ttf")
+      format("truetype");
 }
 
 /* variables */
