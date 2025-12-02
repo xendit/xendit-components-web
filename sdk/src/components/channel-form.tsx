@@ -88,6 +88,10 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       (group) => group.length,
     );
 
+    if (filteredFieldGroups.length === 0) {
+      return null;
+    }
+
     return (
       <div class="xendit-channel-form">
         <form ref={formRef}>

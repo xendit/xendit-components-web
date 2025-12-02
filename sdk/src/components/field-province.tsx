@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useLayoutEffect,
-} from "preact/hooks";
+import { useEffect, useRef, useCallback, useLayoutEffect } from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
@@ -12,7 +6,6 @@ import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
-import { LocaleKey, LocalizedString } from "../localization";
 import {
   formFieldName,
   getValueFromChannelProperty,
@@ -33,13 +26,11 @@ export const ProvinceField: React.FC<FieldProps> = (props) => {
   const channelProperties = useChannelProperties();
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<LocaleKey | LocalizedString | null>(null);
 
   const validateField = useCallback(
     (value: string) => {
       const errorCode = validate(field, value) ?? null;
       if (onError) onError(id, errorCode);
-      setError(errorCode);
       return errorCode;
     },
     [field, id, onError],
@@ -69,20 +60,22 @@ export const ProvinceField: React.FC<FieldProps> = (props) => {
     (option: DropdownOption) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = option.value;
+        validateField(hiddenFieldRef.current.value);
       }
       onChange();
     },
-    [onChange],
+    [onChange, validateField],
   );
 
   const onChangeInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = (e.target as HTMLInputElement).value;
+        validateField(hiddenFieldRef.current.value);
       }
       onChange();
     },
-    [onChange],
+    [onChange, validateField],
   );
 
   // get the list of provinces for the chosen country
@@ -120,7 +113,7 @@ export const ProvinceField: React.FC<FieldProps> = (props) => {
           id={id}
           onChange={onChangeInput}
           placeholder={field.placeholder}
-          className={`xendit-input xendit-text-14 ${error ? "invalid" : ""}`}
+          className={`xendit-input xendit-text-14`}
         />
       )}
     </>

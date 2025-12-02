@@ -8,11 +8,18 @@ import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { BffSession } from "../backend-types/session";
 import { usePrevious } from "../utils";
-import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { singleBffChannelToPublic } from "../bff-marshal";
+import { TFunction } from "i18next";
 
 interface ChannelPickerGroupProps {
-  group: BffChannelUiGroup | null;
+  group: BffChannelUiGroup;
   open: boolean;
 }
 
@@ -22,7 +29,12 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   const { group, open } = props;
 
   const sdk = useSdk();
+  const { t } = sdk;
   const session = useSession();
+
+  const sessionType = session.session_type;
+
+  const dropdownId = useId();
 
   // container for the selected channel component
   const containerRef = useRef<HTMLDivElement>(null);
@@ -140,7 +152,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     title: channel.brand_name,
     value: channel.channel_code,
     disabled: !shouldEnableChannel(session, channel),
-    description: getChannelDisabledReason(session, channel) || undefined,
+    description: getChannelDisabledReason(t, session, channel) || undefined,
   }));
 
   // Hide dropdown for cards channel
@@ -150,18 +162,32 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   return (
     <div className="xendit-channel-picker-group">
       {hideDropdown ? null : (
-        <Dropdown
-          selectedIndex={
-            channelOptions.findIndex((channel) => {
-              return channel.value === explicitSelectedChannel?.channel_code;
-            }) ?? 0
-          }
-          options={channelOptions}
-          onChange={onSelectedChannelChange}
-          placeholder={"Select a payment method"}
-        />
+        <div className="xendit-channel-form-field-group">
+          <label htmlFor={dropdownId} className="xendit-text-14">
+            {sessionType === "SAVE"
+              ? t("payment_methods.add_payment_method", {
+                  groupName: group.label ?? "",
+                  ns: "session",
+                })
+              : t("payment_methods.pay_with")}
+          </label>
+          <Dropdown
+            id={dropdownId}
+            selectedIndex={
+              channelOptions.findIndex((channel) => {
+                return channel.value === explicitSelectedChannel?.channel_code;
+              }) ?? 0
+            }
+            options={channelOptions}
+            onChange={onSelectedChannelChange}
+            placeholder={t("payment_methods.select_channel_placeholder", {
+              groupName: group.label,
+              ns: "session",
+            })}
+          />
+        </div>
       )}
-      <div ref={containerRef} />
+      {explicitSelectedChannel ? <div ref={containerRef} /> : null}
     </div>
   );
 };
@@ -185,6 +211,7 @@ export function shouldEnableChannel(
 }
 
 export function getChannelDisabledReason(
+  t: TFunction<"session">,
   session: BffSession,
   channel: BffChannel,
 ): string | null {
@@ -192,5 +219,9 @@ export function getChannelDisabledReason(
     return null;
   }
 
-  return "Unavailable for this payment";
+  if (channel.min_amount && session.amount < channel.min_amount) {
+    return t("payment_methods.channel_disabled_amount_too_small");
+  } else {
+    return t("payment_methods.channel_disabled_amount_too_large");
+  }
 }

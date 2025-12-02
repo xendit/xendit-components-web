@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { Dropdown, DropdownOption } from "./dropdown";
@@ -14,6 +14,7 @@ import parsePhoneNumberFromString, {
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
 import { formFieldName } from "../utils";
+import { InternalInputValidateEvent } from "../private-event-types";
 
 export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
@@ -36,7 +37,6 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS[countryCodeIndex];
 
   const [localNumber, setLocalNumber] = useState("");
-  const [hasError, setHasError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const formatPhoneNumber = useCallback(
@@ -59,7 +59,6 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
       const errorCode =
         validate(field, localNumber.length ? phoneNumberString : "") ?? null;
       if (onError) onError(id, errorCode);
-      setHasError(errorCode !== null);
     },
     [field, formatPhoneNumber, id, onError],
   );
@@ -72,6 +71,19 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     },
     [formatPhoneNumber],
   );
+
+  useEffect(() => {
+    const input = hiddenFieldRef.current;
+    if (!input) return;
+    const listener = (e: Event) => {
+      const value = (e as CustomEvent).detail.value;
+      updateValidity(country, value);
+    };
+    input.addEventListener(InternalInputValidateEvent.type, listener);
+    return () => {
+      input.removeEventListener(InternalInputValidateEvent.type, listener);
+    };
+  }, [id, updateValidity, country]);
 
   function handleLocalChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
@@ -95,7 +107,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     const newOption = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
       (option) => option.value === newCountry,
     );
-    if (newOption) {
+    if (newOption && newOption.value !== countryCode) {
       handleCountryChange(newOption);
     }
   });
@@ -132,7 +144,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   }
 
   return (
-    <div className={`xendit-input-phone ${hasError ? "invalid" : ""}`}>
+    <div className={`xendit-input-phone`}>
       <div className="xendit-combobox">
         <Dropdown
           options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
@@ -167,6 +179,7 @@ const COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS =
       if (!dial) return null;
       return {
         ...country,
+        shortTitle: `+${dial}`,
         title: `${country.title} (+${dial})`,
         dial,
       };
