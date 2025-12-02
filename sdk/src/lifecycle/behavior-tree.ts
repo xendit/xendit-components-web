@@ -195,10 +195,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
       // Never happens because sessions don't set the PR type to REUSABLE_PAYMENT_CODE
       throw new Error("Status ACCEPTING_PAYMENTS should not happen");
     }
-    case "AUTHORIZED": {
-      // Never happens because only CARDS_SESSIONS_JS sessions can use manual capture
-      throw new Error("Status AUTHORIZED should not happen");
-    }
+    case "AUTHORIZED":
     case "ACTIVE":
     case "SUCCEEDED": {
       // The payemnt entity is completed but the session is still active, it should automatically switch to completed soon
