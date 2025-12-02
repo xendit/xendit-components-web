@@ -13,8 +13,8 @@ export interface XenditSdkOptions {
      * Additional limited styles applied to iframe inputs.
      */
     inputFieldProperties?: {
-      fontFamily: string;
-      fontSize: string;
+      fontFamily?: string;
+      fontSize?: string;
     };
   };
 }

@@ -12,7 +12,12 @@ import {
   createInputElement,
   createWrapperDiv,
 } from "./ui";
-import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
+import {
+  arrayBufferToBase64,
+  assert,
+  base64ToArrayBuffer,
+  applyInputStyles,
+} from "./utils";
 import { validate } from "./validation";
 
 function getQueryInputs() {
@@ -28,6 +33,7 @@ function getQueryInputs() {
   assert(serverPublicKeyBase64, "missing qs pk");
   const serverPublicKeySignatureBase64 = query.get("sig");
   assert(serverPublicKeySignatureBase64, "missing qs sig");
+  const appearanceOptions = query.get("appearance");
 
   return {
     inputType: inputType as IframeFieldType,
@@ -35,17 +41,38 @@ function getQueryInputs() {
     sessionId,
     serverPublicKeyBase64,
     serverPublicKeySignatureBase64,
+    appearanceOptions,
   };
 }
 
 // @ts-expect-error This macro is replaced with a JSON array by the build script
 const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
+function injectFontFaces() {
+  const style = document.createElement("style");
+  style.textContent = `
+    @font-face {
+      font-family: "Proxima Nova";
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src:
+        local("Proximanova Regular"),
+        local("Proxima Nova"),
+        url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf")
+          format("truetype");
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 function insecurePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, "*");
 }
 
 export async function init() {
+  injectFontFaces();
+
   document.body.style.margin = "0";
 
   assert(masterPinningKeys.length > 0, "missing pinning keys");
@@ -98,6 +125,22 @@ export async function init() {
   document.body.appendChild(wrapper);
   const input = createInputElement(queryInputs.inputType);
   wrapper.appendChild(input);
+
+  // Apply appearance options if provided
+  if (queryInputs.appearanceOptions) {
+    console.log(queryInputs.appearanceOptions);
+    try {
+      const appearance = JSON.parse(
+        decodeURIComponent(queryInputs.appearanceOptions),
+      );
+      if (appearance?.inputFieldProperties) {
+        // Apply styles with security validation at the iframe boundary
+        applyInputStyles(input, appearance.inputFieldProperties);
+      }
+    } catch (error) {
+      throw new Error(`Invalid appearance options provided: ${error}`);
+    }
+  }
 
   let lastValue: string[] = [];
 
