@@ -128,7 +128,6 @@ export async function init() {
 
   // Apply appearance options if provided
   if (queryInputs.appearanceOptions) {
-    console.log(queryInputs.appearanceOptions);
     try {
       const appearance = JSON.parse(
         decodeURIComponent(queryInputs.appearanceOptions),
