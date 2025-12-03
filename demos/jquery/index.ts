@@ -27,7 +27,15 @@ $(function () {
     beginCheckout();
   });
 
-  $(".submit").on("click", async () => {
+  $(".submit").on("click", async (event) => {
+    $(event.currentTarget)[0].animate(
+      [
+        { transform: "scale(1)" },
+        { transform: "scale(0.9)" },
+        { transform: "scale(1)" },
+      ],
+      200,
+    );
     submitCheckout();
   });
 });

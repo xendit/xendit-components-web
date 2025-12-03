@@ -184,6 +184,7 @@ select {
 }
 
 .product {
+  display: block;
   border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 8px;
   width: min-content;
@@ -191,12 +192,14 @@ select {
   overflow: hidden;
   transition: transform 0.2s ease;
   user-select: none;
+  padding: 0;
 }
 
 .product:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-color: rgba(0, 0, 0, 0.2);
   transform: scale(1.05);
+  background: none;
 }
 
 .product:active {
@@ -263,10 +266,14 @@ select {
   cursor: pointer;
   margin-bottom: 32px;
   width: fit-content;
+  padding: 0;
+  border: none;
+  background: none;
 }
 
 .back-to-store-button:hover {
   text-decoration: underline;
+  background: none;
 }
 
 .payment-container {
@@ -355,8 +362,11 @@ select {
 
 .submit:hover {
   background-color: #1762ee;
-  box-shadow: 0px 0px 0px 2px #1762ee26;
-  transform: scale(1.01);
+}
+
+.submit:focus {
+  box-shadow: 0px 0px 0px 3px #bad1fc;
+  outline: none;
 }
 
 .xendit-component-container {

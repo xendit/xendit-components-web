@@ -767,6 +767,10 @@ export class XenditSessionSdk extends EventTarget {
   createActionContainerComponent(isInternal?: typeof internal): HTMLElement {
     this.assertInitialized();
 
+    if (this[internal].liveComponents.actionContainer) {
+      this.destroyComponent(this[internal].liveComponents.actionContainer);
+    }
+
     const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
       PeRequiresActionBehavior,
     );
@@ -780,9 +784,7 @@ export class XenditSessionSdk extends EventTarget {
       );
     }
 
-    const container = document.createElement(
-      "xendit-action-container-component",
-    );
+    const container = document.createElement("xendit-action-container");
 
     this[internal].liveComponents.actionContainer = container;
 
@@ -1187,6 +1189,29 @@ export class XenditSessionSdk extends EventTarget {
   ): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.addEventListener(type, listener as any, options);
+  }
+
+  /**
+   * @public
+   * Fallback overload.
+   */
+  removeEventListener<K extends keyof XenditEventMap>(
+    type: K,
+    listener: (this: XenditSessionSdk, ev: XenditEventMap[K]) => void,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @internal
+   * Implementation.
+   */
+  removeEventListener(
+    type: string,
+    listener: unknown,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return super.removeEventListener(type, listener as any, options);
   }
 
   static moneyFormat(amount: number, currency: string): string {
