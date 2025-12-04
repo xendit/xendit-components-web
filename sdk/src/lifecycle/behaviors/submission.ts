@@ -117,15 +117,15 @@ export class SubmissionBehavior implements Behavior {
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
     const channelProperties = this.bb.channelProperties ?? {};
-
+    const savePaymentMethod = this.bb.savePaymentMethod;
     const abortController = new AbortController();
-
     const promise = asyncSubmit(
       this.bb.sdkKey,
       this.bb.mock,
       sessionType,
       channelCode,
       channelProperties,
+      savePaymentMethod,
       abortController,
     )
       .then((paymentEntity: BffPaymentEntity) => {
@@ -177,6 +177,7 @@ async function asyncSubmit(
   sessionType: BffSessionType,
   channelCode: string,
   channelProperties: ChannelProperties,
+  savePaymentMethod: boolean,
   abortController: AbortController,
 ): Promise<BffPaymentEntity> {
   let result: BffPaymentToken | BffPaymentRequest;
@@ -208,6 +209,7 @@ async function asyncSubmit(
             session_id: sdkKey.sessionAuthKey,
             channel_code: channelCode,
             channel_properties: channelProperties,
+            save_payment_method: savePaymentMethod,
             // TODO: pass customer for VA channels
           },
           null,

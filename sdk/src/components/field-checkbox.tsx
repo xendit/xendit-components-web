@@ -4,12 +4,20 @@ interface Props {
   id?: string;
   label: string;
   checked?: boolean;
+  disabled?: boolean;
   defaultChecked?: boolean; // For uncontrolled
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const CheckboxField: React.FC<Props> = (props) => {
-  const { id = "checkbox", label, checked, defaultChecked, onChange } = props;
+  const {
+    id = "checkbox",
+    label,
+    checked,
+    defaultChecked,
+    onChange,
+    disabled,
+  } = props;
 
   // Determine if controlled or uncontrolled
   const isControlled = checked !== undefined;
@@ -38,7 +46,7 @@ export const CheckboxField: React.FC<Props> = (props) => {
   const checkedValue = isControlled ? checked : internalChecked;
 
   return (
-    <div className="xendit-checkbox-field">
+    <div className="xendit-checkbox">
       <label htmlFor={id} className="xendit-text-14">
         {label}
       </label>
@@ -47,6 +55,7 @@ export const CheckboxField: React.FC<Props> = (props) => {
         type="checkbox"
         onChange={handleChange}
         checked={checkedValue}
+        disabled={disabled}
       />
     </div>
   );

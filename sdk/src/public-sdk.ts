@@ -244,6 +244,7 @@ export class XenditSessionSdk extends EventTarget {
         simulatePaymentRequested: false,
         actionCompleted: false,
         pollImmediatelyRequested: false,
+        savePaymentMethod: false,
       }),
       activeChannelCode: null,
     };
@@ -923,6 +924,33 @@ export class XenditSessionSdk extends EventTarget {
 
     this[internal].behaviorTree.bb.submissionRequested = false;
     this.behaviorTreeUpdate();
+  }
+
+  /**
+   * @public
+   * Set whether the payment method should be saved for future use.
+   * This is only applicable when session.allow_save_payment_method is 'OPTIONAL'.
+   */
+  setSavePaymentMethod(save: boolean) {
+    this.assertInitialized();
+    if (
+      this[internal].worldState.session.allow_save_payment_method === "FORCED"
+    )
+      this[internal].behaviorTree.bb.savePaymentMethod = true;
+    else this[internal].behaviorTree.bb.savePaymentMethod = save;
+  }
+
+  /**
+   * @public
+   * Get the current save payment method setting.
+   */
+  getSavePaymentMethod(): boolean {
+    this.assertInitialized();
+    if (
+      this[internal].worldState.session.allow_save_payment_method === "FORCED"
+    )
+      return true;
+    return this[internal].behaviorTree.bb.savePaymentMethod;
   }
 
   /**

@@ -7,6 +7,7 @@
     "validation.generic_invalid": "{{field}} ไม่ถูกต้อง",
     "validation.required": "กรุณากรอก {{field}}",
     "validation.text_too_long": "{{field}} ยาวเกินไป",
-    "validation.text_too_short": "{{field}} สั้นเกินไป"
+    "validation.text_too_short": "{{field}} สั้นเกินไป",
+    "payment.save_checkbox_label": "บันทึกไว้สำหรับการชำระเงินที่เร็วขึ้นในครั้งถัดไป"
   }
 }

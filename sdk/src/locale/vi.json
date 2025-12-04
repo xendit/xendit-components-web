@@ -7,6 +7,7 @@
     "validation.generic_invalid": "{{field}} không hợp lệ",
     "validation.required": "Vui lòng nhập {{field}}",
     "validation.text_too_long": "{{field}} quá dài",
-    "validation.text_too_short": "{{field}} quá ngắn"
+    "validation.text_too_short": "{{field}} quá ngắn",
+    "payment.save_checkbox_label": "Lưu để thanh toán nhanh hơn lần sau"
   }
 }

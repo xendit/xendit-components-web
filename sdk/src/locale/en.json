@@ -8,6 +8,7 @@
     "validation.required": "{{field}} is required",
     "validation.text_too_long": "{{field}} is too long",
     "validation.text_too_short": "{{field}} is too short",
+    "payment.save_checkbox_label": "Save for faster payment next time",
     "payment_methods.add_payment_method": "Add payment method",
     "payment_methods.channel_disabled_amount_too_large": "Not available for this payment",
     "payment_methods.channel_disabled_amount_too_small": "Not available for this payment",

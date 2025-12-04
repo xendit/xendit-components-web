@@ -33,6 +33,7 @@ export function makeTestBffData(): BffResponse {
       business_id: "5f4708b7bd394b0400b96276",
       customer_id: "cust-78f95e42-4e9d-4556-827b-0e0b8ead68fc",
       capture_method: "AUTOMATIC",
+      allow_save_payment_method: "OPTIONAL",
       items: [
         {
           reference_id: "1234",

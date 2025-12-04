@@ -448,7 +448,7 @@ xendit-payment-channel[inert] {
   grid-column: span 2;
 }
 
-.xendit-checkbox-field {
+.xendit-checkbox {
   display: flex;
   gap: 8px;
   flex-direction: row-reverse;
@@ -456,14 +456,14 @@ xendit-payment-channel[inert] {
   align-items: center;
 }
 
-.xendit-checkbox-field input {
+.xendit-checkbox input {
   width: 16px;
   height: 16px;
   margin: 0;
 }
 
-.xendit-checkbox-field input,
-.xendit-checkbox-field label {
+.xendit-checkbox input,
+.xendit-checkbox label {
   cursor: pointer;
   user-select: none;
 }
