@@ -82,7 +82,12 @@ html {
 /* Set default font for root components */
 xendit-channel-picker,
 xendit-action-handler,
-xendit-payment-channel,
+xendit-payment-channel {
+  display: block;
+  unicode-bidi: isolate;
+  font-family: var(--xendit-font-family, sans-serif);
+}
+
 .xendit-default-action-container {
   font-family: var(--xendit-font-family, sans-serif);
 }
