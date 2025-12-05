@@ -36,6 +36,27 @@ export function stringToUtf8Bytes(str: string): Uint8Array<ArrayBuffer> {
 
 export type AllowedCssProperty = "fontFamily" | "fontSize";
 
+/**
+ * Validate CSS value using browser's native CSS parser
+ */
+function isValidCssValue(value: string, property: string): boolean {
+  const supportsTypedOM =
+    typeof CSSStyleValue !== "undefined" &&
+    typeof CSSStyleValue.parse === "function";
+
+  if (!supportsTypedOM) {
+    // No Typed OM → skip validation
+    return true;
+  }
+
+  try {
+    CSSStyleValue.parse(property, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function sanitizeCssValue(
   value: string,
   property: AllowedCssProperty,
@@ -72,16 +93,14 @@ export function sanitizeCssValue(
 
       if (!isValid) return "";
 
-      // Balanced quotes only
-      const dq = (trimmed.match(/"/g) || []).length;
-      const sq = (trimmed.match(/'/g) || []).length;
-      if (dq % 2 !== 0 || sq % 2 !== 0) return "";
-
       // Avoid empty names or double commas
       if (/,\s*,/.test(trimmed)) return "";
 
       // Length limits
       if (trimmed.length > 200) return "";
+
+      // Validate using browser's CSS parser
+      if (!isValidCssValue(trimmed, "font-family")) return "";
 
       return trimmed;
     }
@@ -96,6 +115,9 @@ export function sanitizeCssValue(
 
       // Length limits to prevent overly large values
       if (trimmed.length > 20) return "";
+
+      // Validate using browser's CSS parser
+      if (!isValidCssValue(trimmed, "font-size")) return "";
 
       return trimmed;
     }

@@ -226,10 +226,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
       inputFieldProperties:
         sdk[internal].options.appearance.inputFieldProperties,
     };
-    iframeUrl.searchParams.set(
-      "appearance",
-      encodeURIComponent(JSON.stringify(appearance)),
-    );
+    iframeUrl.searchParams.set("appearance", JSON.stringify(appearance));
   }
 
   const focusClass = focusWithin ? "xendit-field-focus" : "";

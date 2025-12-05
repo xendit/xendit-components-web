@@ -20,6 +20,13 @@ import {
 } from "./utils";
 import { validate } from "./validation";
 
+type AppearanceOptions = {
+  inputFieldProperties: {
+    fontFamily?: string;
+    fontSize?: string;
+  };
+};
+
 function getQueryInputs() {
   const query = new URLSearchParams(location.search);
 
@@ -126,18 +133,21 @@ export async function init() {
   const input = createInputElement(queryInputs.inputType);
   wrapper.appendChild(input);
 
-  // Apply appearance options if provided
+  // apply appearance options if provided
   if (queryInputs.appearanceOptions) {
     try {
-      const appearance = JSON.parse(
+      const appearance: AppearanceOptions = JSON.parse(
         decodeURIComponent(queryInputs.appearanceOptions),
       );
-      if (appearance?.inputFieldProperties) {
-        // Apply styles with security validation at the iframe boundary
+      if (
+        appearance?.inputFieldProperties &&
+        typeof appearance.inputFieldProperties === "object"
+      ) {
+        // apply styles with security validation at the iframe boundary
         applyInputStyles(input, appearance.inputFieldProperties);
       }
-    } catch (error) {
-      throw new Error(`Invalid appearance options provided: ${error}`);
+    } catch {
+      assert(false, "appearance param is not json");
     }
   }
 

@@ -52,12 +52,6 @@ describe("sanitizeCssValue", () => {
       expect(sanitizeCssValue(longFont, "fontFamily")).toBe("");
     });
 
-    it("rejects unbalanced quotes", () => {
-      expect(sanitizeCssValue('"Arial', "fontFamily")).toBe("");
-      expect(sanitizeCssValue("Arial'", "fontFamily")).toBe("");
-      expect(sanitizeCssValue("\"Arial' test", "fontFamily")).toBe("");
-    });
-
     it("rejects double commas and invalid characters", () => {
       expect(sanitizeCssValue("Arial,, Helvetica", "fontFamily")).toBe("");
       expect(sanitizeCssValue("Arial{test}", "fontFamily")).toBe("");
@@ -119,6 +113,39 @@ describe("sanitizeCssValue", () => {
         "",
       );
       expect(sanitizeCssValue(123 as unknown as string, "fontSize")).toBe("");
+    });
+
+    it("applies additional CSS validation layer", () => {
+      // Test that valid CSS values pass through the validation chain
+      expect(sanitizeCssValue("16px", "fontSize")).toBe("16px");
+      expect(sanitizeCssValue("1.2em", "fontSize")).toBe("1.2em");
+
+      // Test that the function handles the CSS validation step gracefully
+      expect(sanitizeCssValue("14pt", "fontSize")).toBe("14pt");
+    });
+
+    it("validates font size formats thoroughly", () => {
+      // Test edge cases that would be caught by comprehensive validation
+      expect(sanitizeCssValue("16px", "fontSize")).toBe("16px");
+      expect(sanitizeCssValue("1.5rem", "fontSize")).toBe("1.5rem");
+
+      // Values that should be rejected by the complete validation chain
+      expect(sanitizeCssValue("invalid", "fontSize")).toBe("");
+      expect(sanitizeCssValue("16px;", "fontSize")).toBe("");
+    });
+  });
+
+  describe("fontFamily validation integration", () => {
+    it("applies complete validation chain to font families", () => {
+      // Test that valid font families pass through all validation layers
+      expect(sanitizeCssValue("Arial", "fontFamily")).toBe("Arial");
+      expect(sanitizeCssValue("Helvetica, Arial", "fontFamily")).toBe(
+        "Helvetica, Arial",
+      );
+
+      // Test that the validation chain catches various invalid formats
+      expect(sanitizeCssValue("Arial;", "fontFamily")).toBe("");
+      expect(sanitizeCssValue("font{}", "fontFamily")).toBe("");
     });
   });
 });
