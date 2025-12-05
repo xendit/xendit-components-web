@@ -15,6 +15,11 @@ export interface XenditSdkOptions {
     inputFieldProperties?: {
       fontFamily?: string;
       fontSize?: string;
+      fontWeight?: string;
+      lineHeight?: string;
+      letterSpacing?: string;
+      color?: string;
+      backgroundColor?: string;
     };
   };
 }

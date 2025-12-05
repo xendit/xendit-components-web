@@ -6,18 +6,14 @@ import {
   hashText,
   pin,
 } from "./crypto";
+import { applyInputStyles } from "./css-sanitizer";
 import { assertIsSecureInputEvent } from "./events";
 import {
   createFatalErrorComponent,
   createInputElement,
   createWrapperDiv,
 } from "./ui";
-import {
-  arrayBufferToBase64,
-  assert,
-  base64ToArrayBuffer,
-  applyInputStyles,
-} from "./utils";
+import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
 import { validate } from "./validation";
 
 type AppearanceOptions = {

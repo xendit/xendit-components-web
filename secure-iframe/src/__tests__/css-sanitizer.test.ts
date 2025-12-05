@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { sanitizeCssValue, applyInputStyles } from "../utils";
+import { sanitizeCssValue, applyInputStyles } from "../css-sanitizer";
 
 describe("sanitizeCssValue", () => {
   describe("fontFamily", () => {
@@ -148,6 +148,92 @@ describe("sanitizeCssValue", () => {
       expect(sanitizeCssValue("font{}", "fontFamily")).toBe("");
     });
   });
+
+  describe("fontWeight", () => {
+    it("allows valid font weights", () => {
+      expect(sanitizeCssValue("normal", "fontWeight")).toBe("normal");
+      expect(sanitizeCssValue("bold", "fontWeight")).toBe("bold");
+      expect(sanitizeCssValue("400", "fontWeight")).toBe("400");
+      expect(sanitizeCssValue("700", "fontWeight")).toBe("700");
+    });
+
+    it("rejects invalid font weights", () => {
+      expect(sanitizeCssValue("heavy", "fontWeight")).toBe("");
+      expect(sanitizeCssValue("1000", "fontWeight")).toBe("");
+      expect(sanitizeCssValue("bold;", "fontWeight")).toBe("");
+    });
+  });
+
+  describe("lineHeight", () => {
+    it("allows valid line heights", () => {
+      expect(sanitizeCssValue("normal", "lineHeight")).toBe("normal");
+      expect(sanitizeCssValue("1.5", "lineHeight")).toBe("1.5");
+      expect(sanitizeCssValue("24px", "lineHeight")).toBe("24px");
+      expect(sanitizeCssValue("150%", "lineHeight")).toBe("150%");
+    });
+
+    it("rejects invalid line heights", () => {
+      expect(sanitizeCssValue("invalid", "lineHeight")).toBe("");
+      expect(sanitizeCssValue("1.5;", "lineHeight")).toBe("");
+    });
+  });
+
+  describe("letterSpacing", () => {
+    it("allows valid letter spacing", () => {
+      expect(sanitizeCssValue("normal", "letterSpacing")).toBe("normal");
+      expect(sanitizeCssValue("2px", "letterSpacing")).toBe("2px");
+      expect(sanitizeCssValue("-1px", "letterSpacing")).toBe("-1px");
+      expect(sanitizeCssValue("0.1em", "letterSpacing")).toBe("0.1em");
+    });
+
+    it("rejects invalid letter spacing", () => {
+      expect(sanitizeCssValue("wide", "letterSpacing")).toBe("");
+      expect(sanitizeCssValue("2px;", "letterSpacing")).toBe("");
+    });
+  });
+
+  describe("color", () => {
+    it("allows valid color values", () => {
+      expect(sanitizeCssValue("#ff0000", "color")).toBe("#ff0000");
+      expect(sanitizeCssValue("#f00", "color")).toBe("#f00");
+      expect(sanitizeCssValue("rgb(255, 0, 0)", "color")).toBe(
+        "rgb(255, 0, 0)",
+      );
+      expect(sanitizeCssValue("rgba(255, 0, 0, 0.5)", "color")).toBe(
+        "rgba(255, 0, 0, 0.5)",
+      );
+      expect(sanitizeCssValue("hsl(0, 100%, 50%)", "color")).toBe(
+        "hsl(0, 100%, 50%)",
+      );
+      expect(sanitizeCssValue("transparent", "color")).toBe("transparent");
+      expect(sanitizeCssValue("red", "color")).toBe("red");
+    });
+
+    it("rejects invalid color values", () => {
+      expect(sanitizeCssValue("invalid-color", "color")).toBe("");
+      expect(sanitizeCssValue("#gggggg", "color")).toBe("");
+      expect(sanitizeCssValue("red;", "color")).toBe("");
+    });
+  });
+
+  describe("backgroundColor", () => {
+    it("allows valid background color values", () => {
+      expect(sanitizeCssValue("#ffffff", "backgroundColor")).toBe("#ffffff");
+      expect(sanitizeCssValue("rgba(0, 0, 0, 0.1)", "backgroundColor")).toBe(
+        "rgba(0, 0, 0, 0.1)",
+      );
+      expect(sanitizeCssValue("transparent", "backgroundColor")).toBe(
+        "transparent",
+      );
+      expect(sanitizeCssValue("blue", "backgroundColor")).toBe("blue");
+    });
+
+    it("rejects invalid background color values", () => {
+      expect(sanitizeCssValue("not-a-color", "backgroundColor")).toBe("");
+      expect(sanitizeCssValue("blue;", "backgroundColor")).toBe("");
+      expect(sanitizeCssValue("#xyz", "backgroundColor")).toBe("");
+    });
+  });
 });
 
 describe("applyInputStyles", () => {
@@ -164,19 +250,39 @@ describe("applyInputStyles", () => {
     applyInputStyles(mockInput, {
       fontFamily: "Arial, sans-serif",
       fontSize: "16px",
+      fontWeight: "bold",
+      lineHeight: "1.5",
+      letterSpacing: "1px",
+      color: "#333333",
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
     });
 
     expect(mockInput.style.fontFamily).toBe("Arial, sans-serif");
     expect(mockInput.style.fontSize).toBe("16px");
+    expect(mockInput.style.fontWeight).toBe("bold");
+    expect(mockInput.style.lineHeight).toBe("1.5");
+    expect(mockInput.style.letterSpacing).toBe("1px");
+    expect(mockInput.style.color).toBe("#333333");
+    expect(mockInput.style.backgroundColor).toBe("rgba(255, 255, 255, 0.9)");
   });
 
   it("sanitizes dangerous values", () => {
     applyInputStyles(mockInput, {
       fontFamily: "Arial; background: red;",
       fontSize: "16px; color: red;",
+      fontWeight: "bold;",
+      lineHeight: "1.5;",
+      letterSpacing: "1px;",
+      color: "red;",
+      backgroundColor: "blue;",
     });
 
     expect(mockInput.style.fontFamily).toBe("");
     expect(mockInput.style.fontSize).toBe("");
+    expect(mockInput.style.fontWeight).toBe("");
+    expect(mockInput.style.lineHeight).toBe("");
+    expect(mockInput.style.letterSpacing).toBe("");
+    expect(mockInput.style.color).toBe("");
+    expect(mockInput.style.backgroundColor).toBe("");
   });
 });
