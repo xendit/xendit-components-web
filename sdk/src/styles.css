@@ -86,6 +86,7 @@ xendit-payment-channel {
   display: block;
   unicode-bidi: isolate;
   font-family: var(--xendit-font-family, sans-serif);
+  color: var(--xendit-color-text);
 }
 
 .xendit-default-action-container {
@@ -98,6 +99,12 @@ xendit-payment-channel select,
 xendit-payment-channel input,
 xendit-payment-channel input::placeholder {
   font-family: inherit;
+}
+
+xendit-payment-channel input::placeholder,
+xendit-payment-channel textarea::placeholder,
+xendit-payment-channel select::placeholder {
+  color: var(--xendit-color-text-placeholder);
 }
 
 /* Reusable typography classes */
