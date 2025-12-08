@@ -1,10 +1,8 @@
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
-import { useCallback, useContext, useRef } from "preact/hooks";
+import { useContext, useRef } from "preact/hooks";
 import { createContext, RefObject } from "preact";
 import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { InstructionsIcon } from "./instructions-icon";
-import { useSession, useSdk } from "./session-provider";
-import { CheckboxField } from "./field-checkbox";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -23,9 +21,6 @@ interface Props {
 
 export const PaymentChannel: React.FC<Props> = (props) => {
   const { channel, formRef } = props;
-  const session = useSession();
-  const sdk = useSdk();
-  const { t } = sdk;
   const divRef = useRef<HTMLDivElement>(null);
 
   const instructions = instructionsAsTuple(channel.instructions);
@@ -38,20 +33,6 @@ export const PaymentChannel: React.FC<Props> = (props) => {
     divRef.current?.dispatchEvent(event);
   };
 
-  // Determine if save payment method checkbox should be shown
-  const shouldShowSaveCheckbox =
-    session.allow_save_payment_method !== "DISABLED" &&
-    channel?.allow_save === true;
-
-  // Handler for save payment method checkbox
-  const handleSavePaymentMethodChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const checked = (e.target as HTMLInputElement)?.checked;
-      sdk.setSavePaymentMethod(checked);
-    },
-    [sdk],
-  );
-
   return (
     <ChannelContext.Provider value={channel}>
       <div className="xendit-payment-channel" ref={divRef}>
@@ -60,15 +41,6 @@ export const PaymentChannel: React.FC<Props> = (props) => {
           form={channel.form}
           onChannelPropertiesChanged={onChannelPropertiesChanged}
         />
-        {shouldShowSaveCheckbox && (
-          <CheckboxField
-            id="save-payment-method"
-            label={t("payment.save_checkbox_label")}
-            defaultChecked={sdk.getSavePaymentMethod()}
-            onChange={handleSavePaymentMethodChange}
-            disabled={session.allow_save_payment_method === "FORCED"}
-          />
-        )}
         {instructions ? (
           <div className="xendit-payment-channel-instructions">
             <InstructionsIcon />

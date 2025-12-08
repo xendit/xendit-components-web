@@ -10,12 +10,14 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { useCardDetails, useSession } from "./session-provider";
+import { useCardDetails, useSdk, useSession } from "./session-provider";
 import FieldGroup from "./field-group";
 import { BffCardDetails } from "../backend-types/card-details";
 import { usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
+import { useChannel } from "./payment-channel";
+import { CheckboxField } from "./field-checkbox";
 
 interface Props {
   form: ChannelFormField[];
@@ -29,6 +31,8 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
     const cardDetails = useCardDetails();
+    const { t } = useSdk();
+    const channel = useChannel();
 
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -92,6 +96,11 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       return null;
     }
 
+    // Determine if save payment method checkbox should be shown
+    const shouldShowSaveCheckbox =
+      session.allow_save_payment_method !== "DISABLED" &&
+      channel?.allow_save === true;
+
     return (
       <div class="xendit-channel-form">
         <form ref={formRef}>
@@ -104,6 +113,15 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
                 handleFieldChanged={handleFieldChanged}
               />
             ))}
+            {shouldShowSaveCheckbox && (
+              <CheckboxField
+                id="save_payment_method"
+                label={t("payment.save_checkbox_label")}
+                defaultChecked={session.allow_save_payment_method === "FORCED"}
+                onChange={handleFieldChanged}
+                disabled={session.allow_save_payment_method === "FORCED"}
+              />
+            )}
           </ChannelPropertiesContext.Provider>
         </form>
       </div>

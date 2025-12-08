@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
 
 interface Props {
   id?: string;
@@ -9,15 +9,10 @@ interface Props {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+const booleanToString = (value: boolean): string => (value ? "true" : "false");
+
 export const CheckboxField: React.FC<Props> = (props) => {
-  const {
-    id = "checkbox",
-    label,
-    checked,
-    defaultChecked,
-    onChange,
-    disabled,
-  } = props;
+  const { id, label, checked, defaultChecked, onChange, disabled } = props;
 
   // Determine if controlled or uncontrolled
   const isControlled = checked !== undefined;
@@ -25,6 +20,8 @@ export const CheckboxField: React.FC<Props> = (props) => {
   const [internalChecked, setInternalChecked] = useState(
     defaultChecked ?? false,
   );
+
+  const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isControlled) {
@@ -34,7 +31,9 @@ export const CheckboxField: React.FC<Props> = (props) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newChecked = (e.target as HTMLInputElement)?.checked;
-
+    if (hiddenFieldRef.current) {
+      hiddenFieldRef.current.value = booleanToString(newChecked);
+    }
     // Only update internal state if uncontrolled
     if (!isControlled) {
       setInternalChecked(newChecked);
@@ -42,8 +41,6 @@ export const CheckboxField: React.FC<Props> = (props) => {
 
     onChange?.(e);
   };
-
-  const checkedValue = isControlled ? checked : internalChecked;
 
   return (
     <div className="xendit-checkbox">
@@ -54,8 +51,14 @@ export const CheckboxField: React.FC<Props> = (props) => {
         id={id}
         type="checkbox"
         onChange={handleChange}
-        checked={checkedValue}
+        defaultChecked={defaultChecked}
         disabled={disabled}
+      />
+      <input
+        type="hidden"
+        name={id}
+        ref={hiddenFieldRef}
+        value={booleanToString(internalChecked)}
       />
     </div>
   );

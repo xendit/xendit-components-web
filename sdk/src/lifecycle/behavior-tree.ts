@@ -56,8 +56,6 @@ export type BlackboardType = {
   sdkFatalErrorMessage: string | null;
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
-  // if true, save the payment method for future use
-  savePaymentMethod: boolean;
 
   // dispatch event on the SDK instance
   dispatchEvent(event: Event): boolean;
