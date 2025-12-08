@@ -66,5 +66,6 @@ export class ActionIframeBehavior implements Behavior {
 
   exit() {
     this.cleanupActionContainer(false);
+    this.bb.sdkEvents.emptyActionContainer();
   }
 }

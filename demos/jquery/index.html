@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="utf-8" />
     <script src="./dist/index.js"></script>
     <link rel="stylesheet" href="/common.css" />
     <style>
@@ -15,66 +16,136 @@
     </style>
   </head>
   <body>
-    <div class="header">
-      <h1>Demo store for Xendit Components SDK (jQuery)</h1>
-      <button class="go-to-cart">
-        Cart (<span class="cart-count-container">0</span>)
-      </button>
-    </div>
     <div class="store">
-      <div class="product" data-product="1,10000">
-        <img src="https://placehold.co/150?text=Product_1" />
-        <h3>Product 1</h3>
-        <p>IDR 10.000</p>
-        <button class="add-to-cart">Add to cart</button>
+      <div class="header">
+        <img class="header-logo" src="/assets/logo-small.svg" />
+        <div class="header-controls">
+          <button
+            class="currency-picker"
+            popovertarget="currency-picker-popover"
+          >
+            <span class="selected-currency">USD</span>
+            <img src="/assets/caret.svg" />
+          </button>
+          <div
+            id="currency-picker-popover"
+            class="currency-picker-popover"
+            popover
+          >
+            <button class="currency-option" data-currency="USD">USD</button>
+            <button class="currency-option" data-currency="IDR">IDR</button>
+            <button class="currency-option" data-currency="PHP">PHP</button>
+            <button class="currency-option" data-currency="THB">THB</button>
+            <button class="currency-option" data-currency="VND">VND</button>
+            <button class="currency-option" data-currency="SGD">SGD</button>
+          </div>
+          <button class="cart-button">
+            Checkout
+            <img class="cart-icon" src="/assets/cart.svg" />
+            <span class="cart-item-count">0</span>
+          </button>
+        </div>
       </div>
-      <div class="product" data-product="2,30000">
-        <img src="https://placehold.co/150?text=Product_2" />
-        <h3>Product 2</h3>
-        <p>IDR 30.000</p>
-        <button class="add-to-cart">Add to cart</button>
-      </div>
-      <div class="product" data-product="3,100000">
-        <img src="https://placehold.co/150?text=Product_3" />
-        <h3>Product 3</h3>
-        <p>IDR 100.000</p>
-        <button class="add-to-cart">Add to cart</button>
+      <div class="page">
+        <div class="columns">
+          <div class="left">
+            <div class="store-card">
+              <div class="store-logo-container">
+                <img class="store-logo" src="/assets/logo-hero.svg" />
+              </div>
+              <h2 class="store-card-subtitle">XENDIT OFFICIAL PLUSHIE STORE</h2>
+              <p class="store-card-description">
+                Welcome to Plushxie! 👋🏻 <br />
+                We’re bringing the cutest badgers straight from Blok M.
+              </p>
+              <p class="store-card-disclaimer">
+                This is a demonstration of the Xendit Components SDK. No actual
+                payment will be processed.
+              </p>
+            </div>
+          </div>
+          <div class="right">
+            <h1 class="store-title">All Plushxies</h1>
+            <div class="products">
+              <button class="product product-template" style="display: none">
+                <div class="product-image-wrapper">
+                  <img class="product-image" />
+                </div>
+                <div class="product-details">
+                  <p class="product-title"></p>
+                  <p class="product-description"></p>
+                  <p class="product-price"></p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="checkout" style="display: none">
-      <h2>Checkout</h2>
-      <div class="columns">
-        <div class="left">
-          <div class="cart-items">
-            <div class="cart-item-template" style="display: none">
-              <div class="cart-item">
-                <span class="cart-item-name"></span> -
-                <span class="cart-item-quantity"></span> x
-                <span class="cart-item-price"></span>
+      <div class="page">
+        <div class="columns">
+          <div class="left">
+            <button class="back-to-store-button">
+              <img src="/assets/back.svg" />
+              Back
+            </button>
+            <h1 class="checkout-title">Complete Your Payment</h1>
+            <div class="xendit-component-container"></div>
+            <button class="submit" style="display: none">
+              Submit Simulated Payment
+            </button>
+          </div>
+          <div class="right">
+            <div class="order-summary-box">
+              <div class="order-summary">
+                <img class="order-summary-logo" src="/assets/logo-small.svg" />
+                <h2>Your Order Summary</h2>
+                <p class="order-ref">test-order-00001122025</p>
+              </div>
+              <div class="order-line-items">
+                <div class="cart-items">
+                  <div class="cart-item-template" style="display: none">
+                    <div class="line-item">
+                      <span class="line-item-name"></span>
+                      <span class="line-item-price"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="total">
+                  <div class="line-item">
+                    <span class="line-item-name"></span>
+                    <span class="line-item-price"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="terms-of-service">
+                <p>
+                  This is a demonstration of the Xendit Components SDK. No
+                  actual payment will be processed.
+                </p>
               </div>
             </div>
           </div>
-          <p>Total: <span class="total-contianer"></span></p>
-          <label for="components-sdk-key">Components SDK Key:</label>
-          <input id="components-sdk-key" />
-          <button class="begin-checkout">Begin Checkout (With SDK Key)</button>
-          <button class="begin-checkout" data-mock="true">
-            Begin Checkout (Mock)
-          </button>
-        </div>
-        <div class="right">
-          <div class="payment-container"></div>
-          <button class="submit" style="display: none">Submit</button>
         </div>
       </div>
-    </div>
-    <div class="payment-processing" style="display: none">
-      <h2>Payment Processing</h2>
-      <p>Follow the instructions to make payment.</p>
+      <div class="loading" style="display: none">
+        <div class="loading-spinner"></div>
+      </div>
     </div>
     <div class="payment-success" style="display: none">
-      <h2>Payment Success</h2>
-      <p>Your payment was successful!</p>
+      <div class="header">
+        <img class="header-logo" src="/assets/logo-small.svg" />
+      </div>
+      <div class="payment-success-message store-card">
+        <div class="store-logo-container">
+          <img class="store-logo" src="/assets/logo-hero.svg" />
+        </div>
+        <h2 class="store-card-subtitle">PAYMENT SUCCESSFUL</h2>
+        <h2 class="store-card-description">
+          Thank you for trying out the Xendit Components SDK.
+        </h2>
+      </div>
     </div>
   </body>
 </html>
