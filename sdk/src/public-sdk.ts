@@ -40,6 +40,7 @@ import {
 import {
   PaymentChannel,
   XenditChannelPropertiesChangedEvent,
+  XenditSavePaymentMethodChangedEvent,
 } from "./components/payment-channel";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
@@ -637,7 +638,7 @@ export class XenditSessionSdk extends EventTarget {
    * Makes the given channel the active channel for submission.
    *
    * The active channel:
-   *  - Is interactive if it has a form (other channel compoennts are non-interactive)
+   *  - Is interactive if it has a form (other channel components are non-interactive)
    *  - Is used when `submit()` is called.
    *
    * Set to null to clear the active channel.
@@ -686,6 +687,7 @@ export class XenditSessionSdk extends EventTarget {
    * @internal
    * Handles events from the payment channel component.
    *  - Updates channel properties when they change.
+   *  - Updates save payment method setting when it changes.
    */
   private setupUiEventsForPaymentChannel(container: HTMLElement): void {
     // update per-channel channel properties
@@ -702,6 +704,17 @@ export class XenditSessionSdk extends EventTarget {
         component.channelProperties = event.channelProperties;
 
         // update behavior tree (form validity may have changed)
+        this.behaviorTreeUpdate();
+      },
+    );
+
+    // update save payment method setting
+    container.addEventListener(
+      XenditSavePaymentMethodChangedEvent.type,
+      (_event) => {
+        const event = _event as XenditSavePaymentMethodChangedEvent;
+        this[internal].behaviorTree.bb.savePaymentMethod =
+          event.savePaymentMethod;
         this.behaviorTreeUpdate();
       },
     );

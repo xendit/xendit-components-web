@@ -114,6 +114,11 @@ export class SubmissionBehavior implements Behavior {
       throw new Error("Session object missing");
     }
 
+    const shouldSavePaymentMethod =
+      this.bb.world.session.allow_save_payment_method === "FORCED"
+        ? true
+        : this.bb.savePaymentMethod;
+
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
     const channelProperties = this.bb.channelProperties ?? {};
@@ -125,6 +130,7 @@ export class SubmissionBehavior implements Behavior {
       channelCode,
       channelProperties,
       abortController,
+      shouldSavePaymentMethod,
     )
       .then((paymentEntity: BffPaymentEntity) => {
         switch (paymentEntity.type) {
@@ -176,6 +182,7 @@ async function asyncSubmit(
   channelCode: string,
   channelProperties: ChannelProperties,
   abortController: AbortController,
+  savePaymentMethod: boolean = false,
 ): Promise<BffPaymentEntity> {
   let result: BffPaymentToken | BffPaymentRequest;
   if (mock) {
@@ -205,8 +212,7 @@ async function asyncSubmit(
             session_id: sdkKey.sessionAuthKey,
             channel_code: channelCode,
             channel_properties: channelProperties,
-            save_payment_method:
-              channelProperties.save_payment_method === "true",
+            save_payment_method: savePaymentMethod,
             // TODO: pass customer for VA channels
           },
           null,

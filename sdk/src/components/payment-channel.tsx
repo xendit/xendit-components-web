@@ -84,3 +84,16 @@ export class XenditChannelPropertiesChangedEvent extends Event {
     this.channelProperties = channelProperties;
   }
 }
+
+export class XenditSavePaymentMethodChangedEvent extends Event {
+  static readonly type = "xendit-save-payment-method-changed" as const;
+  savePaymentMethod: boolean;
+
+  constructor(savePaymentMethod: boolean) {
+    super(XenditSavePaymentMethodChangedEvent.type, {
+      bubbles: true,
+      composed: true,
+    });
+    this.savePaymentMethod = savePaymentMethod;
+  }
+}
