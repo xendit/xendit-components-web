@@ -231,7 +231,11 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           tabIndex={-1}
         />
         <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
-        <iframe src={iframeUrl.toString()} ref={iframeRef} />
+        <iframe
+          src={iframeUrl.toString()}
+          ref={iframeRef}
+          sandbox="allow-scripts allow-same-origin"
+        />
         {field.type.name === "credit_card_number" && card && (
           <CardBrands
             cardsBrandList={card.brands}
