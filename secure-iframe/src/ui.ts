@@ -16,6 +16,7 @@ export function createInputElement(type: IframeFieldType) {
   input.id = "secure-iframe-input";
   input.style.width = "100%";
   input.style.fontSize = "14px";
+  input.style.fontFamily = '"Proxima Nova", sans-serif';
   input.style.lineHeight = "16px";
   input.style.padding = "12px";
   input.style.border = "none";
@@ -128,7 +129,7 @@ function creditCardNumberEvents(input: HTMLInputElement) {
     }
 
     // update input value
-    const newValue = out.join("").trim();
+    const newValue = out.join("").trimStart();
     input.value = newValue;
 
     if (hasCollapsedSelection) {

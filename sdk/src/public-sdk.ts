@@ -83,6 +83,9 @@ import {
   bffUiGroupsToPublic,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
+import { initI18n } from "./localization";
+import { TFunction } from "i18next";
+import { moneyFormat } from "./money-format";
 
 /**
  * @internal
@@ -140,6 +143,13 @@ type InitializedSdk = {
  * @public
  */
 export class XenditSessionSdk extends EventTarget {
+  /**
+   * @internal
+   */
+  public t: TFunction<"session"> = ((str: string): string => {
+    throw new Error("Localization used before initialization; this is a bug.");
+  }) as TFunction<"session">;
+
   /**
    * @internal
    */
@@ -336,6 +346,13 @@ export class XenditSessionSdk extends EventTarget {
       this[internal].worldState ?? ({} as WorldState),
       data,
     );
+
+    // update locale
+    const locale = this[internal].worldState.session.locale;
+    const i18n = initI18n(locale);
+    this.t = i18n.getFixedT(locale, "session");
+
+    // update everything
     this.behaviorTreeUpdate();
     this.rerenderAllComponents();
   }
@@ -750,6 +767,10 @@ export class XenditSessionSdk extends EventTarget {
   createActionContainerComponent(isInternal?: typeof internal): HTMLElement {
     this.assertInitialized();
 
+    if (this[internal].liveComponents.actionContainer) {
+      this.destroyComponent(this[internal].liveComponents.actionContainer);
+    }
+
     const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
       PeRequiresActionBehavior,
     );
@@ -763,9 +784,7 @@ export class XenditSessionSdk extends EventTarget {
       );
     }
 
-    const container = document.createElement(
-      "xendit-action-container-component",
-    );
+    const container = document.createElement("xendit-action-container");
 
     this[internal].liveComponents.actionContainer = container;
 
@@ -1170,6 +1189,33 @@ export class XenditSessionSdk extends EventTarget {
   ): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.addEventListener(type, listener as any, options);
+  }
+
+  /**
+   * @public
+   * Fallback overload.
+   */
+  removeEventListener<K extends keyof XenditEventMap>(
+    type: K,
+    listener: (this: XenditSessionSdk, ev: XenditEventMap[K]) => void,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @internal
+   * Implementation.
+   */
+  removeEventListener(
+    type: string,
+    listener: unknown,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return super.removeEventListener(type, listener as any, options);
+  }
+
+  static moneyFormat(amount: number, currency: string): string {
+    return moneyFormat(amount, currency);
   }
 }
 

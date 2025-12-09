@@ -10,7 +10,6 @@ import { CountryCode, getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
-import { LocaleKey, LocalizedString } from "../localization";
 import { formFieldName, usePrevious } from "../utils";
 import { useCardDetails } from "./session-provider";
 
@@ -46,13 +45,11 @@ export const CountryField: React.FC<FieldProps> = (props) => {
   );
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<LocaleKey | LocalizedString | null>(null);
 
   const validateField = useCallback(
     (value: string) => {
       const errorCode = validate(field, value) ?? null;
       if (onError) onError(id, errorCode);
-      setError(errorCode);
       return errorCode;
     },
     [field, id, onError],
@@ -92,7 +89,7 @@ export const CountryField: React.FC<FieldProps> = (props) => {
   );
 
   return (
-    <div className={error ? "invalid" : ""}>
+    <div>
       <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
       <Dropdown
         id={id}

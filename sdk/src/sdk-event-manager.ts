@@ -96,7 +96,9 @@ export class SdkEventManager {
     if (this.sdk[internal].liveComponents.actionContainer) {
       // user created action container already
       // TODO: validate it's in the dom and the right size
-      return () => {};
+      return () => {
+        this.emptyActionContainer();
+      };
     }
 
     let cleanedUp = false;
@@ -137,6 +139,13 @@ export class SdkEventManager {
         container,
       );
     };
+  }
+
+  emptyActionContainer() {
+    const container = this.sdk[internal].liveComponents.actionContainer;
+    if (container) {
+      render(null, container);
+    }
   }
 
   populateActionContainerWithIframe(

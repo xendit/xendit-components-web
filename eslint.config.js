@@ -25,6 +25,7 @@ export default tseslint.config(
       ],
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/immutability": "off",
+      "react-hooks/purity": "off",
     },
   },
 );

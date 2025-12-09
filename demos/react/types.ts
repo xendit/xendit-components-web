@@ -1,10 +1,10 @@
+import data from "../data.json";
+
+export type PageType = "store" | "checkout" | "payment-success";
+
 export interface CartItem {
-  id: string;
-  price: number;
+  id: number;
+  quantity: number;
 }
 
-export interface Product {
-  id: string;
-  price: number;
-  name: string;
-}
+export type Product = (typeof data.products)[number];

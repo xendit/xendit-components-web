@@ -73,7 +73,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     valid: false,
     validationErrorCodes: [],
   });
-  const [error, setError] = useState<LocaleKey | null>(null);
 
   const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
 
@@ -83,7 +82,6 @@ export const IframeField: React.FC<FieldProps> = (props) => {
     (validationState: ValidationState) => {
       const errorMessage = computeFieldError(validationState, field.required);
       if (onError) onError(id, errorMessage);
-      setError(errorMessage);
     },
     [field.required, id, onError],
   );
@@ -222,20 +220,20 @@ export const IframeField: React.FC<FieldProps> = (props) => {
   iframeUrl.searchParams.set("pk", sdk[internal].sdkKey.publicKey);
   iframeUrl.searchParams.set("sig", sdk[internal].sdkKey.signature);
 
-  // Pass appearance options if available
-  const appearanceOptions =
-    sdk[internal].options.appearance?.inputFieldProperties;
-  if (appearanceOptions) {
-    iframeUrl.searchParams.set("appearance", JSON.stringify(appearanceOptions));
+  // Pass appearance options if provided
+  if (sdk[internal].options.appearance?.inputFieldProperties) {
+    const appearance = {
+      inputFieldProperties:
+        sdk[internal].options.appearance.inputFieldProperties,
+    };
+    iframeUrl.searchParams.set("appearance", JSON.stringify(appearance));
   }
 
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
   return (
     <>
-      <div
-        className={`xendit-iframe-container ${focusClass} ${error ? "invalid" : ""}`}
-      >
+      <div className={`xendit-iframe-container ${focusClass}`}>
         <XenditFormAssociatedFocusTrap.tag
           id={id}
           onFocus={giveFocusToIframe}
