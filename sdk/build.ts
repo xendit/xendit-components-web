@@ -132,7 +132,11 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       // sourcemaps({
       //   exclude: ["**/*.css", "**/*.ts"]
       // }),
-      production ? terser() : null,
+      production
+        ? terser({
+            keep_classnames: true,
+          })
+        : null,
     ].filter(Boolean),
     onwarn: (warning, warn) => {
       if (warning.code === "CIRCULAR_DEPENDENCY") {
