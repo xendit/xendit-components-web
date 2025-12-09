@@ -13,20 +13,45 @@ import { stripTypeScriptTypes } from "module";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 
+type PinningKeysConfig = {
+  STAGING: JsonWebKey[];
+  PRODUCTION: JsonWebKey[];
+};
+
 const PORT = 4444;
-const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
+const { XENDIT_COMPONENTS_PINNING_KEYS, XENDIT_COMPONENTS_TARGET_ENV } =
+  process.env;
 
 let lastSeenBuildOutput: string | null = null;
 async function generateIframeHtml(js: string) {
-  const pinningKeysRaw = XENDIT_COMPONENTS_PINNING_KEYS
-    ? Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8")
-    : await fs.readFile(
-        path.join(import.meta.dirname, "../test-pinning-keys.json"),
-        "utf-8",
+  let pinningKeysRaw: string;
+
+  if (XENDIT_COMPONENTS_PINNING_KEYS && XENDIT_COMPONENTS_TARGET_ENV) {
+    // CI environment - use environment-specific keys
+    const pinningKeysConfig: PinningKeysConfig = JSON.parse(
+      Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8"),
+    );
+
+    const environmentKey =
+      XENDIT_COMPONENTS_TARGET_ENV as keyof PinningKeysConfig;
+    if (!pinningKeysConfig[environmentKey]) {
+      throw new Error(
+        `No pinning keys found for environment: ${XENDIT_COMPONENTS_TARGET_ENV}`,
       );
-  // copy pinning keys into the js
+    }
+
+    pinningKeysRaw = JSON.stringify(pinningKeysConfig[environmentKey]);
+  } else {
+    // Development environment - use test keys
+    pinningKeysRaw = await fs.readFile(
+      path.join(import.meta.dirname, "../test-pinning-keys.json"),
+      "utf-8",
+    );
+  }
+
+  // Parse and process pinning keys
   const pinningKeys = JSON.parse(pinningKeysRaw).map((key: JsonWebKey) => {
-    // convert private keys to public keys
+    // convert private keys to public keys (keep only public key parts)
     return {
       kty: key.kty,
       crv: key.crv,
@@ -34,7 +59,6 @@ async function generateIframeHtml(js: string) {
       y: key.y,
     };
   });
-
   const jsWithPinningKeys = js.replace(
     /PINNING_KEYS_MACRO/,
     JSON.stringify(pinningKeys),
