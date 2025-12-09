@@ -604,6 +604,15 @@ export class XenditSessionSdk extends EventTarget {
     const channelObject = this.findChannel(channelCode);
     if (!channelObject) return;
 
+    // Find paired channel
+    const pairedChannel = this[internal].worldState.channels.find(
+      (c) =>
+        c.channel_code !== channelObject.channel_code &&
+        c.ui_group === channelObject.ui_group &&
+        c.brand_name === channelObject.brand_name &&
+        c.allow_save !== channelObject.allow_save,
+    );
+
     render(
       createElement(XenditSessionProvider, {
         data: this[internal].worldState,
@@ -611,6 +620,7 @@ export class XenditSessionSdk extends EventTarget {
         children: createElement(PaymentChannel, {
           channel: channelObject,
           formRef: container.channelformRef,
+          pairedChannel,
         }),
       }),
       container.element,
@@ -631,6 +641,15 @@ export class XenditSessionSdk extends EventTarget {
         (ch) => ch.channelCode === currentActiveChannelCode,
       ) ?? null
     );
+  }
+
+  /**
+   * @public
+   * Returns the current save payment method state.
+   */
+  getSavePaymentMethod(): boolean | undefined {
+    this.assertInitialized();
+    return this[internal].behaviorTree?.bb?.savePaymentMethod;
   }
 
   /**

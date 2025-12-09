@@ -498,6 +498,35 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "OVO",
+        channel_code: "OVO_SAVE",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/OVO.svg",
+        ui_group: "ewallet",
+        allow_pay_without_save: true,
+        allow_save: true,
+        brand_color: "#4D3695",
+        min_amount: 100,
+        max_amount: 20000000,
+        requires_customer_details: false,
+        form: [
+          {
+            label: "Mobile number registered with OVO_SAVE",
+            placeholder: "8000032341",
+            type: {
+              name: "phone_number",
+            },
+            channel_property: "account_mobile_number",
+            required: true,
+            span: 2,
+          },
+        ],
+        instructions: [
+          "Get your OVO app ready!",
+          "Check your app notification to complete your payment",
+        ],
+      },
+      {
         brand_name: "GoPay",
         channel_code: "GOPAY",
         brand_logo_url:

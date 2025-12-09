@@ -1,8 +1,9 @@
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
-import { useContext, useRef } from "preact/hooks";
+import { useContext, useRef, useState, useEffect } from "preact/hooks";
 import { createContext, RefObject } from "preact";
 import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { InstructionsIcon } from "./instructions-icon";
+import { useSdk } from "./session-provider";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -17,28 +18,69 @@ export const useChannel = () => {
 interface Props {
   channel: BffChannel;
   formRef?: RefObject<ChannelFormHandle>;
+  pairedChannel?: BffChannel;
 }
 
 export const PaymentChannel: React.FC<Props> = (props) => {
-  const { channel, formRef } = props;
+  const { channel, formRef, pairedChannel } = props;
   const divRef = useRef<HTMLDivElement>(null);
+  const sdk = useSdk();
 
-  const instructions = instructionsAsTuple(channel.instructions);
+  // State to track save payment method preference
+  const [savePaymentMethod, setSavePaymentMethod] = useState<
+    boolean | undefined
+  >(sdk.getSavePaymentMethod());
+
+  // State to track the active channel (original or paired)
+  const [activeChannel, setActiveChannel] = useState<BffChannel>(channel);
+
+  // Effect to listen for save payment method changes
+  useEffect(() => {
+    const handleSavePaymentMethodChanged = (event: Event) => {
+      if (event instanceof XenditSavePaymentMethodChangedEvent) {
+        setSavePaymentMethod(event.savePaymentMethod);
+      }
+    };
+
+    const currentDiv = divRef.current;
+
+    currentDiv?.addEventListener(
+      XenditSavePaymentMethodChangedEvent.type,
+      handleSavePaymentMethodChanged,
+    );
+
+    return () => {
+      currentDiv?.removeEventListener(
+        XenditSavePaymentMethodChangedEvent.type,
+        handleSavePaymentMethodChanged,
+      );
+    };
+  }, []);
+
+  // Effect to switch between original channel and pairedChannel based on savePaymentMethod
+  useEffect(() => {
+    if (savePaymentMethod && pairedChannel) {
+      setActiveChannel(pairedChannel);
+    } else {
+      setActiveChannel(channel);
+    }
+  }, [savePaymentMethod, channel, pairedChannel]);
+  const instructions = instructionsAsTuple(activeChannel.instructions);
 
   const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
     const event = new XenditChannelPropertiesChangedEvent(
-      channel.channel_code,
+      activeChannel.channel_code,
       channelProperties,
     );
     divRef.current?.dispatchEvent(event);
   };
 
   return (
-    <ChannelContext.Provider value={channel}>
+    <ChannelContext.Provider value={activeChannel}>
       <div className="xendit-payment-channel" ref={divRef}>
         <ChannelForm
           ref={formRef}
-          form={channel.form}
+          form={activeChannel.form}
           onChannelPropertiesChanged={onChannelPropertiesChanged}
         />
         {instructions ? (
