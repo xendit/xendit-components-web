@@ -23,8 +23,10 @@ export function assertEquals<T>(a: unknown, b: T): asserts a is T {
   }
 }
 
-type Not<T> = T extends true ? false : true;
-export function assertNotEquals<T>(a: unknown, b: T): asserts a is Not<T> {
+export function assertNotEquals<const A, const B extends A>(
+  a: A,
+  b: B,
+): asserts a is Exclude<A, B> {
   if (a === b) {
     throw new Error(`Assertion failed; this is a bug, please contact support.`);
   }

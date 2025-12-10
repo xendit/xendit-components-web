@@ -14,18 +14,29 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 
 const PORT = 4444;
+const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
 
 let lastSeenBuildOutput: string | null = null;
-
 async function generateIframeHtml(js: string) {
-  // copy pinning keys into the js
-  const testPinningKeys = JSON.parse(
-    await fs.readFile(
+  let pinningKeysRaw: string;
+
+  if (XENDIT_COMPONENTS_PINNING_KEYS) {
+    // CI - use provided keys for all environments
+    pinningKeysRaw = Buffer.from(
+      XENDIT_COMPONENTS_PINNING_KEYS,
+      "base64",
+    ).toString("utf-8");
+  } else {
+    // Development - use test keys
+    pinningKeysRaw = await fs.readFile(
       path.join(import.meta.dirname, "../test-pinning-keys.json"),
       "utf-8",
-    ),
-  ).map((key: JsonWebKey) => {
-    // convert private keys to public keys
+    );
+  }
+
+  // Parse and process pinning keys
+  const pinningKeys = JSON.parse(pinningKeysRaw).map((key: JsonWebKey) => {
+    // convert private keys to public keys (keep only public key parts)
     return {
       kty: key.kty,
       crv: key.crv,
@@ -33,10 +44,9 @@ async function generateIframeHtml(js: string) {
       y: key.y,
     };
   });
-
   const jsWithPinningKeys = js.replace(
     /PINNING_KEYS_MACRO/,
-    JSON.stringify(testPinningKeys),
+    JSON.stringify(pinningKeys),
   );
   if (js === jsWithPinningKeys) {
     throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
