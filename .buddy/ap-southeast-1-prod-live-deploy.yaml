@@ -14,7 +14,6 @@
       docker_image_name: "library/node"
       docker_image_tag: "22"
       execute_commands:
-        - export XENDIT_COMPONENTS_TARGET_ENV="PRODUCTION"
         - export XENDIT_COMPONENTS_PINNING_KEYS="$IFRAME_PINNING_KEYS"
         - export XENDIT_COMPONENTS_SECURE_IFRAME_URL="https://assets.xendit.co/components/secure-iframe-$BUDDY_EXECUTION_TAG.html"
         - export XENDIT_COMPONENTS_VERSION="$BUDDY_EXECUTION_TAG"

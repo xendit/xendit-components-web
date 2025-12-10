@@ -13,36 +13,21 @@ import { stripTypeScriptTypes } from "module";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 
-type PinningKeysConfig = {
-  STAGING: JsonWebKey[];
-  PRODUCTION: JsonWebKey[];
-};
-
 const PORT = 4444;
-const { XENDIT_COMPONENTS_PINNING_KEYS, XENDIT_COMPONENTS_TARGET_ENV } =
-  process.env;
+const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
 
 let lastSeenBuildOutput: string | null = null;
 async function generateIframeHtml(js: string) {
   let pinningKeysRaw: string;
 
-  if (XENDIT_COMPONENTS_PINNING_KEYS && XENDIT_COMPONENTS_TARGET_ENV) {
-    // CI environment - use environment-specific keys
-    const pinningKeysConfig: PinningKeysConfig = JSON.parse(
-      Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8"),
-    );
-
-    const environmentKey =
-      XENDIT_COMPONENTS_TARGET_ENV as keyof PinningKeysConfig;
-    if (!pinningKeysConfig[environmentKey]) {
-      throw new Error(
-        `No pinning keys found for environment: ${XENDIT_COMPONENTS_TARGET_ENV}`,
-      );
-    }
-
-    pinningKeysRaw = JSON.stringify(pinningKeysConfig[environmentKey]);
+  if (XENDIT_COMPONENTS_PINNING_KEYS) {
+    // CI - use provided keys for all environments
+    pinningKeysRaw = Buffer.from(
+      XENDIT_COMPONENTS_PINNING_KEYS,
+      "base64",
+    ).toString("utf-8");
   } else {
-    // Development environment - use test keys
+    // Development - use test keys
     pinningKeysRaw = await fs.readFile(
       path.join(import.meta.dirname, "../test-pinning-keys.json"),
       "utf-8",
