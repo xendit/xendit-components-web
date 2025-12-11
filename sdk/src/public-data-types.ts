@@ -213,7 +213,7 @@ export interface XenditPaymentChannel {
   }[];
 
   /** @internal */
-  [internal]: BffChannel;
+  [internal]: BffChannel[];
 }
 
 /**

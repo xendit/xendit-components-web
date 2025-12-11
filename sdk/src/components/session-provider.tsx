@@ -118,10 +118,10 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
 }) => {
   const { session, business, customer, channels, channelUiGroups } = data;
 
-  const channel = sdk.getActiveChannel()?.[internal] ?? null;
+  const channel = sdk.getActiveChannel()?.[internal]?.[0] ?? null;
   const channelProperties =
     sdk[internal].liveComponents.paymentChannels.get(
-      sdk.getActiveChannel()?.[internal]?.channel_code ?? "",
+      sdk.getActiveChannel()?.[internal]?.[0]?.channel_code ?? "",
     )?.channelProperties ?? null;
 
   return (

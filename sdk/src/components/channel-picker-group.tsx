@@ -49,8 +49,25 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   const channels = useChannels();
 
   const channelsInGroup = useMemo(() => {
-    return channels?.filter((method) => method.ui_group === group?.id) || [];
-  }, [channels, group?.id]);
+    function shouldIncludeChannel(channel: BffChannel) {
+      if (
+        channel.allow_save &&
+        session.allow_save_payment_method === "OPTIONAL"
+      ) {
+        const pairPayChannel = channels.find(
+          (c) =>
+            c.channel_code !== channel.channel_code &&
+            c.brand_name === channel.brand_name &&
+            !c.allow_save,
+        );
+        if (pairPayChannel) return false; // Skip the save-only channel to remove duplicates
+      }
+      return true;
+    }
+    return channels
+      ?.filter((method) => method.ui_group === group?.id)
+      .filter(shouldIncludeChannel);
+  }, [channels, group?.id, session.allow_save_payment_method]);
 
   // Create and mount the channel component if a channel is selected
   useLayoutEffect(() => {

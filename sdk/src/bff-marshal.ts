@@ -129,7 +129,7 @@ export function bffChannelToPublic(
         logoUrl: b.logo_url,
       };
     }),
-    [internal]: bffChannel,
+    [internal]: [bffChannel],
   });
 }
 

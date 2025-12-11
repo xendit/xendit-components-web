@@ -114,11 +114,9 @@ export class SubmissionBehavior implements Behavior {
       throw new Error("Session object missing");
     }
 
-    const shouldSavePaymentMethod =
-      this.bb.world.session.allow_save_payment_method === "FORCED"
-        ? true
-        : this.bb.savePaymentMethod;
-
+    const shouldSendSavePaymentMethod =
+      this.bb.world.session.allow_save_payment_method === "OPTIONAL" &&
+      this.bb.channel?.allow_save;
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
     const channelProperties = this.bb.channelProperties ?? {};
@@ -130,7 +128,9 @@ export class SubmissionBehavior implements Behavior {
       channelCode,
       channelProperties,
       abortController,
-      shouldSavePaymentMethod,
+      shouldSendSavePaymentMethod
+        ? this.bb.savePaymentMethod || false
+        : undefined,
     )
       .then((paymentEntity: BffPaymentEntity) => {
         switch (paymentEntity.type) {

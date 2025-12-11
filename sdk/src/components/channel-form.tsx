@@ -10,20 +10,12 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import {
-  useCardDetails,
-  useChannels,
-  useSdk,
-  useSession,
-} from "./session-provider";
+import { useCardDetails, useSession } from "./session-provider";
 import FieldGroup from "./field-group";
 import { BffCardDetails } from "../backend-types/card-details";
 import { usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
-import { useChannel } from "./payment-channel";
-import { CheckboxField } from "./field-checkbox";
-import { XenditSavePaymentMethodChangedEvent } from "./payment-channel";
 
 interface Props {
   form: ChannelFormField[];
@@ -37,10 +29,6 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
     const cardDetails = useCardDetails();
-    const sdk = useSdk();
-    const { t } = sdk;
-    const channel = useChannel();
-    const channels = useChannels();
     const formRef = useRef<HTMLFormElement>(null);
 
     const [channelProperties, setChannelProperties] =
@@ -95,34 +83,6 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       }
     }, [filteredForm, handleFieldChanged, previousFilteredForm]);
 
-    const pairedChannel = channel
-      ? channels?.find(
-          (c) =>
-            c.channel_code !== channel.channel_code &&
-            c.ui_group === channel.ui_group &&
-            c.brand_name === channel.brand_name &&
-            c.allow_save !== channel.allow_save,
-        )
-      : undefined;
-
-    // Determine if save payment method checkbox should be shown
-    const shouldShowSaveCheckbox =
-      session.allow_save_payment_method !== "DISABLED" &&
-      (channel?.allow_save || !!pairedChannel);
-
-    const payAndForcedSave = session.allow_save_payment_method === "FORCED";
-
-    // Dispatch save payment method event on render when checkbox is shown
-    useEffect(() => {
-      setTimeout(() => {
-        if (shouldShowSaveCheckbox) {
-          const savePaymentMethodEvent =
-            new XenditSavePaymentMethodChangedEvent(payAndForcedSave);
-          formRef.current?.dispatchEvent(savePaymentMethodEvent);
-        }
-      }, 0);
-    }, [shouldShowSaveCheckbox, payAndForcedSave]);
-
     const filteredFieldGroups = groupFields(filteredForm).filter(
       (group) => group.length,
     );
@@ -130,17 +90,6 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     if (filteredFieldGroups.length === 0) {
       return null;
     }
-
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const checked = (e.target as HTMLInputElement)?.checked;
-      // Dispatch public event to update behavior tree
-      const savePaymentMethodEvent = new XenditSavePaymentMethodChangedEvent(
-        checked,
-      );
-      formRef.current?.dispatchEvent(savePaymentMethodEvent);
-
-      handleFieldChanged();
-    };
 
     return (
       <div class="xendit-channel-form">
@@ -154,14 +103,6 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
                 handleFieldChanged={handleFieldChanged}
               />
             ))}
-            {shouldShowSaveCheckbox && (
-              <CheckboxField
-                label={t("payment.save_checkbox_label")}
-                defaultChecked={payAndForcedSave}
-                onChange={handleCheckboxChange}
-                disabled={payAndForcedSave}
-              />
-            )}
           </ChannelPropertiesContext.Provider>
         </form>
       </div>

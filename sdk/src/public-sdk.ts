@@ -82,6 +82,7 @@ import {
   bffCustomerToPublic,
   bffSessionToPublic,
   bffUiGroupsToPublic,
+  singleBffChannelToPublic,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
 import { initI18n } from "./localization";
@@ -96,6 +97,7 @@ type CachedChannelComponent = {
   element: HTMLElement;
   channelProperties: ChannelProperties | null;
   channelformRef: RefObject<ChannelFormHandle>;
+  savePaymentMethod: boolean | null;
 };
 
 /**
@@ -246,6 +248,7 @@ export class XenditSessionSdk extends EventTarget {
         simulatePaymentRequested: false,
         actionCompleted: false,
         pollImmediatelyRequested: false,
+        savePaymentMethod: null,
       }),
       activeChannelCode: null,
     };
@@ -368,14 +371,22 @@ export class XenditSessionSdk extends EventTarget {
     if (bb.sdkStatus === "LOADING" && this[internal].worldState) {
       bb.sdkStatus = "ACTIVE";
     }
+
     bb.world = this[internal].worldState;
     bb.channel = this[internal].activeChannelCode
       ? this.findChannel(this[internal].activeChannelCode)
       : null;
+
     bb.channelProperties = this[internal].activeChannelCode
       ? (this[internal].liveComponents.paymentChannels.get(
           this[internal].activeChannelCode,
         )?.channelProperties ?? null)
+      : null;
+
+    bb.savePaymentMethod = this[internal].activeChannelCode
+      ? (this[internal].liveComponents.paymentChannels.get(
+          this[internal].activeChannelCode,
+        )?.savePaymentMethod ?? null)
       : null;
 
     try {
@@ -559,9 +570,7 @@ export class XenditSessionSdk extends EventTarget {
     active = true,
   ): HTMLElement {
     this.assertInitialized();
-
-    const channelCode = channel[internal].channel_code;
-
+    const channelCode = channel[internal][0].channel_code;
     // return previously created component if it exists
     const cachedComponent =
       this[internal].liveComponents.paymentChannels.get(channelCode);
@@ -572,12 +581,16 @@ export class XenditSessionSdk extends EventTarget {
       container = cachedComponent.element;
       channelFormRef = cachedComponent.channelformRef;
     } else {
-      container = document.createElement("xendit-payment-channel");
-      container.setAttribute("inert", "");
+      const newContainer = document.createElement("xendit-payment-channel");
+      newContainer.setAttribute("inert", "");
+      this.setupUiEventsForPaymentChannel(newContainer);
+      container = newContainer;
+
       this[internal].liveComponents.paymentChannels.set(channelCode, {
         element: container,
         channelProperties: null,
         channelformRef: channelFormRef,
+        savePaymentMethod: null,
       });
     }
 
@@ -585,8 +598,6 @@ export class XenditSessionSdk extends EventTarget {
     if (active) {
       this.setActiveChannel(channel);
     }
-
-    this.setupUiEventsForPaymentChannel(container);
 
     return container;
   }
@@ -619,9 +630,8 @@ export class XenditSessionSdk extends EventTarget {
         data: this[internal].worldState,
         sdk: this,
         children: createElement(PaymentChannel, {
-          channel: channelObject,
+          channels: [channelObject, ...(pairedChannel ? [pairedChannel] : [])],
           formRef: container.channelformRef,
-          pairedChannel,
         }),
       }),
       container.element,
@@ -648,7 +658,7 @@ export class XenditSessionSdk extends EventTarget {
    * @public
    * Returns the current save payment method state.
    */
-  getSavePaymentMethod(): boolean | undefined {
+  getSavePaymentMethod(): boolean | null {
     this.assertInitialized();
     return this[internal].behaviorTree?.bb?.savePaymentMethod;
   }
@@ -666,7 +676,7 @@ export class XenditSessionSdk extends EventTarget {
   setActiveChannel(channel: XenditPaymentChannel | null): void {
     const currentActiveChannelCode = this[internal].activeChannelCode;
 
-    const channelCode = channel?.[internal].channel_code ?? null;
+    const channelCode = channel?.[internal]?.[0]?.channel_code ?? null;
 
     if (currentActiveChannelCode === channelCode) {
       // no change
@@ -733,9 +743,27 @@ export class XenditSessionSdk extends EventTarget {
       XenditSavePaymentMethodChangedEvent.type,
       (_event) => {
         const event = _event as XenditSavePaymentMethodChangedEvent;
-        this[internal].behaviorTree.bb.savePaymentMethod =
-          event.savePaymentMethod;
-        this.behaviorTreeUpdate();
+        const channelCode = event.channel;
+        let component =
+          this[internal].liveComponents.paymentChannels.get(channelCode);
+        if (!component) {
+          // Create the payment component for this channel
+          const channel = this.findChannel(channelCode);
+          if (channel) {
+            this.createPaymentComponentForChannel(
+              singleBffChannelToPublic(channel),
+              false,
+            );
+            component =
+              this[internal].liveComponents.paymentChannels.get(channelCode);
+          }
+        }
+
+        if (component) {
+          this[internal].activeChannelCode = channelCode;
+          component.savePaymentMethod = event.savePaymentMethod;
+          this.behaviorTreeUpdate();
+        }
       },
     );
   }
