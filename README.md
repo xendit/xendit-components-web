@@ -1,8 +1,13 @@
 # xendit-components
 
-The Xendit Components SDK allows you to accept payments directly on your website using the Xendit Sessions API.
+The xendit-components is a **frontend SDK** that renders a secure payment UI on your website using the **Xendit Sessions API**.
 
-This SDK's role is to take a Session (created on your server using the Xendit Sessions API) and render a payment UI, and allow you to customize the UI to match your site's look & feel.
+It consumes a **Session created on your backend** and handles:
+
+- Rendering payment methods
+- Managing user interactions
+- Securely submitting payment details to Xendit
+- UI customization through CSS variables and configuration options
 
 ## Table of Contents
 
@@ -21,16 +26,6 @@ This SDK's role is to take a Session (created on your server using the Xendit Se
 ### Customization
 
 - **[Appearance](docs/appearance.md)** - CSS variables and styling options
-
-## Quick Start
-
-For immediate development, initialize the test SDK:
-
-```typescript
-const sdk = new XenditSessionTestSdk({});
-const channelPicker = sdk.createChannelPickerComponent();
-document.getElementById("checkout-container").appendChild(channelPicker);
-```
 
 For production usage, see the [Quick Start](docs/quick-start.md) guide.
 
@@ -80,8 +75,6 @@ const sdk = new XenditSessionSdk({
 });
 ```
 
-⚠️ **Security Note:** Never expose your Xendit secret API key in frontend code. Always generate session client keys on your secure backend server.
-
 ### Demos
 
 Try our interactive demo applications to see the SDK in action:
@@ -89,15 +82,11 @@ Try our interactive demo applications to see the SDK in action:
 - **jQuery Demo** - Complete e-commerce demo with shopping cart and payment processing. For more details, please refer to the [jQuery Demo Document](demos/jquery/README.md).
 - **React Demo** - React integration guide with hooks and TypeScript examples. For more details, please refer to the [React Demo Document](demos/react/README.md).
 
-**Running the Demos:**
+## Security Notes
 
-To set up and start the demo applications, run the demos script from the project root:
-
-```bash
-./demos.ts
-```
-
-This will build all demo applications and start a local development server where you can interact with working examples of the Xendit Components SDK.
+- Never expose your Xendit secret API key in the frontend
+- Only the `components_sdk_key` should be used in the browser
+- All Sessions must be created server-side
 
 ## Support
 

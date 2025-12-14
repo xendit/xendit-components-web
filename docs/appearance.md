@@ -31,15 +31,6 @@ The following variables are available:
 | `--xendit-radius-1`               | Border radius for components                 | `8px`                                                                              | Buttons, cards, inputs                 |
 | `--xendit-z-index-focus`          | Z-index for focused elements                 | `2`                                                                                | Focus layer management                 |
 
-### Advanced Variables
-
-These variables are used internally for cross-browser compatibility:
-
-| Variable                                | Description                            | Default Value |
-| :-------------------------------------- | :------------------------------------- | :------------ |
-| `--xendit-border-collapse-offset`       | Border collapse fix for Chrome/Edge    | `-0.5px`      |
-| `--xendit-border-collapse-webkit-gecko` | Border collapse fix for Safari/Firefox | `-1.5px`      |
-
 ### Customization Examples
 
 **Basic theme customization:**

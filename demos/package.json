@@ -8,11 +8,11 @@
   "license": "ISC",
   "dependencies": {
     "@types/jquery": "^3.5.33",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.1",
     "jquery": "^3.7.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "@types/react": "^19.1.1",
-    "@types/react-dom": "^19.1.1",
-    "xendit-components": "file:.."
+    "xendit-components": "^0.0.4-alpha-3"
   }
 }

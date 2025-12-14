@@ -1,5 +1,9 @@
 # Installation
 
+### Requirements
+
+- Node 18 or later
+
 Install using npm:
 
 ```sh

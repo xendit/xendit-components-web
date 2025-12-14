@@ -249,6 +249,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           <CardBrands
             cardsBrandList={card.brands}
             selectedCardBrand={cardBrand}
+            appearance={sdk[internal].options.appearance?.inputFieldProperties}
           />
         )}
       </div>
@@ -259,9 +260,11 @@ export const IframeField: React.FC<FieldProps> = (props) => {
 const CardBrands = ({
   cardsBrandList,
   selectedCardBrand,
+  appearance,
 }: {
   cardsBrandList: { name: string; logo_url: string }[];
   selectedCardBrand: CardBrand | null;
+  appearance?: Record<string, string | number>;
 }) => {
   if (!cardsBrandList) return null;
 
@@ -269,8 +272,15 @@ const CardBrands = ({
     (b) => b.name === selectedCardBrand,
   )?.logo_url;
 
+  // Apply appearance styles if provided
+  const containerStyle = appearance
+    ? {
+        ...appearance,
+      }
+    : undefined;
+
   return (
-    <div className="xendit-card-brands-list">
+    <div className="xendit-card-brands-list" style={containerStyle}>
       {selectedCardBrand
         ? cardBrandLogo && (
             <img
