@@ -140,11 +140,3 @@ export function toPaymentEntity(
     };
   }
 }
-
-export function getFailureCodeCopyKey<
-  T extends NonNullable<
-    BffPaymentRequestFailureCode | BffPaymentTokenFailureCode
-  >,
->(failureCode: T) {
-  return `failure_code.${failureCode.toLowerCase() as Lowercase<T>}` as const;
-}
