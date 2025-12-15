@@ -292,20 +292,22 @@ export const Dropdown = (props: DropdownProps) => {
       </button>
       {open && (
         <div className="xendit-dropdown-menu" onClick={closeList}>
-          <div className="xendit-dropdown-search">
-            <input
-              ref={searchInputRef}
-              id="dropdown-search-input"
-              placeholder={"Search..."}
-              value={searchQuery}
-              onInput={(e) => {
-                setSearchQuery((e.target as HTMLInputElement).value);
-                setActiveIndex(0);
-              }}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={onListKeyDown}
-            />
-          </div>
+          {options.length >= 4 && (
+            <div className="xendit-dropdown-search">
+              <input
+                ref={searchInputRef}
+                id="dropdown-search-input"
+                placeholder={"Search..."}
+                value={searchQuery}
+                onInput={(e) => {
+                  setSearchQuery((e.target as HTMLInputElement).value);
+                  setActiveIndex(0);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={onListKeyDown}
+              />
+            </div>
+          )}
           <ul
             ref={listRef}
             id={listboxId}

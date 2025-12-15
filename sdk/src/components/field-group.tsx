@@ -19,6 +19,7 @@ const CSS_CLASSES = {
   COLLAPSE_LEFT: "field-collapse-l",
   COLLAPSE_TOP: "field-collapse-t",
   COLLAPSE_BOTTOM: "field-collapse-b",
+  COLUMN_RIGHT: "field-column-right",
 } as const;
 
 interface Props {
@@ -68,6 +69,7 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
       [CSS_CLASSES.COLLAPSE_LEFT]: field.span === 1 && fieldColumn === 1,
       [CSS_CLASSES.COLLAPSE_TOP]: fieldPositionBySpan >= 2,
       [CSS_CLASSES.COLLAPSE_BOTTOM]: !isLastRow,
+      [CSS_CLASSES.COLUMN_RIGHT]: field.span === 1 && fieldColumn === 1,
     });
   };
 

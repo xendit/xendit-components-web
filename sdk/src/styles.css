@@ -290,7 +290,6 @@ xendit-payment-channel[inert] {
 .xendit-form-field-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  position: relative;
 }
 
 .xendit-channel-form-field {
@@ -302,6 +301,8 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field-group {
   display: grid;
   gap: 8px;
+  container-type: inline-size;
+  container-name: channel-form;
 }
 
 .xendit-channel-form-field-group label {
@@ -528,7 +529,6 @@ xendit-payment-channel[inert] {
 .xendit-input-phone .xendit-combobox {
   display: flex;
   gap: 8px;
-  position: relative;
 }
 
 .xendit-phone-number-input {
@@ -544,7 +544,7 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dropdown .xendit-dropdown-search input {
-  padding-block: 11px;
+  padding: 11px 12px;
   border: 1px solid var(--xendit-color-border-subtle);
   border-radius: var(--xendit-radius-1);
   box-sizing: border-box;
@@ -590,14 +590,11 @@ xendit-payment-channel[inert] {
 
 .xendit-dropdown-menu {
   position: absolute;
-  left: 0;
-  right: 0;
-  width: auto;
   z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  height: 208px;
+  max-height: 208px;
   margin: 0;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
@@ -606,6 +603,17 @@ xendit-payment-channel[inert] {
   box-shadow: 0px 4px 8px 0px #25252514;
 }
 
+.field-column-right .xendit-dropdown-menu {
+  transform: translateX(-50%);
+}
+
+@container channel-form (min-width: 0) {
+  .xendit-channel-form-field-group .xendit-dropdown-menu {
+    width: 100cqw; /* Container query width - matches form field group */
+  }
+}
+
+.xendit-dropdown-menu,
 .xendit-dropdown-menu * {
   box-sizing: border-box;
 }
