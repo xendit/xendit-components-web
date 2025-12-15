@@ -53,6 +53,25 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     [],
   );
 
+  const isNumberPotentiallyComplete = useCallback(
+    (country: DropdownOptionWithDial, localNumber: string) => {
+      if (!localNumber.trim()) return false;
+
+      try {
+        const phoneNumber = parsePhoneNumberFromString(
+          localNumber,
+          country.value as CountryCode,
+        );
+
+        // Check if the number is possibly valid (correct length, format, etc.)
+        return phoneNumber ? phoneNumber.isPossible() : false;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
+
   const updateValidity = useCallback(
     (nextCountry: DropdownOptionWithDial, localNumber: string) => {
       const phoneNumberString = formatPhoneNumber(nextCountry, localNumber);
@@ -90,8 +109,16 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     setLocalNumber(nextLocal);
     updateHiddenField(country, nextLocal);
     setIsTouched(true);
-    updateValidity(country, nextLocal);
-    onChange(); // keep parity with other fields
+
+    if (
+      isNumberPotentiallyComplete(country, nextLocal) ||
+      nextLocal.length >= getExampleLocalNumber().length
+    ) {
+      // Only validate if the number is potentially complete or having exceeded length
+      updateValidity(country, nextLocal);
+    }
+
+    onChange();
   }
 
   function handleCountryChange(option: DropdownOption): void {
@@ -138,6 +165,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
   }
 
   function handleBlur(): void {
+    if (!localNumber.length) return;
     setIsTouched(true);
     formatForUser();
     updateValidity(country, localNumber);

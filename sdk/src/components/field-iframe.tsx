@@ -174,6 +174,7 @@ export const IframeField: React.FC<FieldProps> = (props) => {
           break;
         }
         case "xendit-iframe-blur": {
+          if (!hiddenFieldRef.current?.value.length) break;
           if (!validationResult.empty) setIsTouched(true);
           handleIframeEventResult();
           setFocusWithin(false);

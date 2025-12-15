@@ -290,6 +290,7 @@ xendit-payment-channel[inert] {
 .xendit-form-field-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  position: relative;
 }
 
 .xendit-channel-form-field {
@@ -527,6 +528,7 @@ xendit-payment-channel[inert] {
 .xendit-input-phone .xendit-combobox {
   display: flex;
   gap: 8px;
+  position: relative;
 }
 
 .xendit-phone-number-input {
@@ -542,7 +544,7 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dropdown .xendit-dropdown-search input {
-  padding: 8px;
+  padding-block: 11px;
   border: 1px solid var(--xendit-color-border-subtle);
   border-radius: var(--xendit-radius-1);
   box-sizing: border-box;
@@ -588,20 +590,20 @@ xendit-payment-channel[inert] {
 
 .xendit-dropdown-menu {
   position: absolute;
+  left: 0;
+  right: 0;
+  width: auto;
   z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 168px;
-  width: 257px;
-  padding: 4px;
-  margin: 4px 0;
+  height: 208px;
+  margin: 0;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   list-style: none;
   box-shadow: 0px 4px 8px 0px #25252514;
-  overflow-y: auto;
 }
 
 .xendit-dropdown-menu * {
@@ -611,7 +613,8 @@ xendit-payment-channel[inert] {
 .xendit-dropdown-menu ul {
   list-style: none;
   padding: 4px;
-  margin-top: 0;
+  margin: 0;
+  overflow-y: auto;
 }
 
 .xendit-dropdown-search {
@@ -628,7 +631,7 @@ xendit-payment-channel[inert] {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px 8px 4px;
+  padding: 12px;
   border-radius: var(--xendit-radius-1);
   cursor: pointer;
 }
