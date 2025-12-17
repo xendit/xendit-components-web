@@ -8,17 +8,7 @@ updates:
       all-patch:
         update-types:
           - patch
-      all-development:
-        dependency-type: "development"
-      rollup:
-        patterns:
-          - "@rollup/**"
-
   - package-ecosystem: "npm"
     directory: "/demos"
     schedule:
       interval: "weekly"
-    groups:
-      all:
-        patterns:
-          - "*"
