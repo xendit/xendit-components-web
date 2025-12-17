@@ -140,3 +140,27 @@ export function toPaymentEntity(
     };
   }
 }
+
+export function getFailureCodeCopyKey<
+  T extends NonNullable<
+    BffPaymentRequestFailureCode | BffPaymentTokenFailureCode
+  >,
+>(failureCode: T) {
+  return `failure_code.${failureCode.toLowerCase() as Lowercase<T>}` as const;
+}
+
+export function getPaymentEntityStatusCopyKey<
+  T extends
+    | BffPaymentEntityType.PaymentRequest
+    | BffPaymentEntityType.PaymentToken,
+  S extends "FAILED" | "EXPIRED" | "CANCELED",
+  const Suffix extends string,
+>(entityType: T, status: S, suffix: Suffix) {
+  const t =
+    entityType === BffPaymentEntityType.PaymentRequest
+      ? "payment_request"
+      : "payment_token";
+  return `${t}_status.${
+    status.toLowerCase() as Lowercase<S>
+  }.${suffix}` as const;
+}
