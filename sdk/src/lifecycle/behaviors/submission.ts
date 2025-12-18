@@ -163,9 +163,6 @@ export class SubmissionBehavior implements Behavior {
 
     // Ensure submit flag is reset
     this.bb.submissionRequested = false;
-
-    // Reset network error for next submission
-    this.networkError = null;
   }
 
   private submit() {

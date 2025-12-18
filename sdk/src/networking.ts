@@ -184,11 +184,14 @@ export function endpoint(
 
     const response = await fetch(url, options);
     if (!response.ok) {
-      const errorData = (await response.json()) as ErrorResponse;
-
-      throw new NetworkError(
-        errorData.error_content ? errorData : DEFAULT_ERROR,
-      );
+      try {
+        const errorData = (await response.json()) as ErrorResponse;
+        throw new NetworkError(
+          errorData.error_content ? errorData : DEFAULT_ERROR,
+        );
+      } catch {
+        throw new NetworkError(DEFAULT_ERROR);
+      }
     }
 
     return response.json();
