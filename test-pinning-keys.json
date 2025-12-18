@@ -4,12 +4,35 @@
     "crv": "P-384",
     "x": "slOtidS0KKI1YUT_HnWFmW3oR54bxRFq5iyrw9aukIR6NBtqPY0idcuC_a-XZt6m",
     "y": "t0O680YHnABhds9FdPPIvP8MeUN2ousnOWNqL3To6VFXUDOnN5F18VgawNsAhWVR",
-    "d": "c7qHpJ1_6zU7nPKe_96Im9x3wSRXxeaiiEm_7oZOfddt_xj8hiMs5CXrI_TRM_VY"
+    "d": "c7qHpJ1_6zU7nPKe_96Im9x3wSRXxeaiiEm_7oZOfddt_xj8hiMs5CXrI_TRM_VY",
+    "description": "signing and verification key for development only"
   },
   {
     "kty": "EC",
     "crv": "P-384",
     "x": "ydXX9s-nsQGiR9xj8VKOpBY0TAG4bEzMNi7BeKCqxRF0787HsWFoqy8PV3U9_JFI",
-    "y": "r38T6ZQwrgIbSmIb041sjATgr1WOAgD1NYC2Z9Kr99nnZoDpgCqxQGEj8JYY5QKN"
+    "y": "r38T6ZQwrgIbSmIb041sjATgr1WOAgD1NYC2Z9Kr99nnZoDpgCqxQGEj8JYY5QKN",
+    "description": "staging public key 1"
+  },
+  {
+    "kty": "EC",
+    "x": "xxIujzIVWxFB7GBszoR07ww3v9lKnkFaq5ScYekrkZj1j1ZNXLLZK4RYO7dGTmLI",
+    "y": "9LF94iVqrr0gfku0Tie-w4Wa_JwVonbDimG16RJh7RmVwJ9KpvownCk_dfPrRLFm",
+    "crv": "P-384",
+    "description": "staging public key 2"
+  },
+  {
+    "kty": "EC",
+    "x": "8Q8MZGlvNdpiEtr9WI8wIWI41D9kFO-SMce5jv7b6xO5QxRmnGCOaLS_9NOfPk4u",
+    "y": "dzvs6jAZ7nVgSLOJBqsLzisoe4LNKRlPJ_qPbQ63oVAOF5hj_CB1QiFVE_leCCsM",
+    "crv": "P-384",
+    "description": "production public key 1"
+  },
+  {
+    "kty": "EC",
+    "x": "1KR13JpDMY2MF7OVJfWSF4-3IFCBilOQlQetnEQYiHIofGaQYAlZxPIw6TWHxZuu",
+    "y": "5rDEkY0vVgn4X6x9J88jwb18uej1P8ESf56dbcGkoK5YrtIgiw4OmSXTztgMVLYO",
+    "crv": "P-384",
+    "description": "production public key 2"
   }
 ]
