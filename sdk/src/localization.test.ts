@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getLocalizedErrorMessage, initI18n } from "../localization";
-import { ChannelFormField } from "../backend-types/channel";
+import { getLocalizedErrorMessage, initI18n } from "./localization";
+import { ChannelFormField } from "./backend-types/channel";
 
 const i18n = initI18n("en");
 const t = i18n.getFixedT("en", "session");

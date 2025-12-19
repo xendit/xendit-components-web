@@ -112,7 +112,6 @@ export const Dropdown = (props: DropdownProps) => {
 
   // Ids for ARIA wiring
   const labelId = `${id}-label`;
-  const valueId = `${id}-value`;
   const listboxId = `${id}-listbox`;
 
   const clampedActive = Math.max(
@@ -248,14 +247,7 @@ export const Dropdown = (props: DropdownProps) => {
   const selected = currentIndex >= 0 ? options[currentIndex] : undefined;
 
   return (
-    <div
-      ref={rootRef}
-      className={`xendit-dropdown ${className ?? ""}`}
-      aria-expanded={open ? "true" : "false"}
-      aria-controls={listboxId}
-      aria-haspopup="listbox"
-      aria-labelledby={labelId}
-    >
+    <div ref={rootRef} className={`xendit-dropdown ${className ?? ""}`}>
       <button
         id={id}
         ref={btnRef}
@@ -263,7 +255,6 @@ export const Dropdown = (props: DropdownProps) => {
         className={selected?.leadingAsset ? "xendit-dropdown-has-asset" : ""}
         aria-controls={listboxId}
         aria-expanded={open ? "true" : "false"}
-        aria-labelledby={`${labelId} ${valueId}`}
         onClick={() => (open ? closeList() : openList())}
         onKeyDown={(e) => onButtonKeyDown(e as unknown as KeyboardEvent)}
       >

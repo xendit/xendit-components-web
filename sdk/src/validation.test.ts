@@ -4,10 +4,10 @@ import {
   validatePhoneNumber,
   validatePostalCode,
   validateText,
-} from "../validation";
+} from "./validation";
 
 import type { CountryCode } from "libphonenumber-js";
-import { ChannelFormField } from "../backend-types/channel";
+import { ChannelFormField } from "./backend-types/channel";
 
 // --- validateEmail ---
 describe("validateEmail", () => {

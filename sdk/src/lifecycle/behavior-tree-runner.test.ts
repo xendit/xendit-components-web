@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { behaviorNode, BehaviorTree } from "../lifecycle/behavior-tree-runner";
+import { behaviorNode, BehaviorTree } from "./behavior-tree-runner";
 import { assert } from "../utils";
 
 type BB = {

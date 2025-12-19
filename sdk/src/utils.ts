@@ -32,8 +32,10 @@ export function assertNotEquals<const A, const B extends A>(
   }
 }
 
+const SLEEP_MULTIPLIER = process.env.NODE_ENV === "test" ? 0.01 : 1;
+
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms * SLEEP_MULTIPLIER));
 }
 
 export class AbortError extends Error {
@@ -64,7 +66,7 @@ export function cancellableSleep(
     const timeoutId = setTimeout(() => {
       signal.removeEventListener("abort", onAbort);
       resolve();
-    }, ms);
+    }, ms * SLEEP_MULTIPLIER);
 
     // already aborted
     if (signal.aborted) {
