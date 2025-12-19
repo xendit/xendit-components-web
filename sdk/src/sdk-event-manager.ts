@@ -12,8 +12,8 @@ import {
 } from "./public-event-types";
 import {
   UpdatableWorldState,
-  XenditSessionSdk,
-  XenditSessionTestSdk,
+  XenditComponents,
+  XenditComponentsTest,
 } from "./public-sdk";
 import { ActionIframe } from "./components/action-iframe";
 import DefaultActionContainer from "./components/default-action-container";
@@ -24,13 +24,13 @@ import {
 import { IframeActionCompleteEvent } from "../../shared/types";
 
 export class SdkEventManager {
-  sdk: XenditSessionSdk;
+  sdk: XenditComponents;
 
   hasInFlightRequest = false;
   submitting = false;
   action = false;
 
-  constructor(sdk: XenditSessionSdk) {
+  constructor(sdk: XenditComponents) {
     this.sdk = sdk;
   }
 
@@ -39,7 +39,7 @@ export class SdkEventManager {
   }
 
   scheduleMockUpdate(kind: "NONE" | "ACTION_SUCCESS" | "ACTION_FAILURE") {
-    if (this.sdk.isMock() && this.sdk instanceof XenditSessionTestSdk) {
+    if (this.sdk.isMock() && this.sdk instanceof XenditComponentsTest) {
       this.sdk.assertInitialized();
       switch (kind) {
         case "NONE":

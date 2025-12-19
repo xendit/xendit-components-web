@@ -1,6 +1,6 @@
 # xendit-components-web
 
-The Xendit Components SDK allows you to accept payments directly on your website using the Xendit Sessions API.
+Xendit Components allows you to accept payments directly on your website using the Xendit Sessions API.
 
 This SDK's role is to take a Session (created on your server using the Xendit Sessions API) and render a payment UI, and allow you to customize the UI to match your site's look & feel.
 
@@ -34,53 +34,49 @@ Two types of sessions are available:
 
 First, initialize the SDK either with either:
 
-- `XenditSessionTestSdk` for frontend development or unit tests
-- `XenditSessionSdk`, for production, which requires a `sessionClientKey`, which comes from the Session object, which you need to create on your server. Make an endpoint that creates a session for the user's current transaction, return the `session_sdk_key` to the client, and pass it into the constructor.
+- `XenditComponentsTest` for frontend development or unit tests
+- `XenditComponents`, for production, which requires a `sessionClientKey`, which comes from the Session object, which you need to create on your server. Make an endpoint that creates a session for the user's current transaction, return the `components_sdk_key` to the client, and pass it into the constructor.
 
 ```typescript
-// For frontend development, use XenditSessionTestSdk
-const sdk: XenditSessionSdk = new XenditSessionTestSdk({});
-// For production or e2e testing, use XenditSessionSdk, passing in the session_sdk_key from the Session object
-// const sdk: XenditSessionSdk = new XenditSessionSdk({ sessionClientKey });
+// For frontend development, use XenditComponentsTest
+const components: XenditComponents = new XenditComponentsTest({});
+// For production or e2e testing, use XenditComponents, passing in the components_sdk_key from the Session object
+// const components: XenditComponents = new XenditComponents({ sessionClientKey });
 
 // Create a channel picker component
-const channelPicker: HTMLElement = sdk.createChannelPickerComponent();
+const channelPicker: HTMLElement = components.createChannelPickerComponent();
 
 // Insert the channel picker into your document
 myCheckoutPage.replaceChildren(channelPicker);
 
 // Call submit() when the user clicks your submit button
 mySubmitButton.addEventListener("click", () => {
-  sdk.submit();
+  components.submit();
 });
 
 // Listen to the status of the session
-sdk.addEventListener("session-complete", () => {
+components.addEventListener("session-complete", () => {
   alert("Payment Success");
 });
-sdk.addEventListener("session-expired-or-canceled", () => {
+components.addEventListener("session-expired-or-canceled", () => {
   alert("Payment cancelled or expired");
 });
 ```
 
-## Examples
+## Components API
 
-We provide example code for:
-
-## SDK API
-
-### `XenditSessionSdk` and `XenditSessionTestSdk`
+### `XenditComponents` and `XenditComponentsTest`
 
 The constructor.
 
 For production and e2e testing, you need to pass the `sessionClientKey`, which you can get when you create a Session on your server.
 
-For development and unit testing, use `XenditSessionTestSdk`, which uses mock data and doesn't connect to Xendit servers.
+For development and unit testing, use `XenditComponentsTest`, which uses mock data and doesn't connect to Xendit servers.
 
 ### `createChannelPickerComponent`
 
 ```typescript
-const htmlElement = sdk.createChannelPickerComponent();
+const htmlElement = components.createChannelPickerComponent();
 myContainer.replaceChildren(htmlElement);
 ```
 
@@ -89,40 +85,40 @@ Creates a UI for the user to select a payment channel and fill any required info
 This returns a `HTMLElement`, which you need to insert into your document.
 
 This method uses caching, it will always return the same channel picker element.
-Changing the active channel will update the channel picker UI, even if it's unmounted.
+Changing the current channel will update the channel picker UI, even if it's unmounted.
 If you don't want this, use `destroyComponent.`
 
-### `getAvailablePaymentChannels`
+### `getActiveChannels`
 
 ```typescript
-const channels = sdk.getAvailablePaymentChannels();
+const channels = components.getActiveChannels();
 ```
 
 Returns the list of channels available in this session.
 
-### `getAvailablePaymentChannelGroups`
+### `getActiveChannelGroups`
 
 ```typescript
-const groups = sdk.getAvailablePaymentChannelGroups();
+const groups = components.getActiveChannelGroups();
 ```
 
 Returns a list of channel groups. This can be used to categorize channels by type, if you want to build
 your own channel selection UI. Each channel has a `uiGroup` property which matches one group's `id` property.
 
-### `createPaymentComponentForChannel`
+### `createChannelComponent`
 
 ```typescript
-const channel = sdk
-  .getAvailablePaymentChannels()
+const channel = components
+  .getActiveChannels()
   .find((channel) => channel.channelCode === "CARDS");
 if (channel) {
-  const htmlElement = sdk.createChannelPickerComponent(channel);
+  const htmlElement = components.createChannelPickerComponent(channel);
   myContainer.replaceChildren(htmlElement);
 }
 ```
 
 Selects a payment channel and creates a UI for the user to fill any required information. You
-need to pass in the channel you want to use, as returned from getAvailablePaymentChannels.
+need to pass in the channel you want to use, as returned from getActiveChannels.
 
 This returns a `HTMLElement`, which you need to insert into your document.
 
@@ -132,8 +128,8 @@ values the user enters into any form fields. If you don't want that, use `destro
 ### `createActionContainerComponent`
 
 ```typescript
-sdk.addEventListener("action-begin", () => {
-  const htmlElement = sdk.createActionContainerComponent();
+components.addEventListener("action-begin", () => {
+  const htmlElement = components.createActionContainerComponent();
   myActionContainer.replaceChildren(htmlElement);
 });
 ```
@@ -151,7 +147,7 @@ This method does not use caching.
 
 ```typescript
 function onSubmitButtonClick() {
-  sdk.submit();
+  components.submit();
 }
 ```
 
@@ -159,7 +155,7 @@ Begins submission for the active payment channel.
 
 Call this from the click event of your submit button.
 
-Submission is only available when the session is active, a channel is active, any required information is collected, and
+Submission is only available when the session is active, a channel is made current by creating a channel component, any required information is collected, and
 another submission is not in progress. Use the `submission-ready` and `submission-not-ready` events to know when submission is available.
 
 This calls the [create payment request](https://docs.xendit.co/apidocs/create-payment-request)
@@ -169,7 +165,7 @@ may listen to the corresponding webhooks on your server.
 ### `simulatePayment`
 
 ```typescript
-sdk.simulatePayment();
+components.simulatePayment();
 ```
 
 Calls the [simulate payment](https://docs.xendit.co/apidocs/simulate-payment-test-mode) endpoint.
@@ -180,7 +176,7 @@ to be in-progress.
 ### `abortSubmission`
 
 ```typescript
-sdk.abortSubmission();
+components.abortSubmission();
 ```
 
 Cancels the current submission, if any.
@@ -188,49 +184,49 @@ Cancels the current submission, if any.
 ### `destroyComponent`
 
 ```typescript
-sdk.destroyComponent(htmlElement);
+components.destroyComponent(htmlElement);
 ```
 
 Destroys a component, deleting any cached data and removing the element from the document. Manual cleanup is not normally required,
 but is made available if you want it.
 
-### `revealValidationErrors`
+### `showValidationErrors`
 
 ```typescript
-sdk.revealValidationErrors();
+components.showValidationErrors();
 ```
 
-Reveals hidden validation errors in the active channel's form, if any.
+Reveals hidden validation errors in the current channel's form, if any.
 
 Validation errors are normally hidden until the user changes and unfocusses the input.
 
-### `getActiveChannel`
+### `getCurrentChannel`
 
 ```typescript
-const channel: XenditChannel = sdk.getActiveChannel();
+const channel: XenditChannel = components.getCurrentChannel();
 ```
 
-Returns the currently active channel.
+Returns the current channel.
 
-The active channel is the one you or the channel picker component made active by calling `createPaymentComponentForChannel` or `setActiveChannel`.
+The current channel is the one you or the channel picker component selected by calling `createChannelComponent` or `setCurrentChannel`.
 
-The active channel:
+The current channel:
 
 - Will be used for submission when you call `submit()`
-- Is interactive (non-active channel components are disabled)
+- Is interactive (other channel components are disabled)
 
-### `setActiveChannel`
+### `setCurrentChannel`
 
 ```typescript
-const channel = sdk
-  .getAvailablePaymentChannels()
+const channel = components
+  .getActiveChannels()
   .find((channel) => channel.channelCode === "CARDS");
 if (channel) {
-  sdk.setActiveChannel(channel);
+  components.setCurrentChannel(channel);
 }
 ```
 
-Makes the provided channel active.
+Makes the provided channel the current channel.
 
 ## Events
 
@@ -303,7 +299,7 @@ Regular CSS doesn't apply inside iframes. The SDK instead provides overrides in 
 it applies to the iframe fields.
 
 ```typescript
-const sdk = new XenditSessionSdk({
+const sdk = new XenditComponents({
   appearance: {
     // TODO
   },

@@ -1,7 +1,7 @@
-import { XenditEventMap, XenditSessionSdk } from "../src";
+import { XenditEventMap, XenditComponents } from "../src";
 
 export function watchEvents<T extends keyof XenditEventMap>(
-  sdk: XenditSessionSdk,
+  sdk: XenditComponents,
   eventNames: T[],
 ) {
   const events: Array<{
@@ -17,7 +17,7 @@ export function watchEvents<T extends keyof XenditEventMap>(
 }
 
 export function waitForEvent(
-  sdk: XenditSessionSdk,
+  sdk: XenditComponents,
   eventName: keyof XenditEventMap,
 ) {
   return new Promise<void>((resolve) => {

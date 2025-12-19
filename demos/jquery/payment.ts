@@ -1,8 +1,8 @@
 import $ from "jquery";
-import { XenditSessionSdk, XenditSessionTestSdk } from "xendit-components";
+import { XenditComponents, XenditComponentsTest } from "xendit-components";
 import { goToPage } from "./store";
 
-let sdk: XenditSessionSdk;
+let sdk: XenditComponents;
 
 /**
  * Begins the checkout process by initializing the Xendit Session SDK
@@ -20,9 +20,9 @@ export function beginCheckout() {
 
   if (sessionClientKey === "") {
     // Using the test SDK class
-    sdk = new XenditSessionTestSdk({});
+    sdk = new XenditComponentsTest({});
   } else {
-    sdk = new XenditSessionSdk({
+    sdk = new XenditComponents({
       sessionClientKey,
     });
   }
@@ -43,10 +43,10 @@ export function beginCheckout() {
 
     // create cards component
     const channel = sdk
-      .getAvailablePaymentChannels()
+      .getActiveChannels()
       .find((c) => c.channelCode === "CARDS");
     if (channel) {
-      const component = sdk.createPaymentComponentForChannel(channel);
+      const component = sdk.createChannelComponent(channel);
       $(".xendit-component-container")[0].replaceChildren(component);
     }
   });

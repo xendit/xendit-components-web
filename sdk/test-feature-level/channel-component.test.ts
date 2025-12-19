@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { XenditSessionTestSdk } from "../src";
+import { XenditComponentsTest } from "../src";
 import { waitForEvent } from "./utils";
 import { assert } from "../src/utils";
 
@@ -9,34 +9,34 @@ afterEach(() => {
 
 describe("initialization", () => {
   it("should render channel picker component", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
     const ch = sdk
-      .getAvailablePaymentChannels()
+      .getActiveChannels()
       .find((c) => c.channelCode === "MANDIRI_VIRTUAL_ACCOUNT");
     assert(ch);
-    document.body.appendChild(sdk.createPaymentComponentForChannel(ch));
+    document.body.appendChild(sdk.createChannelComponent(ch));
 
     const el = document.body.querySelector("xendit-payment-channel");
     expect(el).toBeInTheDocument();
   });
 
   it("should render channel picker component with single input form", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
     const ch = sdk
-      .getAvailablePaymentChannels()
+      .getActiveChannels()
       .find((c) => c.channelCode === "INDOMARET");
     assert(ch);
-    document.body.appendChild(sdk.createPaymentComponentForChannel(ch));
+    document.body.appendChild(sdk.createChannelComponent(ch));
 
     const el = document.body.querySelector("xendit-payment-channel");
     assert(el);

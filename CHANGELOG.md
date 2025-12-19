@@ -5,26 +5,26 @@ Initial release.
 This release contains credit card payment and tokenization flows.
 
 ```typescript
-const sdk: XenditSessionSdk = new XenditSessionSdk({
+const components: XenditComponents = new XenditComponents({
   sessionClientKey: componentsSdkKeyFromYourServer,
 });
 
-const cardsChannel = sdk
-  .getAvailablePaymentChannels()
+const cardsChannel = components
+  .getActiveChannels()
   .find((channel) => channel.channelCode === "CARDS");
 const channelPicker: HTMLElement =
-  sdk.createPaymentComponentForChannel(cardsChannel);
+  components.createChannelComponent(cardsChannel);
 
 myCheckoutPage.replaceChildren(channelPicker);
 
 mySubmitButton.addEventListener("click", () => {
-  sdk.submit();
+  components.submit();
 });
 
-sdk.addEventListener("session-complete", () => {
+components.addEventListener("session-complete", () => {
   alert("Payment Success");
 });
-sdk.addEventListener("session-expired-or-canceled", () => {
+components.addEventListener("session-expired-or-canceled", () => {
   alert("Payment cancelled or expired");
 });
 ```

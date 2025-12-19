@@ -1,4 +1,4 @@
-import { XenditSessionSdk } from "xendit-components";
+import { XenditComponents } from "xendit-components";
 import data from "../data.json";
 import { Payment } from "./payment";
 import { Product, CartItem as CartItemType, PageType } from "./types";
@@ -81,7 +81,7 @@ const ProductItem: React.FC<{
         <p className="product-title">{product.title}</p>
         <p className="product-description">{product.description}</p>
         <p className="product-price">
-          {XenditSessionSdk.moneyFormat(
+          {XenditComponents.amountFormat(
             product.price * EXCHANGE_RATES[currency],
             currency,
           )}
@@ -199,7 +199,7 @@ export const CheckoutPage: React.FC<{
                   <div className="line-item">
                     <span className="line-item-name">Total</span>
                     <span className="line-item-price">
-                      {XenditSessionSdk.moneyFormat(
+                      {XenditComponents.amountFormat(
                         cart.reduce(
                           (total, item) =>
                             total +
@@ -242,7 +242,7 @@ const CartItem: React.FC<{ item: CartItemType; currency: string }> = ({
           : product.title}
       </span>
       <span className="line-item-price">
-        {XenditSessionSdk.moneyFormat(
+        {XenditComponents.amountFormat(
           product.price * exchangeRate * item.quantity,
           currency,
         )}
