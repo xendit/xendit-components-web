@@ -5,6 +5,8 @@ import {
   BffPaymentEntityType,
   BffPaymentRequest,
   BffPaymentToken,
+  getFailureCodeCopyKey,
+  getPaymentEntityStatusCopyKey,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
 import { BffSessionType } from "../../backend-types/session";
@@ -28,6 +30,7 @@ import {
 } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
+import { FailureContent, NetworkError } from "../../networking";
 
 export class SubmissionBehavior implements Behavior {
   private exited = false;
@@ -37,9 +40,11 @@ export class SubmissionBehavior implements Behavior {
     promise: Promise<void>;
   } | null;
   private submissionHadError = false;
+  private networkError: NetworkError | null = null;
 
   constructor(private bb: BlackboardType) {
     this.submission = null;
+    this.networkError = null;
   }
 
   enter() {
@@ -78,15 +83,38 @@ export class SubmissionBehavior implements Behavior {
 
     // Send event for submission end
     let reason: string;
+    let failure: FailureContent | null = null;
     if (this.bb.world && this.bb.world.session.status !== "ACTIVE") {
       // if status is not active, that's why we ended submission
       reason = `SESSION_${this.bb.world.session.status}`;
     } else if (
       paymentEntity &&
-      ["FAILED", "CANCELED", "EXPIRED"].includes(paymentEntity.entity.status)
+      (paymentEntity.entity.status === "FAILED" ||
+        paymentEntity.entity.status === "CANCELED" ||
+        paymentEntity.entity.status === "EXPIRED")
     ) {
       // the payment entity failed, was canceled or expired
       reason = `PAYMENT_${paymentEntity.type}_${paymentEntity.entity.status}`;
+      const t = this.bb.sdkEvents.sdk.t;
+      const status = paymentEntity.entity.status;
+
+      const failureCode = paymentEntity.entity.failure_code;
+      const title = t(
+        getPaymentEntityStatusCopyKey(paymentEntity.type, status, "title"),
+      );
+      const subtext = failureCode
+        ? t(
+            getFailureCodeCopyKey(failureCode),
+            t("failure_code_unknown", { failureCode }),
+          )
+        : t(
+            getPaymentEntityStatusCopyKey(
+              paymentEntity.type,
+              status,
+              "subtext",
+            ),
+          );
+      failure = { title, subtext, failureCode };
     } else if (this.submissionHadError) {
       // there was an error during submission
       reason = "REQUEST_FAILED";
@@ -97,7 +125,35 @@ export class SubmissionBehavior implements Behavior {
       // the submission was cancelled during an action
       reason = "ACTION_ABORTED";
     }
-    this.bb.dispatchEvent(new XenditSubmissionEndEvent(reason));
+
+    // Dispatch submission end event with error details if available
+    if (this.submissionHadError && this.networkError) {
+      const t = this.bb.sdkEvents.sdk.t;
+      if (this.networkError.isDefaultError) {
+        this.bb.dispatchEvent(
+          new XenditSubmissionEndEvent(reason, {
+            errorContent: {
+              title: t("default_error.title"),
+              message_1: t("default_error.message_1"),
+              message_2: t("default_error.message_2"),
+            },
+          }),
+        );
+      } else if (this.networkError.errorContent) {
+        this.bb.dispatchEvent(
+          new XenditSubmissionEndEvent(reason, {
+            errorCode: this.networkError.errorCode,
+            errorContent: this.networkError.errorContent,
+          }),
+        );
+      }
+    } else {
+      this.bb.dispatchEvent(
+        new XenditSubmissionEndEvent(reason, {
+          failure: failure || undefined,
+        }),
+      );
+    }
 
     // Abort ongoing submission request
     if (this.submission) {
@@ -154,10 +210,13 @@ export class SubmissionBehavior implements Behavior {
         if (isAbortError(error)) return;
 
         console.error("Submission failed:", error);
+        if (error instanceof NetworkError) {
+          this.networkError = error;
+        }
 
         // avoid dispatching an event after exit
         if (!this.exited) {
-          // set the error flag an exit the submission
+          // set the error flag and exit the submission
           this.bb.submissionRequested = false;
           this.submissionHadError = true;
           this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());

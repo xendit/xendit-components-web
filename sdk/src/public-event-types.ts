@@ -98,7 +98,22 @@ export class XenditSubmissionBeginEvent extends Event {
 export class XenditSubmissionEndEvent extends Event {
   static type = "submission-end" as const;
 
-  constructor(public reason: string) {
+  constructor(
+    public reason: string,
+    public data?: {
+      errorCode?: string;
+      errorContent?: {
+        title: string;
+        message_1: string;
+        message_2?: string;
+      };
+      failure?: {
+        title: string;
+        subtext: string;
+        failureCode?: string;
+      };
+    },
+  ) {
     super(XenditSubmissionEndEvent.type, {});
   }
 }

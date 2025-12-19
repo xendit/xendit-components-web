@@ -1,5 +1,48 @@
 import { assert, hostFromHostId, MOCK_HOST_ID, ParsedSdkKey } from "./utils";
 
+export type ErrorContent = {
+  title: string;
+  message_1: string;
+  message_2?: string;
+};
+
+export type FailureContent = {
+  title: string;
+  subtext: string;
+  failureCode?: string;
+};
+
+export type ErrorResponse = {
+  error_code: string;
+  message: string;
+  error_content?: ErrorContent;
+};
+
+export const DEFAULT_ERROR = Symbol("default_error");
+
+export type ErrorType =
+  | typeof DEFAULT_ERROR
+  | (ErrorContent & {
+      error_code?: string;
+    });
+
+export class NetworkError extends Error {
+  errorCode?: string;
+  errorContent?: ErrorContent;
+  isDefaultError?: boolean;
+
+  constructor(errorData: ErrorResponse | typeof DEFAULT_ERROR) {
+    super("NetworkError");
+    if (errorData === DEFAULT_ERROR) this.isDefaultError = true;
+    else if (errorData.error_content) {
+      this.errorCode = errorData.error_code;
+      this.errorContent = {
+        ...errorData.error_content,
+      };
+    }
+  }
+}
+
 /**
  * Encode data for x-www-form-urlencoded content type
  */
@@ -141,11 +184,16 @@ export function endpoint(
 
     const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error(
-        // TODO: proper error handling for this
-        `Failed to call ${method} ${getPath(pathArg)}; status ${response.status}`,
-      );
+      try {
+        const errorData = (await response.json()) as ErrorResponse;
+        throw new NetworkError(
+          errorData.error_content ? errorData : DEFAULT_ERROR,
+        );
+      } catch {
+        throw new NetworkError(DEFAULT_ERROR);
+      }
     }
+
     return response.json();
   };
 }
