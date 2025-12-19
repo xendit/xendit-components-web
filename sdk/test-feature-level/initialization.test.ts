@@ -1,17 +1,17 @@
 import { describe, it, expect } from "vitest";
 import {
   XenditInitEvent,
-  XenditSessionSdk,
-  XenditSessionTestSdk,
+  XenditComponents,
+  XenditComponentsTest,
 } from "../src";
 import { findEvent, waitForEvent, watchEvents } from "./utils";
 
 describe("initialization", () => {
   it("should fire the init event after constructing with mock data", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
-    expect(sdk).toBeInstanceOf(XenditSessionSdk);
+    expect(sdk).toBeInstanceOf(XenditComponents);
 
     const events = watchEvents(sdk, ["init"]);
     await waitForEvent(sdk, "init");
@@ -23,16 +23,16 @@ describe("initialization", () => {
   });
 
   it("should be able to call getter methods only after init", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
-    expect(sdk).toBeInstanceOf(XenditSessionSdk);
+    expect(sdk).toBeInstanceOf(XenditComponents);
 
     expect(() => {
       sdk.getSession();
     }).toThrowError();
     expect(() => {
-      sdk.getAvailablePaymentChannels();
+      sdk.getActiveChannels();
     }).toThrowError();
     expect(() => {
       sdk.getCustomer();
@@ -51,7 +51,7 @@ describe("initialization", () => {
       }),
     );
 
-    const cardsChannel = sdk.getAvailablePaymentChannels().find((ch) => {
+    const cardsChannel = sdk.getActiveChannels().find((ch) => {
       return ch.channelCode === "CARDS";
     });
     expect(cardsChannel?.channelCode).toEqual("CARDS"); // cannot expect channel object due to getters
