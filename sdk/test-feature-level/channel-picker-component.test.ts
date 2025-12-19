@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { XenditSessionTestSdk } from "../src";
+import { XenditComponentsTest } from "../src";
 import { waitForEvent } from "./utils";
 import { screen } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
@@ -11,7 +11,7 @@ afterEach(() => {
 
 describe("initialization", () => {
   it("should be able to create a channel picker before initializing", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
@@ -19,7 +19,7 @@ describe("initialization", () => {
   });
 
   it("should render channel picker component after initializing", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
@@ -34,7 +34,7 @@ describe("initialization", () => {
   });
 
   it("should display channel group list", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
@@ -56,7 +56,7 @@ describe("initialization", () => {
   });
 
   it("should expand to show channel selection dropdown", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
@@ -72,7 +72,7 @@ describe("initialization", () => {
   });
 
   it("should select channel using dropdown", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
@@ -88,23 +88,23 @@ describe("initialization", () => {
 
     const nothing = document.body.querySelector("xendit-payment-channel");
     expect(nothing).not.toBeInTheDocument();
-    expect(sdk.getActiveChannel()).toBeNull();
+    expect(sdk.getCurrentChannel()).toBeNull();
 
     const bcaOption = screen.getByText("Mandiri Virtual Account");
     await userEvent.click(bcaOption);
 
     const ch = sdk
-      .getAvailablePaymentChannels()
+      .getActiveChannels()
       .find((c) => c.channelCode === "MANDIRI_VIRTUAL_ACCOUNT");
     assert(ch);
-    const channelComponent = sdk.createPaymentComponentForChannel(ch);
+    const channelComponent = sdk.createChannelComponent(ch);
     expect(channelComponent).toBeInTheDocument();
 
-    expect(sdk.getActiveChannel()?.channelCode).toEqual(ch.channelCode);
+    expect(sdk.getCurrentChannel()?.channelCode).toEqual(ch.channelCode);
   });
 
   it("should clear channel by switching groups", async () => {
-    const sdk = new XenditSessionTestSdk({
+    const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
     });
 
@@ -122,14 +122,14 @@ describe("initialization", () => {
     await userEvent.click(bcaOption);
 
     const ch = sdk
-      .getAvailablePaymentChannels()
+      .getActiveChannels()
       .find((c) => c.channelCode === "MANDIRI_VIRTUAL_ACCOUNT");
     assert(ch);
-    expect(sdk.getActiveChannel()?.channelCode).toEqual(ch.channelCode);
+    expect(sdk.getCurrentChannel()?.channelCode).toEqual(ch.channelCode);
 
     const ewalletGroup = screen.getByText("E-Wallet");
     await userEvent.click(ewalletGroup);
 
-    expect(sdk.getActiveChannel()).toBeNull();
+    expect(sdk.getCurrentChannel()).toBeNull();
   });
 });

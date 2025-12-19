@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moneyFormat } from "./money-format";
+import { amountFormat } from "./amount-format";
 import {
   CURRENCY_SYMBOL_DECIMALS,
   CURRENCY_SYMBOL_POSITION,
@@ -21,12 +21,12 @@ const testCurrencies = ["USD", "IDR", "PHP", "THB", "VND", "MYR"];
 describe("currency formatting", () => {
   for (const currency of testCurrencies) {
     it(`should format currency values with ${currency}`, () => {
-      const result = testCases.map((amount) => moneyFormat(amount, currency));
+      const result = testCases.map((amount) => amountFormat(amount, currency));
       expect(result).toMatchSnapshot();
     });
   }
   it(`should format currency values with unknown currency`, () => {
-    const result = testCases.map((amount) => moneyFormat(amount, "ZZZ"));
+    const result = testCases.map((amount) => amountFormat(amount, "ZZZ"));
     expect(result).toMatchSnapshot();
   });
   it(`should format every known currency`, () => {
@@ -37,7 +37,7 @@ describe("currency formatting", () => {
     ]);
     const output: string[] = [];
     for (const code of codes) {
-      output.push(`${code}: ${moneyFormat(1000000.01, code)}`);
+      output.push(`${code}: ${amountFormat(1000000.01, code)}`);
     }
     expect(output).toMatchSnapshot();
   });

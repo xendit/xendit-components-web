@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import { WorldState, XenditSessionSdk } from "../public-sdk";
+import { WorldState, XenditComponents } from "../public-sdk";
 import { BffSession } from "../backend-types/session";
 import { BffBusiness } from "../backend-types/business";
 import { BffCustomer } from "../backend-types/customer";
@@ -33,17 +33,17 @@ const CardDetailsContext = createContext<{
 }>({ cardNumber: null, details: null });
 CardDetailsContext.displayName = "CardDetailsContext";
 
-const SdkContext = createContext<XenditSessionSdk | null>(null);
+const SdkContext = createContext<XenditComponents | null>(null);
 SdkContext.displayName = "SdkContext";
 
-const ActiveChannelContext = createContext<{
+const CurrentChannelContext = createContext<{
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
 }>({
   channel: null,
   channelProperties: null,
 });
-ActiveChannelContext.displayName = "ActiveChannelContext";
+CurrentChannelContext.displayName = "CurrentChannelContext";
 
 // Custom hooks for consuming contexts
 export const useSession = () => {
@@ -101,14 +101,14 @@ export const useSdk = () => {
   return context;
 };
 
-export const useActiveChannel = () => {
-  return useContext(ActiveChannelContext);
+export const useCurrentChannel = () => {
+  return useContext(CurrentChannelContext);
 };
 
 interface XenditSessionProviderProps {
   children: ReactNode;
   data: WorldState;
-  sdk: XenditSessionSdk;
+  sdk: XenditComponents;
 }
 
 export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
@@ -118,15 +118,15 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
 }) => {
   const { session, business, customer, channels, channelUiGroups } = data;
 
-  const channel = sdk.getActiveChannel()?.[internal] ?? null;
+  const channel = sdk.getCurrentChannel()?.[internal] ?? null;
   const channelProperties =
     sdk[internal].liveComponents.paymentChannels.get(
-      sdk.getActiveChannel()?.[internal]?.channel_code ?? "",
+      sdk.getCurrentChannel()?.[internal]?.channel_code ?? "",
     )?.channelProperties ?? null;
 
   return (
     <SdkContext.Provider value={sdk}>
-      <ActiveChannelContext.Provider
+      <CurrentChannelContext.Provider
         value={{
           channel,
           channelProperties,
@@ -145,7 +145,7 @@ export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
             </CustomerContext.Provider>
           </BusinessContext.Provider>
         </SessionContext.Provider>
-      </ActiveChannelContext.Provider>
+      </CurrentChannelContext.Provider>
     </SdkContext.Provider>
   );
 };

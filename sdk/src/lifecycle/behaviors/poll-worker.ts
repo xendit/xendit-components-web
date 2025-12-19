@@ -4,7 +4,7 @@ import {
   BffPaymentEntity,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
-import { XenditSessionSdk, XenditSessionTestSdk } from "../../public-sdk";
+import { XenditComponents, XenditComponentsTest } from "../../public-sdk";
 import {
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
@@ -32,7 +32,7 @@ export class PollWorker {
 
   constructor(
     private sdkKey: ParsedSdkKey,
-    private sdk: XenditSessionSdk,
+    private sdk: XenditComponents,
     private sessionTokenRequestId: string | null,
     private onPollResult: (
       result: BffPollResponse,
@@ -60,7 +60,7 @@ export class PollWorker {
       if (this.sdk.isMock()) {
         // mock polling
         if (
-          this.sdk instanceof XenditSessionTestSdk &&
+          this.sdk instanceof XenditComponentsTest &&
           this.sdk.nextMockUpdate
         ) {
           await sleep(MOCK_NETWORK_DELAY_MS); // simulate network delay
