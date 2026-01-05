@@ -15,7 +15,7 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { singleBffChannelToPublic } from "../bff-marshal";
+import { findChannelPairs, singleBffChannelToPublic } from "../bff-marshal";
 import { TFunction } from "i18next";
 
 interface ChannelPickerGroupProps {
@@ -48,26 +48,21 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     useState<BffChannel | null>(null);
   const channels = useChannels();
 
+  const pairChannelData = useMemo(() => findChannelPairs(channels), [channels]);
+
   const channelsInGroup = useMemo(() => {
-    function shouldIncludeChannel(channel: BffChannel) {
-      if (
-        channel.allow_save &&
-        session.allow_save_payment_method === "OPTIONAL"
-      ) {
-        const pairPayChannel = channels.find(
-          (c) =>
-            c.channel_code !== channel.channel_code &&
-            c.brand_name === channel.brand_name &&
-            !c.allow_save,
-        );
-        if (pairPayChannel) return false; // Skip the save-only channel to remove duplicates
+    return channels.filter((ch) => {
+      if (ch.ui_group !== group.id) {
+        // skip channels not in this group
+        return false;
+      }
+      if (pairChannelData.paired[ch.channel_code]) {
+        // skip channels that are the second channel in a pair
+        return false;
       }
       return true;
-    }
-    return channels
-      ?.filter((method) => method.ui_group === group?.id)
-      .filter(shouldIncludeChannel);
-  }, [channels, group?.id, session.allow_save_payment_method]);
+    });
+  }, [channels, group.id, pairChannelData]);
 
   // Create and mount the channel component if a channel is selected
   useLayoutEffect(() => {
@@ -76,7 +71,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
       if (open) {
         // create new channel component
         const el = sdk.createPaymentComponentForChannel(
-          singleBffChannelToPublic(explicitSelectedChannel),
+          singleBffChannelToPublic(explicitSelectedChannel, pairChannelData),
         );
         selectedChannelElementRef.current = el;
         if (el.parentElement !== containerRef.current) {
@@ -89,7 +84,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     } else {
       containerRef.current.replaceChildren();
     }
-  }, [explicitSelectedChannel, sdk, open]);
+  }, [explicitSelectedChannel, sdk, open, pairChannelData]);
 
   // when the group is opened, auto-select a channel if needed
   const previousOpen = usePrevious(open);
@@ -104,7 +99,9 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
         sdkSelectedChannelCode !== explicitSelectedChannel.channel_code
       ) {
         // update sdk state to match this group's selection if this group is opened and has a selection that differs from sdk state
-        sdk.setActiveChannel(singleBffChannelToPublic(explicitSelectedChannel));
+        sdk.setActiveChannel(
+          singleBffChannelToPublic(explicitSelectedChannel, pairChannelData),
+        );
       } else if (!explicitSelectedChannel) {
         // clear sdk selection if this group is opened and this group has no selection
         sdk.setActiveChannel(null);
@@ -117,6 +114,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     previousOpen,
     sdk,
     sdkSelectedChannelCode,
+    pairChannelData,
   ]);
 
   // when the sdk selected channel changes, update this group's selection if needed
