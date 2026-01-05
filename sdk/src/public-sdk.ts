@@ -717,6 +717,7 @@ export class XenditSessionSdk extends EventTarget {
         if (!component) {
           return;
         }
+
         component.channelProperties = event.channelProperties;
 
         // update behavior tree (form validity may have changed)
@@ -736,9 +737,10 @@ export class XenditSessionSdk extends EventTarget {
           return;
         }
 
-        this[internal].activeChannelCode = channelCode;
         component.savePaymentMethod = event.savePaymentMethod;
         this.behaviorTreeUpdate();
+
+        // TODO: need to re-collect all channel properties since form fields may have been added or removed
         this.rerenderAllComponents();
       },
     );
