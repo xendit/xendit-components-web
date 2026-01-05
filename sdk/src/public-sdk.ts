@@ -665,7 +665,7 @@ export class XenditComponents extends EventTarget {
   setCurrentChannel(channel: XenditPaymentChannel | null): void {
     const currentChannelCode = this[internal].currentChannelCode;
 
-    const channelCode = channel?.[internal]?.[0]?.channel_code ?? null;
+    const channelCode = channel?.[internal][0].channel_code ?? null;
 
     if (currentChannelCode === channelCode) {
       // no change
@@ -780,7 +780,7 @@ export class XenditComponents extends EventTarget {
       );
     }
 
-    const form = component.channelFormRef?.current;
+    const form = component.channelFormRef.current;
     form?.validate();
   }
 
