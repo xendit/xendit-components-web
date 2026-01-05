@@ -1,4 +1,4 @@
-import { useId } from "preact/hooks";
+import { useIdSafe } from "../utils";
 
 interface Props {
   id?: string;
@@ -14,7 +14,7 @@ interface Props {
 export const Checkbox: React.FC<Props> = (props) => {
   const { id, label, checked, onChange, disabled } = props;
 
-  const generatedId = useId();
+  const generatedId = useIdSafe();
   const htmlId = id || generatedId;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

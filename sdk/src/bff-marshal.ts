@@ -126,7 +126,10 @@ export function bffChannelToPublic(
   assert(!pairChannelData.paired[bffChannel.channel_code]);
 
   return removeUndefinedPropertiesFromObject<XenditPaymentChannel>({
-    channelCode: bffChannel.channel_code,
+    channelCode:
+      pairChannelData.pairs[bffChannel.channel_code]?.map(
+        (ch) => ch.channel_code,
+      ) ?? bffChannel.channel_code,
     brandName: bffChannel.brand_name,
     brandColor: bffChannel.brand_color,
     brandLogoUrl: bffChannel.brand_logo_url,

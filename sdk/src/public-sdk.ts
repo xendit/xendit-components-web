@@ -68,6 +68,7 @@ import {
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
   parseSdkKey,
+  resolvePairedChannel,
   sleep,
 } from "./utils";
 import { makeTestSdkKey } from "./test-data";
@@ -97,7 +98,7 @@ type CachedChannelComponent = {
   element: HTMLElement;
   channel: XenditPaymentChannel;
   channelProperties: ChannelProperties | null;
-  channelformRef: RefObject<ChannelFormHandle>;
+  channelFormRef: RefObject<ChannelFormHandle>;
   savePaymentMethod: boolean;
 };
 
@@ -374,21 +375,20 @@ export class XenditSessionSdk extends EventTarget {
     }
 
     bb.world = this[internal].worldState;
-    bb.channel = this[internal].activeChannelCode
-      ? this.findChannel(this[internal].activeChannelCode)
-      : null;
 
-    bb.channelProperties = this[internal].activeChannelCode
-      ? (this[internal].liveComponents.paymentChannels.get(
+    const component = this[internal].activeChannelCode
+      ? this[internal].liveComponents.paymentChannels.get(
           this[internal].activeChannelCode,
-        )?.channelProperties ?? null)
+        )
       : null;
-
-    bb.savePaymentMethod = this[internal].activeChannelCode
-      ? (this[internal].liveComponents.paymentChannels.get(
-          this[internal].activeChannelCode,
-        )?.savePaymentMethod ?? null)
+    bb.channel = component
+      ? resolvePairedChannel(
+          component.channel[internal],
+          component.savePaymentMethod,
+        )
       : null;
+    bb.channelProperties = component ? component.channelProperties : null;
+    bb.savePaymentMethod = component ? component.savePaymentMethod : null;
 
     try {
       this[internal].behaviorTree.update();
@@ -574,6 +574,7 @@ export class XenditSessionSdk extends EventTarget {
   ): HTMLElement {
     this.assertInitialized();
     const channelCode = channel[internal][0].channel_code;
+
     // return previously created component if it exists
     const cachedComponent =
       this[internal].liveComponents.paymentChannels.get(channelCode);
@@ -582,7 +583,7 @@ export class XenditSessionSdk extends EventTarget {
 
     if (cachedComponent) {
       container = cachedComponent.element;
-      channelFormRef = cachedComponent.channelformRef;
+      channelFormRef = cachedComponent.channelFormRef;
     } else {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("inert", "");
@@ -592,7 +593,7 @@ export class XenditSessionSdk extends EventTarget {
         element: container,
         channel,
         channelProperties: null,
-        channelformRef: channelFormRef,
+        channelFormRef: channelFormRef,
         savePaymentMethod: false,
       });
     }
@@ -625,7 +626,7 @@ export class XenditSessionSdk extends EventTarget {
         children: createElement(PaymentChannel, {
           channels: channelObject[internal],
           savePaymentMethod: container.savePaymentMethod,
-          formRef: container.channelformRef,
+          formRef: container.channelFormRef,
         }),
       }),
       container.element,
@@ -774,7 +775,7 @@ export class XenditSessionSdk extends EventTarget {
       );
     }
 
-    const form = component.channelformRef?.current;
+    const form = component.channelFormRef?.current;
     form?.validate();
   }
 

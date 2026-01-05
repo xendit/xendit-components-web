@@ -299,3 +299,31 @@ export function objectId(object: object): string {
   }
   return objectIdMap.get(object)!.toString();
 }
+
+/**
+ * useId but doesn't sometimes return the same id in different components
+ */
+export function useIdSafe(): string {
+  const id = useRef(Math.random().toString(36).substring(2, 10));
+  return `xendit-id-${id.current}`;
+}
+
+export function resolvePairedChannel(
+  channels: BffChannel[],
+  savePaymentMethod: boolean,
+): BffChannel {
+  assert(channels.length > 0);
+  assert(channels.length <= 2);
+
+  if (channels.length === 2) {
+    if (savePaymentMethod) {
+      assert(channels[1].allow_save === true);
+      return channels[1];
+    } else {
+      assert(channels[0].allow_save === false);
+      return channels[0];
+    }
+  } else {
+    return channels[0];
+  }
+}

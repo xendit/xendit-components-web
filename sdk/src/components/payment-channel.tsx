@@ -5,6 +5,7 @@ import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { InstructionsIcon } from "./instructions-icon";
 import { useSdk, useSession } from "./session-provider";
 import { Checkbox } from "./checkbox";
+import { resolvePairedChannel } from "../utils";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -30,15 +31,17 @@ export const PaymentChannel: React.FC<Props> = (props) => {
   const { t } = sdk;
   const session = useSession();
 
+  // events always use channels[0] because the CachedChannelComponents are keyed by that
+  const firstMemberChannel = channels[0];
+
   const hasPairedChannel = channels.length > 1;
-  const resolvedChannel =
-    savePaymentMethod && hasPairedChannel ? channels[1] : channels[0];
+  const resolvedChannel = resolvePairedChannel(channels, savePaymentMethod);
 
   const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
   const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
     const event = new XenditChannelPropertiesChangedEvent(
-      resolvedChannel.channel_code,
+      firstMemberChannel.channel_code,
       channelProperties,
     );
     divRef.current?.dispatchEvent(event);
@@ -52,7 +55,7 @@ export const PaymentChannel: React.FC<Props> = (props) => {
     const checked = (e.target as HTMLInputElement)?.checked;
     divRef.current?.dispatchEvent(
       new XenditSavePaymentMethodChangedEvent(
-        channels[0].channel_code, // always [0] because the chached channel objects are keyed by that
+        firstMemberChannel.channel_code,
         checked,
       ),
     );

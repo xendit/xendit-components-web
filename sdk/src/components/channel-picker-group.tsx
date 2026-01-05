@@ -7,14 +7,8 @@ import {
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { BffSession } from "../backend-types/session";
-import { usePrevious } from "../utils";
-import {
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "preact/hooks";
+import { useIdSafe, usePrevious } from "../utils";
+import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { findChannelPairs, singleBffChannelToPublic } from "../bff-marshal";
 import { TFunction } from "i18next";
 
@@ -34,7 +28,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
 
   const sessionType = session.session_type;
 
-  const dropdownId = useId();
+  const dropdownId = useIdSafe();
 
   // container for the selected channel component
   const containerRef = useRef<HTMLDivElement>(null);

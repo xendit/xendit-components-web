@@ -2,12 +2,12 @@ import { ComponentChildren } from "preact";
 import {
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
 } from "preact/hooks";
 import Icon from "./icon";
+import { useIdSafe } from "../utils";
 
 export type DropdownOption = {
   leadingAsset?: ComponentChildren; // e.g. flag/icon URL
@@ -63,7 +63,7 @@ export const Dropdown = (props: DropdownProps) => {
     placeholder,
   } = props;
 
-  const generatedId = useId();
+  const generatedId = useIdSafe();
   const id = _id || generatedId;
 
   // Controlled vs uncontrolled selection
