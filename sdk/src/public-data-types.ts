@@ -174,8 +174,11 @@ export interface XenditCustomer {
 export interface XenditPaymentChannel {
   /**
    * The channel_code used to refer to this payment channel.
+   *
+   * In some cases (e.g. GOPAY), channels that are semantically the same have different channel codes depending
+   * on whether they're being used for pay or pay and save. In that case this will be an array of two channel codes.
    */
-  channelCode: string;
+  channelCode: string | string[];
   /**
    * The display name of the payment channel.
    */
@@ -213,7 +216,7 @@ export interface XenditPaymentChannel {
   }[];
 
   /** @internal */
-  [internal]: BffChannel;
+  [internal]: BffChannel[];
 }
 
 /**

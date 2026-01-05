@@ -72,17 +72,24 @@ export function bffCustomerToPublic(bffCustomer: BffCustomer): XenditCustomer {
 
 export function bffUiGroupsToPublic(
   bffChannels: BffChannel[],
+  channelPairData: PairChannelData,
   bffChannelGroups: BffChannelUiGroup[],
 ): XenditPaymentChannelGroup[] {
   const groupsByGroupId = makeGroupsByGroupId(bffChannelGroups);
-  const channelsByGroupId = makeChannelsByGroupId(bffChannels);
+  const channelsByGroupId = makeChannelsByGroupId(bffChannels, channelPairData);
   return bffChannelGroups.map((group) => {
-    return bffUiGroupToPublic(group, channelsByGroupId, groupsByGroupId);
+    return bffUiGroupToPublic(
+      group,
+      channelPairData,
+      channelsByGroupId,
+      groupsByGroupId,
+    );
   });
 }
 
 export function bffUiGroupToPublic(
   bffChannelGroup: BffChannelUiGroup,
+  channelPairData: PairChannelData,
   channelsByGroupId: Record<string, BffChannel[]>,
   groupsByGroupId: Record<string, BffChannelUiGroup>,
 ) {
@@ -91,7 +98,12 @@ export function bffUiGroupToPublic(
     label: bffChannelGroup.label,
     get channels() {
       return (channelsByGroupId[bffChannelGroup.id] || []).map((channel) => {
-        return bffChannelToPublic(channel, channelsByGroupId, groupsByGroupId);
+        return bffChannelToPublic(
+          channel,
+          channelPairData,
+          channelsByGroupId,
+          groupsByGroupId,
+        );
       });
     },
     [internal]: bffChannelGroup,
@@ -100,23 +112,31 @@ export function bffUiGroupToPublic(
 
 export function singleBffChannelToPublic(
   bffChannel: BffChannel,
+  pairChannelData: PairChannelData,
 ): XenditPaymentChannel {
-  return bffChannelToPublic(bffChannel, {}, {});
+  return bffChannelToPublic(bffChannel, pairChannelData, {}, {});
 }
 
 export function bffChannelToPublic(
   bffChannel: BffChannel,
+  pairChannelData: PairChannelData,
   bffChannelsByGroupId: Record<string, BffChannel[]>,
   bffGroupsByGroupId: Record<string, BffChannelUiGroup>,
 ): XenditPaymentChannel {
+  assert(!pairChannelData.paired[bffChannel.channel_code]);
+
   return removeUndefinedPropertiesFromObject<XenditPaymentChannel>({
-    channelCode: bffChannel.channel_code,
+    channelCode:
+      pairChannelData.pairs[bffChannel.channel_code]?.map(
+        (ch) => ch.channel_code,
+      ) ?? bffChannel.channel_code,
     brandName: bffChannel.brand_name,
     brandColor: bffChannel.brand_color,
     brandLogoUrl: bffChannel.brand_logo_url,
     get uiGroup() {
       return bffUiGroupToPublic(
         bffGroupsByGroupId[bffChannel.ui_group],
+        pairChannelData,
         bffChannelsByGroupId,
         bffGroupsByGroupId,
       );
@@ -129,19 +149,27 @@ export function bffChannelToPublic(
         logoUrl: b.logo_url,
       };
     }),
-    [internal]: bffChannel,
+    [internal]: pairChannelData.pairs[bffChannel.channel_code] ?? [bffChannel],
   });
 }
 
 export function bffChannelsToPublic(
   bffChannels: BffChannel[],
+  pairChannelData: PairChannelData,
   bffChannelGroups: BffChannelUiGroup[],
 ): XenditPaymentChannel[] {
   const groupsByGroupId = makeGroupsByGroupId(bffChannelGroups);
-  const channelsByGroupId = makeChannelsByGroupId(bffChannels);
-  return bffChannels.map((channel) => {
-    return bffChannelToPublic(channel, channelsByGroupId, groupsByGroupId);
-  });
+  const channelsByGroupId = makeChannelsByGroupId(bffChannels, pairChannelData);
+  return bffChannels
+    .filter((ch) => !pairChannelData.paired[ch.channel_code])
+    .map((channel) => {
+      return bffChannelToPublic(
+        channel,
+        pairChannelData,
+        channelsByGroupId,
+        groupsByGroupId,
+      );
+    });
 }
 
 function makeGroupsByGroupId(
@@ -156,9 +184,13 @@ function makeGroupsByGroupId(
 
 function makeChannelsByGroupId(
   bffChannels: BffChannel[],
+  pairChannelData: PairChannelData,
 ): Record<string, BffChannel[]> {
   const channelsByGroupId: Record<string, BffChannel[]> = {};
   for (const bffChannel of bffChannels) {
+    if (pairChannelData.paired[bffChannel.channel_code]) {
+      continue;
+    }
     const groupId = bffChannel.ui_group;
     if (!channelsByGroupId[groupId]) {
       channelsByGroupId[groupId] = [];
@@ -166,4 +198,50 @@ function makeChannelsByGroupId(
     channelsByGroupId[groupId].push(bffChannel);
   }
   return channelsByGroupId;
+}
+
+type PairChannelData = {
+  /** Map of channel_code of first member of pair to an array containing the pair */
+  pairs: Record<string, [BffChannel, BffChannel]>;
+  /** Set of channel_codes of second members of pairs */
+  paired: Record<string, boolean>;
+};
+
+/**
+ * Finds channels that are pairs (i.e., differ only by allow_save) and groups them together.
+ */
+export function findChannelPairs(bffChannels: BffChannel[]): PairChannelData {
+  const brandMap = new Map<string, BffChannel[]>();
+  for (const channel of bffChannels) {
+    const brandName = channel.brand_name;
+    if (!brandMap.has(brandName)) {
+      brandMap.set(brandName, []);
+    }
+    brandMap.get(brandName)!.push(channel);
+  }
+
+  const pairs: Record<string, [BffChannel, BffChannel]> = {};
+  const paired: Record<string, boolean> = {};
+  for (const [_, channels] of brandMap) {
+    for (const ch of channels) {
+      const isFirst = channels[0].allow_save === false;
+      if (isFirst) {
+        const pair = channels.find(
+          (other) =>
+            ch.channel_code !== other.channel_code &&
+            ch.ui_group === other.ui_group &&
+            other.allow_save === true,
+        );
+        if (pair) {
+          pairs[ch.channel_code] = [ch, pair];
+          paired[pair.channel_code] = true;
+        }
+      }
+    }
+  }
+
+  return {
+    pairs,
+    paired,
+  };
 }

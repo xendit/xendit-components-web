@@ -33,6 +33,7 @@ export function makeTestBffData(): BffResponse {
       business_id: "5f4708b7bd394b0400b96276",
       customer_id: "cust-78f95e42-4e9d-4556-827b-0e0b8ead68fc",
       capture_method: "AUTOMATIC",
+      allow_save_payment_method: "OPTIONAL",
       items: [
         {
           reference_id: "1234",
@@ -504,6 +505,24 @@ export function makeTestBffData(): BffResponse {
         ui_group: "ewallet",
         allow_pay_without_save: true,
         allow_save: false,
+        brand_color: "#00AED6",
+        min_amount: 1,
+        max_amount: 50000000,
+        requires_customer_details: false,
+        form: [],
+        instructions: [
+          "Get your GoPay app ready!",
+          "Follow the instructions on the next page to complete your payment",
+        ],
+      },
+      {
+        brand_name: "GoPay",
+        channel_code: "GOPAY_RECURRING",
+        brand_logo_url:
+          "https://assets.xendit.co/payment-session/logos/GOPAY.svg",
+        ui_group: "ewallet",
+        allow_pay_without_save: false,
+        allow_save: true,
         brand_color: "#00AED6",
         min_amount: 1,
         max_amount: 50000000,

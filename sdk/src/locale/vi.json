@@ -8,6 +8,7 @@
     "validation.required": "Vui lòng nhập {{field}}",
     "validation.text_too_long": "{{field}} quá dài",
     "validation.text_too_short": "{{field}} quá ngắn",
+    "payment.save_checkbox_label": "Lưu để thanh toán nhanh hơn lần sau",
     "payment_methods.add_payment_method": "Thêm phương thức thanh toán",
     "payment_methods.channel_disabled_amount_too_large": "Không khả dụng cho khoản thanh toán này",
     "payment_methods.channel_disabled_amount_too_small": "Không khả dụng cho khoản thanh toán này",
