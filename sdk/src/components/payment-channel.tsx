@@ -1,10 +1,10 @@
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
-import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import { useContext, useRef } from "preact/hooks";
 import { createContext, RefObject } from "preact";
 import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { InstructionsIcon } from "./instructions-icon";
 import { useSdk, useSession } from "./session-provider";
-import { CheckboxField } from "./field-checkbox";
+import { Checkbox } from "./checkbox";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -17,37 +17,28 @@ export const useChannel = () => {
 };
 
 interface Props {
+  /** The channels to use. If this has two items then the first is the non-save channel and the second is the save version. */
   channels: BffChannel[];
-  formRef?: RefObject<ChannelFormHandle>;
+  savePaymentMethod: boolean;
+  formRef: RefObject<ChannelFormHandle>;
 }
 
 export const PaymentChannel: React.FC<Props> = (props) => {
-  const { channels, formRef } = props;
+  const { channels, savePaymentMethod, formRef } = props;
   const divRef = useRef<HTMLDivElement>(null);
   const sdk = useSdk();
   const { t } = sdk;
   const session = useSession();
-  const [savePaymentMethod, setSavePaymentMethod] = useState(
-    sdk.getSavePaymentMethod() ?? false,
-  );
-  // Default to first channel if no channels provided
-  const defaultChannel = channels[0];
 
-  // Find paired channel (different allow_save setting)
-  const pairedChannel = channels.find(
-    (c) =>
-      c.allow_save !== defaultChannel.allow_save &&
-      c.brand_name === defaultChannel.brand_name,
-  );
+  const hasPairedChannel = channels.length > 1;
+  const resolvedChannel =
+    savePaymentMethod && hasPairedChannel ? channels[1] : channels[0];
 
-  // State to track the active channel (original or paired)
-  const [selectedChannel, setSelectedChannel] = useState(defaultChannel);
-
-  const instructions = instructionsAsTuple(selectedChannel.instructions);
+  const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
   const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
     const event = new XenditChannelPropertiesChangedEvent(
-      selectedChannel.channel_code,
+      resolvedChannel.channel_code,
       channelProperties,
     );
     divRef.current?.dispatchEvent(event);
@@ -55,62 +46,31 @@ export const PaymentChannel: React.FC<Props> = (props) => {
 
   const shouldShowSaveCheckbox =
     session.allow_save_payment_method === "OPTIONAL" &&
-    (selectedChannel.allow_save || !!pairedChannel);
+    (resolvedChannel.allow_save || hasPairedChannel);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = (e.target as HTMLInputElement)?.checked;
-    setSavePaymentMethod(checked);
-    onSavePaymentMethodChanged?.(checked);
-  };
-
-  const onSavePaymentMethodChanged = (checked: boolean) => {
-    let targetChannel = defaultChannel;
-    if (pairedChannel) {
-      if (checked && !defaultChannel.allow_save) {
-        targetChannel = pairedChannel;
-      }
-    }
-
     divRef.current?.dispatchEvent(
       new XenditSavePaymentMethodChangedEvent(
-        targetChannel.channel_code,
+        channels[0].channel_code, // always [0] because the chached channel objects are keyed by that
         checked,
       ),
     );
-
-    setSelectedChannel(targetChannel);
   };
 
-  useEffect(() => {
-    if (
-      sdk.getActiveChannel()?.channelCode === defaultChannel.channel_code &&
-      selectedChannel.channel_code !== defaultChannel.channel_code &&
-      savePaymentMethod
-    ) {
-      // Channel has already been swapped
-      // Dispatch an event to update activeChannelCode for paired channel
-      divRef.current?.dispatchEvent(
-        new XenditSavePaymentMethodChangedEvent(
-          selectedChannel.channel_code,
-          true,
-        ),
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sdk.getActiveChannel()?.channelCode]);
-
   return (
-    <ChannelContext.Provider value={selectedChannel}>
+    <ChannelContext.Provider value={resolvedChannel}>
       <div className="xendit-payment-channel" ref={divRef}>
         <ChannelForm
           ref={formRef}
-          form={selectedChannel.form}
+          form={resolvedChannel.form}
           onChannelPropertiesChanged={onChannelPropertiesChanged}
         />
         {shouldShowSaveCheckbox && (
-          <CheckboxField
+          <Checkbox
             label={t("payment.save_checkbox_label")}
             onChange={handleCheckboxChange}
+            checked={savePaymentMethod}
           />
         )}
         {instructions ? (

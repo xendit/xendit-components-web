@@ -82,7 +82,7 @@ import {
   bffCustomerToPublic,
   bffSessionToPublic,
   bffUiGroupsToPublic,
-  singleBffChannelToPublic,
+  findChannelPairs,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
 import { initI18n } from "./localization";
@@ -95,9 +95,10 @@ import { moneyFormat } from "./money-format";
  */
 type CachedChannelComponent = {
   element: HTMLElement;
+  channel: XenditPaymentChannel;
   channelProperties: ChannelProperties | null;
   channelformRef: RefObject<ChannelFormHandle>;
-  savePaymentMethod: boolean | null;
+  savePaymentMethod: boolean;
 };
 
 /**
@@ -444,6 +445,7 @@ export class XenditSessionSdk extends EventTarget {
     this.assertInitialized();
     return bffUiGroupsToPublic(
       this[internal].worldState.channels,
+      findChannelPairs(this[internal].worldState.channels),
       this[internal].worldState.channelUiGroups,
     );
   }
@@ -459,6 +461,7 @@ export class XenditSessionSdk extends EventTarget {
     this.assertInitialized();
     return bffChannelsToPublic(
       this[internal].worldState.channels,
+      findChannelPairs(this[internal].worldState.channels),
       this[internal].worldState.channelUiGroups,
     );
   }
@@ -581,16 +584,16 @@ export class XenditSessionSdk extends EventTarget {
       container = cachedComponent.element;
       channelFormRef = cachedComponent.channelformRef;
     } else {
-      const newContainer = document.createElement("xendit-payment-channel");
-      newContainer.setAttribute("inert", "");
-      this.setupUiEventsForPaymentChannel(newContainer);
-      container = newContainer;
+      container = document.createElement("xendit-payment-channel");
+      container.setAttribute("inert", "");
+      this.setupUiEventsForPaymentChannel(container);
 
       this[internal].liveComponents.paymentChannels.set(channelCode, {
         element: container,
+        channel,
         channelProperties: null,
         channelformRef: channelFormRef,
-        savePaymentMethod: null,
+        savePaymentMethod: false,
       });
     }
 
@@ -613,24 +616,15 @@ export class XenditSessionSdk extends EventTarget {
       this[internal].liveComponents.paymentChannels.get(channelCode);
     if (!container) return;
 
-    const channelObject = this.findChannel(channelCode);
-    if (!channelObject) return;
-
-    // Find paired channel
-    const pairedChannel = this[internal].worldState.channels.find(
-      (c) =>
-        c.channel_code !== channelObject.channel_code &&
-        c.ui_group === channelObject.ui_group &&
-        c.brand_name === channelObject.brand_name &&
-        c.allow_save !== channelObject.allow_save,
-    );
+    const channelObject = container.channel;
 
     render(
       createElement(XenditSessionProvider, {
         data: this[internal].worldState,
         sdk: this,
         children: createElement(PaymentChannel, {
-          channels: [channelObject, ...(pairedChannel ? [pairedChannel] : [])],
+          channels: channelObject[internal],
+          savePaymentMethod: container.savePaymentMethod,
           formRef: container.channelformRef,
         }),
       }),
@@ -652,15 +646,6 @@ export class XenditSessionSdk extends EventTarget {
         (ch) => ch.channelCode === currentActiveChannelCode,
       ) ?? null
     );
-  }
-
-  /**
-   * @public
-   * Returns the current save payment method state.
-   */
-  getSavePaymentMethod(): boolean | null {
-    this.assertInitialized();
-    return this[internal].behaviorTree?.bb?.savePaymentMethod;
   }
 
   /**
@@ -744,26 +729,16 @@ export class XenditSessionSdk extends EventTarget {
       (_event) => {
         const event = _event as XenditSavePaymentMethodChangedEvent;
         const channelCode = event.channel;
-        let component =
+        const component =
           this[internal].liveComponents.paymentChannels.get(channelCode);
         if (!component) {
-          // Create the payment component for this channel
-          const channel = this.findChannel(channelCode);
-          if (channel) {
-            this.createPaymentComponentForChannel(
-              singleBffChannelToPublic(channel),
-              false,
-            );
-            component =
-              this[internal].liveComponents.paymentChannels.get(channelCode);
-          }
+          return;
         }
 
-        if (component) {
-          this[internal].activeChannelCode = channelCode;
-          component.savePaymentMethod = event.savePaymentMethod;
-          this.behaviorTreeUpdate();
-        }
+        this[internal].activeChannelCode = channelCode;
+        component.savePaymentMethod = event.savePaymentMethod;
+        this.behaviorTreeUpdate();
+        this.rerenderAllComponents();
       },
     );
   }
