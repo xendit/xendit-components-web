@@ -6,6 +6,7 @@
     "secure-iframe/**/*",
     "action-landing-iframe/**/*",
     "sdk/**/*",
-    "shared/**/*"
+    "shared/**/*",
+    "setup-vitest.ts"
   ]
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { sanitizeCssValue, applyInputStyles } from "../css-sanitizer";
+import { sanitizeCssValue, applyInputStyles } from "./css-sanitizer";
 
 describe("sanitizeCssValue", () => {
   describe("fontFamily", () => {

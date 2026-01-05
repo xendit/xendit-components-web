@@ -1,8 +1,8 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   XenditFatalErrorEvent,
-  XenditSessionSdk,
-  XenditSessionTestSdk,
+  XenditComponents,
+  XenditComponentsTest,
 } from "xendit-components";
 import { PageType } from "./types";
 
@@ -12,14 +12,14 @@ export const Payment: React.FC<{
   goToPage: (page: PageType) => void;
 }> = ({ onSuccess, onFail, goToPage }) => {
   const el = useRef<HTMLDivElement | null>(null);
-  const sdkRef = useRef<XenditSessionSdk | null>(null);
+  const sdkRef = useRef<XenditComponents | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useLayoutEffect(() => {
     // Using the test SDK class
-    let sdk: XenditSessionSdk;
+    let sdk: XenditComponents;
     const componentsKey = prompt(
       "Enter your Xendit Components Key (leave blank to use mock data)",
     );
@@ -29,11 +29,11 @@ export const Payment: React.FC<{
     }
 
     if (componentsKey) {
-      sdk = new XenditSessionSdk({
+      sdk = new XenditComponents({
         sessionClientKey: componentsKey,
       });
     } else {
-      sdk = new XenditSessionTestSdk({});
+      sdk = new XenditComponentsTest({});
     }
     sdkRef.current = sdk;
 
@@ -41,10 +41,10 @@ export const Payment: React.FC<{
       setLoading(false);
 
       const cards = sdk
-        .getAvailablePaymentChannels()
+        .getActiveChannels()
         .find((channel) => channel.channelCode === "CARDS");
       if (cards) {
-        const component = sdk.createPaymentComponentForChannel(cards);
+        const component = sdk.createChannelComponent(cards);
         el.current?.replaceChildren(component);
       }
     });

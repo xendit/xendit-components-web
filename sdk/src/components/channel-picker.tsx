@@ -2,7 +2,7 @@ import React, { useCallback, useLayoutEffect } from "react";
 import { Accordion } from "./accordion";
 import { AccordionItem } from "./accordion-item";
 import {
-  useActiveChannel,
+  useCurrentChannel,
   useChannelUiGroups,
   useSession,
 } from "./session-provider";
@@ -14,7 +14,7 @@ type Props = object;
 export const XenditChannelPicker: React.FC<Props> = (props) => {
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
-  const activeChannel = useActiveChannel().channel;
+  const currentChannel = useCurrentChannel().channel;
 
   const thisRef = React.useRef<HTMLDivElement>(null);
 
@@ -30,7 +30,7 @@ export const XenditChannelPicker: React.FC<Props> = (props) => {
         const groupId = channelUiGroups[i].id;
         // this clears the selected channel if it belongs to this group
         thisRef.current?.dispatchEvent(
-          new XenditClearActiveChannelEvent(groupId),
+          new XenditClearCurrentChannelEvent(groupId),
         );
         setSelectedGroup(null);
       } else {
@@ -41,20 +41,20 @@ export const XenditChannelPicker: React.FC<Props> = (props) => {
     [channelUiGroups, selectedGroup],
   );
 
-  const previousActiveChannel = usePrevious(activeChannel);
+  const previousCurrentChannel = usePrevious(currentChannel);
   useLayoutEffect(() => {
     if (
-      activeChannel !== previousActiveChannel &&
+      currentChannel !== previousCurrentChannel &&
       !selectedGroupWasTriggeredManually
     ) {
-      // only run this when the active channel AND active group changes
-      if (activeChannel === null) {
-        // collapse the selected group when the active channel is cleared
+      // only run this when the current channel AND current group changes
+      if (currentChannel === null) {
+        // collapse the selected group when the current channel is cleared
         setSelectedGroup(null);
       } else {
         // expand the group of the newly selected channel
         const groupIndex = channelUiGroups.findIndex(
-          (group) => activeChannel.ui_group === group.id,
+          (group) => currentChannel.ui_group === group.id,
         );
         if (groupIndex !== -1) {
           setSelectedGroup(groupIndex);
@@ -63,9 +63,9 @@ export const XenditChannelPicker: React.FC<Props> = (props) => {
     }
     setSelectedGroupWasTriggeredManually(false);
   }, [
-    activeChannel,
+    currentChannel,
     channelUiGroups,
-    previousActiveChannel,
+    previousCurrentChannel,
     selectedGroup,
     selectedGroupWasTriggeredManually,
   ]);
@@ -99,12 +99,12 @@ export const XenditChannelPicker: React.FC<Props> = (props) => {
   );
 };
 
-export class XenditClearActiveChannelEvent extends Event {
-  static readonly type = "xendit-clear-active-channel" as const;
+export class XenditClearCurrentChannelEvent extends Event {
+  static readonly type = "xendit-clear-current-channel" as const;
   uiGroup: string;
 
   constructor(uiGroup: string) {
-    super(XenditClearActiveChannelEvent.type, {
+    super(XenditClearCurrentChannelEvent.type, {
       bubbles: true,
       composed: true,
     });

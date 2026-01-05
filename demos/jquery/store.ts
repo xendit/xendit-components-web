@@ -1,6 +1,6 @@
 import $ from "jquery";
 import data from "../data.json";
-import { XenditSessionSdk } from "xendit-components";
+import { XenditComponents } from "xendit-components";
 
 let selectedCurrency = "USD";
 const cart: {
@@ -34,7 +34,7 @@ export function updateProducts() {
       product.price *
       data.exchangeRates[selectedCurrency as keyof typeof data.exchangeRates];
     el.find(".product-price").text(
-      XenditSessionSdk.moneyFormat(localPrice, selectedCurrency),
+      XenditComponents.amountFormat(localPrice, selectedCurrency),
     );
     el.find(".product-image-wrapper").css(
       "background-color",
@@ -70,13 +70,13 @@ export function updateCartItems() {
     const subtotal = product.price * item.quantity * exchangeRate;
     total += subtotal;
     el.find(".line-item-price").text(
-      XenditSessionSdk.moneyFormat(subtotal, selectedCurrency),
+      XenditComponents.amountFormat(subtotal, selectedCurrency),
     );
     $(".cart-items").append(el);
   }
   $(".total .line-item-name").text(`Total`);
   $(".total .line-item-price").text(
-    XenditSessionSdk.moneyFormat(total, selectedCurrency),
+    XenditComponents.amountFormat(total, selectedCurrency),
   );
 }
 

@@ -73,25 +73,25 @@ const simulateButton = document.createElement("button");
 simulateButton.textContent = "Simulate Payment";
 controlsDiv.appendChild(simulateButton);
 
-const { XenditSessionSdk, XenditSessionTestSdk } = (
+const { XenditComponents, XenditComponentsTest } = (
   window as unknown as { XenditSdk: typeof import("./src/public-sdk") }
 ).XenditSdk;
 
-let sdk: import("./src/public-sdk").XenditSessionSdk;
+let components: import("./src/public-sdk").XenditComponents;
 const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 if (savedKey) {
   sdkKeyInput.value = savedKey;
-  sdk = new XenditSessionSdk({
+  components = new XenditComponents({
     sessionClientKey: savedKey,
   });
 } else {
-  sdk = new XenditSessionTestSdk({});
+  components = new XenditComponentsTest({});
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(window as any).sdk = sdk;
+(window as any).sdk = components;
 
-const channelPicker = sdk.createChannelPickerComponent();
+const channelPicker = components.createChannelPickerComponent();
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 
 function logEvent(event: Event) {
@@ -103,30 +103,30 @@ function logEvent(event: Event) {
   outputEventLog.value += "\n";
 }
 
-sdk.addEventListener("init", logEvent);
+components.addEventListener("init", logEvent);
 
-sdk.addEventListener("submission-ready", logEvent);
-sdk.addEventListener("submission-not-ready", logEvent);
+components.addEventListener("submission-ready", logEvent);
+components.addEventListener("submission-not-ready", logEvent);
 
-sdk.addEventListener("submission-begin", logEvent);
-sdk.addEventListener("submission-end", logEvent);
-sdk.addEventListener("action-begin", logEvent);
-sdk.addEventListener("action-end", logEvent);
-sdk.addEventListener("will-redirect", logEvent);
+components.addEventListener("submission-begin", logEvent);
+components.addEventListener("submission-end", logEvent);
+components.addEventListener("action-begin", logEvent);
+components.addEventListener("action-end", logEvent);
+components.addEventListener("will-redirect", logEvent);
 
-sdk.addEventListener("session-complete", logEvent);
-sdk.addEventListener("session-expired-or-canceled", logEvent);
+components.addEventListener("session-complete", logEvent);
+components.addEventListener("session-expired-or-canceled", logEvent);
 
-sdk.addEventListener("payment-request-created", logEvent);
-sdk.addEventListener("payment-request-discarded", logEvent);
+components.addEventListener("payment-request-created", logEvent);
+components.addEventListener("payment-request-discarded", logEvent);
 
-sdk.addEventListener("payment-token-created", logEvent);
-sdk.addEventListener("payment-token-discarded", logEvent);
+components.addEventListener("payment-token-created", logEvent);
+components.addEventListener("payment-token-discarded", logEvent);
 
-sdk.addEventListener("fatal-error", logEvent);
+components.addEventListener("fatal-error", logEvent);
 
 setInterval(() => {
-  const internalState = sdk.getState();
+  const internalState = components.getState();
   const { world, channel, dispatchEvent, sdkEvents, ...bbFlags } =
     internalState.behaviorTree.bb;
   outputChannelPropertiesLog.value = JSON.stringify(
@@ -158,13 +158,13 @@ function stringifyBehaviorTree(tree: TreeNode, depth: number): string {
 }
 
 submitButton.addEventListener("click", () => {
-  sdk.submit();
+  components.submit();
 });
 
 abortButton.addEventListener("click", () => {
-  sdk.abortSubmission();
+  components.abortSubmission();
 });
 
 simulateButton.addEventListener("click", () => {
-  sdk.simulatePayment();
+  components.simulatePayment();
 });

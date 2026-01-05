@@ -18,24 +18,33 @@ const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
 
 let lastSeenBuildOutput: string | null = null;
 async function generateIframeHtml(js: string) {
-  let pinningKeysRaw: string;
+  let pinningKeysRaw: JsonWebKey[];
 
   if (XENDIT_COMPONENTS_PINNING_KEYS) {
     // CI - use provided keys for all environments
-    pinningKeysRaw = Buffer.from(
-      XENDIT_COMPONENTS_PINNING_KEYS,
-      "base64",
-    ).toString("utf-8");
+    pinningKeysRaw = JSON.parse(
+      Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8"),
+    );
+    // double check these are not private keys
+    for (const key of pinningKeysRaw) {
+      if (key.d) {
+        throw new Error(
+          "Private keys are not allowed in XENDIT_COMPONENTS_PINNING_KEYS",
+        );
+      }
+    }
   } else {
     // Development - use test keys
-    pinningKeysRaw = await fs.readFile(
-      path.join(import.meta.dirname, "../test-pinning-keys.json"),
-      "utf-8",
+    pinningKeysRaw = JSON.parse(
+      await fs.readFile(
+        path.join(import.meta.dirname, "../test-pinning-keys.json"),
+        "utf-8",
+      ),
     );
   }
 
   // Parse and process pinning keys
-  const pinningKeys = JSON.parse(pinningKeysRaw).map((key: JsonWebKey) => {
+  const pinningKeys = pinningKeysRaw.map((key: JsonWebKey) => {
     // convert private keys to public keys (keep only public key parts)
     return {
       kty: key.kty,

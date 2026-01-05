@@ -1,5 +1,5 @@
 import {
-  useActiveChannel,
+  useCurrentChannel,
   useChannels,
   useSdk,
   useSession,
@@ -36,7 +36,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
   const selectedChannelElementRef = useRef<HTMLElement>(null);
 
   const sdkSelectedChannelCode =
-    useActiveChannel().channel?.channel_code ?? null;
+    useCurrentChannel().channel?.channel_code ?? null;
 
   const [explicitSelectedChannel, setExplicitSelectedChannel] =
     useState<BffChannel | null>(null);
@@ -64,7 +64,7 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
     if (explicitSelectedChannel) {
       if (open) {
         // create new channel component
-        const el = sdk.createPaymentComponentForChannel(
+        const el = sdk.createChannelComponent(
           singleBffChannelToPublic(explicitSelectedChannel, pairChannelData),
         );
         selectedChannelElementRef.current = el;
@@ -93,12 +93,12 @@ export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
         sdkSelectedChannelCode !== explicitSelectedChannel.channel_code
       ) {
         // update sdk state to match this group's selection if this group is opened and has a selection that differs from sdk state
-        sdk.setActiveChannel(
+        sdk.setCurrentChannel(
           singleBffChannelToPublic(explicitSelectedChannel, pairChannelData),
         );
       } else if (!explicitSelectedChannel) {
         // clear sdk selection if this group is opened and this group has no selection
-        sdk.setActiveChannel(null);
+        sdk.setCurrentChannel(null);
       }
     }
   }, [

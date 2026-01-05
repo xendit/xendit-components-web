@@ -1,10 +1,10 @@
 import { useLayoutEffect, useRef } from "preact/hooks";
-import { XenditSessionSdk } from "../public-sdk";
+import { XenditComponents } from "../public-sdk";
 import { Dialog } from "./dialog";
 import { internal } from "../internal";
 
 type Props = {
-  sdk: XenditSessionSdk;
+  sdk: XenditComponents;
   title: string;
   close?: boolean;
   onClose: () => void;

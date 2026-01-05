@@ -18,7 +18,8 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    include: ["**/__tests__/**/*.test.{ts,tsx}"],
+    setupFiles: "./setup-vitest.ts",
+    include: ["**/*.test.{ts,tsx}"],
     projects: [
       {
         extends: true,
@@ -34,5 +35,6 @@ export default defineConfig({
       reporter: ["html"],
       include: ["sdk/src/**/*.{ts,tsx}", "secure-iframe/src/**/*.{ts,tsx}"],
     },
+    pool: "threads",
   },
 });
