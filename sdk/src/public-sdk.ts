@@ -40,6 +40,7 @@ import {
 import {
   PaymentChannel,
   XenditChannelPropertiesChangedEvent,
+  XenditSavePaymentMethodChangedEvent,
 } from "./components/payment-channel";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
@@ -67,6 +68,7 @@ import {
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
   parseSdkKey,
+  resolvePairedChannel,
   sleep,
 } from "./utils";
 import { makeTestSdkKey } from "./test-data";
@@ -81,6 +83,7 @@ import {
   bffCustomerToPublic,
   bffSessionToPublic,
   bffUiGroupsToPublic,
+  findChannelPairs,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
 import { initI18n } from "./localization";
@@ -93,8 +96,10 @@ import { amountFormat } from "./amount-format";
  */
 type CachedChannelComponent = {
   element: HTMLElement;
+  channel: XenditPaymentChannel;
   channelProperties: ChannelProperties | null;
-  channelformRef: RefObject<ChannelFormHandle>;
+  channelFormRef: RefObject<ChannelFormHandle>;
+  savePaymentMethod: boolean;
 };
 
 /**
@@ -245,6 +250,7 @@ export class XenditComponents extends EventTarget {
         simulatePaymentRequested: false,
         actionCompleted: false,
         pollImmediatelyRequested: false,
+        savePaymentMethod: null,
       }),
       currentChannelCode: null,
     };
@@ -367,15 +373,22 @@ export class XenditComponents extends EventTarget {
     if (bb.sdkStatus === "LOADING" && this[internal].worldState) {
       bb.sdkStatus = "ACTIVE";
     }
+
     bb.world = this[internal].worldState;
-    bb.channel = this[internal].currentChannelCode
-      ? this.findChannel(this[internal].currentChannelCode)
-      : null;
-    bb.channelProperties = this[internal].currentChannelCode
-      ? (this[internal].liveComponents.paymentChannels.get(
+
+    const component = this[internal].currentChannelCode
+      ? this[internal].liveComponents.paymentChannels.get(
           this[internal].currentChannelCode,
-        )?.channelProperties ?? null)
+        )
       : null;
+    bb.channel = component
+      ? resolvePairedChannel(
+          component.channel[internal],
+          component.savePaymentMethod,
+        )
+      : null;
+    bb.channelProperties = component ? component.channelProperties : null;
+    bb.savePaymentMethod = component ? component.savePaymentMethod : null;
 
     try {
       this[internal].behaviorTree.update();
@@ -432,6 +445,7 @@ export class XenditComponents extends EventTarget {
     this.assertInitialized();
     return bffUiGroupsToPublic(
       this[internal].worldState.channels,
+      findChannelPairs(this[internal].worldState.channels),
       this[internal].worldState.channelUiGroups,
     );
   }
@@ -447,6 +461,7 @@ export class XenditComponents extends EventTarget {
     this.assertInitialized();
     return bffChannelsToPublic(
       this[internal].worldState.channels,
+      findChannelPairs(this[internal].worldState.channels),
       this[internal].worldState.channelUiGroups,
     );
   }
@@ -561,8 +576,7 @@ export class XenditComponents extends EventTarget {
     active = true,
   ): HTMLElement {
     this.assertInitialized();
-
-    const channelCode = channel[internal].channel_code;
+    const channelCode = channel[internal][0].channel_code;
 
     // return previously created component if it exists
     const cachedComponent =
@@ -572,14 +586,18 @@ export class XenditComponents extends EventTarget {
 
     if (cachedComponent) {
       container = cachedComponent.element;
-      channelFormRef = cachedComponent.channelformRef;
+      channelFormRef = cachedComponent.channelFormRef;
     } else {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("inert", "");
+      this.setupUiEventsForPaymentChannel(container);
+
       this[internal].liveComponents.paymentChannels.set(channelCode, {
         element: container,
+        channel,
         channelProperties: null,
-        channelformRef: channelFormRef,
+        channelFormRef: channelFormRef,
+        savePaymentMethod: false,
       });
     }
 
@@ -587,8 +605,6 @@ export class XenditComponents extends EventTarget {
     if (active) {
       this.setCurrentChannel(channel);
     }
-
-    this.setupUiEventsForPaymentChannel(container);
 
     return container;
   }
@@ -604,16 +620,16 @@ export class XenditComponents extends EventTarget {
       this[internal].liveComponents.paymentChannels.get(channelCode);
     if (!container) return;
 
-    const channelObject = this.findChannel(channelCode);
-    if (!channelObject) return;
+    const channelObject = container.channel;
 
     render(
       createElement(XenditSessionProvider, {
         data: this[internal].worldState,
         sdk: this,
         children: createElement(PaymentChannel, {
-          channel: channelObject,
-          formRef: container.channelformRef,
+          channels: channelObject[internal],
+          savePaymentMethod: container.savePaymentMethod,
+          formRef: container.channelFormRef,
         }),
       }),
       container.element,
@@ -641,7 +657,7 @@ export class XenditComponents extends EventTarget {
    * Makes the given channel the current channel for submission.
    *
    * The current channel:
-   *  - Is interactive if it has a form (other channel compoennts are non-interactive)
+   *  - Is interactive if it has a form (other channel components are non-interactive)
    *  - Is used when `submit()` is called.
    *
    * Set to null to clear the current channel.
@@ -649,7 +665,7 @@ export class XenditComponents extends EventTarget {
   setCurrentChannel(channel: XenditPaymentChannel | null): void {
     const currentChannelCode = this[internal].currentChannelCode;
 
-    const channelCode = channel?.[internal].channel_code ?? null;
+    const channelCode = channel?.[internal][0].channel_code ?? null;
 
     if (currentChannelCode === channelCode) {
       // no change
@@ -690,6 +706,7 @@ export class XenditComponents extends EventTarget {
    * @internal
    * Handles events from the payment channel component.
    *  - Updates channel properties when they change.
+   *  - Updates save payment method setting when it changes.
    */
   private setupUiEventsForPaymentChannel(container: HTMLElement): void {
     // update per-channel channel properties
@@ -703,10 +720,31 @@ export class XenditComponents extends EventTarget {
         if (!component) {
           return;
         }
+
         component.channelProperties = event.channelProperties;
 
         // update behavior tree (form validity may have changed)
         this.behaviorTreeUpdate();
+      },
+    );
+
+    // update save payment method setting
+    container.addEventListener(
+      XenditSavePaymentMethodChangedEvent.type,
+      (_event) => {
+        const event = _event as XenditSavePaymentMethodChangedEvent;
+        const channelCode = event.channel;
+        const component =
+          this[internal].liveComponents.paymentChannels.get(channelCode);
+        if (!component) {
+          return;
+        }
+
+        component.savePaymentMethod = event.savePaymentMethod;
+        this.behaviorTreeUpdate();
+
+        // TODO: need to re-collect all channel properties since form fields may have been added or removed
+        this.rerenderAllComponents();
       },
     );
   }
@@ -742,7 +780,7 @@ export class XenditComponents extends EventTarget {
       );
     }
 
-    const form = component.channelformRef?.current;
+    const form = component.channelFormRef.current;
     form?.validate();
   }
 

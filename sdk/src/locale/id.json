@@ -8,6 +8,7 @@
     "validation.required": "{{field}} wajib diisi",
     "validation.text_too_long": "{{field}} terlalu panjang",
     "validation.text_too_short": "{{field}} terlalu pendek",
+    "payment.save_checkbox_label": "Simpan untuk pembayaran lebih cepat lain kali",
     "payment_methods.add_payment_method": "Tambah metode pembayaran",
     "payment_methods.channel_disabled_amount_too_large": "Tidak tersedia untuk pembayaran ini",
     "payment_methods.channel_disabled_amount_too_small": "Tidak tersedia untuk pembayaran ini",

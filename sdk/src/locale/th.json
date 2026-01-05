@@ -8,6 +8,7 @@
     "validation.required": "กรุณากรอก {{field}}",
     "validation.text_too_long": "{{field}} ยาวเกินไป",
     "validation.text_too_short": "{{field}} สั้นเกินไป",
+    "payment.save_checkbox_label": "บันทึกไว้สำหรับการชำระเงินที่เร็วขึ้นในครั้งถัดไป",
     "payment_methods.add_payment_method": "เพิ่มวิธีการชำระเงิน",
     "payment_methods.channel_disabled_amount_too_large": "ไม่สามารถใช้ได้กับการชำระเงินนี้",
     "payment_methods.channel_disabled_amount_too_small": "ไม่สามารถใช้ได้กับการชำระเงินนี้",

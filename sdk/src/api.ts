@@ -35,6 +35,7 @@ type CreatePaymentRequestRequestBody = {
   channel_code: string;
   channel_properties: ChannelProperties;
   customer?: BffCustomer;
+  save_payment_method?: boolean;
 };
 /**
  * Creates a payment request.

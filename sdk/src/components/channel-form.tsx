@@ -29,7 +29,6 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
     const cardDetails = useCardDetails();
-
     const formRef = useRef<HTMLFormElement>(null);
 
     const [channelProperties, setChannelProperties] =
