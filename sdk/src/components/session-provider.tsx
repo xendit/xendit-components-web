@@ -1,4 +1,3 @@
-import React, { createContext, useContext, ReactNode } from "react";
 import { WorldState, XenditComponents } from "../public-sdk";
 import { BffSession } from "../backend-types/session";
 import { BffBusiness } from "../backend-types/business";
@@ -10,6 +9,8 @@ import {
 } from "../backend-types/channel";
 import { internal } from "../internal";
 import { BffCardDetails } from "../backend-types/card-details";
+import { ComponentChildren, createContext, FunctionComponent } from "preact";
+import { useContext } from "preact/hooks";
 
 // Create contexts
 const SessionContext = createContext<BffSession | null>(null);
@@ -106,16 +107,14 @@ export const useCurrentChannel = () => {
 };
 
 interface XenditSessionProviderProps {
-  children: ReactNode;
+  children: ComponentChildren;
   data: WorldState;
   sdk: XenditComponents;
 }
 
-export const XenditSessionProvider: React.FC<XenditSessionProviderProps> = ({
-  children,
-  data,
-  sdk,
-}) => {
+export const XenditSessionProvider: FunctionComponent<
+  XenditSessionProviderProps
+> = ({ children, data, sdk }) => {
   const { session, business, customer, channels, channelUiGroups } = data;
 
   const channel = sdk.getCurrentChannel()?.[internal]?.[0] ?? null;

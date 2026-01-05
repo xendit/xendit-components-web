@@ -12,13 +12,17 @@ import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { formFieldName, usePrevious } from "../utils";
 import { useCardDetails } from "./session-provider";
+import { FunctionComponent } from "preact";
 
 type FlagIconProps = {
   countryCode: string;
   size?: number;
 };
 
-const FlagIcon: React.FC<FlagIconProps> = ({ countryCode, size = 16 }) => {
+const FlagIcon: FunctionComponent<FlagIconProps> = ({
+  countryCode,
+  size = 16,
+}) => {
   return (
     <div
       style={{
@@ -33,7 +37,7 @@ const FlagIcon: React.FC<FlagIconProps> = ({ countryCode, size = 16 }) => {
   );
 };
 
-export const CountryField: React.FC<FieldProps> = (props) => {
+export const CountryField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
   const id = formFieldName(field);
 

@@ -1,3 +1,4 @@
+import { FunctionComponent } from "preact";
 import { ChannelFormField, FieldType } from "../backend-types/channel";
 import { formFieldName } from "../utils";
 import { Dropdown, DropdownOption } from "./dropdown";
@@ -13,7 +14,7 @@ const toDropdownOptions = (
   }));
 };
 
-export const DropdownField: React.FC<FieldProps> = (props) => {
+export const DropdownField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
   const id = formFieldName(field);
 

@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { Dropdown, DropdownOption } from "./dropdown";
@@ -15,8 +14,16 @@ import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
 import { formFieldName } from "../utils";
 import { InternalInputValidateEvent } from "../private-event-types";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
+import { FunctionComponent, TargetedEvent } from "preact";
 
-export const PhoneNumberField: React.FC<FieldProps> = (props) => {
+export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
   const id = formFieldName(field);
 
@@ -85,7 +92,7 @@ export const PhoneNumberField: React.FC<FieldProps> = (props) => {
     };
   }, [id, updateValidity, country]);
 
-  function handleLocalChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  function handleLocalChange(event: TargetedEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
     setLocalNumber(nextLocal);
     updateHiddenField(country, nextLocal);

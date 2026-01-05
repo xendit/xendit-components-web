@@ -1,6 +1,11 @@
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
 import { useContext, useRef } from "preact/hooks";
-import { createContext, RefObject } from "preact";
+import {
+  createContext,
+  FunctionComponent,
+  RefObject,
+  TargetedEvent,
+} from "preact";
 import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { InstructionsIcon } from "./instructions-icon";
 import { useSdk, useSession } from "./session-provider";
@@ -24,7 +29,7 @@ interface Props {
   formRef: RefObject<ChannelFormHandle>;
 }
 
-export const PaymentChannel: React.FC<Props> = (props) => {
+export const PaymentChannel: FunctionComponent<Props> = (props) => {
   const { channels, savePaymentMethod, formRef } = props;
   const divRef = useRef<HTMLDivElement>(null);
   const sdk = useSdk();
@@ -51,7 +56,7 @@ export const PaymentChannel: React.FC<Props> = (props) => {
     session.allow_save_payment_method === "OPTIONAL" &&
     (resolvedChannel.allow_save || hasPairedChannel);
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCheckboxChange = (e: TargetedEvent<HTMLInputElement>) => {
     const checked = (e.target as HTMLInputElement)?.checked;
     divRef.current?.dispatchEvent(
       new XenditSavePaymentMethodChangedEvent(

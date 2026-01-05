@@ -54,6 +54,7 @@ if (process.env.CI) {
 
 // environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
 const envs = {
+  NODE_ENV: "production",
   XENDIT_COMPONENTS_SECURE_IFRAME_URL:
     process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL,
   XENDIT_COMPONENTS_VERSION: process.env.XENDIT_COMPONENTS_VERSION,
