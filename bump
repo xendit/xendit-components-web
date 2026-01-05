@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+npm version "$1" --no-git-tag-version
+
+(cd ./demos && npm i)
