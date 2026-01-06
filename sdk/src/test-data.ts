@@ -28,7 +28,7 @@ export function makeTestBffData(): BffResponse {
       status: "ACTIVE",
       reference_id: randomUuid(),
       currency: "IDR",
-      amount: 100000,
+      amount: 10000,
       country: "ID",
       expires_at: mockExpiry,
       session_type: "PAY",
@@ -65,7 +65,6 @@ export function makeTestBffData(): BffResponse {
     },
     customer: {
       type: "INDIVIDUAL",
-      reference_id: randomUuid(),
       id: `cust-${randomUuid()}`,
       email: "exa**@example.com",
       mobile_number: null,

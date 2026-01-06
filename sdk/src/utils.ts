@@ -6,6 +6,7 @@ import {
 } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
+import { BffSession } from "./backend-types/session";
 
 export const MOCK_NETWORK_DELAY_MS = 300;
 
@@ -328,4 +329,22 @@ export function resolvePairedChannel(
   } else {
     return channels[0];
   }
+}
+
+export function satisfiesMinMax(
+  session: Pick<BffSession, "amount" | "session_type">,
+  channel: BffChannel,
+): boolean {
+  if (session.session_type !== "PAY") {
+    return true; // only pay sessions have min/max
+  }
+
+  const amount = session.amount;
+  const min = channel.min_amount ?? 0;
+  const max = channel.max_amount ?? Number.MAX_VALUE;
+  if (amount < min || amount > max) {
+    return false;
+  }
+
+  return true;
 }

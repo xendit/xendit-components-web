@@ -125,14 +125,10 @@ export interface XenditCustomer {
   type: "INDIVIDUAL";
 
   /**
-   * Merchant provided identifier for the customer
-   */
-  referenceId: string;
-
-  /**
    * E-mail address of customer.
    */
   email?: string;
+
   /**
    * Mobile number of customer in E.164 format +(country code)(subscriber number)
    */
@@ -147,25 +143,7 @@ export interface XenditCustomer {
      * Last or family name of customer.
      */
     surname?: string;
-    /**
-     * Country code for customer nationality. ISO 3166-1 alpha-2 Country Code.
-     */
-    nationality?: string;
-    /**
-     * City or other relevant location for the customer birth place.
-     */
-    placeOfBirth?: string;
-    /**
-     * Date of birth in the format YYYY-MM-DD.
-     */
-    dateOfBirth?: string;
-    /**
-     * Gender of customer.
-     */
-    gender?: "MALE" | "FEMALE" | "OTHER";
   };
-
-  // TODO: business customers
 }
 
 /**

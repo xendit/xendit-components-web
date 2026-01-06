@@ -15,14 +15,12 @@ export interface XenditSdkOptions {
 
 /**
  * @public
+ * Options for retrieving payment channels.
  */
-export interface XenditChannelPickerComponentOptions {
-  todo: string;
-}
-
-/**
- * @public
- */
-export interface XenditPaymentChannelComponentOptions {
-  todo: string;
+export interface XenditGetChannelsOptions {
+  /**
+   * If true, channels that do not satisfy the session's min/max amount will be filtered out.
+   * Default true.
+   */
+  filterMinMax?: boolean;
 }

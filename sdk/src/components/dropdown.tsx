@@ -318,7 +318,7 @@ export const Dropdown = (props: DropdownProps) => {
                   ref={isActive ? scrollActiveIntoView : undefined}
                 >
                   <div
-                    className={`xendit-dropdown-item xendit-text-14 ${isActive ? "is-active" : ""} ${opt.leadingAsset ? "xendit-dropdown-has-asset" : ""}`}
+                    className={`xendit-dropdown-item xendit-text-14 ${isActive ? "is-active" : ""} ${opt.leadingAsset ? "xendit-dropdown-has-asset" : ""} ${opt.disabled ? "xendit-dropdown-item-disabled" : ""}`}
                   >
                     {opt.leadingAsset ? opt.leadingAsset : null}
                     <div className="xendit-dropdown-item-text xendit-text-14">

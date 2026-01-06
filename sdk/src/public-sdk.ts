@@ -16,7 +16,10 @@ import {
   XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
 } from "./public-event-types";
-import { XenditSdkOptions as XenditComponentsOptions } from "./public-options-types";
+import {
+  XenditSdkOptions as XenditComponentsOptions,
+  XenditGetChannelsOptions,
+} from "./public-options-types";
 import {
   XenditCustomer,
   XenditPaymentChannel,
@@ -69,6 +72,7 @@ import {
   ParsedSdkKey,
   parseSdkKey,
   resolvePairedChannel,
+  satisfiesMinMax,
   sleep,
 } from "./utils";
 import { makeTestSdkKey } from "./test-data";
@@ -440,13 +444,23 @@ export class XenditComponents extends EventTarget {
    *
    * The channels are organized in a way that is appropriate to show to users.
    * You can use this to render your channel picker UI.
+   *
+   * Note it's possible for this list to be empty.
    */
-  getActiveChannelGroups(): XenditPaymentChannelGroup[] {
+  getActiveChannelGroups(
+    options?: XenditGetChannelsOptions,
+  ): XenditPaymentChannelGroup[] {
     this.assertInitialized();
     return bffUiGroupsToPublic(
       this[internal].worldState.channels,
-      findChannelPairs(this[internal].worldState.channels),
       this[internal].worldState.channelUiGroups,
+      {
+        options: {
+          filterMinMax: options?.filterMinMax ?? true,
+        },
+        session: this[internal].worldState.session,
+        pairChannels: findChannelPairs(this[internal].worldState.channels),
+      },
     );
   }
 
@@ -456,13 +470,23 @@ export class XenditComponents extends EventTarget {
    *
    * Use this when you need to search for specific channels. When rendering your UI,
    * use `getActiveChannelGroups` instead.
+   *
+   * Note it's possible for this list to be empty.
    */
-  getActiveChannels(): XenditPaymentChannel[] {
+  getActiveChannels(
+    options?: XenditGetChannelsOptions,
+  ): XenditPaymentChannel[] {
     this.assertInitialized();
     return bffChannelsToPublic(
       this[internal].worldState.channels,
-      findChannelPairs(this[internal].worldState.channels),
       this[internal].worldState.channelUiGroups,
+      {
+        options: {
+          filterMinMax: options?.filterMinMax ?? true,
+        },
+        session: this[internal].worldState.session,
+        pairChannels: findChannelPairs(this[internal].worldState.channels),
+      },
     );
   }
 
@@ -576,6 +600,15 @@ export class XenditComponents extends EventTarget {
     active = true,
   ): HTMLElement {
     this.assertInitialized();
+
+    if (
+      !satisfiesMinMax(this[internal].worldState.session, channel[internal][0])
+    ) {
+      throw new Error(
+        `Cannot create channel component: \`session.amount\` is outside of the channel's min/max amount.`,
+      );
+    }
+
     const channelCode = channel[internal][0].channel_code;
 
     // return previously created component if it exists
@@ -646,9 +679,15 @@ export class XenditComponents extends EventTarget {
       return null;
     }
     return (
-      this.getActiveChannels().find(
-        (ch) => ch.channelCode === currentChannelCode,
-      ) ?? null
+      this.getActiveChannels().find((ch) => {
+        if (
+          ch.channelCode === currentChannelCode ||
+          (Array.isArray(ch.channelCode) &&
+            ch.channelCode.includes(currentChannelCode))
+        ) {
+          return true;
+        }
+      }) ?? null
     );
   }
 

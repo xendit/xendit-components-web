@@ -4,11 +4,19 @@ import {
   useCurrentChannel,
   useChannelUiGroups,
   useSession,
+  useChannels,
+  useSdk,
 } from "./session-provider";
-import { ChannelPickerGroup } from "./channel-picker-group";
-import { usePrevious } from "../utils";
 import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { FunctionComponent } from "preact";
+import {
+  ChannelPickerGroup,
+  getChannelDisabledReason,
+} from "./channel-picker-group";
+import { satisfiesMinMax, usePrevious } from "../utils";
+import { BffSession } from "../backend-types/session";
+import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
+import { TFunction } from "i18next";
 
 type Props = object;
 
@@ -16,6 +24,8 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
   const currentChannel = useCurrentChannel().channel;
+  const channels = useChannels();
+  const { t } = useSdk();
 
   const thisRef = useRef<HTMLDivElement>(null);
 
@@ -83,12 +93,21 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
       <Accordion>
         {channelUiGroups.map((group, i) => {
           const open = selectedGroup === i;
+          const disabledReason = groupHasNoEnabledChannel(
+            session,
+            group,
+            channels,
+            t,
+          );
+          const disabled = disabledReason !== null;
           return (
             <AccordionItem
               key={i}
               id={i}
               title={group.label}
+              subtitle={disabledReason ?? undefined}
               open={open}
+              disabled={disabled}
               onClick={handleSelectChannelGroup}
             >
               <ChannelPickerGroup group={group} open={open} />
@@ -99,6 +118,24 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     </div>
   );
 };
+
+// returns null if the group has any enabled channels, otherwise returns the disabled reason as a string
+function groupHasNoEnabledChannel(
+  session: BffSession,
+  group: BffChannelUiGroup,
+  channels: BffChannel[],
+  t: TFunction<"session">,
+): string | null {
+  let lastReason = null;
+  for (const channel of channels) {
+    if (channel.ui_group !== group.id) continue;
+    if (satisfiesMinMax(session, channel)) {
+      return null;
+    }
+    lastReason = getChannelDisabledReason(t, session, channel);
+  }
+  return lastReason;
+}
 
 export class XenditClearCurrentChannelEvent extends Event {
   static readonly type = "xendit-clear-current-channel" as const;
