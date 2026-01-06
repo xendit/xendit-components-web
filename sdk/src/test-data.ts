@@ -851,7 +851,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Save Payment Details Test",
-        channel_code: "SAVE_PAYMENT_DETAILS_TEST",
+        channel_code: "UI_SAVE_PAYMENT_DETAILS_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "ui_tests",
         allow_pay_without_save: true,
@@ -868,7 +868,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Paired Channels Test",
-        channel_code: "PAIRED_CHANNELS_TEST_1",
+        channel_code: "UI_PAIRED_CHANNELS_TEST_1",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "ui_tests",
         allow_pay_without_save: true,
@@ -897,7 +897,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Paired Channels Test",
-        channel_code: "PAIRED_CHANNELS_TEST_2",
+        channel_code: "UI_PAIRED_CHANNELS_TEST_2",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "ui_tests",
         allow_pay_without_save: false,
@@ -926,7 +926,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Banner Test",
-        channel_code: "BANNER_TEST",
+        channel_code: "UI_BANNER_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "ui_tests",
         allow_pay_without_save: true,
@@ -947,7 +947,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Single Item Test",
-        channel_code: "SINGLE_ITEM_TEST",
+        channel_code: "GROUP_SINGLE_ITEM_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "single_item",
         allow_pay_without_save: false,
@@ -964,7 +964,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Disabled Group Test",
-        channel_code: "DISABLED_GROUP_TEST",
+        channel_code: "GROUP_DISABLED_GROUP_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "disabled",
         allow_pay_without_save: false,
@@ -981,7 +981,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Partial Disabled Group (Enabled)",
-        channel_code: "PARTIAL_DISABLED_GROUP_ENABLED",
+        channel_code: "GROUP_PARTIAL_DISABLED_1",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "partial_disabled",
         allow_pay_without_save: false,
@@ -998,7 +998,7 @@ export function makeTestBffData(): BffResponse {
       },
       {
         brand_name: "Partial Disabled Group (Disabled)",
-        channel_code: "PARTIAL_DISABLED_GROUP_DISABLED",
+        channel_code: "GROUP_PARTIAL_DISABLED_2",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "partial_disabled",
         allow_pay_without_save: false,

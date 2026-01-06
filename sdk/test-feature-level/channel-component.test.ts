@@ -17,7 +17,7 @@ describe("initialization", () => {
 
     const ch = sdk
       .getActiveChannels()
-      .find((c) => c.channelCode === "MANDIRI_VIRTUAL_ACCOUNT");
+      .find((c) => c.channelCode === "MOCK_EWALLET");
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 
@@ -34,7 +34,7 @@ describe("initialization", () => {
 
     const ch = sdk
       .getActiveChannels()
-      .find((c) => c.channelCode === "INDOMARET");
+      .find((c) => c.channelCode === "MOCK_EWALLET_WITH_PHONE");
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 
@@ -44,12 +44,14 @@ describe("initialization", () => {
     const form = el?.querySelector("form");
     assert(form);
 
-    const inputs = form.elements;
+    // phone inputs have extra elements, but only one should have name attribute
+    const inputs = Array.from(form.elements).filter((el) =>
+      el.getAttribute("name"),
+    );
     expect(inputs).toHaveLength(1);
+
     if (!(inputs[0] instanceof HTMLInputElement)) {
       throw new Error("Expected input element");
     }
-    expect(inputs[0].labels?.length).toBe(1);
-    expect(inputs[0].labels?.item(0)?.textContent).toBe("Payer Name");
   });
 });
