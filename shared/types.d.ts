@@ -66,7 +66,7 @@ export type IframeAppearanceOptions = {
   /**
    * Limited styles applied to iframe inputs.
    */
-  inputFieldStyles?: {
+  inputStyles?: {
     fontFamily?: string;
     fontSize?: string;
     fontWeight?: string;

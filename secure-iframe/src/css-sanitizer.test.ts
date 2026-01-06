@@ -248,7 +248,7 @@ describe("applyInputStyles", () => {
 
   it("applies safe font family and size", () => {
     applyInputStyles(mockInput, {
-      inputFieldStyles: {
+      inputStyles: {
         fontFamily: "Arial, sans-serif",
         fontSize: "16px",
         fontWeight: "bold",
@@ -270,7 +270,7 @@ describe("applyInputStyles", () => {
 
   it("sanitizes dangerous values", () => {
     applyInputStyles(mockInput, {
-      inputFieldStyles: {
+      inputStyles: {
         fontFamily: "Arial; background: red;",
         fontSize: "16px; color: red;",
         fontWeight: "bold;",

@@ -84,7 +84,7 @@ if (savedKey) {
   components = new XenditComponents({
     sessionClientKey: savedKey,
     iframeFieldAppearance: {
-      inputFieldStyles: {
+      inputStyles: {
         color: "black",
       },
       placeholderStyles: {

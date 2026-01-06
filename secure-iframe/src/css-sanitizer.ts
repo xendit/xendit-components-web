@@ -177,7 +177,7 @@ export function applyInputStyles(
   options?: IframeAppearanceOptions,
 ): void {
   if (!options || typeof options !== "object") return;
-  const styles = options.inputFieldStyles;
+  const styles = options.inputStyles;
   if (styles && typeof styles !== "object") return; // allow undefined or object only
 
   if (options.fontFace) {
