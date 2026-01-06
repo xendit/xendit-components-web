@@ -1,4 +1,8 @@
-import { IframeEvent, IframeFieldType } from "../../shared/types";
+import {
+  IframeAppearanceOptions,
+  IframeEvent,
+  IframeFieldType,
+} from "../../shared/types";
 import {
   deriveSharedKey,
   encryptText,
@@ -6,7 +10,11 @@ import {
   hashText,
   pin,
 } from "./crypto";
-import { applyInputStyles } from "./css-sanitizer";
+import {
+  applyFontFace,
+  applyInputStyles,
+  applyPlaceholderStyles,
+} from "./css-sanitizer";
 import { assertIsSecureInputEvent } from "./events";
 import {
   createFatalErrorComponent,
@@ -15,13 +23,6 @@ import {
 } from "./ui";
 import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
 import { validate } from "./validation";
-
-type AppearanceOptions = {
-  inputFieldProperties: {
-    fontFamily?: string;
-    fontSize?: string;
-  };
-};
 
 function getQueryInputs() {
   const query = new URLSearchParams(location.search);
@@ -51,31 +52,11 @@ function getQueryInputs() {
 // @ts-expect-error This macro is replaced with a JSON array by the build script
 const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
-function injectFontFaces() {
-  const style = document.createElement("style");
-  style.textContent = `
-    @font-face {
-      font-family: "Proxima Nova";
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-      src:
-        local("Proximanova Regular"),
-        local("Proxima Nova"),
-        url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf")
-          format("truetype");
-    }
-  `;
-  document.head.appendChild(style);
-}
-
 function insecurePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, "*");
 }
 
 export async function init() {
-  injectFontFaces();
-
   document.body.style.margin = "0";
 
   assert(masterPinningKeys.length > 0, "missing pinning keys");
@@ -131,20 +112,18 @@ export async function init() {
 
   // apply appearance options if provided
   if (queryInputs.appearanceOptions) {
+    let appearance: IframeAppearanceOptions;
     try {
-      const appearance: AppearanceOptions = JSON.parse(
+      appearance = JSON.parse(
         decodeURIComponent(queryInputs.appearanceOptions),
       );
-      if (
-        appearance?.inputFieldProperties &&
-        typeof appearance.inputFieldProperties === "object"
-      ) {
-        // apply styles with security validation at the iframe boundary
-        applyInputStyles(input, appearance.inputFieldProperties);
-      }
     } catch {
       assert(false, "appearance param is not json");
     }
+
+    applyFontFace(appearance);
+    applyInputStyles(input, appearance);
+    applyPlaceholderStyles(input, appearance);
   }
 
   let lastValue: string[] = [];

@@ -1,3 +1,5 @@
+import { IframeAppearanceOptions } from "../../shared/types";
+
 export type AllowedCssProperty =
   | "fontFamily"
   | "fontSize"
@@ -168,60 +170,84 @@ export function sanitizeCssValue(
   }
 }
 
+const CUSTOM_FONT_NAME = "xendit-iframe-custom-font";
+
 export function applyInputStyles(
   input: HTMLInputElement,
-  properties?: {
-    fontFamily?: string;
-    fontSize?: string;
-    fontWeight?: string;
-    lineHeight?: string;
-    letterSpacing?: string;
-    color?: string;
-    backgroundColor?: string;
-  },
+  options?: IframeAppearanceOptions,
 ): void {
-  if (!properties) return;
+  if (!options || typeof options !== "object") return;
+  const styles = options.inputFieldStyles;
+  if (styles && typeof styles !== "object") return; // allow undefined or object only
 
-  if (properties.fontFamily) {
-    input.style.fontFamily = sanitizeCssValue(
-      properties.fontFamily,
-      "fontFamily",
-    );
+  if (options.fontFace) {
+    // if user provided a custom font face, use font name we loaded the font as
+    input.style.fontFamily = `${CUSTOM_FONT_NAME}, sans-serif`;
+  } else if (styles?.fontFamily) {
+    input.style.fontFamily = sanitizeCssValue(styles.fontFamily, "fontFamily");
   }
 
-  if (properties.fontSize) {
-    input.style.fontSize = sanitizeCssValue(properties.fontSize, "fontSize");
+  if (styles?.fontSize) {
+    input.style.fontSize = sanitizeCssValue(styles.fontSize, "fontSize");
   }
 
-  if (properties.fontWeight) {
-    input.style.fontWeight = sanitizeCssValue(
-      properties.fontWeight,
-      "fontWeight",
-    );
+  if (options.fontFace) {
+    input.style.fontWeight = "normal";
+  } else if (styles?.fontWeight) {
+    input.style.fontWeight = sanitizeCssValue(styles.fontWeight, "fontWeight");
   }
 
-  if (properties.lineHeight) {
-    input.style.lineHeight = sanitizeCssValue(
-      properties.lineHeight,
-      "lineHeight",
-    );
+  if (styles?.lineHeight) {
+    input.style.lineHeight = sanitizeCssValue(styles.lineHeight, "lineHeight");
   }
 
-  if (properties.letterSpacing) {
+  if (styles?.letterSpacing) {
     input.style.letterSpacing = sanitizeCssValue(
-      properties.letterSpacing,
+      styles.letterSpacing,
       "letterSpacing",
     );
   }
 
-  if (properties.color) {
-    input.style.color = sanitizeCssValue(properties.color, "color");
+  if (styles?.color) {
+    input.style.color = sanitizeCssValue(styles.color, "color");
   }
 
-  if (properties.backgroundColor) {
+  if (styles?.backgroundColor) {
     input.style.backgroundColor = sanitizeCssValue(
-      properties.backgroundColor,
+      styles.backgroundColor,
       "backgroundColor",
     );
   }
+}
+
+export function applyPlaceholderStyles(
+  input: HTMLInputElement,
+  options?: IframeAppearanceOptions,
+) {
+  if (!options || typeof options !== "object") return;
+  const styles = options.placeholderStyles;
+
+  if (styles?.color) {
+    document.documentElement.style.setProperty(
+      "--xendit-iframe-placeholder-color",
+      sanitizeCssValue(styles.color, "color"),
+    );
+  }
+}
+
+export function applyFontFace(options: IframeAppearanceOptions): void {
+  if (!window.FontFace) return;
+  // @ts-expect-error add funciton is missing from typescript definitions
+  if (!document.fonts?.add) return;
+  if (!options.fontFace || !options.fontFace.source) return;
+
+  const fontFace = new FontFace(CUSTOM_FONT_NAME, options.fontFace.source, {
+    display: options.fontFace.descriptors?.display ?? "auto",
+    style: options.fontFace.descriptors?.style ?? "normal",
+    stretch: options.fontFace.descriptors?.stretch ?? "normal",
+    weight: "normal",
+  });
+
+  // @ts-expect-error add funciton is missing from typescript definitions
+  document.fonts.add(fontFace);
 }

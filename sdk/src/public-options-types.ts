@@ -1,3 +1,5 @@
+import { IframeAppearanceOptions } from "../../shared/types";
+
 /**
  * @public
  */
@@ -8,20 +10,7 @@ export interface XenditSdkOptions {
    * client without saving or logging it anywhere.
    */
   sessionClientKey: string;
-  appearance?: {
-    /**
-     * Additional limited styles applied to iframe inputs.
-     */
-    inputFieldProperties?: {
-      fontFamily?: string;
-      fontSize?: string;
-      fontWeight?: string;
-      lineHeight?: string;
-      letterSpacing?: string;
-      color?: string;
-      backgroundColor?: string;
-    };
-  };
+  iframeFieldAppearance?: IframeAppearanceOptions;
 }
 
 /**

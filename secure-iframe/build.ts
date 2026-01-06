@@ -73,6 +73,7 @@ async function generateIframeHtml(js: string) {
   <head>
     <meta charset="UTF-8"/>
     <title>Xendit Secure Iframe</title>
+    <style>input::placeholder { color: var(--xendit-iframe-placeholder-color); }</style>
   </head>
   <body>
     <script type="application/javascript">${jsWithPinningKeys}</script>
