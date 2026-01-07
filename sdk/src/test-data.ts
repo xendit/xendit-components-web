@@ -22,7 +22,7 @@ export function makeTestBffData(): BffResponse {
   const mockExpiry = new Date(Date.now() + ONE_MONTH_IN_MS).toISOString();
   return {
     session: {
-      payment_session_id: "ps-000000000000000000000000",
+      payment_session_id: `ps-${randomHexString(24)}`,
       created: mockNow,
       updated: mockNow,
       status: "ACTIVE",
@@ -373,7 +373,7 @@ export function makeTestBffData(): BffResponse {
         form: [
           {
             label: "Phone Number",
-            placeholder: "Placeholder",
+            placeholder: "123 123 132",
             type: {
               name: "phone_number",
             },
@@ -384,7 +384,7 @@ export function makeTestBffData(): BffResponse {
         ],
         instructions: [
           "Mock E-Wallet channel",
-          "This mock channel behaves similarly to production E-Wallets channels with no user input.",
+          "This mock channel behaves similarly to production E-Wallets channels with a phone number input.",
         ],
       },
       {
@@ -422,6 +422,35 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Mock OTC Channel",
+        channel_code: "MOCK_OTC",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        form: [
+          {
+            label: "Payer Name",
+            placeholder: "Payer Name",
+            type: {
+              name: "text",
+              max_length: 50,
+            },
+            channel_property: "payer_name",
+            required: true,
+            span: 2,
+          },
+        ],
+        instructions: [
+          "Mock OTC channel",
+          "This mock channel behaves similarly to production OTC channels.",
+        ],
+      },
+      {
         brand_name: "Input Test",
         channel_code: "UI_INPUT_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
@@ -434,8 +463,38 @@ export function makeTestBffData(): BffResponse {
         requires_customer_details: false,
         form: [
           {
+            label: "Card Number (Iframe)",
+            placeholder: "1234 1234 1234 1234",
+            type: {
+              name: "credit_card_number",
+            },
+            channel_property: "card_number",
+            required: false,
+            span: 2,
+          },
+          {
+            label: "Card Expiry Date (Iframe)",
+            placeholder: "MM/YY",
+            type: {
+              name: "credit_card_expiry",
+            },
+            channel_property: ["expiry_month", "expiry_year"],
+            required: false,
+            span: 2,
+          },
+          {
+            label: "CVN (Iframe)",
+            placeholder: "CVV",
+            type: {
+              name: "credit_card_cvn",
+            },
+            channel_property: "cvn",
+            required: false,
+            span: 2,
+          },
+          {
             label: "Text",
-            placeholder: "Placeholder",
+            placeholder: "Text",
             type: {
               name: "text",
               max_length: 50,
@@ -446,7 +505,7 @@ export function makeTestBffData(): BffResponse {
           },
           {
             label: "Phone Number",
-            placeholder: "Placeholder",
+            placeholder: "123 123 123",
             type: {
               name: "phone_number",
             },
@@ -456,7 +515,7 @@ export function makeTestBffData(): BffResponse {
           },
           {
             label: "Email",
-            placeholder: "Placeholder",
+            placeholder: "test@example.com",
             type: {
               name: "email",
             },
@@ -466,7 +525,7 @@ export function makeTestBffData(): BffResponse {
           },
           {
             label: "Postal Code",
-            placeholder: "Placeholder",
+            placeholder: "123456",
             type: {
               name: "postal_code",
             },
@@ -476,7 +535,7 @@ export function makeTestBffData(): BffResponse {
           },
           {
             label: "Country",
-            placeholder: "Placeholder",
+            placeholder: "Select",
             type: {
               name: "country",
             },
@@ -486,7 +545,7 @@ export function makeTestBffData(): BffResponse {
           },
           {
             label: "Dropdown",
-            placeholder: "Placeholder",
+            placeholder: "Select",
             type: {
               name: "dropdown",
               options: [
@@ -501,7 +560,7 @@ export function makeTestBffData(): BffResponse {
           },
           {
             label: "Dropdown With Icons",
-            placeholder: "Placeholder",
+            placeholder: "Select",
             type: {
               name: "dropdown",
               options: [
