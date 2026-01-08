@@ -1,24 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { ChannelFormField } from "../backend-types/channel";
 import { FieldProps } from "./field";
 import { validate } from "../validation";
 import { InternalInputValidateEvent } from "../private-event-types";
 import { formFieldName } from "../utils";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
 
-export const TextField: React.FC<FieldProps> = (props) => {
+export const TextField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
   const id = formFieldName(field);
   const [isTouched, setIsTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  function handleChange(event: TargetedEvent<HTMLInputElement>): void {
     onChange();
     if (!isTouched) return;
     const value = (event.target as HTMLInputElement).value;
     validateField(value);
   }
 
-  function handleBlur(event: React.FocusEvent<HTMLInputElement>): void {
+  function handleBlur(event: TargetedFocusEvent<HTMLInputElement>): void {
     const value = (event.target as HTMLInputElement).value;
     if (value) validateField(value);
   }

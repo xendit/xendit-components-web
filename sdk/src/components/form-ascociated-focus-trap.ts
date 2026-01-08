@@ -23,8 +23,8 @@ declare module "react/jsx-runtime" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      "xendit-form-associated-focus-trap": React.DetailedHTMLProps<
-        React.HTMLAttributes<XenditFormAssociatedFocusTrap>,
+      "xendit-form-associated-focus-trap": preact.DetailedHTMLProps<
+        preact.HTMLAttributes<XenditFormAssociatedFocusTrap>,
         XenditFormAssociatedFocusTrap
       >;
     }

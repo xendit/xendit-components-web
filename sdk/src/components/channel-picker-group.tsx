@@ -11,13 +11,14 @@ import { useIdSafe, usePrevious } from "../utils";
 import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { findChannelPairs, singleBffChannelToPublic } from "../bff-marshal";
 import { TFunction } from "i18next";
+import { FunctionComponent } from "preact";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup;
   open: boolean;
 }
 
-export const ChannelPickerGroup: React.FC<ChannelPickerGroupProps> = (
+export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
   props,
 ) => {
   const { group, open } = props;

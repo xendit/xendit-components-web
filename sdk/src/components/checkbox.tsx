@@ -1,3 +1,4 @@
+import { FunctionComponent, TargetedEvent } from "preact";
 import { useIdSafe } from "../utils";
 
 interface Props {
@@ -5,19 +6,19 @@ interface Props {
   label: string;
   checked?: boolean;
   disabled?: boolean;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: TargetedEvent<HTMLInputElement>) => void;
 }
 
 /**
  * Checkbox component
  */
-export const Checkbox: React.FC<Props> = (props) => {
+export const Checkbox: FunctionComponent<Props> = (props) => {
   const { id, label, checked, onChange, disabled } = props;
 
   const generatedId = useIdSafe();
   const htmlId = id || generatedId;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: TargetedEvent<HTMLInputElement>) => {
     onChange?.(e);
   };
 

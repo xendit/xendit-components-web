@@ -1,3 +1,4 @@
+import { FunctionComponent } from "preact";
 import { ChannelFormField } from "../backend-types/channel";
 import { LocaleKey, LocalizedString } from "../localization";
 import { CountryField } from "./field-country";
@@ -17,7 +18,7 @@ export interface FieldProps {
   ) => void;
 }
 
-const Field: React.FC<FieldProps> = (props) => {
+const Field: FunctionComponent<FieldProps> = (props) => {
   const { field, className } = props;
 
   function renderInner() {

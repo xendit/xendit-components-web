@@ -1,5 +1,10 @@
 import { useCallback, useLayoutEffect, useRef } from "preact/hooks";
 import Icon from "./icon";
+import {
+  ComponentChildren,
+  FunctionComponent,
+  TargetedMouseEvent,
+} from "preact";
 
 type Props = {
   /**
@@ -14,10 +19,10 @@ type Props = {
    * If true, close the dialog on the next render. The animation will play then onClose will be called.
    */
   close?: boolean;
-  children?: React.ReactNode;
+  children?: ComponentChildren;
 };
 
-export const Dialog: React.FC<Props> = (props) => {
+export const Dialog: FunctionComponent<Props> = (props) => {
   const { title, onClose, children } = props;
 
   const closeCalledRef = useRef(false);
@@ -53,7 +58,7 @@ export const Dialog: React.FC<Props> = (props) => {
   }, [onCloseSafe]);
 
   const handleBackdropClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
+    (event: TargetedMouseEvent<HTMLDivElement>) => {
       // Close dialog only if the backdrop itself is clicked, not the dialog content
       if (event.target === event.currentTarget) {
         onCloseWithAnimation();
