@@ -72,6 +72,7 @@ import {
 import {
   canBeSimulated,
   errorToString,
+  lockDownInteralProperty,
   mergeIgnoringUndefined,
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
@@ -263,6 +264,7 @@ export class XenditComponents extends EventTarget {
       }),
       currentChannelCode: null,
     };
+    lockDownInteralProperty(this as unknown as { [internal]: unknown });
 
     this.behaviorTreeUpdate();
 

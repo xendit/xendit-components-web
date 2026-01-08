@@ -13,6 +13,7 @@ import {
   assert,
   assertEquals,
   assertNotEquals,
+  lockDownInteralProperty,
   removeUndefinedPropertiesFromObject,
   satisfiesMinMax,
 } from "./utils";
@@ -99,7 +100,7 @@ export function bffUiGroupToPublic(
   groupsByGroupId: Record<string, BffChannelUiGroup>,
   marshalConfig: ChannelMarshalConfig,
 ) {
-  return removeUndefinedPropertiesFromObject<XenditPaymentChannelGroup>({
+  const group = removeUndefinedPropertiesFromObject<XenditPaymentChannelGroup>({
     groupId: bffChannelGroup.id,
     label: bffChannelGroup.label,
     get channels() {
@@ -114,6 +115,10 @@ export function bffUiGroupToPublic(
     },
     [internal]: bffChannelGroup,
   });
+
+  lockDownInteralProperty(group);
+
+  return group;
 }
 
 export function singleBffChannelToPublic(
@@ -131,7 +136,7 @@ export function bffChannelToPublic(
 ): XenditPaymentChannel {
   assert(!marshalConfig.pairChannels.paired[bffChannel.channel_code]);
 
-  return removeUndefinedPropertiesFromObject<XenditPaymentChannel>({
+  const channel = removeUndefinedPropertiesFromObject<XenditPaymentChannel>({
     channelCode:
       marshalConfig.pairChannels.pairs[bffChannel.channel_code]?.map(
         (ch) => ch.channel_code,
@@ -159,6 +164,10 @@ export function bffChannelToPublic(
       bffChannel,
     ],
   });
+
+  lockDownInteralProperty(channel);
+
+  return channel;
 }
 
 export function bffChannelsToPublic(
