@@ -28,7 +28,7 @@ export interface XenditSession {
   /**
    * The kind of session, only COMPONENT sessions can be used with the components SDK.
    */
-  mode: "COMPONENT";
+  mode: "COMPONENTS";
   /**
    * Merchant provided identifier for the session.
    */

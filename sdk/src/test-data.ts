@@ -32,7 +32,7 @@ export function makeTestBffData(): BffResponse {
       country: "ID",
       expires_at: mockExpiry,
       session_type: "PAY",
-      mode: "COMPONENT",
+      mode: "COMPONENTS",
       locale: "en",
       business_id: randomHexString(24),
       customer_id: `cust-${randomUuid()}`,

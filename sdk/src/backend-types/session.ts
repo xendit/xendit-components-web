@@ -3,7 +3,7 @@ import { BffItem } from "./item";
 
 export type BffSessionCaptureMethod = "AUTOMATIC" | "MANUAL";
 
-export type BffSessionMode = "PAYMENT_LINK" | "COMPONENT" | "CARDS_SESSION_JS";
+export type BffSessionMode = "PAYMENT_LINK" | "COMPONENTS" | "CARDS_SESSION_JS";
 
 export type BffSessionType = "SAVE" | "PAY" | "AUTHORIZATION";
 

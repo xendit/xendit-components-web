@@ -1,4 +1,3 @@
-import React, { useCallback, useLayoutEffect } from "react";
 import { Accordion } from "./accordion";
 import { AccordionItem } from "./accordion-item";
 import {
@@ -8,21 +7,23 @@ import {
 } from "./session-provider";
 import { ChannelPickerGroup } from "./channel-picker-group";
 import { usePrevious } from "../utils";
+import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { FunctionComponent } from "preact";
 
 type Props = object;
 
-export const XenditChannelPicker: React.FC<Props> = (props) => {
+export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
   const currentChannel = useCurrentChannel().channel;
 
-  const thisRef = React.useRef<HTMLDivElement>(null);
+  const thisRef = useRef<HTMLDivElement>(null);
 
-  const [selectedGroup, setSelectedGroup] = React.useState<number | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
   const [
     selectedGroupWasTriggeredManually,
     setSelectedGroupWasTriggeredManually,
-  ] = React.useState<boolean>(false);
+  ] = useState<boolean>(false);
 
   const handleSelectChannelGroup = useCallback(
     (i: number) => {

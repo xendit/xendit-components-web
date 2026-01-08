@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import { ComponentChildren, TargetedMouseEvent } from "preact";
 import {
   useCallback,
   useEffect,
@@ -235,7 +235,7 @@ export const Dropdown = (props: DropdownProps) => {
   );
 
   const onOptionClick = useCallback(
-    (event: React.MouseEvent<HTMLLIElement>) => {
+    (event: TargetedMouseEvent<HTMLLIElement>) => {
       commit(
         Number(event.currentTarget.dataset.index),
         Boolean(event.currentTarget.dataset.disabled),

@@ -185,7 +185,7 @@ export class SubmissionBehavior implements Behavior {
       channelProperties,
       abortController,
       shouldSendSavePaymentMethod
-        ? this.bb.savePaymentMethod || false
+        ? (this.bb.savePaymentMethod ?? false)
         : undefined,
     )
       .then((paymentEntity: BffPaymentEntity) => {
@@ -241,7 +241,7 @@ async function asyncSubmit(
   channelCode: string,
   channelProperties: ChannelProperties,
   abortController: AbortController,
-  savePaymentMethod: boolean = false,
+  savePaymentMethod: boolean | undefined,
 ): Promise<BffPaymentEntity> {
   let result: BffPaymentToken | BffPaymentRequest;
   if (mock) {
