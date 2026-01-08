@@ -141,7 +141,7 @@ xendit-payment-channel select::placeholder {
 }
 
 .xendit-text-bold {
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .xendit-text-secondary {
@@ -165,12 +165,32 @@ xendit-payment-channel select::placeholder {
 .xendit-accordion-item-header {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  grid-gap: 8px;
+  grid-gap: 16px;
   align-items: center;
   cursor: pointer;
   padding: 24px 16px;
   color: var(--xendit-color-text);
   border-radius: 8px;
+}
+
+.xendit-accordion-item-disabled.xendit-accordion-item {
+  background-color: var(--xendit-color-disabled);
+  border-color: var(--xendit-color-disabled);
+}
+
+.xendit-accordion-item-disabled .xendit-accordion-item-header {
+  cursor: not-allowed;
+}
+
+.xendit-accordion-item-header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.xendit-accordion-item-disabled .xendit-accordion-item-header-title,
+.xendit-accordion-item-disabled .xendit-accordion-item-header-icon {
+  opacity: 0.5;
 }
 
 .xendit-accordion-item.xendit-accordion-item-open
@@ -180,6 +200,10 @@ xendit-payment-channel select::placeholder {
 
 .xendit-accordion-item-chevron {
   color: var(--xendit-color-text);
+}
+
+.xendit-accordion-item-disabled .xendit-accordion-item-chevron {
+  display: none;
 }
 
 .xendit-accordion-item-chevron g {
@@ -626,10 +650,6 @@ xendit-payment-channel[inert] {
   overflow-y: auto;
 }
 
-.xendit-dropdown-menu * {
-  box-sizing: border-box;
-}
-
 .xendit-dropdown-menu ul {
   list-style: none;
   padding: 4px;
@@ -639,6 +659,7 @@ xendit-payment-channel[inert] {
 .xendit-dropdown-search {
   position: sticky;
   top: 0;
+  z-index: 1;
 }
 
 .xendit-dropdown-search input {
@@ -653,6 +674,31 @@ xendit-payment-channel[inert] {
   padding: 8px 12px 8px 4px;
   border-radius: var(--xendit-radius-1);
   cursor: pointer;
+  z-index: 0;
+  --xendit-dropdown-item-hover-color: var(--xendit-color-background);
+  --xendit-dropdown-item-hover-bg-color: var(--xendit-color-primary);
+}
+
+.xendit-dropdown-item-disabled {
+  --xendit-dropdown-item-hover-color: var(--xendit-color-text);
+  --xendit-dropdown-item-hover-bg-color: var(--xendit-color-disabled);
+}
+
+.xendit-dropdown-item:hover {
+  background-color: var(--xendit-dropdown-item-hover-bg-color);
+}
+
+.xendit-dropdown-item:hover .xendit-dropdown-item-text,
+.xendit-dropdown-item:hover .xendit-dropdown-item-description {
+  color: var(--xendit-dropdown-item-hover-color);
+}
+
+.xendit-dropdown-item-selected {
+  color: var(--xendit-color-primary);
+}
+
+.xendit-dropdown-item:hover .xendit-dropdown-item-selected {
+  color: var(--xendit-dropdown-item-hover-color);
 }
 
 .xendit-dropdown-item.xendit-dropdown-has-asset {
@@ -665,25 +711,14 @@ xendit-payment-channel[inert] {
   gap: 4px;
 }
 
-.xendit-dropdown-item-selected {
-  color: var(--xendit-color-primary);
+.xendit-dropdown-item-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
-.xendit-dropdown-item:hover,
-.xendit-dropdown-item.is-active,
-.xendit-dropdown-item:hover .xendit-dropdown-item-description,
-.xendit-dropdown-item.is-active .xendit-dropdown-item-description {
-  background-color: var(--xendit-color-primary);
-  color: var(--xendit-color-background);
-}
-
-.xendit-dropdown-item:hover .xendit-dropdown-item-selected,
-.xendit-dropdown-item.is-active .xendit-dropdown-item-selected {
-  color: var(--xendit-color-background);
-}
-
-.xendit-dropdown-item-description {
-  color: var(--xendit-color-text-secondary);
+.xendit-dropdown-item-disabled:hover,
+.xendit-dropdown-item-disabled.is-active {
+  background-color: var(--xendit-color-disabled);
 }
 
 /* Dropdown ends */

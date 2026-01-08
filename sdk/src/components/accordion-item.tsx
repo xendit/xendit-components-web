@@ -10,19 +10,24 @@ import {
 interface Props {
   id: number;
   title: string;
+  subtitle?: string;
+  disabled?: boolean;
   open: boolean;
   onClick: (id: number) => void;
   children: ComponentChildren;
 }
 
 export const AccordionItem: FunctionComponent<Props> = (props) => {
-  const { id, title, open, onClick, children } = props;
+  const { id, title, subtitle, disabled, open, onClick, children } = props;
 
   const chevronDirection = open ? "up" : "down";
 
   const toggleOpen = useCallback(() => {
+    if (disabled) {
+      return;
+    }
     onClick(id);
-  }, [onClick, id]);
+  }, [disabled, onClick, id]);
 
   const handleKeyPress = useCallback(
     (event: TargetedKeyboardEvent<HTMLDivElement>) => {
@@ -42,6 +47,7 @@ export const AccordionItem: FunctionComponent<Props> = (props) => {
     <div
       className={classNames(
         "xendit-accordion-item",
+        disabled ? "xendit-accordion-item-disabled" : "",
         open ? "xendit-accordion-item-open" : "xendit-accordion-item-closed",
       )}
     >
@@ -50,7 +56,7 @@ export const AccordionItem: FunctionComponent<Props> = (props) => {
         onClick={handleClick}
         onKeyDown={handleKeyPress}
         role="button"
-        tabIndex={0}
+        tabIndex={disabled ? -1 : 0}
       >
         <Icon
           className="xendit-accordion-item-header-icon"
@@ -59,6 +65,11 @@ export const AccordionItem: FunctionComponent<Props> = (props) => {
         />
         <div className="xendit-accordion-item-header-title xendit-text-16 xendit-text-bold">
           {title}
+          {subtitle ? (
+            <div className="xendit-accordion-item-header-subtitle xendit-text-14">
+              {subtitle}
+            </div>
+          ) : null}
         </div>
         <Icon
           className="xendit-accordion-item-chevron"

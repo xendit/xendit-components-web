@@ -8,11 +8,13 @@ import {
   XenditPaymentChannelGroup,
   XenditSession,
 } from "./public-data-types";
+import { XenditGetChannelsOptions } from "./public-options-types";
 import {
   assert,
   assertEquals,
   assertNotEquals,
   removeUndefinedPropertiesFromObject,
+  satisfiesMinMax,
 } from "./utils";
 
 type XenditItem = NonNullable<XenditSession["items"]>[number];
@@ -59,39 +61,43 @@ export function bffCustomerToPublic(bffCustomer: BffCustomer): XenditCustomer {
   return {
     id: bffCustomer.id,
     type: bffCustomer.type,
-    referenceId: bffCustomer.reference_id ?? undefined,
     email: bffCustomer.email ?? undefined,
     mobileNumber: bffCustomer.mobile_number ?? undefined,
     individualDetail: {
       givenNames: bffCustomer.individual_detail.given_names ?? undefined,
       surname: bffCustomer.individual_detail.surname ?? undefined,
-      // TODO: add optional fields here
     },
   };
 }
 
+type ChannelMarshalConfig = {
+  options: Required<XenditGetChannelsOptions>;
+  pairChannels: PairChannelData;
+  session: Pick<BffSession, "amount" | "session_type">;
+};
+
 export function bffUiGroupsToPublic(
   bffChannels: BffChannel[],
-  channelPairData: PairChannelData,
   bffChannelGroups: BffChannelUiGroup[],
+  marshalConfig: ChannelMarshalConfig,
 ): XenditPaymentChannelGroup[] {
   const groupsByGroupId = makeGroupsByGroupId(bffChannelGroups);
-  const channelsByGroupId = makeChannelsByGroupId(bffChannels, channelPairData);
+  const channelsByGroupId = makeChannelsByGroupId(bffChannels, marshalConfig);
   return bffChannelGroups.map((group) => {
     return bffUiGroupToPublic(
       group,
-      channelPairData,
       channelsByGroupId,
       groupsByGroupId,
+      marshalConfig,
     );
   });
 }
 
 export function bffUiGroupToPublic(
   bffChannelGroup: BffChannelUiGroup,
-  channelPairData: PairChannelData,
   channelsByGroupId: Record<string, BffChannel[]>,
   groupsByGroupId: Record<string, BffChannelUiGroup>,
+  marshalConfig: ChannelMarshalConfig,
 ) {
   return removeUndefinedPropertiesFromObject<XenditPaymentChannelGroup>({
     groupId: bffChannelGroup.id,
@@ -100,9 +106,9 @@ export function bffUiGroupToPublic(
       return (channelsByGroupId[bffChannelGroup.id] || []).map((channel) => {
         return bffChannelToPublic(
           channel,
-          channelPairData,
           channelsByGroupId,
           groupsByGroupId,
+          marshalConfig,
         );
       });
     },
@@ -112,22 +118,22 @@ export function bffUiGroupToPublic(
 
 export function singleBffChannelToPublic(
   bffChannel: BffChannel,
-  pairChannelData: PairChannelData,
+  marshalConfig: ChannelMarshalConfig,
 ): XenditPaymentChannel {
-  return bffChannelToPublic(bffChannel, pairChannelData, {}, {});
+  return bffChannelToPublic(bffChannel, {}, {}, marshalConfig);
 }
 
 export function bffChannelToPublic(
   bffChannel: BffChannel,
-  pairChannelData: PairChannelData,
   bffChannelsByGroupId: Record<string, BffChannel[]>,
   bffGroupsByGroupId: Record<string, BffChannelUiGroup>,
+  marshalConfig: ChannelMarshalConfig,
 ): XenditPaymentChannel {
-  assert(!pairChannelData.paired[bffChannel.channel_code]);
+  assert(!marshalConfig.pairChannels.paired[bffChannel.channel_code]);
 
   return removeUndefinedPropertiesFromObject<XenditPaymentChannel>({
     channelCode:
-      pairChannelData.pairs[bffChannel.channel_code]?.map(
+      marshalConfig.pairChannels.pairs[bffChannel.channel_code]?.map(
         (ch) => ch.channel_code,
       ) ?? bffChannel.channel_code,
     brandName: bffChannel.brand_name,
@@ -136,9 +142,9 @@ export function bffChannelToPublic(
     get uiGroup() {
       return bffUiGroupToPublic(
         bffGroupsByGroupId[bffChannel.ui_group],
-        pairChannelData,
         bffChannelsByGroupId,
         bffGroupsByGroupId,
+        marshalConfig,
       );
     },
     minAmount: bffChannel.min_amount,
@@ -149,25 +155,29 @@ export function bffChannelToPublic(
         logoUrl: b.logo_url,
       };
     }),
-    [internal]: pairChannelData.pairs[bffChannel.channel_code] ?? [bffChannel],
+    [internal]: marshalConfig.pairChannels.pairs[bffChannel.channel_code] ?? [
+      bffChannel,
+    ],
   });
 }
 
 export function bffChannelsToPublic(
   bffChannels: BffChannel[],
-  pairChannelData: PairChannelData,
   bffChannelGroups: BffChannelUiGroup[],
+  marshalConfig: ChannelMarshalConfig,
 ): XenditPaymentChannel[] {
   const groupsByGroupId = makeGroupsByGroupId(bffChannelGroups);
-  const channelsByGroupId = makeChannelsByGroupId(bffChannels, pairChannelData);
+  const channelsByGroupId = makeChannelsByGroupId(bffChannels, marshalConfig);
   return bffChannels
-    .filter((ch) => !pairChannelData.paired[ch.channel_code])
+    .filter((ch) => {
+      return channelFilterFn(ch, marshalConfig);
+    })
     .map((channel) => {
       return bffChannelToPublic(
         channel,
-        pairChannelData,
         channelsByGroupId,
         groupsByGroupId,
+        marshalConfig,
       );
     });
 }
@@ -182,13 +192,28 @@ function makeGroupsByGroupId(
   return groupMap;
 }
 
+function channelFilterFn(
+  channel: BffChannel,
+  marshalConfig: ChannelMarshalConfig,
+) {
+  if (marshalConfig.pairChannels.paired[channel.channel_code]) {
+    return false;
+  }
+  if (marshalConfig.options.filterMinMax) {
+    if (!satisfiesMinMax(marshalConfig.session, channel)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function makeChannelsByGroupId(
   bffChannels: BffChannel[],
-  pairChannelData: PairChannelData,
+  marshalConfig: ChannelMarshalConfig,
 ): Record<string, BffChannel[]> {
   const channelsByGroupId: Record<string, BffChannel[]> = {};
   for (const bffChannel of bffChannels) {
-    if (pairChannelData.paired[bffChannel.channel_code]) {
+    if (!channelFilterFn(bffChannel, marshalConfig)) {
       continue;
     }
     const groupId = bffChannel.ui_group;

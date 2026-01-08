@@ -7,7 +7,7 @@ import {
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { BffSession } from "../backend-types/session";
-import { useIdSafe, usePrevious } from "../utils";
+import { satisfiesMinMax, useIdSafe, usePrevious } from "../utils";
 import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { findChannelPairs, singleBffChannelToPublic } from "../bff-marshal";
 import { TFunction } from "i18next";
@@ -44,6 +44,17 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
   const channels = useChannels();
 
   const pairChannelData = useMemo(() => findChannelPairs(channels), [channels]);
+  const marshalConfig = useMemo(
+    () => ({
+      pairChannels: pairChannelData,
+      session: {
+        amount: session.amount,
+        session_type: session.session_type,
+      },
+      options: { filterMinMax: false },
+    }),
+    [pairChannelData, session.amount, session.session_type],
+  );
 
   const channelsInGroup = useMemo(() => {
     return channels.filter((ch) => {
@@ -66,7 +77,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
       if (open) {
         // create new channel component
         const el = sdk.createChannelComponent(
-          singleBffChannelToPublic(explicitSelectedChannel, pairChannelData),
+          singleBffChannelToPublic(explicitSelectedChannel, marshalConfig),
         );
         selectedChannelElementRef.current = el;
         if (el.parentElement !== containerRef.current) {
@@ -79,7 +90,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
     } else {
       containerRef.current.replaceChildren();
     }
-  }, [explicitSelectedChannel, sdk, open, pairChannelData]);
+  }, [explicitSelectedChannel, sdk, open, marshalConfig]);
 
   // when the group is opened, auto-select a channel if needed
   const previousOpen = usePrevious(open);
@@ -95,7 +106,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
       ) {
         // update sdk state to match this group's selection if this group is opened and has a selection that differs from sdk state
         sdk.setCurrentChannel(
-          singleBffChannelToPublic(explicitSelectedChannel, pairChannelData),
+          singleBffChannelToPublic(explicitSelectedChannel, marshalConfig),
         );
       } else if (!explicitSelectedChannel) {
         // clear sdk selection if this group is opened and this group has no selection
@@ -109,7 +120,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
     previousOpen,
     sdk,
     sdkSelectedChannelCode,
-    pairChannelData,
+    marshalConfig,
   ]);
 
   // when the sdk selected channel changes, update this group's selection if needed
@@ -161,7 +172,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
     ),
     title: channel.brand_name,
     value: channel.channel_code,
-    disabled: !shouldEnableChannel(session, channel),
+    disabled: !satisfiesMinMax(session, channel),
     description: getChannelDisabledReason(t, session, channel) || undefined,
   }));
 
@@ -202,30 +213,12 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
   );
 };
 
-export function shouldEnableChannel(
-  session: BffSession,
-  channel: BffChannel,
-): boolean {
-  if (session.session_type !== "PAY") {
-    return true; // only pay sessions have min/max
-  }
-
-  const amount = session.amount;
-  const min = channel.min_amount ?? 0;
-  const max = channel.max_amount ?? Number.MAX_VALUE;
-  if (amount < min || amount > max) {
-    return false;
-  }
-
-  return true;
-}
-
 export function getChannelDisabledReason(
   t: TFunction<"session">,
   session: BffSession,
   channel: BffChannel,
 ): string | null {
-  if (shouldEnableChannel(session, channel)) {
+  if (satisfiesMinMax(session, channel)) {
     return null;
   }
 
