@@ -170,7 +170,7 @@ export function endpoint(
       );
     }
     const query = getQuery?.(queryArg) ?? new URLSearchParams();
-    query.set("component_version", versionNumber);
+    query.set("components_version", versionNumber);
     url.search = query.toString();
 
     const options: RequestInit = {

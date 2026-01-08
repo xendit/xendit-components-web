@@ -19,7 +19,7 @@ type XenditItem = NonNullable<XenditSession["items"]>[number];
 
 export function bffSessionToPublic(bffSession: BffSession): XenditSession {
   assertNotEquals(bffSession.session_type, "AUTHORIZATION");
-  assertEquals(bffSession.mode, "COMPONENT");
+  assertEquals(bffSession.mode, "COMPONENTS");
 
   return removeUndefinedPropertiesFromObject<XenditSession>({
     id: bffSession.payment_session_id,
