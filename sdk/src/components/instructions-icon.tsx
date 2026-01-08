@@ -1,10 +1,11 @@
-import React, { useLayoutEffect, useRef } from "react";
+import { FunctionComponent, SVGAttributes } from "preact";
+import { useLayoutEffect, useRef } from "preact/hooks";
 
 const supportsAnimation = HTMLElement.prototype.animate !== undefined;
 
-export const InstructionsIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props,
-) => {
+export const InstructionsIcon: FunctionComponent<
+  SVGAttributes<SVGSVGElement>
+> = (props) => {
   const arrowRef = useRef<SVGGElement>(null);
   const arrowSquareGroupRef = useRef<SVGGElement>(null);
 

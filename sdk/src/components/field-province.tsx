@@ -16,8 +16,9 @@ import { useChannel } from "./payment-channel";
 import { useChannelProperties } from "./channel-form";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import { BffSession } from "../backend-types/session";
+import { FunctionComponent, TargetedEvent } from "preact";
 
-export const ProvinceField: React.FC<FieldProps> = (props) => {
+export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
   const id = formFieldName(field);
 
@@ -68,7 +69,7 @@ export const ProvinceField: React.FC<FieldProps> = (props) => {
   );
 
   const onChangeInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: TargetedEvent<HTMLInputElement>) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = (e.target as HTMLInputElement).value;
         validateField(hiddenFieldRef.current.value);

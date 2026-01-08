@@ -1,16 +1,21 @@
-import React, { useCallback } from "react";
+import { useCallback } from "preact/hooks";
 import Icon from "./icon";
 import classNames from "classnames";
+import {
+  ComponentChildren,
+  FunctionComponent,
+  TargetedKeyboardEvent,
+} from "preact";
 
 interface Props {
   id: number;
   title: string;
   open: boolean;
   onClick: (id: number) => void;
-  children: React.ReactNode;
+  children: ComponentChildren;
 }
 
-export const AccordionItem: React.FC<Props> = (props) => {
+export const AccordionItem: FunctionComponent<Props> = (props) => {
   const { id, title, open, onClick, children } = props;
 
   const chevronDirection = open ? "up" : "down";
@@ -20,7 +25,7 @@ export const AccordionItem: React.FC<Props> = (props) => {
   }, [onClick, id]);
 
   const handleKeyPress = useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
+    (event: TargetedKeyboardEvent<HTMLDivElement>) => {
       if (event.key === "Enter" || event.key === " ") {
         toggleOpen();
         event.preventDefault();

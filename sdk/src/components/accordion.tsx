@@ -1,5 +1,7 @@
+import { ComponentChildren, FunctionComponent } from "preact";
+
 interface Props {
-  children: React.ReactNode;
+  children: ComponentChildren;
 }
 
 /**
@@ -9,6 +11,6 @@ interface Props {
  *   <AccordionItem>Content</AccordionItem>
  * </Accordion>
  */
-export const Accordion: React.FC<Props> = (props) => {
+export const Accordion: FunctionComponent<Props> = (props) => {
   return <div class="xendit-accordion">{props.children}</div>;
 };

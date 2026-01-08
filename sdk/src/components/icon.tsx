@@ -1,4 +1,9 @@
-import { render } from "preact";
+import {
+  ComponentChildren,
+  FunctionComponent,
+  render,
+  SVGAttributes,
+} from "preact";
 
 type Direction = "up" | "down" | "left" | "right";
 
@@ -9,7 +14,9 @@ type Props = {
   className?: string;
 };
 
-const Icon: React.FC<React.SVGProps<SVGSVGElement> & Props> = (props) => {
+const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
+  props,
+) => {
   const { name, size, direction } = props;
 
   let svgTransform = undefined;
@@ -48,9 +55,9 @@ const Icon: React.FC<React.SVGProps<SVGSVGElement> & Props> = (props) => {
 
 function makeIcon<T extends string>(
   id: T,
-  children: React.ReactNode,
+  children: ComponentChildren,
   scale: number,
-): { name: T; node: React.ReactNode } {
+): { name: T; node: ComponentChildren } {
   return {
     name: id,
     node: (

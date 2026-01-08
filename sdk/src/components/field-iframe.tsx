@@ -12,6 +12,7 @@ import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
 import { LocaleKey } from "../localization";
 import { assert, formFieldName } from "../utils";
+import { FunctionComponent } from "preact";
 
 const computeFieldError = (
   state: ValidationState,
@@ -51,7 +52,7 @@ const parsedIframeUrl = new URL(
 const IFRAME_SRC = parsedIframeUrl.toString();
 const IFRAME_ORIGIN = parsedIframeUrl.origin;
 
-export const IframeField: React.FC<FieldProps> = (props) => {
+export const IframeField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange, onError } = props;
 
   const sdk = useSdk();
