@@ -248,13 +248,15 @@ describe("applyInputStyles", () => {
 
   it("applies safe font family and size", () => {
     applyInputStyles(mockInput, {
-      fontFamily: "Arial, sans-serif",
-      fontSize: "16px",
-      fontWeight: "bold",
-      lineHeight: "1.5",
-      letterSpacing: "1px",
-      color: "#333333",
-      backgroundColor: "rgba(255, 255, 255, 0.9)",
+      inputStyles: {
+        fontFamily: "Arial, sans-serif",
+        fontSize: "16px",
+        fontWeight: "bold",
+        lineHeight: "1.5",
+        letterSpacing: "1px",
+        color: "#333333",
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+      },
     });
 
     expect(mockInput.style.fontFamily).toBe("Arial, sans-serif");
@@ -268,13 +270,15 @@ describe("applyInputStyles", () => {
 
   it("sanitizes dangerous values", () => {
     applyInputStyles(mockInput, {
-      fontFamily: "Arial; background: red;",
-      fontSize: "16px; color: red;",
-      fontWeight: "bold;",
-      lineHeight: "1.5;",
-      letterSpacing: "1px;",
-      color: "red;",
-      backgroundColor: "blue;",
+      inputStyles: {
+        fontFamily: "Arial; background: red;",
+        fontSize: "16px; color: red;",
+        fontWeight: "bold;",
+        lineHeight: "1.5;",
+        letterSpacing: "1px;",
+        color: "red;",
+        backgroundColor: "blue;",
+      },
     });
 
     expect(mockInput.style.fontFamily).toBe("");

@@ -83,6 +83,20 @@ if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     sessionClientKey: savedKey,
+    iframeFieldAppearance: {
+      inputStyles: {
+        color: "black",
+      },
+      placeholderStyles: {
+        color: "grey",
+      },
+      fontFace: {
+        source: `url(https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf) format('woff2')`,
+        descriptors: {
+          display: "swap",
+        },
+      },
+    },
   });
 } else {
   components = new XenditComponentsTest({});

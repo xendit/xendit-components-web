@@ -58,3 +58,43 @@ export type IframeFieldType =
   | "credit_card_number"
   | "credit_card_cvn"
   | "credit_card_expiry";
+
+/**
+ * @public
+ */
+export type IframeAppearanceOptions = {
+  /**
+   * Limited styles applied to iframe inputs.
+   */
+  inputStyles?: {
+    fontFamily?: string;
+    fontSize?: string;
+    fontWeight?: string;
+    lineHeight?: string;
+    letterSpacing?: string;
+    color?: string;
+    backgroundColor?: string;
+  };
+
+  /**
+   * Limited styles applied to iframe input placeholders.
+   */
+  placeholderStyles?: {
+    color?: string;
+  };
+
+  /**
+   * Custom font face to load within iframe fields.
+   * If you use this, you don't need to specify fontFamily or fontWeight.
+   */
+  fontFace?: {
+    /**
+     * CSS font-face source descriptor (e.g. `url(...) format(...)`)
+     */
+    source: string;
+    /**
+     * Font face options. Font family and weight are set automatically.
+     */
+    descriptors?: Pick<FontFaceDescriptors, "display" | "style" | "stretch">;
+  };
+};
