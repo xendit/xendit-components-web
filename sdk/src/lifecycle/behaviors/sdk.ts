@@ -1,3 +1,4 @@
+import { InternalNeedsRerenderEvent } from "../../private-event-types";
 import {
   XenditFatalErrorEvent,
   XenditInitEvent,
@@ -18,6 +19,13 @@ export class SdkActiveBehavior implements Behavior {
 
   enter() {
     this.bb.dispatchEvent(new XenditInitEvent());
+
+    // Schedule rerender (components don't render anything if the sdk state is not active)
+    this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
+  }
+
+  exit() {
+    this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
   }
 }
 

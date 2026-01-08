@@ -1,45 +1,18 @@
 import { assert, hostFromHostId, MOCK_HOST_ID, ParsedSdkKey } from "./utils";
 
-export type ErrorContent = {
-  title: string;
-  message_1: string;
-  message_2?: string;
-};
-
-export type FailureContent = {
-  title: string;
-  subtext: string;
-  failureCode?: string;
-};
-
 export type ErrorResponse = {
   error_code: string;
   message: string;
-  error_content?: ErrorContent;
+  error_content?: {
+    title: string;
+    message_1: string;
+    message_2?: string;
+  };
 };
 
-export const DEFAULT_ERROR = Symbol("default_error");
-
-export type ErrorType =
-  | typeof DEFAULT_ERROR
-  | (ErrorContent & {
-      error_code?: string;
-    });
-
 export class NetworkError extends Error {
-  errorCode?: string;
-  errorContent?: ErrorContent;
-  isDefaultError?: boolean;
-
-  constructor(errorData: ErrorResponse | typeof DEFAULT_ERROR) {
-    super("NetworkError");
-    if (errorData === DEFAULT_ERROR) this.isDefaultError = true;
-    else if (errorData.error_content) {
-      this.errorCode = errorData.error_code;
-      this.errorContent = {
-        ...errorData.error_content,
-      };
-    }
+  constructor(public errorResponse: ErrorResponse) {
+    super(errorResponse.message);
   }
 }
 
@@ -184,14 +157,11 @@ export function endpoint(
 
     const response = await fetch(url, options);
     if (!response.ok) {
-      try {
-        const errorData = (await response.json()) as ErrorResponse;
-        throw new NetworkError(
-          errorData.error_content ? errorData : DEFAULT_ERROR,
-        );
-      } catch {
-        throw new NetworkError(DEFAULT_ERROR);
+      const errorData = (await response.json()) as ErrorResponse;
+      if (!errorData || !errorData.error_code) {
+        throw new Error("Unexpected error response from server");
       }
+      throw new NetworkError(errorData);
     }
 
     return response.json();

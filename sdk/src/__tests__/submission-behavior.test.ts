@@ -6,7 +6,6 @@ import {
   BffPaymentEntityType,
 } from "../backend-types/payment-entity";
 import { XenditSubmissionEndEvent } from "../public-event-types";
-import { NetworkError } from "../networking";
 
 // Mock functions with vi.hoisted to avoid hoisting issues
 const { mockGetPaymentEntityStatusCopyKey, mockGetFailureCodeCopyKey } =
@@ -167,10 +166,13 @@ describe("SubmissionBehavior - Exit Logic", () => {
         (e): e is XenditSubmissionEndEvent =>
           e instanceof XenditSubmissionEndEvent,
       );
-      expect(event?.data?.failure).toEqual({
-        title: "Payment Failed",
-        subtext: "Your card was declined",
-        failureCode: "CARD_DECLINED",
+      expect(event?.userErrorMessage).toEqual([
+        "Payment Failed",
+        "Your card was declined",
+      ]);
+      expect(event?.developerErrorMessage).toEqual({
+        type: "FAILURE",
+        code: "CARD_DECLINED",
       });
     });
   });
@@ -204,22 +206,15 @@ describe("SubmissionBehavior - Exit Logic", () => {
   });
 
   describe("Network error handling", () => {
-    it("should dispatch default error when NetworkError is default error", () => {
-      const mockNetworkError = { isDefaultError: true } as NetworkError;
+    it("should dispatch default error when NetworkError is normal error", () => {
+      const mockNetworkError = new Error();
 
       // Access private properties through unknown casting to avoid TS errors
       (
         submissionBehavior as unknown as {
-          submissionHadError: boolean;
-          networkError: NetworkError;
+          submissionError: Error;
         }
-      ).submissionHadError = true;
-      (
-        submissionBehavior as unknown as {
-          submissionHadError: boolean;
-          networkError: NetworkError;
-        }
-      ).networkError = mockNetworkError;
+      ).submissionError = mockNetworkError;
 
       submissionBehavior.exit();
 
@@ -228,10 +223,14 @@ describe("SubmissionBehavior - Exit Logic", () => {
           e instanceof XenditSubmissionEndEvent,
       );
       expect(event?.reason).toBe("REQUEST_FAILED");
-      expect(event?.data?.errorContent).toEqual({
-        title: "Error",
-        message_1: "There was a problem with the request.",
-        message_2: "Please try again later.",
+      expect(event?.userErrorMessage).toEqual([
+        "Error",
+        "There was a problem with the request.",
+        "Please try again later.",
+      ]);
+      expect(event?.developerErrorMessage).toEqual({
+        type: "NETWORK_ERROR",
+        code: "NETWORK_ERROR",
       });
     });
   });

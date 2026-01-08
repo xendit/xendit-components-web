@@ -48,7 +48,11 @@ import {
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
-import { behaviorTreeForSdk, BlackboardType } from "./lifecycle/behavior-tree";
+import {
+  behaviorTreeForSdk,
+  BlackboardType,
+  SdkStatus,
+} from "./lifecycle/behavior-tree";
 import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
@@ -57,6 +61,7 @@ import { SdkEventManager } from "./sdk-event-manager";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
 import {
   InternalBehaviorTreeUpdateEvent,
+  InternalNeedsRerenderEvent,
   InternalUpdateWorldState,
 } from "./private-event-types";
 import {
@@ -270,6 +275,19 @@ export class XenditComponents extends EventTarget {
       InternalBehaviorTreeUpdateEvent.type,
       this.behaviorTreeUpdate.bind(this),
     );
+    let hasScheduledRender = false;
+    (this as EventTarget).addEventListener(
+      InternalNeedsRerenderEvent.type,
+      () => {
+        if (hasScheduledRender) return;
+        hasScheduledRender = true;
+        queueMicrotask(() => {
+          hasScheduledRender = false;
+          this.rerenderAllComponents();
+          this.syncInertAttribute();
+        });
+      },
+    );
 
     // Initialize session data asynchronously
     this.initializeAsync();
@@ -403,6 +421,14 @@ export class XenditComponents extends EventTarget {
         errorToString(error);
       this[internal].behaviorTree.update();
     }
+  }
+
+  /**
+   * @internal
+   * Return the current SDK status.
+   */
+  public getSdkStatus(): SdkStatus {
+    return this[internal].behaviorTree.bb.sdkStatus;
   }
 
   /**
@@ -724,21 +750,36 @@ export class XenditComponents extends EventTarget {
       }
     }
 
-    // set inert on all components that are not the current one
-    for (const [_, otherComponent] of this[internal].liveComponents
-      .paymentChannels) {
-      if (component === otherComponent) {
-        if (otherComponent.element.hasAttribute("inert")) {
-          otherComponent.element.removeAttribute("inert");
-        }
-      } else {
-        otherComponent.element.setAttribute("inert", "");
-      }
-    }
-
     this[internal].currentChannelCode = channelCode;
     this.behaviorTreeUpdate();
-    this.rerenderAllComponents();
+    this.syncInertAttribute();
+  }
+
+  /**
+   * @internal
+   * Ensure all components have the correct inert attribute. This needs to be called when the current channel changes or a submission starts or ends.
+   */
+  syncInertAttribute() {
+    // all channel components should have `inert` unless they are the current channel and there is no submission in progress
+    const hasSubmissionInProgress =
+      this[internal].behaviorTree.bb.submissionRequested;
+    const channelComponents = this[internal].liveComponents.paymentChannels;
+
+    for (const [_, component] of channelComponents) {
+      const channelCode = Array.isArray(component.channel.channelCode)
+        ? component.channel.channelCode[0]
+        : component.channel.channelCode;
+      if (
+        channelCode === this[internal].currentChannelCode &&
+        !hasSubmissionInProgress
+      ) {
+        if (component.element.hasAttribute("inert")) {
+          component.element.removeAttribute("inert");
+        }
+      } else {
+        component.element.setAttribute("inert", "");
+      }
+    }
   }
 
   /**
@@ -984,6 +1025,8 @@ export class XenditComponents extends EventTarget {
 
     this[internal].behaviorTree.bb.submissionRequested = true;
     this.behaviorTreeUpdate();
+
+    this.syncInertAttribute();
   }
 
   /**
