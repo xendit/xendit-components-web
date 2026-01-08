@@ -78,28 +78,30 @@ const { XenditComponents, XenditComponentsTest } = (
 ).XenditSdk;
 
 let components: import("./src/public-sdk").XenditComponents;
+const iframeFieldAppearance: import("../shared/types").IframeAppearanceOptions =
+  {
+    // inputStyles: {
+    //   color: "red",
+    // },
+    // placeholderStyles: {
+    //   color: "blue",
+    // },
+    fontFace: {
+      source: `url(https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf) format('woff2')`,
+      descriptors: {
+        display: "swap",
+      },
+    },
+  };
 const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     sessionClientKey: savedKey,
-    iframeFieldAppearance: {
-      inputStyles: {
-        color: "black",
-      },
-      placeholderStyles: {
-        color: "grey",
-      },
-      fontFace: {
-        source: `url(https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf) format('woff2')`,
-        descriptors: {
-          display: "swap",
-        },
-      },
-    },
+    iframeFieldAppearance,
   });
 } else {
-  components = new XenditComponentsTest({});
+  components = new XenditComponentsTest({ iframeFieldAppearance });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
