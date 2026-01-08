@@ -89,16 +89,6 @@ describe("validatePhoneNumber", () => {
           expect(result?.localeKey).toBe("validation.generic_invalid");
         });
       });
-
-      it("returns error for empty input", () => {
-        const result = validatePhoneNumber("");
-        expect(result?.localeKey).toBe("validation.generic_invalid");
-      });
-
-      it("handles whitespace input", () => {
-        const result = validatePhoneNumber("   ");
-        expect(result?.localeKey).toBe("validation.generic_invalid");
-      });
     });
   });
 });
@@ -111,15 +101,6 @@ describe("validatePostalCode", () => {
     expect(validatePostalCode("123-456")).toBeUndefined();
   });
 
-  it("returns error for empty string", () => {
-    expect(validatePostalCode("")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-    expect(validatePostalCode("   ")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-  });
-
   it("returns error for invalid characters", () => {
     expect(validatePostalCode("123$456")?.localeKey).toBe(
       "validation.generic_invalid",
@@ -129,10 +110,7 @@ describe("validatePostalCode", () => {
     );
   });
 
-  it("returns error for only spaces or hyphens", () => {
-    expect(validatePostalCode("   ")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
+  it("returns error for only hyphens", () => {
     expect(validatePostalCode("---")?.localeKey).toBe(
       "validation.generic_invalid",
     );
@@ -282,19 +260,6 @@ describe("validateText", () => {
       },
     };
     expect(validateText(field, "abcd")).toBeUndefined();
-  });
-
-  it("returns validation.text_too_short if min_length is not defined and input is empty", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        min_length: undefined,
-      },
-    };
-    expect(validateText(field, "")).toStrictEqual({
-      localeKey: "validation.text_too_short",
-    });
   });
 
   it("returns validation.text_too_long if max_length is exceeded", () => {

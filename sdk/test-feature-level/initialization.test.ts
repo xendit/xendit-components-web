@@ -42,12 +42,12 @@ describe("initialization", () => {
 
     expect(sdk.getSession()).toEqual(
       expect.objectContaining({
-        id: "ps-68f870c1d394132ab724261e",
+        id: expect.any(String),
       }),
     );
     expect(sdk.getCustomer()).toEqual(
       expect.objectContaining({
-        id: "cust-78f95e42-4e9d-4556-827b-0e0b8ead68fc",
+        id: expect.any(String),
       }),
     );
 

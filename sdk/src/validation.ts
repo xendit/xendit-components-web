@@ -29,10 +29,9 @@ export const validateEmail = (value: string): LocaleKey | undefined => {
 
 export const validatePhoneNumber = (value: string): LocaleKey | undefined => {
   const input = value?.trim();
-  if (!input)
-    return {
-      localeKey: "validation.generic_invalid",
-    };
+  if (!input) {
+    return undefined; // empty is allowed, the required check is done elsewhere
+  }
 
   const phone = parsePhoneNumberFromString(input);
   if (!phone)
@@ -50,15 +49,18 @@ export const validatePhoneNumber = (value: string): LocaleKey | undefined => {
 export const validatePostalCode = (value: string): LocaleKey | undefined => {
   const trimmedValue = value.trim();
 
-  // Basic validation: must be non-empty and contain only letters, numbers, spaces, or hyphens
+  if (trimmedValue.length === 0) {
+    // empty is allowed, the required check is done elsewhere
+    return undefined;
+  }
+
+  // Basic validation: must contain only letters, numbers, spaces, or hyphens
   if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)) {
     return {
       localeKey: "validation.generic_invalid",
     };
   }
 };
-
-// TODO: implement localization for error messages
 
 export const validateText = (
   input: ChannelFormField & {
@@ -79,7 +81,10 @@ export const validateText = (
     }
   }
 
-  if (trimmedValue.length < (input.type.min_length ?? 1)) {
+  if (
+    input.type.min_length !== undefined &&
+    trimmedValue.length < input.type.min_length
+  ) {
     return { localeKey: "validation.text_too_short" };
   } else if (trimmedValue.length > input.type.max_length) {
     return { localeKey: "validation.text_too_long" };
