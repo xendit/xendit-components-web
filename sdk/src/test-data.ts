@@ -28,7 +28,7 @@ export function makeTestBffData(): BffResponse {
       country: "ID",
       expires_at: "2025-10-22T06:20:57.188Z",
       session_type: "PAY",
-      mode: "COMPONENT",
+      mode: "COMPONENTS",
       locale: "en",
       business_id: "5f4708b7bd394b0400b96276",
       customer_id: "cust-78f95e42-4e9d-4556-827b-0e0b8ead68fc",
