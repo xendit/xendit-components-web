@@ -243,6 +243,7 @@ xendit-payment-channel select::placeholder {
   border: 1px solid var(--xendit-color-border-default);
   border-radius: 4px;
   background-color: white; /* always white, not --xendit-color-background */
+  object-fit: contain;
 }
 
 /* Payment channel */

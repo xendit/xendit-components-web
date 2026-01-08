@@ -32,10 +32,7 @@ export type BffSession = {
   locale: string;
   description?: string;
   items: BffItem[] | null;
-  success_return_url: string;
-  cancel_return_url: string;
   status: BffSessionStatus;
-  payment_link_url: string | null;
   payment_token_id?: string | null;
   payment_request_id?: string | null;
   payment_channel_code?: string | null;

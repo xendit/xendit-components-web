@@ -43,12 +43,9 @@ describe("initialization", () => {
     await waitForEvent(sdk, "init");
 
     const expected = [
-      "Bank Transfer",
-      "Cards",
-      "E-Wallet",
-      "Online Banking",
-      "Over The Counter",
-      "QR Code",
+      "Mock Cards",
+      "Other Mock Channels",
+      "Channel UI Test Cases",
     ];
     for (const groupName of expected) {
       expect(screen.getByText(groupName)).toBeInTheDocument();
@@ -64,10 +61,10 @@ describe("initialization", () => {
 
     await waitForEvent(sdk, "init");
 
-    const bankTransferGroup = screen.getByText("Bank Transfer");
+    const bankTransferGroup = screen.getByText("Channel UI Test Cases");
     await userEvent.click(bankTransferGroup);
 
-    const dropdown = screen.getByText("Select Bank Transfer");
+    const dropdown = screen.getByText("Select Channel UI Test Cases");
     expect(dropdown).toBeInTheDocument();
   });
 
@@ -80,22 +77,23 @@ describe("initialization", () => {
 
     await waitForEvent(sdk, "init");
 
-    const bankTransferGroup = screen.getByText("Bank Transfer");
+    const bankTransferGroup = screen.getByText("Channel UI Test Cases");
     await userEvent.click(bankTransferGroup);
 
-    const dropdown = screen.getByText("Select Bank Transfer");
+    const dropdown = screen.getByText("Select Channel UI Test Cases");
     await userEvent.click(dropdown);
 
+    // no channel selected yet
     const nothing = document.body.querySelector("xendit-payment-channel");
     expect(nothing).not.toBeInTheDocument();
     expect(sdk.getCurrentChannel()).toBeNull();
 
-    const bcaOption = screen.getByText("Mandiri Virtual Account");
-    await userEvent.click(bcaOption);
+    const option = screen.getByText("Input Test");
+    await userEvent.click(option);
 
     const ch = sdk
       .getActiveChannels()
-      .find((c) => c.channelCode === "MANDIRI_VIRTUAL_ACCOUNT");
+      .find((c) => c.channelCode === "UI_INPUT_TEST");
     assert(ch);
     const channelComponent = sdk.createChannelComponent(ch);
     expect(channelComponent).toBeInTheDocument();
@@ -112,23 +110,23 @@ describe("initialization", () => {
 
     await waitForEvent(sdk, "init");
 
-    const bankTransferGroup = screen.getByText("Bank Transfer");
+    const bankTransferGroup = screen.getByText("Channel UI Test Cases");
     await userEvent.click(bankTransferGroup);
 
-    const dropdown = screen.getByText("Select Bank Transfer");
+    const dropdown = screen.getByText("Select Channel UI Test Cases");
     await userEvent.click(dropdown);
 
-    const bcaOption = screen.getByText("Mandiri Virtual Account");
-    await userEvent.click(bcaOption);
+    const option = screen.getByText("Input Test");
+    await userEvent.click(option);
 
     const ch = sdk
       .getActiveChannels()
-      .find((c) => c.channelCode === "MANDIRI_VIRTUAL_ACCOUNT");
+      .find((c) => c.channelCode === "UI_INPUT_TEST");
     assert(ch);
     expect(sdk.getCurrentChannel()?.channelCode).toEqual(ch.channelCode);
 
-    const ewalletGroup = screen.getByText("E-Wallet");
-    await userEvent.click(ewalletGroup);
+    const otherGroup = screen.getByText("Other Mock Channels");
+    await userEvent.click(otherGroup);
 
     expect(sdk.getCurrentChannel()).toBeNull();
   });

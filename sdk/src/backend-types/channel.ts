@@ -39,6 +39,9 @@ export type BffChannel = {
   /** Channel form */
   form: ChannelFormField[];
 
+  /** Optional banner to display between form and instructions, spans full width */
+  banner?: BffChannelBanner;
+
   /** Instruction text to show at bottom of form */
   instructions: string[];
 
@@ -56,6 +59,17 @@ export type BffChannel = {
       logo_url: string;
     }[];
   };
+};
+
+export type BffChannelBanner = {
+  /** Banner image URL */
+  image_url: string;
+  /** Alt text for accessibility */
+  alt_text: string;
+  /** Optional link destination when banner is clicked */
+  link_url?: string;
+  /** Aspect ratio to help with layout */
+  aspect_ratio?: number;
 };
 
 export type BffChannelUiGroup = {
@@ -96,6 +110,8 @@ export type ChannelFormField = {
   span: 1 | 2;
   /** If true, hide label and collapse whitespace between this field and the previous one. */
   join?: boolean;
+  /** If any condition doesn't match, the field is not shown */
+  display_if?: Array<[string, "equals" | "not_equals", string]>;
   /** Additional flags */
   flags?: {
     /* If true, hide by default, show only for some countries */
