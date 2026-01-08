@@ -19,6 +19,10 @@ export interface XenditSdkOptions {
  */
 export interface XenditGetChannelsOptions {
   /**
+   * Filter channels by their channel codes.
+   */
+  filter: string | string[] | RegExp;
+  /**
    * If true, channels that do not satisfy the session's min/max amount will be filtered out.
    * Default true.
    */
