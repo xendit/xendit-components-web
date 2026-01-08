@@ -4,13 +4,18 @@ import {
   BffPaymentEntity,
   BffPaymentEntityType,
   BffPaymentRequest,
+  BffPaymentRequestFailureCode,
   BffPaymentToken,
+  BffPaymentTokenFailureCode,
   getFailureCodeCopyKey,
   getPaymentEntityStatusCopyKey,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
 import { BffSessionType } from "../../backend-types/session";
-import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import {
+  InternalBehaviorTreeUpdateEvent,
+  InternalNeedsRerenderEvent,
+} from "../../private-event-types";
 import {
   XenditPaymentRequestCreatedEvent,
   XenditPaymentRequestDiscardedEvent,
@@ -30,7 +35,8 @@ import {
 } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
-import { FailureContent, NetworkError } from "../../networking";
+import { NetworkError } from "../../networking";
+import { TFunction } from "i18next";
 
 export class SubmissionBehavior implements Behavior {
   private exited = false;
@@ -38,14 +44,10 @@ export class SubmissionBehavior implements Behavior {
   private submission: {
     abortController: AbortController;
     promise: Promise<void>;
-  } | null;
-  private submissionHadError = false;
-  private networkError: NetworkError | null = null;
+  } | null = null;
+  private submissionError: Error | NetworkError | null = null;
 
-  constructor(private bb: BlackboardType) {
-    this.submission = null;
-    this.networkError = null;
-  }
+  constructor(private bb: BlackboardType) {}
 
   enter() {
     this.bb.dispatchEvent(new XenditSubmissionBeginEvent());
@@ -57,6 +59,7 @@ export class SubmissionBehavior implements Behavior {
     this.exited = true;
 
     assert(this.bb.world?.session);
+    const t = this.bb.sdkEvents.sdk.t;
 
     // If session is not complete, discard payment entity
     const paymentEntity = this.bb.world.paymentEntity;
@@ -81,10 +84,17 @@ export class SubmissionBehavior implements Behavior {
       });
     }
 
-    // Send event for submission end
+    // Determine reason for submission end
     let reason: string;
-    let failure: FailureContent | null = null;
-    if (this.bb.world && this.bb.world.session.status !== "ACTIVE") {
+    let userErrorMessage: string[] | undefined = undefined;
+    let developerErrorMessage:
+      | {
+          type: "NETWORK_ERROR" | "ERROR" | "FAILURE";
+          code: string;
+        }
+      | undefined = undefined;
+
+    if (this.bb.world.session.status !== "ACTIVE") {
       // if status is not active, that's why we ended submission
       reason = `SESSION_${this.bb.world.session.status}`;
     } else if (
@@ -95,67 +105,56 @@ export class SubmissionBehavior implements Behavior {
     ) {
       // the payment entity failed, was canceled or expired
       reason = `PAYMENT_${paymentEntity.type}_${paymentEntity.entity.status}`;
-      const t = this.bb.sdkEvents.sdk.t;
-      const status = paymentEntity.entity.status;
-
-      const failureCode = paymentEntity.entity.failure_code;
-      const title = t(
-        getPaymentEntityStatusCopyKey(paymentEntity.type, status, "title"),
+      userErrorMessage = failureCodeUserErrorMessage(
+        t,
+        paymentEntity.type,
+        paymentEntity.entity.status,
+        paymentEntity.entity.failure_code,
       );
-      const subtext = failureCode
-        ? t(
-            getFailureCodeCopyKey(failureCode),
-            t("failure_code_unknown", { failureCode }),
-          )
-        : t(
-            getPaymentEntityStatusCopyKey(
-              paymentEntity.type,
-              status,
-              "subtext",
-            ),
-          );
-      failure = { title, subtext, failureCode };
-    } else if (this.submissionHadError) {
+      developerErrorMessage = {
+        type: "FAILURE",
+        code: paymentEntity.entity.failure_code ?? "UNKNOWN",
+      };
+    } else if (this.submissionError) {
       // there was an error during submission
       reason = "REQUEST_FAILED";
+      if (this.submissionError instanceof NetworkError) {
+        // error code from server
+        userErrorMessage = [
+          this.submissionError.errorResponse.error_content?.title,
+          this.submissionError.errorResponse.error_content?.message_1,
+          this.submissionError.errorResponse.error_content?.message_2,
+        ].filter((str) => str !== undefined);
+        developerErrorMessage = {
+          type: "ERROR",
+          code: this.submissionError.errorResponse.error_code || "UNKNOWN",
+        };
+      } else {
+        // unknown or network error
+        userErrorMessage = defaultUserErrorMessage(t);
+        developerErrorMessage = {
+          type: "NETWORK_ERROR",
+          code: "NETWORK_ERROR",
+        };
+      }
     } else if (this.submission) {
-      // the a submission is cancelled during the request
+      // the submission is canceled during the request
       reason = "REQUEST_ABORTED";
     } else {
-      // the submission was cancelled during an action
+      // the submission was canceled during an action
       reason = "ACTION_ABORTED";
     }
 
-    // Dispatch submission end event with error details if available
-    if (this.submissionHadError && this.networkError) {
-      const t = this.bb.sdkEvents.sdk.t;
-      if (this.networkError.isDefaultError) {
-        this.bb.dispatchEvent(
-          new XenditSubmissionEndEvent(reason, {
-            errorContent: {
-              title: t("default_error.title"),
-              message_1: t("default_error.message_1"),
-              message_2: t("default_error.message_2"),
-            },
-          }),
-        );
-      } else if (this.networkError.errorContent) {
-        this.bb.dispatchEvent(
-          new XenditSubmissionEndEvent(reason, {
-            errorCode: this.networkError.errorCode,
-            errorContent: this.networkError.errorContent,
-          }),
-        );
-      }
-    } else {
-      this.bb.dispatchEvent(
-        new XenditSubmissionEndEvent(reason, {
-          failure: failure || undefined,
-        }),
-      );
-    }
+    // Dispatch submission end event
+    this.bb.dispatchEvent(
+      new XenditSubmissionEndEvent(
+        reason,
+        userErrorMessage,
+        developerErrorMessage,
+      ),
+    );
 
-    // Abort ongoing submission request
+    // Abort ongoing submission request (the error will be ignored)
     if (this.submission) {
       this.submission?.abortController.abort(new AbortError());
       this.submission = null;
@@ -163,6 +162,9 @@ export class SubmissionBehavior implements Behavior {
 
     // Ensure submit flag is reset
     this.bb.submissionRequested = false;
+
+    // Schedule rerender (to clear the inert attribute on the active component)
+    this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
   }
 
   private submit() {
@@ -189,6 +191,9 @@ export class SubmissionBehavior implements Behavior {
         : undefined,
     )
       .then((paymentEntity: BffPaymentEntity) => {
+        // clear abort controller since the request is complete
+        this.submission = null;
+
         switch (paymentEntity.type) {
           case BffPaymentEntityType.PaymentRequest:
             this.bb.dispatchEvent(
@@ -214,15 +219,12 @@ export class SubmissionBehavior implements Behavior {
         if (isAbortError(error)) return;
 
         console.error("Submission failed:", error);
-        if (error instanceof NetworkError) {
-          this.networkError = error;
-        }
 
         // avoid dispatching an event after exit
         if (!this.exited) {
           // set the error flag and exit the submission
           this.bb.submissionRequested = false;
-          this.submissionHadError = true;
+          this.submissionError = error;
           this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
         }
       });
@@ -301,4 +303,31 @@ async function asyncSubmit(
   }
 
   return toPaymentEntity(result);
+}
+
+function defaultUserErrorMessage(t: TFunction<"session">): string[] {
+  return [
+    t("default_error.title"),
+    t("default_error.message_1"),
+    t("default_error.message_2"),
+  ];
+}
+
+function failureCodeUserErrorMessage(
+  t: TFunction<"session">,
+  type: BffPaymentEntityType,
+  status: "FAILED" | "EXPIRED" | "CANCELED",
+  failureCode:
+    | BffPaymentTokenFailureCode
+    | BffPaymentRequestFailureCode
+    | undefined,
+): string[] {
+  const title = t(getPaymentEntityStatusCopyKey(type, status, "title"));
+  const subtext = failureCode
+    ? t(
+        getFailureCodeCopyKey(failureCode),
+        t("failure_code_unknown", { failureCode }),
+      )
+    : t(getPaymentEntityStatusCopyKey(type, status, "subtext"));
+  return [title, subtext];
 }

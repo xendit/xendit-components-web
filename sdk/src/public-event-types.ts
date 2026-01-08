@@ -80,7 +80,7 @@ export class XenditNotReadyEvent extends Event {
 
 /**
  * @public
- * Event sometimes fired after submission.
+ * Event fired after submission begins.
  */
 export class XenditSubmissionBeginEvent extends Event {
   static type = "submission-begin" as const;
@@ -92,26 +92,38 @@ export class XenditSubmissionBeginEvent extends Event {
 
 /**
  * @public
- * Event sometimes fired when a submission is complete, including the action.
- * After this, a session-complete or session-expired-or-canceled event will be fired.
+ * Event fired when a submission is complete or fails. Submission encompasses creation of a
+ * payment request or payment token, and any actions the user needs to complete.
+ *
+ * Includes details about why the submission ended, and error messages if applicable.
  */
 export class XenditSubmissionEndEvent extends Event {
   static type = "submission-end" as const;
 
   constructor(
+    /**
+     * The reason why the submission ended.
+     */
     public reason: string,
-    public data?: {
-      errorCode?: string;
-      errorContent?: {
-        title: string;
-        message_1: string;
-        message_2?: string;
-      };
-      failure?: {
-        title: string;
-        subtext: string;
-        failureCode?: string;
-      };
+    /**
+     * An error message to show to the user. A title and 1-2 lines of localized text.
+     */
+    public userErrorMessage?: string[],
+    /**
+     * A detailed error message for developers.
+     */
+    public developerErrorMessage?: {
+      /**
+       * The type of error.
+       * - NETWORK_ERROR: A network error occurred while creating the payment request or payment token.
+       * - ERROR: Failed to created a payment request or payment token.
+       * - FAILURE: A payment request or payment token transitioned to a failure state.
+       */
+      type: "NETWORK_ERROR" | "ERROR" | "FAILURE";
+      /**
+       * The code associated with the error.
+       */
+      code: string;
     },
   ) {
     super(XenditSubmissionEndEvent.type, {});

@@ -37,3 +37,15 @@ export class InternalBehaviorTreeUpdateEvent extends Event {
     super(InternalBehaviorTreeUpdateEvent.type, {});
   }
 }
+
+/**
+ * @internal
+ * Schedule a rerender of all components on the next tick.
+ */
+export class InternalNeedsRerenderEvent extends Event {
+  static type = "xendit-internal-needs-rerender" as const;
+
+  constructor() {
+    super(InternalNeedsRerenderEvent.type, {});
+  }
+}

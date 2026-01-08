@@ -153,6 +153,8 @@ export interface XenditPaymentChannel {
   /**
    * The channel_code used to refer to this payment channel.
    *
+   * This is either a string or an array of strings.
+   *
    * In some cases (e.g. GOPAY), channels that are semantically the same have different channel codes depending
    * on whether they're being used for pay or pay and save. In that case this will be an array of two channel codes.
    */

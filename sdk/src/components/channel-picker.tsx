@@ -21,6 +21,7 @@ import { TFunction } from "i18next";
 type Props = object;
 
 export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
+  const sdk = useSdk();
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
   const currentChannel = useCurrentChannel().channel;
@@ -81,9 +82,8 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     selectedGroupWasTriggeredManually,
   ]);
 
-  if (session.status !== "ACTIVE") {
-    // users are allowed to create channel pickers before loading the session, but we
-    // shouldn't render anything if after it loads, it isn't active
+  if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
+    // clear all contents if the sdk is not initialized or crashes, or if the component is still mounted after completion or failure
     return null;
   }
 

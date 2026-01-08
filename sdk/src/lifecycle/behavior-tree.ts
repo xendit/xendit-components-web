@@ -38,7 +38,7 @@ import {
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior } from "./behaviors/submission";
 
-type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
+export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
 /**
  * "Blackboard" means mutable state available to the behavior tree and all behavior instances.
