@@ -37,8 +37,6 @@ import {
   BffChannel,
   BffChannelUiGroup,
   ChannelProperties,
-  ChannelProperty,
-  ChannelPropertyPrimative,
 } from "./backend-types/channel";
 import {
   PaymentChannel,
@@ -1419,4 +1417,4 @@ export class XenditComponentsTest extends XenditComponents {
 }
 
 // re-exports
-export type { ChannelProperties, ChannelProperty, ChannelPropertyPrimative };
+export type { ChannelProperties };

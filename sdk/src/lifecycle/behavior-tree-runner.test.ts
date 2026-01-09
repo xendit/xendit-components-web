@@ -81,7 +81,7 @@ function testBehaviorTree(bb: BB) {
   }
 }
 
-describe("Behavior Tree", () => {
+describe("Behavior Tree Runner", () => {
   it("should call enter when creating new tree nodes", () => {
     const tree = new BehaviorTree<BB>(testBehaviorTree, {});
 
