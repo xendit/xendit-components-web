@@ -8,7 +8,3 @@ updates:
       all-patch:
         update-types:
           - patch
-  - package-ecosystem: "npm"
-    directory: "/demos"
-    schedule:
-      interval: "weekly"
