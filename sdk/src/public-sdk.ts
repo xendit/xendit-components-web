@@ -37,8 +37,6 @@ import {
   BffChannel,
   BffChannelUiGroup,
   ChannelProperties,
-  ChannelProperty,
-  ChannelPropertyPrimative,
 } from "./backend-types/channel";
 import {
   PaymentChannel,
@@ -72,6 +70,7 @@ import {
 import {
   canBeSimulated,
   errorToString,
+  lockDownInteralProperty,
   mergeIgnoringUndefined,
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
@@ -231,13 +230,11 @@ export class XenditComponents extends EventTarget {
   constructor(options: XenditComponentsOptions) {
     super();
 
-    // Handle new public constructor format
-    const publicOptions = options as XenditComponentsOptions;
     const eventManager = new SdkEventManager(this);
-    const sdkKey = parseSdkKey(publicOptions.sessionClientKey);
+    const sdkKey = parseSdkKey(options.sessionClientKey);
     this[internal] = {
       sdkKey,
-      options: options,
+      options,
       worldState: null,
       eventManager,
       liveComponents: {
@@ -263,6 +260,7 @@ export class XenditComponents extends EventTarget {
       }),
       currentChannelCode: null,
     };
+    lockDownInteralProperty(this as unknown as { [internal]: unknown });
 
     this.behaviorTreeUpdate();
 
@@ -387,7 +385,7 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @internal
-   * Creates a new behavior tree based on the internal state and runs the update process.
+   * Updates the behavior tree with the latest world state and component state.
    */
   private behaviorTreeUpdate(): void {
     const bb = this[internal].behaviorTree.bb;
@@ -428,6 +426,7 @@ export class XenditComponents extends EventTarget {
    * Return the current SDK status.
    */
   public getSdkStatus(): SdkStatus {
+    // TODO: pass this as a prop into SessionProvider instead
     return this[internal].behaviorTree.bb.sdkStatus;
   }
 
@@ -471,7 +470,7 @@ export class XenditComponents extends EventTarget {
    * The channels are organized in a way that is appropriate to show to users.
    * You can use this to render your channel picker UI.
    *
-   * Note it's possible for this list to be empty.
+   * You can pass `{filter: "CHANNEL_CODE"}` to filter channels by string or regexp.
    */
   getActiveChannelGroups(
     options?: XenditGetChannelsOptions,
@@ -482,6 +481,7 @@ export class XenditComponents extends EventTarget {
       this[internal].worldState.channelUiGroups,
       {
         options: {
+          filter: options?.filter,
           filterMinMax: options?.filterMinMax ?? true,
         },
         session: this[internal].worldState.session,
@@ -495,9 +495,9 @@ export class XenditComponents extends EventTarget {
    * Retrieve an unorganized list of payment channels available for this session.
    *
    * Use this when you need to search for specific channels. When rendering your UI,
-   * use `getActiveChannelGroups` instead.
+   * consider using `getActiveChannelGroups` if you support many channels.
    *
-   * Note it's possible for this list to be empty.
+   * You can pass `{filter: "CHANNEL_CODE"}` to filter channels by string or regexp.
    */
   getActiveChannels(
     options?: XenditGetChannelsOptions,
@@ -508,6 +508,7 @@ export class XenditComponents extends EventTarget {
       this[internal].worldState.channelUiGroups,
       {
         options: {
+          filter: options?.filter,
           filterMinMax: options?.filterMinMax ?? true,
         },
         session: this[internal].worldState.session,
@@ -1416,4 +1417,4 @@ export class XenditComponentsTest extends XenditComponents {
 }
 
 // re-exports
-export type { ChannelProperties, ChannelProperty, ChannelPropertyPrimative };
+export type { ChannelProperties };

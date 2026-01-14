@@ -8,11 +8,11 @@ import {
   XenditPaymentChannelGroup,
   XenditSession,
 } from "./public-data-types";
-import { XenditGetChannelsOptions } from "./public-options-types";
 import {
   assert,
   assertEquals,
   assertNotEquals,
+  lockDownInteralProperty,
   removeUndefinedPropertiesFromObject,
   satisfiesMinMax,
 } from "./utils";
@@ -71,11 +71,17 @@ export function bffCustomerToPublic(bffCustomer: BffCustomer): XenditCustomer {
 }
 
 type ChannelMarshalConfig = {
-  options: Required<XenditGetChannelsOptions>;
+  options: {
+    filter?: string | string[] | RegExp;
+    filterMinMax: boolean;
+  };
   pairChannels: PairChannelData;
   session: Pick<BffSession, "amount" | "session_type">;
 };
 
+/**
+ * Generate public channel groups list.
+ */
 export function bffUiGroupsToPublic(
   bffChannels: BffChannel[],
   bffChannelGroups: BffChannelUiGroup[],
@@ -83,23 +89,28 @@ export function bffUiGroupsToPublic(
 ): XenditPaymentChannelGroup[] {
   const groupsByGroupId = makeGroupsByGroupId(bffChannelGroups);
   const channelsByGroupId = makeChannelsByGroupId(bffChannels, marshalConfig);
-  return bffChannelGroups.map((group) => {
-    return bffUiGroupToPublic(
-      group,
-      channelsByGroupId,
-      groupsByGroupId,
-      marshalConfig,
-    );
-  });
+  return bffChannelGroups
+    .filter((group) => channelsByGroupId[group.id]?.length)
+    .map((group) => {
+      return bffUiGroupToPublic(
+        group,
+        channelsByGroupId,
+        groupsByGroupId,
+        marshalConfig,
+      );
+    });
 }
 
+/**
+ * Generate one public channel group.
+ */
 export function bffUiGroupToPublic(
   bffChannelGroup: BffChannelUiGroup,
   channelsByGroupId: Record<string, BffChannel[]>,
   groupsByGroupId: Record<string, BffChannelUiGroup>,
   marshalConfig: ChannelMarshalConfig,
 ) {
-  return removeUndefinedPropertiesFromObject<XenditPaymentChannelGroup>({
+  const group = removeUndefinedPropertiesFromObject<XenditPaymentChannelGroup>({
     groupId: bffChannelGroup.id,
     label: bffChannelGroup.label,
     get channels() {
@@ -114,8 +125,15 @@ export function bffUiGroupToPublic(
     },
     [internal]: bffChannelGroup,
   });
+
+  lockDownInteralProperty(group);
+
+  return group;
 }
 
+/**
+ * Generate one public channel, without group data.
+ */
 export function singleBffChannelToPublic(
   bffChannel: BffChannel,
   marshalConfig: ChannelMarshalConfig,
@@ -123,6 +141,9 @@ export function singleBffChannelToPublic(
   return bffChannelToPublic(bffChannel, {}, {}, marshalConfig);
 }
 
+/**
+ * Generate one public channel.
+ */
 export function bffChannelToPublic(
   bffChannel: BffChannel,
   bffChannelsByGroupId: Record<string, BffChannel[]>,
@@ -131,7 +152,7 @@ export function bffChannelToPublic(
 ): XenditPaymentChannel {
   assert(!marshalConfig.pairChannels.paired[bffChannel.channel_code]);
 
-  return removeUndefinedPropertiesFromObject<XenditPaymentChannel>({
+  const channel = removeUndefinedPropertiesFromObject<XenditPaymentChannel>({
     channelCode:
       marshalConfig.pairChannels.pairs[bffChannel.channel_code]?.map(
         (ch) => ch.channel_code,
@@ -140,6 +161,9 @@ export function bffChannelToPublic(
     brandColor: bffChannel.brand_color,
     brandLogoUrl: bffChannel.brand_logo_url,
     get uiGroup() {
+      if (!bffGroupsByGroupId[bffChannel.ui_group]) {
+        throw new Error("UI group not found");
+      }
       return bffUiGroupToPublic(
         bffGroupsByGroupId[bffChannel.ui_group],
         bffChannelsByGroupId,
@@ -159,8 +183,15 @@ export function bffChannelToPublic(
       bffChannel,
     ],
   });
+
+  lockDownInteralProperty(channel);
+
+  return channel;
 }
 
+/**
+ * Generate public channels list.
+ */
 export function bffChannelsToPublic(
   bffChannels: BffChannel[],
   bffChannelGroups: BffChannelUiGroup[],
@@ -182,6 +213,9 @@ export function bffChannelsToPublic(
     });
 }
 
+/**
+ * Make a mapping of group ID to group.
+ */
 function makeGroupsByGroupId(
   bffChannelGroups: BffChannelUiGroup[],
 ): Record<string, BffChannelUiGroup> {
@@ -192,21 +226,58 @@ function makeGroupsByGroupId(
   return groupMap;
 }
 
+/**
+ * Return true if the channel passes the filter criteria.
+ */
 function channelFilterFn(
   channel: BffChannel,
   marshalConfig: ChannelMarshalConfig,
 ) {
   if (marshalConfig.pairChannels.paired[channel.channel_code]) {
+    // channel is a second member of a pair, skip
+    // TODO: users may filter out the first member of a pair, in which case we should remap the second member to the first
     return false;
   }
-  if (marshalConfig.options.filterMinMax) {
-    if (!satisfiesMinMax(marshalConfig.session, channel)) {
-      return false;
-    }
+
+  if (
+    marshalConfig.options.filterMinMax &&
+    !satisfiesMinMax(marshalConfig.session, channel)
+  ) {
+    // min/max amount not satisfied
+    return false;
   }
+
+  const filter = marshalConfig.options.filter;
+  if (filter && !channelCodeMatchesFilter(filter, channel.channel_code)) {
+    // channel code does not match filter
+    return false;
+  }
+
   return true;
 }
 
+/**
+ * Checks a channel code string against a filter term.
+ */
+function channelCodeMatchesFilter(
+  filter: string | string[] | RegExp,
+  code: string,
+) {
+  if (typeof filter === "string" && code === filter) {
+    return true;
+  }
+  if (Array.isArray(filter) && filter.includes(code)) {
+    return true;
+  }
+  if (filter instanceof RegExp && filter.test(code)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Create a mapping of group ID to channels in that group, applying channel filtering and removing empty groups.
+ */
 function makeChannelsByGroupId(
   bffChannels: BffChannel[],
   marshalConfig: ChannelMarshalConfig,

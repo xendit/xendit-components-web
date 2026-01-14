@@ -12,7 +12,10 @@ export async function pin(
   for (const key of masterPinningKeys) {
     const pinningKey = await crypto.subtle.importKey(
       "jwk",
-      key,
+      {
+        ...key,
+        key_ops: ["verify"],
+      },
       {
         name: "ECDSA",
         namedCurve: "P-384",
@@ -98,7 +101,7 @@ export async function deriveSharedKey(
       name: "AES-GCM",
       length: 256,
     },
-    false,
+    process.env.NODE_ENV === "test", // allow key export in tests
     ["encrypt"],
   );
 }
