@@ -140,12 +140,77 @@ describe("BFF Marshal - bffChannelsToPublic", () => {
       }),
     ).toBe(true);
 
-    // the filter should also apply to the containing groups' channels list
+    // the filter should also apply to the containing group's channels list
     const channelWithDisabledSibling = publicChannels.find(
       (ch) => ch.channelCode === "GROUP_PARTIAL_DISABLED_1",
     );
     assert(channelWithDisabledSibling);
     expect(channelWithDisabledSibling.uiGroup.channels.length).toBe(1);
+  });
+  it("should be able to filter channels by string", () => {
+    const testData = makeTestBffData();
+    const pairChannels = findChannelPairs(testData.channels);
+    const publicChannels = bffChannelsToPublic(
+      testData.channels,
+      testData.channel_ui_groups,
+      {
+        session: testData.session,
+        options: { filterMinMax: false, filter: "MOCK_QR" },
+        pairChannels: pairChannels,
+      },
+    );
+
+    expect(publicChannels.length).toBe(1);
+    expect(publicChannels[0].channelCode).toBe("MOCK_QR");
+
+    // the filter should also apply to the containing group's channels list
+    expect(publicChannels[0].uiGroup.channels.length).toBe(1);
+    expect(publicChannels[0].uiGroup.channels[0].channelCode).toBe("MOCK_QR");
+  });
+  it("should be able to filter channels by array of strings", () => {
+    const testData = makeTestBffData();
+    const pairChannels = findChannelPairs(testData.channels);
+    const publicChannels = bffChannelsToPublic(
+      testData.channels,
+      testData.channel_ui_groups,
+      {
+        session: testData.session,
+        options: { filterMinMax: false, filter: ["MOCK_QR", "CARDS"] },
+        pairChannels: pairChannels,
+      },
+    );
+
+    expect(publicChannels.length).toBe(2);
+    expect(publicChannels.map((ch) => ch.channelCode)).toEqual([
+      "CARDS",
+      "MOCK_QR",
+    ]);
+
+    // the filter should also apply to the containing group's channels list
+    expect(publicChannels[1].uiGroup.channels.length).toBe(1);
+    expect(publicChannels[1].uiGroup.channels[0].channelCode).toBe("MOCK_QR");
+  });
+  it("should be able to filter channels by regex", () => {
+    const testData = makeTestBffData();
+    const pairChannels = findChannelPairs(testData.channels);
+    const publicChannels = bffChannelsToPublic(
+      testData.channels,
+      testData.channel_ui_groups,
+      {
+        session: testData.session,
+        options: { filterMinMax: false, filter: /mock_.*/i },
+        pairChannels: pairChannels,
+      },
+    );
+
+    expect(publicChannels.length).toBe(5);
+    expect(publicChannels.map((ch) => ch.channelCode)).toEqual([
+      "MOCK_EWALLET",
+      "MOCK_EWALLET_WITH_PHONE",
+      "MOCK_QR",
+      "MOCK_DIRECT_DEBIT",
+      "MOCK_OTC",
+    ]);
   });
 });
 

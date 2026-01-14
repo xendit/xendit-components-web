@@ -31,6 +31,7 @@ export function makeTestBffData(): BffResponse {
       updated: mockNow,
       status: "ACTIVE",
       reference_id: randomUUID(),
+      description: "Test session",
       currency: "IDR",
       amount: 10000,
       country: "ID",
