@@ -7,6 +7,7 @@ import {
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 import { BffSession } from "./backend-types/session";
+import { internal } from "./internal";
 
 export const MOCK_NETWORK_DELAY_MS = 300;
 
@@ -244,10 +245,27 @@ export function errorToString(error: unknown): string {
   }
 }
 
+/**
+ * Modifies the input object, deleting properties with undefined values, excluding symbol properties or getters.
+ */
 export function removeUndefinedPropertiesFromObject<T extends object>(
   object: T,
 ): T {
-  // TODO: filter out undefined properties while leaving symbol properties and getters intact
+  for (const key of Object.keys(object) as (keyof T)[]) {
+    if (typeof key === "symbol") {
+      continue;
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(object, key);
+    if (descriptor === undefined) {
+      continue;
+    }
+    if (typeof descriptor.get === "function") {
+      continue;
+    }
+    if (descriptor.value === undefined) {
+      delete object[key];
+    }
+  }
   return object;
 }
 
@@ -347,4 +365,14 @@ export function satisfiesMinMax(
   }
 
   return true;
+}
+
+export function lockDownInteralProperty(obj: { [internal]: unknown }) {
+  // make [internal] non-enumerable
+  Object.defineProperty(obj, internal, {
+    enumerable: false,
+    writable: false,
+    configurable: false,
+    value: obj[internal],
+  });
 }
