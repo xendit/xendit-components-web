@@ -71,7 +71,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
     output: [
       {
         file: path.join(import.meta.dirname, "dist", "index.esm.js"),
-        name: "XenditSdk",
+        name: "Xendit",
         format: "esm",
         exports: "named",
         sourcemap: true,
@@ -79,7 +79,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       },
       {
         file: path.join(import.meta.dirname, "dist", "index.umd.js"),
-        name: "XenditSdk",
+        name: "Xendit",
         format: "umd",
         exports: "named",
         sourcemap: true,
