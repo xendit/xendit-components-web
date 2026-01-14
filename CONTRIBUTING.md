@@ -12,4 +12,7 @@ Run `pnpm test` to run tests.
 2. Update CHANGELOG.md. Rename the "Unreleased" section to the version number and add a new empty "Unreleased" section.
 3. Commit and merge the result.
 4. Create a tag using https://github.com/xendit/xendit-components-web/releases/new
-5. Trigger a release in https://buddy.tidnex.com/xendit-inc/xendit-components-web/pipelines
+5. Trigger a staging release on the new tag https://buddy.tidnex.com/xendit-inc/xendit-components-web/pipelines/pipeline/14900/run
+6. Test using the postrelease testbed: https://assets.xendit.co/components/postrelease-testbed.html
+7. Trigger a prod release on the new tag https://buddy.tidnex.com/xendit-inc/xendit-components-web/pipelines/pipeline/14900/run
+8. Test using the postrelease testbed: https://assets.xendit.co/components/postrelease-testbed.html

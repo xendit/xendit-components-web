@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Xendit Components Postrelease Testbed</title>
+    <!-- 
+    This file should be deployed to https://assets.xendit.co/components/postrelease-testbed.html
+    Access it from there, it will not work if opened locally.
+    -->
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ccc;
+        padding: 12px;
+        width: 350px;
+        gap: 8px;
+      }
+      label {
+        display: block;
+      }
+      input,
+      select {
+        height: 28px;
+        box-sizing: border-box;
+        padding: 4px;
+      }
+      button {
+        align-self: flex-start;
+        padding: 4px 12px;
+      }
+      ::placeholder {
+        color: #aaa;
+      }
+      #container {
+        border: 1px solid #ccc;
+        padding: 12px;
+        width: 350px;
+      }
+      #controls {
+        border: 1px solid #ccc;
+        padding: 12px;
+        width: 350px;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="config-form">
+      <label for="script-src">Load SDK from:</label>
+      <select id="script-src" name="script-src">
+        <option value="https://assets.xendit.co/components/%s/index.umd.js">
+          Prod
+        </option>
+        <option
+          value="https://assets.stg.tidnex.dev/components/%s/index.umd.js"
+        >
+          Staging
+        </option>
+      </select>
+      <label for="version">Version (with v prefix)</label>
+      <input id="version" name="version" placeholder="v1.2.3" />
+      <label for="key">Components SDK Key</label>
+      <input id="key" name="key" />
+      <button id="load-button" type="submit">Load</button>
+    </form>
+    <div id="container"></div>
+    <div id="controls">
+      <button id="submit-button" type="button">Submit</button>
+      <button id="abort-button" type="button">Abort</button>
+    </div>
+
+    <script>
+      const $ = (id) => document.querySelector(id);
+
+      $("#config-form").addEventListener(
+        "submit",
+        (e) => {
+          e.preventDefault();
+          $("#load-button").remove();
+          const formData = new FormData(e.target);
+          const scriptSrcTemplate = formData.get("script-src");
+          const version = formData.get("version").trim();
+          const key = formData.get("key").trim();
+          const scriptSrc = scriptSrcTemplate.replace("%s", version);
+          const script = document.createElement("script");
+          script.src = scriptSrc;
+          script.onload = init.bind(null, key);
+          script.onerror = (err) => {
+            alert("Failed to load script: " + err.message);
+          };
+          document.body.appendChild(script);
+        },
+        { once: true },
+      );
+
+      function init(key) {
+        const XenditComponents = window.XenditSdk.XenditComponents;
+
+        const container = $("#container");
+        container.replaceChildren();
+        const components = new XenditComponents({
+          sessionClientKey: key,
+        });
+
+        const channelPicker = components.createChannelPickerComponent();
+        container.appendChild(channelPicker);
+
+        components.addEventListener("fatal-error", (evt) => {
+          alert("Fatal error: " + evt.message);
+          console.error(evt);
+        });
+
+        components.addEventListener("session-complete", (evt) => {
+          alert("Session complete");
+          console.log(err);
+        });
+
+        components.addEventListener("session-expired-or-canceled", (evt) => {
+          alert("Session expired or canceled");
+          console.log(err);
+        });
+
+        $("#submit-button").addEventListener("click", async () => {
+          components.submit();
+        });
+
+        $("#abort-button").addEventListener("click", async () => {
+          components.abortSubmission();
+        });
+      }
+    </script>
+  </body>
+</html>
