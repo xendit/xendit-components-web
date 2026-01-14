@@ -8,7 +8,6 @@ import {
   XenditPaymentChannelGroup,
   XenditSession,
 } from "./public-data-types";
-import { XenditGetChannelsOptions } from "./public-options-types";
 import {
   assert,
   assertEquals,
@@ -72,11 +71,17 @@ export function bffCustomerToPublic(bffCustomer: BffCustomer): XenditCustomer {
 }
 
 type ChannelMarshalConfig = {
-  options: Required<XenditGetChannelsOptions>;
+  options: {
+    filter?: string | string[] | RegExp;
+    filterMinMax: boolean;
+  };
   pairChannels: PairChannelData;
   session: Pick<BffSession, "amount" | "session_type">;
 };
 
+/**
+ * Generate public channel groups list.
+ */
 export function bffUiGroupsToPublic(
   bffChannels: BffChannel[],
   bffChannelGroups: BffChannelUiGroup[],
@@ -84,16 +89,21 @@ export function bffUiGroupsToPublic(
 ): XenditPaymentChannelGroup[] {
   const groupsByGroupId = makeGroupsByGroupId(bffChannelGroups);
   const channelsByGroupId = makeChannelsByGroupId(bffChannels, marshalConfig);
-  return bffChannelGroups.map((group) => {
-    return bffUiGroupToPublic(
-      group,
-      channelsByGroupId,
-      groupsByGroupId,
-      marshalConfig,
-    );
-  });
+  return bffChannelGroups
+    .filter((group) => channelsByGroupId[group.id]?.length)
+    .map((group) => {
+      return bffUiGroupToPublic(
+        group,
+        channelsByGroupId,
+        groupsByGroupId,
+        marshalConfig,
+      );
+    });
 }
 
+/**
+ * Generate one public channel group.
+ */
 export function bffUiGroupToPublic(
   bffChannelGroup: BffChannelUiGroup,
   channelsByGroupId: Record<string, BffChannel[]>,
@@ -121,6 +131,9 @@ export function bffUiGroupToPublic(
   return group;
 }
 
+/**
+ * Generate one public channel, without group data.
+ */
 export function singleBffChannelToPublic(
   bffChannel: BffChannel,
   marshalConfig: ChannelMarshalConfig,
@@ -128,6 +141,9 @@ export function singleBffChannelToPublic(
   return bffChannelToPublic(bffChannel, {}, {}, marshalConfig);
 }
 
+/**
+ * Generate one public channel.
+ */
 export function bffChannelToPublic(
   bffChannel: BffChannel,
   bffChannelsByGroupId: Record<string, BffChannel[]>,
@@ -145,6 +161,9 @@ export function bffChannelToPublic(
     brandColor: bffChannel.brand_color,
     brandLogoUrl: bffChannel.brand_logo_url,
     get uiGroup() {
+      if (!bffGroupsByGroupId[bffChannel.ui_group]) {
+        throw new Error("UI group not found");
+      }
       return bffUiGroupToPublic(
         bffGroupsByGroupId[bffChannel.ui_group],
         bffChannelsByGroupId,
@@ -170,6 +189,9 @@ export function bffChannelToPublic(
   return channel;
 }
 
+/**
+ * Generate public channels list.
+ */
 export function bffChannelsToPublic(
   bffChannels: BffChannel[],
   bffChannelGroups: BffChannelUiGroup[],
@@ -191,6 +213,9 @@ export function bffChannelsToPublic(
     });
 }
 
+/**
+ * Make a mapping of group ID to group.
+ */
 function makeGroupsByGroupId(
   bffChannelGroups: BffChannelUiGroup[],
 ): Record<string, BffChannelUiGroup> {
@@ -201,21 +226,62 @@ function makeGroupsByGroupId(
   return groupMap;
 }
 
+/**
+ * Return true if the channel passes the filter criteria.
+ */
 function channelFilterFn(
   channel: BffChannel,
   marshalConfig: ChannelMarshalConfig,
 ) {
   if (marshalConfig.pairChannels.paired[channel.channel_code]) {
+    // channel is a second member of a pair, skip
     return false;
   }
+
   if (marshalConfig.options.filterMinMax) {
     if (!satisfiesMinMax(marshalConfig.session, channel)) {
+      // min/max amount not satisfied
       return false;
     }
   }
+
+  const codes = Array.isArray(channel.channel_code)
+    ? channel.channel_code
+    : [channel.channel_code];
+  const filter = marshalConfig.options.filter;
+  if (
+    filter &&
+    codes.every((code) => !channelCodeMatchesFilter(filter, code))
+  ) {
+    // channel code does not match filter
+    return false;
+  }
+
   return true;
 }
 
+/**
+ * Checks a channel code string against a filter term.
+ */
+function channelCodeMatchesFilter(
+  filter: string | string[] | RegExp,
+  code: string,
+) {
+  if (typeof filter === "string" && code === filter) {
+    return true;
+  }
+  if (Array.isArray(filter) && filter.includes(code)) {
+    return true;
+  }
+  if (filter instanceof RegExp && filter.test(code)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Create a mapping of group ID to channels in that group, applying channel filtering and removing empty groups.
+ */
 function makeChannelsByGroupId(
   bffChannels: BffChannel[],
   marshalConfig: ChannelMarshalConfig,
