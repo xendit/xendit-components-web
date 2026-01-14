@@ -1,10 +1,14 @@
+import { randomBytes, randomUUID } from "node:crypto";
 import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
   BffPaymentEntity,
   BffPaymentEntityType,
   BffPaymentRequest,
+  BffPaymentRequestStatus,
   BffPaymentToken,
+  BffPaymentTokenStatus,
 } from "./backend-types/payment-entity";
+import { assert } from "./utils";
 
 const examplePublicKey =
   "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEyCADI5pdf6KmN8+Fxl2ES3yolUKXunNeY3gGScGNEvDcrcHAPKxIInAo5DVnDvTtYtqZvx/bu7HLeBJNMXwHhie/uyNEtT8dSaLc9bd0WSlYdxI+iUsTv2Qu0LiiPrZs";
@@ -12,7 +16,7 @@ const exampleSignature =
   "NKf7whM9meUs/eRCvG0oc180MDiyeli3kH6EQ3ZahECHsZQi5G2IpH6vk3cYMtf01Y1L4OBn1SZCOv1kwpjIUet4DJeoTwwq2nM5b+K7rD+/WFTi3AEX4NWJNkKi0a91";
 
 export function makeTestSdkKey() {
-  return `session-12345678901234567890-mock-${examplePublicKey}-${exampleSignature}`;
+  return `session-${randomHexString(32)}-mock-${examplePublicKey}-${exampleSignature}`;
 }
 
 const ONE_MONTH_IN_MS = 30 * 24 * 60 * 60 * 1000;
@@ -26,7 +30,8 @@ export function makeTestBffData(): BffResponse {
       created: mockNow,
       updated: mockNow,
       status: "ACTIVE",
-      reference_id: randomUuid(),
+      reference_id: randomUUID(),
+      description: "Test session",
       currency: "IDR",
       amount: 10000,
       country: "ID",
@@ -35,12 +40,12 @@ export function makeTestBffData(): BffResponse {
       mode: "COMPONENTS",
       locale: "en",
       business_id: randomHexString(24),
-      customer_id: `cust-${randomUuid()}`,
+      customer_id: `cust-${randomUUID()}`,
       capture_method: "AUTOMATIC",
       allow_save_payment_method: "OPTIONAL",
       items: [
         {
-          reference_id: randomUuid(),
+          reference_id: randomUUID(),
           type: "DIGITAL_PRODUCT",
           name: "Item 1",
           net_unit_amount: 50000,
@@ -48,7 +53,7 @@ export function makeTestBffData(): BffResponse {
           category: "",
         },
         {
-          reference_id: randomUuid(),
+          reference_id: randomUUID(),
           type: "DIGITAL_SERVICE",
           name: "Item 2",
           net_unit_amount: 50000,
@@ -65,7 +70,7 @@ export function makeTestBffData(): BffResponse {
     },
     customer: {
       type: "INDIVIDUAL",
-      id: `cust-${randomUuid()}`,
+      id: `cust-${randomUUID()}`,
       email: "exa**@example.com",
       mobile_number: null,
       phone_number: null,
@@ -1107,14 +1112,9 @@ export function makeTestBffData(): BffResponse {
   };
 }
 
-function randomUuid() {
-  return `${randomHexString(8)}-${randomHexString(4)}-${randomHexString(4)}-${randomHexString(4)}-${randomHexString(12)}`;
-}
-
 function randomHexString(length: number) {
-  return Array.from({ length })
-    .map(() => Math.floor(Math.random() * 16).toString(16))
-    .join("");
+  assert(length % 2 === 0);
+  return randomBytes(length / 2).toString("hex");
 }
 
 export function makeTestPollResponseForSuccess(
@@ -1138,8 +1138,8 @@ export function makeTestPollResponseForSuccess(
       payment_request_id: paymentRequest?.payment_request_id,
       payment_token_id: paymentToken?.payment_token_id,
     },
-    payment_request: withStatus(paymentRequest, "SUCCEEDED"),
-    payment_token: withStatus(paymentToken, "ACTIVE"),
+    payment_request: withPaymentEntityStatus(paymentRequest, "SUCCEEDED"),
+    payment_token: withPaymentEntityStatus(paymentToken, "ACTIVE"),
     succeeded_channel: {
       channel_code: paymentEntity.entity.channel_code,
       logo_url: "https://placehold.co/48",
@@ -1166,24 +1166,22 @@ export function makeTestPollResponseForFailure(
       ...baseData.session,
       status: "ACTIVE",
     },
-    payment_request: withStatus(paymentRequest, "FAILED"),
-    payment_token: withStatus(paymentToken, "FAILED"),
+    payment_request: withPaymentEntityStatus(paymentRequest, "FAILED"),
+    payment_token: withPaymentEntityStatus(paymentToken, "FAILED"),
   };
 }
 
-function withStatus(
-  paymentRequest: BffPaymentRequest | undefined,
-  status: BffPaymentRequest["status"],
-): BffPaymentRequest | undefined;
-function withStatus(
-  paymentRequest: BffPaymentToken | undefined,
-  status: BffPaymentToken["status"],
-): BffPaymentToken | undefined;
-function withStatus(
-  prOrPt: object | undefined,
-  status: string,
-): object | undefined {
-  if (!prOrPt) return undefined;
+export function withPaymentEntityStatus<
+  T extends BffPaymentRequest | BffPaymentToken | undefined,
+>(
+  prOrPt: T,
+  status: T extends BffPaymentRequest
+    ? BffPaymentRequestStatus
+    : T extends BffPaymentToken
+      ? BffPaymentTokenStatus
+      : undefined,
+): T {
+  if (!prOrPt) return prOrPt;
   return {
     ...prOrPt,
     status: status,
@@ -1192,7 +1190,7 @@ function withStatus(
 
 export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {
   return {
-    payment_request_id: `pr-${randomUuid()}`,
+    payment_request_id: `pr-${randomUUID()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
     actions: [
@@ -1202,13 +1200,13 @@ export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {
         value: "https://example.com/redirect",
       },
     ],
-    session_token_request_id: randomUuid(),
+    session_token_request_id: randomUUID(),
   };
 }
 
 export function makeTestPaymentToken(channelCode: string): BffPaymentToken {
   return {
-    payment_token_id: `pt-${randomUuid()}`,
+    payment_token_id: `pt-${randomUUID()}`,
     status: "REQUIRES_ACTION",
     channel_code: channelCode,
     actions: [
@@ -1218,6 +1216,6 @@ export function makeTestPaymentToken(channelCode: string): BffPaymentToken {
         value: "https://example.com/redirect",
       },
     ],
-    session_token_request_id: randomUuid(),
+    session_token_request_id: randomUUID(),
   };
 }

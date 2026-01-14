@@ -2,7 +2,6 @@ import {
   BffChannel,
   ChannelFormField,
   ChannelProperties,
-  ChannelProperty,
 } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
@@ -34,7 +33,7 @@ export function assertNotEquals<const A, const B extends A>(
   }
 }
 
-const SLEEP_MULTIPLIER = process.env.NODE_ENV === "test" ? 0.01 : 1;
+export const SLEEP_MULTIPLIER = process.env.NODE_ENV === "test" ? 0.01 : 1;
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms * SLEEP_MULTIPLIER));
@@ -164,18 +163,6 @@ export function parseSdkKey(componentsSdkKey: string): ParsedSdkKey {
   };
 }
 
-export function areArraysShallowEqual(a: unknown[], b: unknown[]) {
-  if (a.length !== b.length) {
-    return false;
-  }
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 /**
  * Return a copy of original, with properties from updates applied on top, except undefined properties.
  */
@@ -283,7 +270,7 @@ export function getValueFromChannelProperty(
     );
   }
 
-  let cursor: ChannelProperties | ChannelProperty = channelProperties;
+  let cursor: ChannelProperties[string] = channelProperties;
   while (true) {
     if (!cursor || typeof cursor !== "object" || Array.isArray(cursor)) {
       return undefined;

@@ -235,24 +235,20 @@ function channelFilterFn(
 ) {
   if (marshalConfig.pairChannels.paired[channel.channel_code]) {
     // channel is a second member of a pair, skip
+    // TODO: users may filter out the first member of a pair, in which case we should remap the second member to the first
     return false;
   }
 
-  if (marshalConfig.options.filterMinMax) {
-    if (!satisfiesMinMax(marshalConfig.session, channel)) {
-      // min/max amount not satisfied
-      return false;
-    }
+  if (
+    marshalConfig.options.filterMinMax &&
+    !satisfiesMinMax(marshalConfig.session, channel)
+  ) {
+    // min/max amount not satisfied
+    return false;
   }
 
-  const codes = Array.isArray(channel.channel_code)
-    ? channel.channel_code
-    : [channel.channel_code];
   const filter = marshalConfig.options.filter;
-  if (
-    filter &&
-    codes.every((code) => !channelCodeMatchesFilter(filter, code))
-  ) {
+  if (filter && !channelCodeMatchesFilter(filter, channel.channel_code)) {
     // channel code does not match filter
     return false;
   }
