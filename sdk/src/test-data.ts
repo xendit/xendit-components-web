@@ -1,5 +1,7 @@
+import { MockActionType } from "./backend-types/channel";
 import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
+  BffAction,
   BffPaymentEntity,
   BffPaymentEntityType,
   BffPaymentRequest,
@@ -92,6 +94,7 @@ export function makeTestBffData(): BffResponse {
         min_amount: 5000,
         max_amount: 200000000,
         requires_customer_details: false,
+        _mock_action_type: "IFRAME",
         card: {
           brands: [
             {
@@ -356,6 +359,7 @@ export function makeTestBffData(): BffResponse {
         min_amount: 1000,
         max_amount: 100000000,
         requires_customer_details: false,
+        _mock_action_type: "REDIRECT",
         form: [],
         instructions: [
           "Mock E-Wallet channel",
@@ -373,6 +377,7 @@ export function makeTestBffData(): BffResponse {
         min_amount: 1000,
         max_amount: 100000000,
         requires_customer_details: false,
+        _mock_action_type: "REDIRECT",
         form: [
           {
             label: "Phone Number",
@@ -401,6 +406,7 @@ export function makeTestBffData(): BffResponse {
         min_amount: 1000,
         max_amount: 100000000,
         requires_customer_details: false,
+        _mock_action_type: "QR",
         form: [],
         instructions: [
           "Mock QR channel",
@@ -435,6 +441,7 @@ export function makeTestBffData(): BffResponse {
         min_amount: 1000,
         max_amount: 100000000,
         requires_customer_details: false,
+        _mock_action_type: "BARCODE",
         form: [
           {
             label: "Payer Name",
@@ -1208,34 +1215,105 @@ export function withPaymentEntityStatus<
   };
 }
 
-export function makeTestPaymentRequest(channelCode: string): BffPaymentRequest {
-  return {
-    payment_request_id: `pr-${randomUUID()}`,
-    status: "REQUIRES_ACTION",
-    channel_code: channelCode,
-    actions: [
-      {
-        type: "REDIRECT_CUSTOMER",
-        descriptor: "WEB_URL",
-        value: "https://example.com/redirect",
-      },
-    ],
-    session_token_request_id: randomUUID(),
-  };
+export function makeTestPaymentRequest(
+  channelCode: string,
+  mockActionType: MockActionType | undefined,
+): BffPaymentRequest {
+  if (mockActionType) {
+    return {
+      payment_request_id: `pr-${randomUUID()}`,
+      status: "REQUIRES_ACTION",
+      channel_code: channelCode,
+      actions: makeMockActions(mockActionType),
+      session_token_request_id: randomUUID(),
+    };
+  } else {
+    return {
+      payment_request_id: `pr-${randomUUID()}`,
+      status: "SUCCEEDED",
+      channel_code: channelCode,
+      actions: [],
+      session_token_request_id: randomUUID(),
+    };
+  }
 }
 
-export function makeTestPaymentToken(channelCode: string): BffPaymentToken {
-  return {
-    payment_token_id: `pt-${randomUUID()}`,
-    status: "REQUIRES_ACTION",
-    channel_code: channelCode,
-    actions: [
-      {
+export function makeTestPaymentToken(
+  channelCode: string,
+  mockActionType: MockActionType | undefined,
+): BffPaymentToken {
+  if (mockActionType) {
+    return {
+      payment_token_id: `pt-${randomUUID()}`,
+      status: "REQUIRES_ACTION",
+      channel_code: channelCode,
+      actions: makeMockActions(mockActionType),
+      session_token_request_id: randomUUID(),
+    };
+  } else {
+    return {
+      payment_token_id: `pt-${randomUUID()}`,
+      status: "ACTIVE",
+      channel_code: channelCode,
+      actions: [],
+      session_token_request_id: randomUUID(),
+    };
+  }
+}
+
+export function makeMockActions(
+  mockActionType: MockActionType | undefined,
+): BffAction[] {
+  return mockActionType ? [makeOneMockAction(mockActionType)] : [];
+}
+
+export function makeOneMockAction(mockActionType: MockActionType): BffAction {
+  switch (mockActionType) {
+    case "IFRAME":
+      return {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "WEB_URL",
+        value: "https://example.com/iframe",
+        iframe_capable: true,
+      };
+    case "REDIRECT":
+      return {
         type: "REDIRECT_CUSTOMER",
         descriptor: "WEB_URL",
         value: "https://example.com/redirect",
-      },
-    ],
-    session_token_request_id: randomUUID(),
-  };
+        iframe_capable: false,
+      };
+    case "QR":
+      return {
+        type: "PRESENT_TO_CUSTOMER",
+        descriptor: "QR_STRING",
+        value: "https://example.com/qr-code-data",
+        action_title: "Pay with QR Code",
+        action_subtitle: "Scan the QR code below",
+        action_graphic: "",
+        instructions: null,
+      };
+    case "BARCODE":
+      return {
+        type: "PRESENT_TO_CUSTOMER",
+        descriptor: "PAYMENT_CODE",
+        value: "1234567890",
+        action_title: "Pay at a Store",
+        action_subtitle: "Show this barcode to the cashier",
+        action_graphic: "",
+        instructions: null,
+      };
+    case "VA":
+      return {
+        type: "PRESENT_TO_CUSTOMER",
+        descriptor: "VIRTUAL_ACCOUNT_NUMBER",
+        value: "1234567890",
+        action_title: "Pay with Virtual Account",
+        action_subtitle:
+          "Protect yourself from fraud - ensure all details are correct",
+        action_graphic: "",
+        instructions: null,
+      };
+  }
+  throw new Error(`Unknown mock action type: ${mockActionType}`);
 }

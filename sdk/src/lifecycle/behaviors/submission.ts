@@ -1,5 +1,5 @@
 import { createPaymentRequest, createPaymentToken } from "../../api";
-import { ChannelProperties } from "../../backend-types/channel";
+import { ChannelProperties, MockActionType } from "../../backend-types/channel";
 import {
   BffPaymentEntity,
   BffPaymentEntityType,
@@ -177,6 +177,7 @@ export class SubmissionBehavior implements Behavior {
       this.bb.channel?.allow_save;
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
+    const mockActionType = this.bb.channel._mock_action_type;
     const channelProperties = this.bb.channelProperties ?? {};
     const abortController = new AbortController();
     const promise = asyncSubmit(
@@ -184,6 +185,7 @@ export class SubmissionBehavior implements Behavior {
       this.bb.mock,
       sessionType,
       channelCode,
+      mockActionType,
       channelProperties,
       abortController,
       shouldSendSavePaymentMethod
@@ -241,6 +243,7 @@ async function asyncSubmit(
   mock: boolean,
   sessionType: BffSessionType,
   channelCode: string,
+  mockActionType: MockActionType | undefined,
   channelProperties: ChannelProperties,
   abortController: AbortController,
   savePaymentMethod: boolean | undefined,
@@ -251,12 +254,12 @@ async function asyncSubmit(
     switch (sessionType) {
       case "PAY": {
         await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
-        result = makeTestPaymentRequest(channelCode);
+        result = makeTestPaymentRequest(channelCode, mockActionType);
         break;
       }
       case "SAVE": {
         await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
-        result = makeTestPaymentToken(channelCode);
+        result = makeTestPaymentToken(channelCode, mockActionType);
         break;
       }
       default: {

@@ -1,3 +1,4 @@
+import { BffAction } from "./backend-types/payment-entity";
 import { ChannelProperties } from "./public-sdk";
 import { makeTestBffData, makeTestSdkKey } from "./test-data";
 import {
@@ -200,5 +201,26 @@ describe("utils - satisfiesMinMax", () => {
 
     const session3 = { amount: 500000000, session_type: "PAY" } as const;
     expect(satisfiesMinMax(session3, channel)).toBe(false);
+  });
+});
+
+describe("utils - findBestAction", () => {
+  it("should choose the first WEB_URL action", () => {
+    const actions: BffAction[] = [
+      {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "WEB_URL",
+        value: "https://example.com/1",
+      },
+      {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "WEB_URL",
+        value: "https://example.com/2",
+      },
+    ] as const;
+    const bestAction = actions.find(
+      (action) => action.descriptor === "WEB_URL",
+    );
+    expect(bestAction).toBe(actions[0]);
   });
 });
