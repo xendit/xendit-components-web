@@ -108,7 +108,7 @@ export class SdkEventManager {
     container.setAttribute("class", "xendit-default-action-container");
     const props = {
       sdk: this.sdk,
-      title: "Complete your action",
+      title: "Complete your payment",
       onClose: () => {
         cleanedUp = true;
         render(null, container);
