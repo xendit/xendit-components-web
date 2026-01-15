@@ -75,6 +75,7 @@ import {
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
   parseSdkKey,
+  removeUnreleasedChannels,
   resolvePairedChannel,
   satisfiesMinMax,
   sleep,
@@ -303,6 +304,7 @@ export class XenditComponents extends EventTarget {
         this[internal].sdkKey,
         this[internal].sdkKey.sessionAuthKey,
       );
+      bff.channels = removeUnreleasedChannels(bff.channels);
     } catch (error) {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =

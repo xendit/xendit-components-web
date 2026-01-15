@@ -278,7 +278,7 @@ function channelCodeMatchesFilter(
 /**
  * Create a mapping of group ID to channels in that group, applying channel filtering and removing empty groups.
  */
-function makeChannelsByGroupId(
+export function makeChannelsByGroupId(
   bffChannels: BffChannel[],
   marshalConfig: ChannelMarshalConfig,
 ): Record<string, BffChannel[]> {
