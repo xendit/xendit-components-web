@@ -42,10 +42,10 @@ import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 const testData = makeTestBffData();
 
 const mockBlackboard: BlackboardType & { world: object } = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sdk: {} as any,
   mock: true,
   sdkKey: parseSdkKey(makeTestSdkKey()),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sdkEvents: {} as any,
   world: {
     business: testData.business,
     customer: testData.customer,

@@ -1,17 +1,29 @@
 import { BffPollResponse } from "../../backend-types/common";
 import { BffPaymentEntity } from "../../backend-types/payment-entity";
-import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { assert } from "../../utils";
+import {
+  InternalBehaviorTreeUpdateEvent,
+  InternalScheduleMockUpdateEvent,
+  InternalUpdateWorldState,
+} from "../../private-event-types";
+import {
+  XenditActionBeginEvent,
+  XenditActionEndEvent,
+} from "../../public-event-types";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { PollWorker } from "./poll-worker";
+import {
+  makeTestPollResponseForFailure,
+  makeTestPollResponseForSuccess,
+} from "../../test-data";
 
 export class PePendingBehavior implements Behavior {
   private pollWorker: PollWorker;
   constructor(private bb: BlackboardType) {
     this.pollWorker = new PollWorker(
       this.bb.sdkKey,
-      this.bb.sdkEvents.sdk,
+      this.bb.sdk,
       this.bb.world?.sessionTokenRequestId ?? null,
       this.onPollResult,
     );
@@ -26,12 +38,20 @@ export class PePendingBehavior implements Behavior {
         case "ACTIVE":
         case "AUTHORIZED":
         case "SUCCEEDED":
-          this.bb.sdkEvents.scheduleMockUpdate("ACTION_SUCCESS");
+          this.bb.dispatchEvent(
+            new InternalScheduleMockUpdateEvent(
+              makeTestPollResponseForSuccess(this.bb.world.paymentEntity),
+            ),
+          );
           break;
         case "FAILED":
         case "CANCELED":
         case "EXPIRED":
-          this.bb.sdkEvents.scheduleMockUpdate("ACTION_FAILURE");
+          this.bb.dispatchEvent(
+            new InternalScheduleMockUpdateEvent(
+              makeTestPollResponseForFailure(this.bb.world.paymentEntity),
+            ),
+          );
           break;
         default:
         // should never happen, just stay in pending state forever :(
@@ -49,11 +69,13 @@ export class PePendingBehavior implements Behavior {
     pollResponse: BffPollResponse,
     paymentEntity: BffPaymentEntity | null,
   ) => {
-    this.bb.sdkEvents.updateWorld({
-      session: pollResponse.session,
-      paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
-      succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
-    });
+    this.bb.dispatchEvent(
+      new InternalUpdateWorldState({
+        session: pollResponse.session,
+        paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
+        succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
+      }),
+    );
   };
 }
 
@@ -66,7 +88,7 @@ export class PeRequiresActionBehavior implements Behavior {
   }
 
   enter() {
-    this.bb.sdkEvents.setHasAction(true);
+    this.bb.dispatchEvent(new XenditActionBeginEvent());
     this.canCreateActionContainer = false;
     this.pollWorker?.start();
   }
@@ -80,7 +102,7 @@ export class PeRequiresActionBehavior implements Behavior {
 
   exit() {
     this.pollWorker?.stop();
-    this.bb.sdkEvents.setHasAction(false);
+    this.bb.dispatchEvent(new XenditActionEndEvent());
 
     // clear flag for next time
     this.bb.actionCompleted = false;
@@ -90,11 +112,13 @@ export class PeRequiresActionBehavior implements Behavior {
     pollResponse: BffPollResponse,
     paymentEntity: BffPaymentEntity | null,
   ) => {
-    this.bb.sdkEvents.updateWorld({
-      session: pollResponse.session,
-      paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
-      succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
-    });
+    this.bb.dispatchEvent(
+      new InternalUpdateWorldState({
+        session: pollResponse.session,
+        paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns undefined/null
+        succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
+      }),
+    );
   };
 
   /**
@@ -105,7 +129,7 @@ export class PeRequiresActionBehavior implements Behavior {
     this.pollWorker?.stop();
     this.pollWorker = new PollWorker(
       this.bb.sdkKey,
-      this.bb.sdkEvents.sdk,
+      this.bb.sdk,
       this.bb.world?.sessionTokenRequestId ?? null,
       this.onPollResult,
     );

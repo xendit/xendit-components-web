@@ -1,3 +1,4 @@
+import { BffPollResponse } from "./backend-types/common";
 import { UpdatableWorldState, WorldState } from "./public-sdk";
 
 /**
@@ -47,5 +48,17 @@ export class InternalNeedsRerenderEvent extends Event {
 
   constructor() {
     super(InternalNeedsRerenderEvent.type, {});
+  }
+}
+
+/**
+ * @internal
+ * Set the contents of the next mock poll response.
+ */
+export class InternalScheduleMockUpdateEvent extends Event {
+  static type = "xendit-internal-schedule-mock-update" as const;
+
+  constructor(public mockData: BffPollResponse | null) {
+    super(InternalScheduleMockUpdateEvent.type, {});
   }
 }

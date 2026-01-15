@@ -143,7 +143,7 @@ components.addEventListener("fatal-error", logEvent);
 
 setInterval(() => {
   const internalState = components.getState();
-  const { world, channel, dispatchEvent, sdkEvents, ...bbFlags } =
+  const { world, channel, dispatchEvent, sdk, ...bbFlags } =
     internalState.behaviorTree.bb;
   outputChannelPropertiesLog.value = JSON.stringify(
     {
