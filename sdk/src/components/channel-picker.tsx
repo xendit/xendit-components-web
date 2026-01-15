@@ -7,7 +7,13 @@ import {
   useChannels,
   useSdk,
 } from "./session-provider";
-import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { FunctionComponent } from "preact";
 import {
   ChannelPickerGroup,
@@ -17,6 +23,7 @@ import { satisfiesMinMax, usePrevious } from "../utils";
 import { BffSession } from "../backend-types/session";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { TFunction } from "i18next";
+import { findChannelPairs, makeChannelsByGroupId } from "../bff-marshal";
 
 type Props = object;
 
@@ -27,6 +34,14 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
   const currentChannel = useCurrentChannel().channel;
   const channels = useChannels();
   const { t } = useSdk();
+
+  const channelsByGroup = useMemo(() => {
+    return makeChannelsByGroupId(channels, {
+      options: { filterMinMax: false },
+      pairChannels: findChannelPairs(channels),
+      session,
+    });
+  }, [channels, session]);
 
   const thisRef = useRef<HTMLDivElement>(null);
 
@@ -91,29 +106,35 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     // FIXME: make it work without this extra div
     <div ref={thisRef}>
       <Accordion>
-        {channelUiGroups.map((group, i) => {
-          const open = selectedGroup === i;
-          const disabledReason = groupHasNoEnabledChannel(
-            session,
-            group,
-            channels,
-            t,
-          );
-          const disabled = disabledReason !== null;
-          return (
-            <AccordionItem
-              key={i}
-              id={i}
-              title={group.label}
-              subtitle={disabledReason ?? undefined}
-              open={open}
-              disabled={disabled}
-              onClick={handleSelectChannelGroup}
-            >
-              <ChannelPickerGroup group={group} open={open} />
-            </AccordionItem>
-          );
-        })}
+        {channelUiGroups
+          .filter((group) => {
+            // remove empty groups
+            return (channelsByGroup[group.id] || []).length > 0;
+          })
+          .map((group, i) => {
+            const open = selectedGroup === i;
+            // make the group disabled if it has no enabled channels
+            const disabledReason = groupHasNoEnabledChannel(
+              session,
+              group,
+              channels,
+              t,
+            );
+            const disabled = disabledReason !== null;
+            return (
+              <AccordionItem
+                key={i}
+                id={i}
+                title={group.label}
+                subtitle={disabledReason ?? undefined}
+                open={open}
+                disabled={disabled}
+                onClick={handleSelectChannelGroup}
+              >
+                <ChannelPickerGroup group={group} open={open} />
+              </AccordionItem>
+            );
+          })}
       </Accordion>
     </div>
   );

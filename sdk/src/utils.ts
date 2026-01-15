@@ -363,3 +363,12 @@ export function lockDownInteralProperty(obj: { [internal]: unknown }) {
     value: obj[internal],
   });
 }
+
+const RELEASED_CHANNELS: Record<string, boolean> = {
+  CARDS: true,
+};
+
+// filter out channels not supported by this SDK version
+export function removeUnreleasedChannels(channels: BffChannel[]): BffChannel[] {
+  return channels.filter((channel) => RELEASED_CHANNELS[channel.channel_code]);
+}
