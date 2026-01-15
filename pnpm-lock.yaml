@@ -24,8 +24,8 @@ importers:
         specifier: ^1.12.29
         version: 1.12.29
       preact:
-        specifier: ^10.27.2
-        version: 10.27.2
+        specifier: ^10.27.3
+        version: 10.27.3
       react-circle-flags:
         specifier: ^0.0.24
         version: 0.0.24(react@19.1.1)
@@ -41,7 +41,7 @@ importers:
         version: 7.55.1(@types/node@24.10.1)
       '@preact/preset-vite':
         specifier: ^2.10.2
-        version: 2.10.2(@babel/core@7.28.5)(preact@10.27.2)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))
+        version: 2.10.2(@babel/core@7.28.5)(preact@10.27.3)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))
       '@rollup/plugin-alias':
         specifier: ^6.0.0
         version: 6.0.0(rollup@4.53.3)
@@ -1124,8 +1124,8 @@ packages:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
     engines: {node: '>=6'}
 
-  diff@8.0.2:
-    resolution: {integrity: sha512-sSuxWU5j5SR9QQji/o2qMvqRNYRDOcBTgsJ/DeCf4iSN4gW+gNMXM7wFIP+fdXZxoNiAnHUTGjCr+TSWXdRDKg==}
+  diff@8.0.3:
+    resolution: {integrity: sha512-qejHi7bcSD4hQAZE0tNAawRK1ZtafHDmMTMkrrIGgSLl7hTnQHmKCeB45xAcbfTqK2zowkM3j3bHt/4b/ARbYQ==}
     engines: {node: '>=0.3.1'}
 
   dom-accessibility-api@0.5.16:
@@ -1661,8 +1661,8 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  preact@10.27.2:
-    resolution: {integrity: sha512-5SYSgFKSyhCbk6SrXyMpqjb5+MQBgfvEKE/OC+PujcY34sOpqtr+0AZQtPYx5IA6VxynQ7rUPCtKzyovpj9Bpg==}
+  preact@10.27.3:
+    resolution: {integrity: sha512-ZieIP3zQHiQsNF3BA+SNVS8dcuRIg/nsxlkFbCMBLS2L1Ww4Bkxd9n6Md2A1crfTZsEbQPADV0neYmh/EElgeQ==}
 
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
@@ -2025,6 +2025,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -2456,7 +2457,7 @@ snapshots:
       '@rushstack/rig-package': 0.6.0
       '@rushstack/terminal': 0.19.4(@types/node@24.10.1)
       '@rushstack/ts-command-line': 5.1.4(@types/node@24.10.1)
-      diff: 8.0.2
+      diff: 8.0.3
       lodash: 4.17.21
       minimatch: 10.0.3
       resolve: 1.22.11
@@ -2475,12 +2476,12 @@ snapshots:
 
   '@microsoft/tsdoc@0.16.0': {}
 
-  '@preact/preset-vite@2.10.2(@babel/core@7.28.5)(preact@10.27.2)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))':
+  '@preact/preset-vite@2.10.2(@babel/core@7.28.5)(preact@10.27.3)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/plugin-transform-react-jsx': 7.27.1(@babel/core@7.28.5)
       '@babel/plugin-transform-react-jsx-development': 7.27.1(@babel/core@7.28.5)
-      '@prefresh/vite': 2.4.11(preact@10.27.2)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))
+      '@prefresh/vite': 2.4.11(preact@10.27.3)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))
       '@rollup/pluginutils': 4.2.1
       babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.28.5)
       debug: 4.4.3
@@ -2493,20 +2494,20 @@ snapshots:
 
   '@prefresh/babel-plugin@0.5.2': {}
 
-  '@prefresh/core@1.5.9(preact@10.27.2)':
+  '@prefresh/core@1.5.9(preact@10.27.3)':
     dependencies:
-      preact: 10.27.2
+      preact: 10.27.3
 
   '@prefresh/utils@1.2.1': {}
 
-  '@prefresh/vite@2.4.11(preact@10.27.2)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))':
+  '@prefresh/vite@2.4.11(preact@10.27.3)(vite@7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1))':
     dependencies:
       '@babel/core': 7.28.5
       '@prefresh/babel-plugin': 0.5.2
-      '@prefresh/core': 1.5.9(preact@10.27.2)
+      '@prefresh/core': 1.5.9(preact@10.27.3)
       '@prefresh/utils': 1.2.1
       '@rollup/pluginutils': 4.2.1
-      preact: 10.27.2
+      preact: 10.27.3
       vite: 7.2.4(@types/node@24.10.1)(terser@5.44.1)(yaml@2.8.1)
     transitivePeerDependencies:
       - supports-color
@@ -3082,7 +3083,7 @@ snapshots:
 
   dequal@2.0.3: {}
 
-  diff@8.0.2: {}
+  diff@8.0.3: {}
 
   dom-accessibility-api@0.5.16: {}
 
@@ -3631,7 +3632,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  preact@10.27.2: {}
+  preact@10.27.3: {}
 
   prelude-ls@1.2.1: {}
 
