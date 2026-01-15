@@ -10,7 +10,7 @@ afterEach(() => {
 describe("initialization", () => {
   it("should render channel picker component", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
@@ -27,7 +27,7 @@ describe("initialization", () => {
 
   it("should render channel picker component with single input form", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");

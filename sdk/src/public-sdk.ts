@@ -223,7 +223,7 @@ export class XenditComponents extends EventTarget {
    * ```
    * // initialize
    * const components = new XenditComponents({
-   *   sessionClientKey: "your-session-client-key",
+   *   componentsSdkKey: "your-session-client-key",
    * });
    * ```
    */
@@ -231,7 +231,7 @@ export class XenditComponents extends EventTarget {
     super();
 
     const eventManager = new SdkEventManager(this);
-    const sdkKey = parseSdkKey(options.sessionClientKey);
+    const sdkKey = parseSdkKey(options.componentsSdkKey);
     this[internal] = {
       sdkKey,
       options,
@@ -1348,7 +1348,7 @@ export class XenditComponents extends EventTarget {
  * Test version of XenditComponents that uses mock data instead of API calls.
  * Use this class for testing and development purposes.
  *
- * The sessionClientKey option is ignored.
+ * The componentsSdkKey option is ignored.
  *
  * @example
  * ```
@@ -1364,16 +1364,16 @@ export class XenditComponentsTest extends XenditComponents {
 
   /**
    * @public
-   * Test SDK ignores sessionClientKey and uses a mock key.
+   * Test SDK ignores componentsSdkKey and uses a mock key.
    */
   constructor(
-    options: Omit<XenditComponentsOptions, "sessionClientKey"> & {
-      sessionClientKey?: string;
+    options: Omit<XenditComponentsOptions, "componentsSdkKey"> & {
+      componentsSdkKey?: string;
     },
   ) {
     super({
       ...options,
-      sessionClientKey: makeTestSdkKey(),
+      componentsSdkKey: makeTestSdkKey(),
     });
   }
 

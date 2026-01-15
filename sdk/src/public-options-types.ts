@@ -9,7 +9,7 @@ export interface XenditSdkOptions {
    * Your server should retrieve this from the Xendit API and pass it directly to the
    * client without saving or logging it anywhere.
    */
-  sessionClientKey: string;
+  componentsSdkKey: string;
   iframeFieldAppearance?: IframeAppearanceOptions;
 }
 

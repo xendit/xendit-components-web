@@ -97,7 +97,7 @@ const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
-    sessionClientKey: savedKey,
+    componentsSdkKey: savedKey,
     iframeFieldAppearance,
   });
 } else {

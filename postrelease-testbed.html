@@ -101,12 +101,14 @@
       );
 
       function init(key) {
-        const XenditComponents = window.Xendit.XenditComponents;
+        const XenditComponents = key
+          ? window.Xendit.XenditComponents
+          : window.Xendit.XenditComponentsTest;
 
         const container = $("#container");
         container.replaceChildren();
         const components = new XenditComponents({
-          sessionClientKey: key,
+          componentsSdkKey: key,
         });
 
         const channelPicker = components.createChannelPickerComponent();

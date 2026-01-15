@@ -9,7 +9,7 @@ import { findEvent, waitForEvent, watchEvents } from "./utils";
 describe("initialization", () => {
   it("should fire the init event after constructing with mock data", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     expect(sdk).toBeInstanceOf(XenditComponents);
 
@@ -24,7 +24,7 @@ describe("initialization", () => {
 
   it("should be able to call getter methods only after init", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     expect(sdk).toBeInstanceOf(XenditComponents);
 

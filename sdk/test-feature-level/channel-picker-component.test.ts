@@ -12,7 +12,7 @@ afterEach(() => {
 describe("initialization", () => {
   it("should be able to create a channel picker before initializing", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     sdk.createChannelPickerComponent();
@@ -20,7 +20,7 @@ describe("initialization", () => {
 
   it("should render channel picker component after initializing", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -35,7 +35,7 @@ describe("initialization", () => {
 
   it("should display channel group list", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -54,7 +54,7 @@ describe("initialization", () => {
 
   it("should expand to show channel selection dropdown", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -70,7 +70,7 @@ describe("initialization", () => {
 
   it("should select channel using dropdown", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -103,7 +103,7 @@ describe("initialization", () => {
 
   it("should clear channel by switching groups", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
