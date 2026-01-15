@@ -95,6 +95,7 @@ xendit-payment-channel {
 
 xendit-action-container {
   background-color: var(--xendit-color-background);
+  flex: 1; /* Action container usually wants to stretch to fit, assuming the parent is a flexbox. */
 }
 
 xendit-payment-channel button,
@@ -722,3 +723,16 @@ xendit-payment-channel[inert] {
 }
 
 /* Dropdown ends */
+
+.xendit-action-iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
+.xendit-default-action-container {
+  display: flex;
+  width: calc(min(100vw - 64px, 400px));
+  height: calc(min(100vh - 64px, 600px));
+  border: none;
+}
