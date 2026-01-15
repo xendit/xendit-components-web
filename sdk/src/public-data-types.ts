@@ -109,7 +109,7 @@ export interface XenditSession {
      */
     quantity: number;
     url?: string;
-    image_url?: string;
+    imageUrl?: string;
     category?: string;
     subcategory?: string;
     description?: string;

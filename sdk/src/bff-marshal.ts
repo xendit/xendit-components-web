@@ -45,7 +45,7 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
         netUnitAmount: item.net_unit_amount,
         quantity: item.quantity,
         url: item.url,
-        image_url: item.image_url,
+        imageUrl: item.image_url,
         category: item.category,
         subcategory: item.subcategory,
         description: item.description,
