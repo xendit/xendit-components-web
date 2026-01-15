@@ -59,7 +59,12 @@ export type BffChannel = {
       logo_url: string;
     }[];
   };
+
+  /** Not returned from backend. Affects mock action generated when submitting in mock mode. */
+  _mock_action_type?: MockActionType;
 };
+
+export type MockActionType = "IFRAME" | "REDIRECT" | "QR" | "BARCODE" | "VA";
 
 export type BffChannelBanner = {
   /** Banner image URL */

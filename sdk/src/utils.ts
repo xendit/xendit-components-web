@@ -112,11 +112,68 @@ export async function* retryLoop(mult: number, tries: number, base = 2) {
 }
 
 export function redirectCanBeHandledInIframe(action: BffAction): boolean {
+  // TODO: return a flag for this from the backend
+  if (action.type !== "REDIRECT_CUSTOMER") {
+    return false;
+  }
+  if (action.iframe_capable === false) {
+    return false;
+  }
+  // if iframe_capable is undefined, assume it can be handled in iframe
   return true;
 }
 
-export function pickAction(actions: BffAction[]): BffAction {
+/**
+ * Return the first action in the list that we understand.
+ */
+export function findBestAction(actions: BffAction[]): BffAction {
+  if (!actions.length) {
+    throw new Error("Cannot search the actions list because it's empty.");
+  }
+  const best = actions.find((a) => {
+    switch (a.type) {
+      case "REDIRECT_CUSTOMER": {
+        switch (a.descriptor) {
+          case "WEB_URL":
+            return true;
+          case "DEEPLINK_URL":
+            return isAndroidOrIos();
+          case "WEB_GOOGLE_PAYLINK":
+            return false;
+        }
+        a satisfies never;
+        break;
+      }
+      case "PRESENT_TO_CUSTOMER":
+        return true;
+      case "API_POST_REQUEST":
+        return false;
+    }
+    a satisfies never;
+    return false;
+  });
+  if (best) return best;
+
+  // if we don't understand any action, just return the first one, it will fire the fatal-error event later
+  // (an empty action list has a special meaning, we should return an unsupported action rather than undefined if we support none of the actions)
   return actions[0];
+}
+
+function isAndroidOrIos() {
+  const userAgent = navigator.userAgent;
+
+  if (!userAgent) return false;
+
+  if (/android/i.test(userAgent)) {
+    return true;
+  }
+
+  // iOS detection from: http://stackoverflow.com/a/9039885/177710
+  if (/iPad|iPhone|iPod/.test(userAgent)) {
+    return true;
+  }
+
+  return false;
 }
 
 export const MOCK_HOST_ID = "mock";
