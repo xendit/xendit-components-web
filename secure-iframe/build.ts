@@ -12,9 +12,15 @@ import terser from "@rollup/plugin-terser";
 import { stripTypeScriptTypes } from "module";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
+import replace from "@rollup/plugin-replace";
 
 const PORT = 4444;
 const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
+
+// environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
+const envs = {
+  NODE_ENV: "production",
+};
 
 let lastSeenBuildOutput: string | null = null;
 async function generateIframeHtml(js: string) {
@@ -103,6 +109,15 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       }),
       commonjs({
         include: ["**/node_modules/**"],
+      }),
+      replace({
+        preventAssignment: true,
+        ...Object.fromEntries(
+          Object.entries(envs).map(([key, value]) => [
+            `process.env.${key}`,
+            JSON.stringify(value),
+          ]),
+        ),
       }),
       typescript({
         tsconfig: path.join(import.meta.dirname, "../tsconfig.json"),

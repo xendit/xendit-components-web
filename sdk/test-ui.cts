@@ -74,8 +74,8 @@ simulateButton.textContent = "Simulate Payment";
 controlsDiv.appendChild(simulateButton);
 
 const { XenditComponents, XenditComponentsTest } = (
-  window as unknown as { XenditSdk: typeof import("./src/public-sdk") }
-).XenditSdk;
+  window as unknown as { Xendit: typeof import("./src/public-sdk") }
+).Xendit;
 
 let components: import("./src/public-sdk").XenditComponents;
 const iframeFieldAppearance: import("../shared/types").IframeAppearanceOptions =

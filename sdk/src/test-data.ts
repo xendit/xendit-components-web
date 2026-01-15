@@ -1,4 +1,3 @@
-import { randomBytes, randomUUID } from "node:crypto";
 import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
   BffPaymentEntity,
@@ -1112,9 +1111,30 @@ export function makeTestBffData(): BffResponse {
   };
 }
 
+function randomBytes(length: number) {
+  const arr = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    arr[i] = Math.floor(Math.random() * 256);
+  }
+  return arr;
+}
+
+function randomUUID() {
+  return [
+    randomHexString(8),
+    randomHexString(4),
+    randomHexString(4),
+    randomHexString(4),
+    randomHexString(12),
+  ].join("-");
+}
+
 function randomHexString(length: number) {
   assert(length % 2 === 0);
-  return randomBytes(length / 2).toString("hex");
+  const bytes = randomBytes(length / 2);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export function makeTestPollResponseForSuccess(

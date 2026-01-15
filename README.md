@@ -18,6 +18,8 @@ Or load it directly from our CDN:
 <script src="https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.umd.js"></script>
 ```
 
+Our npm package includes TypeScript types. If you're using the CDN, download type declarations from `https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.d.ts`
+
 ## Sessions
 
 The Xendit Session API is an abstraction over the Xendit Payments API, representing one transaction (or tokenization). Using one session, a user can make any number
