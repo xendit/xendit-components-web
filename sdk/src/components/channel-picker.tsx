@@ -19,11 +19,15 @@ import {
   ChannelPickerGroup,
   getChannelDisabledReason,
 } from "./channel-picker-group";
-import { satisfiesMinMax, usePrevious } from "../utils";
+import { assert, satisfiesMinMax } from "../utils";
 import { BffSession } from "../backend-types/session";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { TFunction } from "i18next";
-import { findChannelPairs, makeChannelsByGroupId } from "../bff-marshal";
+import {
+  findChannelPairs,
+  makeChannelsByGroupId,
+  singleBffChannelToPublic,
+} from "../bff-marshal";
 
 type Props = object;
 
@@ -45,57 +49,86 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
 
   const thisRef = useRef<HTMLDivElement>(null);
 
-  const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
-  const [
-    selectedGroupWasTriggeredManually,
-    setSelectedGroupWasTriggeredManually,
-  ] = useState<boolean>(false);
-
-  const handleSelectChannelGroup = useCallback(
-    (i: number) => {
-      if (selectedGroup === i) {
-        const groupId = channelUiGroups[i].id;
-        // this clears the selected channel if it belongs to this group
-        thisRef.current?.dispatchEvent(
-          new XenditClearCurrentChannelEvent(groupId),
-        );
-        setSelectedGroup(null);
-      } else {
-        setSelectedGroup(i);
-      }
-      setSelectedGroupWasTriggeredManually(true);
-    },
-    [channelUiGroups, selectedGroup],
+  const pairChannelData = useMemo(() => findChannelPairs(channels), [channels]);
+  const marshalConfig = useMemo(
+    () => ({
+      pairChannels: pairChannelData,
+      session: {
+        amount: session.amount,
+        session_type: session.session_type,
+      },
+      options: { filterMinMax: false },
+    }),
+    [pairChannelData, session.amount, session.session_type],
   );
 
-  const previousCurrentChannel = usePrevious(currentChannel);
-  useLayoutEffect(() => {
-    if (
-      currentChannel !== previousCurrentChannel &&
-      !selectedGroupWasTriggeredManually
-    ) {
-      // only run this when the current channel AND current group changes
-      if (currentChannel === null) {
-        // collapse the selected group when the current channel is cleared
-        setSelectedGroup(null);
+  // selected group is the containing group of the currently selected channel
+  const selectedGroupId = currentChannel?.ui_group ?? null;
+
+  // previewed group means expanded but no channel selected
+  const [previewGroupId, setPreviewGroupId] = useState<string | null>(null);
+
+  const handleSelectChannelGroup = useCallback(
+    (groupId: string) => {
+      if (selectedGroupId === groupId || previewGroupId === groupId) {
+        // user wants to collapse the group while a channel was selected, clear the channel selection
+        if (selectedGroupId === groupId) {
+          // clear actual selection
+          thisRef.current?.dispatchEvent(
+            new XenditClearCurrentChannelEvent(groupId),
+          );
+        }
+        if (previewGroupId === groupId) {
+          // clear previewed state
+          setPreviewGroupId(null);
+        }
       } else {
-        // expand the group of the newly selected channel
-        const groupIndex = channelUiGroups.findIndex(
-          (group) => currentChannel.ui_group === group.id,
-        );
-        if (groupIndex !== -1) {
-          setSelectedGroup(groupIndex);
+        // user wants to open a different group
+        // if the new group has one channel, select it automatically
+        // otherwise set it as previewed
+        const newGroup = channelUiGroups.find((g) => g.id === groupId);
+        assert(newGroup);
+        const enabledChannels = groupEnabledChannelStats(
+          session,
+          newGroup,
+          channels,
+          t,
+        ).enabledChannels;
+        if (enabledChannels === 0) {
+          // no enabled channels, do nothing
+          return;
+        } else if (enabledChannels === 1) {
+          // one enabled channel, select it automatically
+          const ch = channelsByGroup[groupId][0];
+          sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
+          setPreviewGroupId(null);
+        } else {
+          // multiple enabled channels, set as previewed and clear the channel selection
+          setPreviewGroupId(groupId);
+          sdk.setCurrentChannel(null);
         }
       }
+    },
+    [
+      channelUiGroups,
+      channels,
+      channelsByGroup,
+      marshalConfig,
+      previewGroupId,
+      sdk,
+      selectedGroupId,
+      session,
+      t,
+    ],
+  );
+
+  // once a channel is selected, remove previewGroupId.
+  // (without this, the group would continue showing the old selected channel after the selection is cleared using setCurrentChannel(null))
+  useLayoutEffect(() => {
+    if (currentChannel !== null && previewGroupId !== null) {
+      setPreviewGroupId(null);
     }
-    setSelectedGroupWasTriggeredManually(false);
-  }, [
-    currentChannel,
-    channelUiGroups,
-    previousCurrentChannel,
-    selectedGroup,
-    selectedGroupWasTriggeredManually,
-  ]);
+  }, [currentChannel, previewGroupId]);
 
   if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
     // clear all contents if the sdk is not initialized or crashes, or if the component is still mounted after completion or failure
@@ -111,20 +144,28 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
             // remove empty groups
             return (channelsByGroup[group.id] || []).length > 0;
           })
-          .map((group, i) => {
-            const open = selectedGroup === i;
+          .map((group) => {
+            // make the group open if it is selected or previewed
+            const open =
+              selectedGroupId !== null
+                ? selectedGroupId === group.id
+                : previewGroupId === group.id;
+
             // make the group disabled if it has no enabled channels
-            const disabledReason = groupHasNoEnabledChannel(
+            const enabledChannelsStats = groupEnabledChannelStats(
               session,
               group,
               channels,
               t,
             );
-            const disabled = disabledReason !== null;
+            const disabled = enabledChannelsStats.enabledChannels === 0;
+            const disabledReason =
+              enabledChannelsStats.firstDisabledChannelReason;
+
             return (
               <AccordionItem
-                key={i}
-                id={i}
+                key={group.id}
+                id={group.id}
                 title={group.label}
                 subtitle={disabledReason ?? undefined}
                 open={open}
@@ -141,21 +182,29 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
 };
 
 // returns null if the group has any enabled channels, otherwise returns the disabled reason as a string
-function groupHasNoEnabledChannel(
+function groupEnabledChannelStats(
   session: BffSession,
   group: BffChannelUiGroup,
   channels: BffChannel[],
   t: TFunction<"session">,
-): string | null {
-  let lastReason = null;
+): {
+  enabledChannels: number;
+  firstDisabledChannelReason: string | null;
+} {
+  let firstDisabledChannelReason = null;
+  let enabledChannels = 0;
   for (const channel of channels) {
     if (channel.ui_group !== group.id) continue;
     if (satisfiesMinMax(session, channel)) {
-      return null;
+      enabledChannels++;
+      continue;
     }
-    lastReason = getChannelDisabledReason(t, session, channel);
+    firstDisabledChannelReason = getChannelDisabledReason(t, session, channel);
   }
-  return lastReason;
+  return {
+    enabledChannels,
+    firstDisabledChannelReason,
+  };
 }
 
 export class XenditClearCurrentChannelEvent extends Event {

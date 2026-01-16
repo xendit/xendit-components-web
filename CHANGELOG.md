@@ -9,7 +9,7 @@ const components: XenditComponents = new XenditComponents({
   sessionClientKey: componentsSdkKeyFromYourServer,
 });
 
-const cardsChannel = components.getActiveChannels("CARDS")[0];
+const cardsChannel = components.getActiveChannels({ filter: "CARDS" })[0];
 const channelPicker: HTMLElement =
   components.createChannelComponent(cardsChannel);
 
