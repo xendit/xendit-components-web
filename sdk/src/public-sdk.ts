@@ -231,6 +231,10 @@ export class XenditComponents extends EventTarget {
   constructor(options: XenditComponentsOptions) {
     super();
 
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      throw new Error("XenditComponents can only be instantiated in a browser");
+    }
+
     const eventManager = new SdkEventManager(this);
     const sdkKey = parseSdkKey(options.sessionClientKey);
     this[internal] = {
