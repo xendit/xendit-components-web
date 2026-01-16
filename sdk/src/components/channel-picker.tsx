@@ -199,7 +199,13 @@ function groupEnabledChannelStats(
       enabledChannels++;
       continue;
     }
-    firstDisabledChannelReason = getChannelDisabledReason(t, session, channel);
+    if (firstDisabledChannelReason === null) {
+      firstDisabledChannelReason = getChannelDisabledReason(
+        t,
+        session,
+        channel,
+      );
+    }
   }
   return {
     enabledChannels,
