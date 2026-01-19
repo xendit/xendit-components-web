@@ -1,4 +1,17 @@
-# Unreleased
+# 0.0.8
+
+Features:
+
+- Disable channels other than CARDS
+- Allow the module to be imported in Node.js (the XenditComponents constructor still throws in Node.js)
+- In mock mode, mock channels use an appropriate action based on the channel type (previously all mock channels used iframe actions)
+- Improve the layout of the default action container component and the mock iframe action
+
+Bugfixes:
+
+- Fix bug where channel picker sometimes collapses the cards group while typing a card number
+
+# 0.0.7
 
 Initial release.
 
