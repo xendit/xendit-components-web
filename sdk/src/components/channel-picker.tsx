@@ -35,7 +35,7 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
   const sdk = useSdk();
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
-  const currentChannel = useCurrentChannel().channel;
+  const currentChannel = useCurrentChannel();
   const channels = useChannels();
   const { t } = useSdk();
 

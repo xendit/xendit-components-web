@@ -2,11 +2,7 @@ import { WorldState, XenditComponents } from "../public-sdk";
 import { BffSession } from "../backend-types/session";
 import { BffBusiness } from "../backend-types/business";
 import { BffCustomer } from "../backend-types/customer";
-import {
-  BffChannel,
-  BffChannelUiGroup,
-  ChannelProperties,
-} from "../backend-types/channel";
+import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { internal } from "../internal";
 import { BffCardDetails } from "../backend-types/card-details";
 import { ComponentChildren, createContext, FunctionComponent } from "preact";
@@ -37,13 +33,7 @@ CardDetailsContext.displayName = "CardDetailsContext";
 const SdkContext = createContext<XenditComponents | null>(null);
 SdkContext.displayName = "SdkContext";
 
-const CurrentChannelContext = createContext<{
-  channel: BffChannel | null;
-  channelProperties: ChannelProperties | null;
-}>({
-  channel: null,
-  channelProperties: null,
-});
+const CurrentChannelContext = createContext<BffChannel | null>(null);
 CurrentChannelContext.displayName = "CurrentChannelContext";
 
 // Custom hooks for consuming contexts
@@ -118,19 +108,10 @@ export const XenditSessionProvider: FunctionComponent<
   const { session, business, customer, channels, channelUiGroups } = data;
 
   const channel = sdk.getCurrentChannel()?.[internal]?.[0] ?? null;
-  const channelProperties =
-    sdk[internal].liveComponents.paymentChannels.get(
-      sdk.getCurrentChannel()?.[internal]?.[0]?.channel_code ?? "",
-    )?.channelProperties ?? null;
 
   return (
     <SdkContext.Provider value={sdk}>
-      <CurrentChannelContext.Provider
-        value={{
-          channel,
-          channelProperties,
-        }}
-      >
+      <CurrentChannelContext.Provider value={channel}>
         <SessionContext.Provider value={session}>
           <BusinessContext.Provider value={business}>
             <CustomerContext.Provider value={customer}>

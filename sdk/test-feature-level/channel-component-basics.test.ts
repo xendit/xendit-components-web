@@ -7,7 +7,7 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe("initialization", () => {
+describe("channel component basics", () => {
   it("should render channel picker component", async () => {
     const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",

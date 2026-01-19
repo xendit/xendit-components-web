@@ -38,7 +38,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
   const session = useSession();
   const channels = useChannels();
 
-  const currentChannel = useCurrentChannel().channel;
+  const currentChannel = useCurrentChannel();
 
   const sessionType = session.session_type;
 

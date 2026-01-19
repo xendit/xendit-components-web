@@ -1,5 +1,4 @@
 import { FieldProps } from "./field";
-import { validate } from "../validation";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
 import {
@@ -13,24 +12,17 @@ import parsePhoneNumberFromString, {
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
 import { formFieldName } from "../utils";
-import { InternalInputValidateEvent } from "../private-event-types";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "preact/hooks";
-import { FunctionComponent, TargetedEvent } from "preact";
+import { useCallback, useMemo, useRef, useState } from "preact/hooks";
+import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
+import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
-  const { field, onChange, onError } = props;
+  const { field, onChange } = props;
   const id = formFieldName(field);
 
   const session = useSession();
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
-  const [isTouched, setIsTouched] = useState(false);
 
   const [countryCode, setCountryCode] = useState(session.country);
   const countryCodeIndex = useMemo(() => {
@@ -60,16 +52,6 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
     [],
   );
 
-  const updateValidity = useCallback(
-    (nextCountry: DropdownOptionWithDial, localNumber: string) => {
-      const phoneNumberString = formatPhoneNumber(nextCountry, localNumber);
-      const errorCode =
-        validate(field, localNumber.length ? phoneNumberString : "") ?? null;
-      if (onError) onError(id, errorCode);
-    },
-    [field, formatPhoneNumber, id, onError],
-  );
-
   const updateHiddenField = useCallback(
     (country: DropdownOptionWithDial, localNumber: string) => {
       if (hiddenFieldRef.current) {
@@ -79,34 +61,25 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
     [formatPhoneNumber],
   );
 
-  useEffect(() => {
-    const input = hiddenFieldRef.current;
-    if (!input) return;
-    const listener = (e: Event) => {
-      const value = (e as CustomEvent).detail.value;
-      updateValidity(country, value);
-    };
-    input.addEventListener(InternalInputValidateEvent.type, listener);
-    return () => {
-      input.removeEventListener(InternalInputValidateEvent.type, listener);
-    };
-  }, [id, updateValidity, country]);
-
   function handleLocalChange(event: TargetedEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
     setLocalNumber(nextLocal);
     updateHiddenField(country, nextLocal);
-    setIsTouched(true);
-    updateValidity(country, nextLocal);
-    onChange(); // keep parity with other fields
+    onChange();
   }
 
   function handleCountryChange(option: DropdownOption): void {
     const nextCountry = option as DropdownOptionWithDial;
     setCountryCode(nextCountry.value as string);
     updateHiddenField(nextCountry, localNumber);
-    if (isTouched) updateValidity(nextCountry, localNumber);
-    onChange(); // keep parity with other fields
+    onChange();
+  }
+
+  function handleBlur(event: TargetedFocusEvent<HTMLInputElement>): void {
+    formatForUser();
+    if (event.currentTarget?.value) {
+      inputRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
+    }
   }
 
   // when the user inputs a card number, update the phone number field to match
@@ -142,12 +115,6 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         ),
       );
     }
-  }
-
-  function handleBlur(): void {
-    setIsTouched(true);
-    formatForUser();
-    updateValidity(country, localNumber);
   }
 
   return (

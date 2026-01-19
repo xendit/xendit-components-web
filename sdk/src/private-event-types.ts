@@ -14,15 +14,13 @@ export class InternalUpdateWorldState extends Event {
 
 /**
  * @internal
- * Revalidates a field and marks it as touched.
+ * Marks it as touched, causing it to reveal validation errors.
  */
-export class InternalInputValidateEvent extends CustomEvent<{ value: string }> {
-  static type = "xendit-internal-input-validate" as const;
+export class InternalSetFieldTouchedEvent extends Event {
+  static type = "xendit-internal-set-field-touched" as const;
 
-  constructor(value: string) {
-    super(InternalInputValidateEvent.type, {
-      detail: { value },
-    });
+  constructor() {
+    super(InternalSetFieldTouchedEvent.type, { bubbles: true });
   }
 }
 

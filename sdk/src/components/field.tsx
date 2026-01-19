@@ -1,6 +1,5 @@
 import { FunctionComponent } from "preact";
 import { ChannelFormField } from "../backend-types/channel";
-import { LocaleKey, LocalizedString } from "../localization";
 import { CountryField } from "./field-country";
 import { DropdownField } from "./field-dropdown";
 import { IframeField } from "./field-iframe";
@@ -12,10 +11,6 @@ export interface FieldProps {
   field: ChannelFormField;
   onChange: () => void;
   className?: string;
-  onError?: (
-    fieldId: string,
-    error: LocaleKey | LocalizedString | null,
-  ) => void;
 }
 
 const Field: FunctionComponent<FieldProps> = (props) => {
