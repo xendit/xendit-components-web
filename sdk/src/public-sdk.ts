@@ -637,6 +637,11 @@ export class XenditComponents extends EventTarget {
 
     const channelCode = channel[internal][0].channel_code;
 
+    if (active) {
+      // make it active (before creating the component)
+      this[internal].currentChannelCode = channelCode;
+    }
+
     // return previously created component if it exists
     const cachedComponent =
       this[internal].liveComponents.paymentChannels.get(channelCode);
@@ -663,8 +668,12 @@ export class XenditComponents extends EventTarget {
 
     this.renderPaymentChannel(channelCode);
     if (active) {
-      this.setCurrentChannel(channel);
+      this.behaviorTreeUpdate();
+      this.syncInertAttribute();
     }
+
+    // rerender other components next tick because we may already be in a render
+    this.dispatchEvent(new InternalNeedsRerenderEvent());
 
     return container;
   }
@@ -738,6 +747,8 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
+    this[internal].currentChannelCode = channelCode;
+
     // if channel is not null, the component must exist
     let component: CachedChannelComponent | null = null;
     if (channel && channelCode) {
@@ -751,7 +762,6 @@ export class XenditComponents extends EventTarget {
       }
     }
 
-    this[internal].currentChannelCode = channelCode;
     this.behaviorTreeUpdate();
     this.syncInertAttribute();
     this.renderChannelPicker();
@@ -863,7 +873,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const form = component.channelFormRef.current;
-    form?.validate();
+    form?.setAllFieldsTouched();
   }
 
   /**

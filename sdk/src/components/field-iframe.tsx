@@ -1,48 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
-import {
-  CardBrand,
-  IframeChangeEvent,
-  IframeEvent,
-} from "../../../shared/types";
-import { InternalInputValidateEvent } from "../private-event-types";
+import { CardBrand, IframeEvent } from "../../../shared/types";
 import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
-import { LocaleKey } from "../localization";
 import { assert, formFieldName } from "../utils";
 import { FunctionComponent } from "preact";
-
-const computeFieldError = (
-  state: ValidationState,
-  required: boolean,
-): LocaleKey | null => {
-  if (state.empty && required)
-    return {
-      localeKey: "validation.required",
-    };
-  if (!state.validationErrorCodes?.length) return null;
-  return state.validationErrorCodes[0] ?? null;
-};
-
-const toValidationState = (
-  incoming: IframeChangeEvent | undefined,
-  prev: ValidationState,
-) => {
-  if (!incoming) return prev;
-  return {
-    valid: incoming.valid,
-    empty: incoming.empty,
-    validationErrorCodes: incoming.validationErrorCodes ?? [],
-  };
-};
-
-type ValidationState = {
-  valid: boolean;
-  empty: boolean;
-  validationErrorCodes: LocaleKey[];
-};
+import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 // read iframe data from environment variable
 assert(process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL);
@@ -53,7 +18,7 @@ const IFRAME_SRC = parsedIframeUrl.toString();
 const IFRAME_ORIGIN = parsedIframeUrl.origin;
 
 export const IframeField: FunctionComponent<FieldProps> = (props) => {
-  const { field, onChange, onError } = props;
+  const { field, onChange } = props;
 
   const sdk = useSdk();
 
@@ -68,53 +33,9 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
 
   const [focusWithin, setFocusWithin] = useState(false);
 
-  const [isTouched, setIsTouched] = useState(false);
-  const [validationResult, setValidationResult] = useState<ValidationState>({
-    empty: true,
-    valid: false,
-    validationErrorCodes: [],
-  });
-
   const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
 
   const { card } = useChannel() ?? {};
-
-  const handleErrorUpdate = useCallback(
-    (validationState: ValidationState) => {
-      const errorMessage = computeFieldError(validationState, field.required);
-      if (onError) onError(id, errorMessage);
-    },
-    [field.required, id, onError],
-  );
-
-  const handleIframeEventResult = useCallback(
-    (incoming?: IframeChangeEvent) => {
-      setValidationResult((prev) => {
-        const next = toValidationState(incoming, prev);
-        if (!isTouched && incoming) return next;
-        handleErrorUpdate(next);
-        return next;
-      });
-    },
-    [handleErrorUpdate, isTouched],
-  );
-
-  useEffect(() => {
-    // listen to the Input validation event from parent form
-    if (!hiddenFieldRef.current) return;
-    const input = hiddenFieldRef.current;
-    const listener = () => {
-      handleErrorUpdate({
-        empty: validationResult.empty,
-        validationErrorCodes: validationResult.validationErrorCodes,
-      } as ValidationState);
-      setIsTouched(true);
-    };
-    input.addEventListener(InternalInputValidateEvent.type, listener);
-    return () => {
-      input.removeEventListener(InternalInputValidateEvent.type, listener);
-    };
-  }, [handleErrorUpdate, validationResult]);
 
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
@@ -141,7 +62,6 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
         case "xendit-iframe-change": {
           if (!hiddenFieldRef.current) return;
 
-          handleIframeEventResult(data);
           setCardBrand(data.cardBrand);
 
           const encrypted = data.encrypted;
@@ -151,13 +71,23 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
               return "";
             }
 
-            return [
+            const parts = [
               "xendit-encrypted",
               encryptionVersion,
               iframeEcdhPublicKey,
               enc.iv,
               enc.value,
-            ].join("-");
+            ];
+
+            if (!data.valid && data.validationErrorCodes.length) {
+              // append validation error if invalid - because the validation code can't validate an encrypted string
+              parts.push(
+                "invalid",
+                btoa(data.validationErrorCodes[0].localeKey),
+              );
+            }
+
+            return parts.join("-");
           });
 
           if (resultData.length === 0) {
@@ -175,9 +105,10 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
           break;
         }
         case "xendit-iframe-blur": {
-          if (!validationResult.empty) setIsTouched(true);
-          handleIframeEventResult();
           setFocusWithin(false);
+          hiddenFieldRef.current?.dispatchEvent(
+            new InternalSetFieldTouchedEvent(),
+          );
           break;
         }
         case "xendit-iframe-failed-init": {
@@ -188,13 +119,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
         }
       }
     },
-    [
-      field.channel_property,
-      handleIframeEventResult,
-      iframeEcdhPublicKey,
-      onChange,
-      validationResult.empty,
-    ],
+    [field.channel_property, iframeEcdhPublicKey, onChange],
   );
 
   const giveFocusToIframe = useCallback(() => {

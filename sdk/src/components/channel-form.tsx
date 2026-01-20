@@ -1,5 +1,4 @@
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
-import { InternalInputValidateEvent } from "../private-event-types";
 import { BffSession, BffSessionType } from "../backend-types/session";
 import {
   useCallback,
@@ -16,13 +15,14 @@ import { BffCardDetails } from "../backend-types/card-details";
 import { usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
+import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 interface Props {
   form: ChannelFormField[];
   onChannelPropertiesChanged: (channelProperties: ChannelProperties) => void;
 }
 export interface ChannelFormHandle {
-  validate: () => void;
+  setAllFieldsTouched: () => void;
 }
 
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
@@ -35,17 +35,17 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       useState<ChannelProperties | null>(null);
 
     useImperativeHandle(ref, () => ({
-      validate() {
+      setAllFieldsTouched() {
         const form = formRef.current;
         if (!form) return;
         Array.from(form.elements)
           .filter((el) => el instanceof HTMLInputElement)
           .forEach((input) => {
             if (!input.name) {
-              // only validate inputs with a channel property name
+              // only mark named fields as touched
               return;
             }
-            input.dispatchEvent(new InternalInputValidateEvent(input.value));
+            input.dispatchEvent(new InternalSetFieldTouchedEvent());
           });
       },
     }));
@@ -101,6 +101,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
                 fieldGroup={fieldGroup}
                 groupIndex={index}
                 handleFieldChanged={handleFieldChanged}
+                channelProperties={channelProperties}
               />
             ))}
           </ChannelPropertiesContext.Provider>

@@ -13,49 +13,55 @@ export type ValidationResult = {
   errorCode: LocaleKey | LocalizedString | undefined;
 };
 
+export function validateEncryptedCardField(
+  value: string,
+): LocaleKey | undefined {
+  const parts = value.split("-");
+  if (parts[0] !== "xendit" || parts[1] !== "encrypted") {
+    throw new Error(
+      "Unexpected value in encrypted field, this is a bug, please contact support.",
+    );
+  }
+  if (parts.length === 6) {
+    // ok, normal encrypted value
+    return undefined;
+  } else if (parts.length === 8 && parts[6] === "invalid") {
+    // validation error encoded
+    const encodedError = parts[7];
+    const decoded = atob(encodedError);
+    return { localeKey: decoded as LocaleKey["localeKey"] };
+  }
+  throw new Error(
+    "Unexpected value in encrypted field, this is a bug, please contact support.",
+  );
+}
+
 export const validateEmail = (value: string): LocaleKey | undefined => {
-  const trimmedValue = value.trim();
   // Allows letters, numbers, dots, underscores, hyphens before the @
   // Domain must be letters, numbers, hyphens (no leading/trailing hyphen)
   // TLD must be at least 2 letters
   const emailRegex =
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[A-Za-z]{2,}$/;
 
-  if (trimmedValue.length > 0 && !emailRegex.test(trimmedValue))
+  if (!emailRegex.test(value)) {
     return {
       localeKey: "validation.generic_invalid",
     };
+  }
 };
 
 export const validatePhoneNumber = (value: string): LocaleKey | undefined => {
-  const input = value?.trim();
-  if (!input) {
-    return undefined; // empty is allowed, the required check is done elsewhere
-  }
-
-  const phone = parsePhoneNumberFromString(input);
-  if (!phone)
+  const phone = parsePhoneNumberFromString(value);
+  if (!phone || !phone.isValid()) {
     return {
       localeKey: "validation.generic_invalid",
     };
-
-  return phone.isValid()
-    ? undefined
-    : {
-        localeKey: "validation.generic_invalid",
-      };
+  }
 };
 
 export const validatePostalCode = (value: string): LocaleKey | undefined => {
-  const trimmedValue = value.trim();
-
-  if (trimmedValue.length === 0) {
-    // empty is allowed, the required check is done elsewhere
-    return undefined;
-  }
-
   // Basic validation: must contain only letters, numbers, spaces, or hyphens
-  if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(trimmedValue)) {
+  if (!/^(?![-\s]+)[A-Za-z0-9\s-]+$/.test(value)) {
     return {
       localeKey: "validation.generic_invalid",
     };
@@ -68,12 +74,10 @@ export const validateText = (
   },
   value: string,
 ): LocaleKey | LocalizedString | undefined => {
-  const trimmedValue = value.trim();
-
   if (Array.isArray(input.type.regex_validators)) {
     for (const pattern of input.type.regex_validators) {
       const regex = new RegExp(sanitizeRegex(pattern.regex));
-      if (!regex.test(trimmedValue)) {
+      if (!regex.test(value)) {
         return {
           value: pattern.message,
         };
@@ -83,10 +87,10 @@ export const validateText = (
 
   if (
     input.type.min_length !== undefined &&
-    trimmedValue.length < input.type.min_length
+    value.length < input.type.min_length
   ) {
     return { localeKey: "validation.text_too_short" };
-  } else if (trimmedValue.length > input.type.max_length) {
+  } else if (value.length > input.type.max_length) {
     return { localeKey: "validation.text_too_long" };
   }
 };
@@ -103,16 +107,20 @@ export function validate(
   input: ChannelFormField,
   value: string,
 ): LocaleKey | LocalizedString | undefined {
-  if (input.required && value.trim().length === 0) {
-    return { localeKey: "validation.required" };
+  if (value.length === 0) {
+    if (input.required) {
+      return { localeKey: "validation.required" };
+    } else {
+      // ok, empty string and not required
+      return undefined;
+    }
   }
 
   switch (input.type.name) {
     case "credit_card_number":
     case "credit_card_expiry":
     case "credit_card_cvn": {
-      // these are encrypted, no validation
-      return undefined;
+      return validateEncryptedCardField(value);
     }
     case "phone_number":
       return validatePhoneNumber(value);
@@ -120,13 +128,14 @@ export function validate(
       return validateEmail(value);
     case "postal_code":
       return validatePostalCode(value);
-    case "text":
+    case "text": {
       return validateText(
         input as ChannelFormField & {
           type: { name: "text" };
         },
         value,
       );
+    }
     case "country":
     case "province":
     case "dropdown": {
@@ -134,11 +143,12 @@ export function validate(
       return undefined;
     }
 
-    default:
+    default: {
       input.type satisfies never;
       throw new Error(
         `Unsupported input type: ${(input as ChannelFormField).type.name}; this is a bug, please contact support.`,
       );
+    }
   }
 }
 
@@ -155,30 +165,36 @@ export function channelPropertiesAreValid(
     channel.form,
     showBillingDetails,
   )) {
-    const channelPropertyKeys = Array.isArray(field.channel_property)
-      ? field.channel_property
-      : [field.channel_property];
-    for (const key of channelPropertyKeys) {
-      let value = getChannelPropertyValue(channelProperties, key);
-      if (value === undefined || value === "") {
-        if (field.required) {
-          return false;
-        } else {
-          value = "";
-        }
-      }
-      if (typeof value !== "string") {
-        // validation for non-string values not supported
-        continue;
-      }
-      const error = validate(field, value);
-      if (error) {
-        return false;
-      }
+    if (channelPropertyFieldValidate(field, channelProperties)) {
+      return false;
     }
   }
 
   return true;
+}
+
+// Return a validation error message if the channel property is invalid
+export function channelPropertyFieldValidate(
+  field: ChannelFormField,
+  channelProperties: ChannelProperties,
+) {
+  const channelPropertyKeys = Array.isArray(field.channel_property)
+    ? field.channel_property
+    : [field.channel_property];
+  for (const key of channelPropertyKeys) {
+    let value = getChannelPropertyValue(channelProperties, key);
+    if (value === undefined) {
+      value = "";
+    }
+    if (typeof value !== "string") {
+      // validation for non-string values not supported
+      continue;
+    }
+    const error = validate(field, value);
+    if (error) {
+      return error;
+    }
+  }
 }
 
 export function getChannelPropertyValue(

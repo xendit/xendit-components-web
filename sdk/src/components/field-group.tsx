@@ -1,14 +1,12 @@
-import { useState, useCallback } from "preact/hooks";
-import { ChannelFormField } from "../backend-types/channel";
+import { useState, useLayoutEffect, useRef } from "preact/hooks";
+import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import Field from "./field";
 import classNames from "classnames";
 import { formFieldName } from "../utils";
 import { useSdk } from "./session-provider";
-import {
-  getLocalizedErrorMessage,
-  LocaleKey,
-  LocalizedString,
-} from "../localization";
+import { getLocalizedErrorMessage } from "../localization";
+import { channelPropertyFieldValidate } from "../validation";
+import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 const CSS_CLASSES = {
   BOTTOM_LEFT_0: "field-radius-bl-0",
@@ -25,14 +23,22 @@ interface Props {
   fieldGroup: ChannelFormField[];
   groupIndex: number;
   handleFieldChanged: () => void;
+  channelProperties: ChannelProperties | null;
 }
 
-const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
+const FieldGroup = ({
+  fieldGroup,
+  groupIndex,
+  handleFieldChanged,
+  channelProperties,
+}: Props) => {
   const { t } = useSdk();
 
-  const [fieldGroupErrors, setFieldGroupErrors] = useState<
-    Record<string, LocaleKey | LocalizedString>
-  >({});
+  const groupContainerRef = useRef<HTMLDivElement>(null);
+
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const fieldGroupSpans = fieldGroup.map((f) => f.span);
   const groupRowCount = Math.ceil(
@@ -71,46 +77,54 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
     });
   };
 
-  const handleFieldError = useCallback(
-    (id: string, error: LocaleKey | LocalizedString | null) => {
-      setFieldGroupErrors((prev) => {
-        return error
-          ? { ...prev, [id]: error }
-          : (() => {
-              const newErrors = { ...prev };
-              delete newErrors[id];
-              return newErrors;
-            })();
-      });
-    },
-    [],
-  );
-
-  const renderFirstFoundError = () => {
-    const firstFieldWithError = fieldGroup.find(
-      (field) => fieldGroupErrors[formFieldName(field)],
+  useLayoutEffect(() => {
+    const containerElement = groupContainerRef.current;
+    if (!containerElement) return;
+    function listener(event: InternalSetFieldTouchedEvent) {
+      // when a field is touched, add it to touched state
+      const name = (event.target as HTMLInputElement).name;
+      setTouchedFields((prev) => ({
+        ...prev,
+        [name]: true,
+      }));
+    }
+    containerElement.addEventListener(
+      InternalSetFieldTouchedEvent.type,
+      listener,
     );
+    return () => {
+      containerElement.removeEventListener(
+        InternalSetFieldTouchedEvent.type,
+        listener,
+      );
+    };
+  }, []);
 
-    if (!firstFieldWithError) return null;
+  const renderError = () => {
+    for (const field of fieldGroup) {
+      if (!touchedFields[formFieldName(field)]) {
+        // field not touched yet, skip validation
+        // (this prevents showing validation errors too eagerly while the user is typing)
+        continue;
+      }
 
-    const errorCode = fieldGroupErrors[formFieldName(firstFieldWithError)];
-    if (!errorCode) return null;
+      const err = channelPropertyFieldValidate(field, channelProperties ?? {});
+      if (!err) {
+        // ok, no error
+        continue;
+      }
 
-    // Localize the error code at render time
-    const localizedMessage = getLocalizedErrorMessage(
-      t,
-      errorCode,
-      firstFieldWithError,
-    );
-
-    return (
-      <span className="xendit-error-message xendit-text-12">
-        {localizedMessage}
-      </span>
-    );
+      // render first error and ignore the rest
+      return (
+        <span className="xendit-error-message xendit-text-12">
+          {getLocalizedErrorMessage(t, err, field)}
+        </span>
+      );
+    }
+    return null;
   };
 
-  const hasError = Object.keys(fieldGroupErrors).length > 0;
+  const error = renderError();
 
   return (
     <div className="xendit-channel-form-field-group">
@@ -118,8 +132,9 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
         {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
       </label>
       <div
+        ref={groupContainerRef}
         key={groupIndex}
-        className={`xendit-form-field-group ${hasError ? "invalid" : ""}`}
+        className={`xendit-form-field-group ${error ? "invalid" : ""}`}
       >
         {fieldGroup.map((field, index) => {
           const position = calculateFieldPosition(index);
@@ -131,12 +146,11 @@ const FieldGroup = ({ fieldGroup, groupIndex, handleFieldChanged }: Props) => {
               key={index}
               field={field}
               onChange={handleFieldChanged}
-              onError={handleFieldError}
             />
           );
         })}
       </div>
-      {hasError && renderFirstFoundError()}
+      {error}
     </div>
   );
 };

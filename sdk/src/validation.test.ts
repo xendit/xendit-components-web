@@ -42,14 +42,6 @@ describe("validateEmail", () => {
       "validation.generic_invalid",
     );
   });
-
-  it("returns undefined for empty string", () => {
-    expect(validateEmail("")).toBeUndefined();
-  });
-
-  it("trims input before validation", () => {
-    expect(validateEmail("  test@example.com ")).toBeUndefined();
-  });
 });
 
 const countries: CountryCode[] = ["ID", "MY", "PH", "SG", "TH", "VN"];
@@ -118,10 +110,6 @@ describe("validatePostalCode", () => {
       "validation.generic_invalid",
     );
   });
-
-  it("trims input before validation", () => {
-    expect(validatePostalCode(" 12345 ")).toBeUndefined();
-  });
 });
 
 // --- validateText ---
@@ -161,16 +149,6 @@ describe("validateText", () => {
 
   it("returns validation.text_too_long for text longer than max_length", () => {
     expect(validateText(baseField, "abcdef")).toStrictEqual({
-      localeKey: "validation.text_too_long",
-    });
-  });
-
-  it("trims input before length validation", () => {
-    expect(validateText(baseField, " abcd ")).toBeUndefined();
-    expect(validateText(baseField, " a ")).toStrictEqual({
-      localeKey: "validation.text_too_short",
-    });
-    expect(validateText(baseField, " abcdef ")).toStrictEqual({
       localeKey: "validation.text_too_long",
     });
   });
@@ -286,11 +264,5 @@ describe("validateText", () => {
     };
     expect(validateText(field, "ab")).toBeUndefined();
     expect(validateText(field, "abcd")).toBeUndefined();
-  });
-
-  it("returns validation.text_too_short for whitespace-only input", () => {
-    expect(validateText(baseField, "   ")).toStrictEqual({
-      localeKey: "validation.text_too_short",
-    });
   });
 });
