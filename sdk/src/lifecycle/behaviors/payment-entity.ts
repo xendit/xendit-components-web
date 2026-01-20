@@ -1,6 +1,7 @@
 import { BffPollResponse } from "../../backend-types/common";
 import { BffPaymentEntity } from "../../backend-types/payment-entity";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { PollWorker } from "./poll-worker";
@@ -17,6 +18,26 @@ export class PePendingBehavior implements Behavior {
   }
 
   enter() {
+    if (this.bb.mock) {
+      // if we get to pending state in mock mode, we need to schedule a mock update or nothing will happen.
+      // usually, the payment entity will have a success/fail status and we need to also update the session status.
+      assert(this.bb.world?.paymentEntity);
+      switch (this.bb.world?.paymentEntity.entity.status) {
+        case "ACTIVE":
+        case "AUTHORIZED":
+        case "SUCCEEDED":
+          this.bb.sdkEvents.scheduleMockUpdate("ACTION_SUCCESS");
+          break;
+        case "FAILED":
+        case "CANCELED":
+        case "EXPIRED":
+          this.bb.sdkEvents.scheduleMockUpdate("ACTION_FAILURE");
+          break;
+        default:
+        // should never happen, just stay in pending state forever :(
+      }
+    }
+
     this.pollWorker.start();
   }
 

@@ -4,8 +4,8 @@ import { BffSession } from "../backend-types/session";
 import { WorldState } from "../public-sdk";
 import { SdkEventManager } from "../sdk-event-manager";
 import {
+  findBestAction,
   ParsedSdkKey,
-  pickAction,
   redirectCanBeHandledInIframe,
 } from "../utils";
 import { channelPropertiesAreValid } from "../validation";
@@ -215,6 +215,9 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   if (!bb.world?.paymentEntity) {
     throw new Error("Payment entity is missing");
   }
+  if (!bb.world.paymentEntity.entity.actions.length) {
+    throw new Error("No actions available while in ACTION_REQUIRED state");
+  }
 
   if (bb.actionCompleted) {
     // action completed is for when we want to close the action UI and go back to polling
@@ -225,7 +228,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
     return behaviorNode(SimulatePaymentBehavior); // TODO: simulate action should be run in parallel with action behavior
   }
 
-  const action = pickAction(bb.world.paymentEntity.entity.actions);
+  const action = findBestAction(bb.world.paymentEntity.entity.actions);
   switch (action.type) {
     case "REDIRECT_CUSTOMER": {
       switch (action.descriptor) {

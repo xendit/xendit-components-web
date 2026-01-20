@@ -49,7 +49,12 @@ export class XenditInitEvent extends Event {
 export class XenditFatalErrorEvent extends Event {
   static type = "fatal-error" as const;
 
-  constructor(public message: string) {
+  constructor(
+    /**
+     * A detailed error message for developers. Don't show this to users.
+     */
+    public message: string,
+  ) {
     super(XenditFatalErrorEvent.type, {});
   }
 }
