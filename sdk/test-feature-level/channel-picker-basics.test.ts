@@ -12,7 +12,7 @@ afterEach(() => {
 describe("channel picker basics", () => {
   it("should be able to create a channel picker before initializing", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     sdk.createChannelPickerComponent();
@@ -20,7 +20,7 @@ describe("channel picker basics", () => {
 
   it("should render channel picker component after initializing", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -35,7 +35,7 @@ describe("channel picker basics", () => {
 
   it("should display channel group list", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -54,7 +54,7 @@ describe("channel picker basics", () => {
 
   it("should expand to show channel selection dropdown", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -70,7 +70,7 @@ describe("channel picker basics", () => {
 
   it("should select channel using dropdown", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -91,9 +91,7 @@ describe("channel picker basics", () => {
     const option = screen.getByText("Input Test");
     await userEvent.click(option);
 
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "UI_INPUT_TEST");
+    const ch = sdk.getActiveChannels({ filter: "UI_INPUT_TEST" })[0];
     assert(ch);
     const channelComponent = sdk.createChannelComponent(ch);
     expect(channelComponent).toBeInTheDocument();

@@ -37,13 +37,13 @@ Two types of sessions are available:
 First, initialize the SDK either with either:
 
 - `XenditComponentsTest` for frontend development or unit tests
-- `XenditComponents`, for production, which requires a `sessionClientKey`, which comes from the Session object, which you need to create on your server. Make an endpoint that creates a session for the user's current transaction, return the `components_sdk_key` to the client, and pass it into the constructor.
+- `XenditComponents`, for production, which requires a `componentsSdkKey`. That key comes from the session object you create on your server. Make an endpoint that creates a session for the user's current transaction, return the `components_sdk_key` to the client, and pass it into the constructor.
 
 ```typescript
 // For frontend development, use XenditComponentsTest
 const components: XenditComponents = new XenditComponentsTest({});
 // For production or e2e testing, use XenditComponents, passing in the components_sdk_key from the Session object
-// const components: XenditComponents = new XenditComponents({ sessionClientKey });
+const components: XenditComponents = new XenditComponents({ componentsSdkKey });
 
 // Create a channel picker component
 const channelPicker: HTMLElement = components.createChannelPickerComponent();
@@ -71,7 +71,7 @@ components.addEventListener("session-expired-or-canceled", () => {
 
 The constructor.
 
-For production and e2e testing, you need to pass the `sessionClientKey`, which you can get when you create a Session on your server.
+For production and e2e testing, you need to pass the `componentsSdkKey`, which you can get when you create a Session on your server.
 
 For development and unit testing, use `XenditComponentsTest`, which uses mock data and doesn't connect to Xendit servers.
 
@@ -110,9 +110,7 @@ your own channel selection UI. Each channel has a `uiGroup` property which match
 ### `createChannelComponent`
 
 ```typescript
-const channel = components
-  .getActiveChannels()
-  .find((channel) => channel.channelCode === "CARDS");
+const channel = components.getActiveChannels({ filter: "CARDS" })[0];
 if (channel) {
   const htmlElement = components.createChannelPickerComponent(channel);
   myContainer.replaceChildren(htmlElement);
@@ -220,9 +218,7 @@ The current channel:
 ### `setCurrentChannel`
 
 ```typescript
-const channel = components
-  .getActiveChannels()
-  .find((channel) => channel.channelCode === "CARDS");
+const channel = components.getActiveChannels({ filter: "CARDS" })[0];
 if (channel) {
   components.setCurrentChannel(channel);
 }

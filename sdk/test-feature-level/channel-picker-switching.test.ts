@@ -11,7 +11,7 @@ afterEach(() => {
 describe("channel picker switching", () => {
   it("should switch channels using dropdown", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -49,7 +49,7 @@ describe("channel picker switching", () => {
 
   it("should clear selected channel by switching to another group", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     document.body.appendChild(sdk.createChannelPickerComponent());
     await waitForEvent(sdk, "init");
@@ -68,7 +68,7 @@ describe("channel picker switching", () => {
 
   it("should switch channels across two groups", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     document.body.appendChild(sdk.createChannelPickerComponent());
     await waitForEvent(sdk, "init");
@@ -113,7 +113,7 @@ describe("channel picker switching", () => {
 
   it("should autoselect a channel if opening a group with one channel", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     document.body.appendChild(sdk.createChannelPickerComponent());
     await waitForEvent(sdk, "init");
@@ -133,7 +133,7 @@ describe("channel picker switching", () => {
 
   it("should open channel picker when user selects a channel by api", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     document.body.appendChild(sdk.createChannelPickerComponent());
     await waitForEvent(sdk, "init");
@@ -156,7 +156,7 @@ describe("channel picker switching", () => {
 
   it("should collapse group if a channel is selected and the channel is cleared by api", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     document.body.appendChild(sdk.createChannelPickerComponent());
     await waitForEvent(sdk, "init");
