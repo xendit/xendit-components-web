@@ -55,11 +55,11 @@ import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
-import { SdkEventManager } from "./sdk-event-manager";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
 import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
+  InternalScheduleMockUpdateEvent,
   InternalUpdateWorldState,
 } from "./private-event-types";
 import {
@@ -184,11 +184,6 @@ export class XenditComponents extends EventTarget {
     worldState: WorldState | null;
 
     /**
-     * The event manager.
-     */
-    eventManager: SdkEventManager;
-
-    /**
      * Behavior tree for state management.
      */
     behaviorTree: BehaviorTree<BlackboardType>;
@@ -235,20 +230,18 @@ export class XenditComponents extends EventTarget {
       throw new Error("XenditComponents can only be instantiated in a browser");
     }
 
-    const eventManager = new SdkEventManager(this);
     const sdkKey = parseSdkKey(options.sessionClientKey);
     this[internal] = {
       sdkKey,
       options,
       worldState: null,
-      eventManager,
       liveComponents: {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
-        sdkEvents: eventManager,
+        sdk: this,
         sdkKey,
         mock: this.isMock(),
         sdkStatus: "LOADING",
@@ -1383,6 +1376,12 @@ export class XenditComponentsTest extends XenditComponents {
       ...options,
       sessionClientKey: makeTestSdkKey(),
     });
+
+    // internal event listeners
+    (this as EventTarget).addEventListener(
+      InternalScheduleMockUpdateEvent.type,
+      this.setNextMockUpdate.bind(this),
+    );
   }
 
   /**
@@ -1421,6 +1420,15 @@ export class XenditComponentsTest extends XenditComponents {
    */
   public isMock(): boolean {
     return true;
+  }
+
+  /**
+   * @internal
+   * Sets the next mock update to use.
+   */
+  setNextMockUpdate(_event: Event): void {
+    const event = _event as InternalScheduleMockUpdateEvent;
+    this.nextMockUpdate = event.mockData;
   }
 }
 
