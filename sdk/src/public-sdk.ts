@@ -37,6 +37,7 @@ import {
   BffChannel,
   BffChannelUiGroup,
   ChannelProperties,
+  ChannelPropertyPrimative,
 } from "./backend-types/channel";
 import {
   PaymentChannel,
@@ -55,11 +56,11 @@ import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
-import { SdkEventManager } from "./sdk-event-manager";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
 import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
+  InternalScheduleMockUpdateEvent,
   InternalUpdateWorldState,
 } from "./private-event-types";
 import {
@@ -184,11 +185,6 @@ export class XenditComponents extends EventTarget {
     worldState: WorldState | null;
 
     /**
-     * The event manager.
-     */
-    eventManager: SdkEventManager;
-
-    /**
      * Behavior tree for state management.
      */
     behaviorTree: BehaviorTree<BlackboardType>;
@@ -224,27 +220,29 @@ export class XenditComponents extends EventTarget {
    * ```
    * // initialize
    * const components = new XenditComponents({
-   *   sessionClientKey: "your-session-client-key",
+   *   componentsSdkKey: "your-session-client-key",
    * });
    * ```
    */
   constructor(options: XenditComponentsOptions) {
     super();
 
-    const eventManager = new SdkEventManager(this);
-    const sdkKey = parseSdkKey(options.sessionClientKey);
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      throw new Error("XenditComponents can only be instantiated in a browser");
+    }
+
+    const sdkKey = parseSdkKey(options.componentsSdkKey);
     this[internal] = {
       sdkKey,
       options,
       worldState: null,
-      eventManager,
       liveComponents: {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
-        sdkEvents: eventManager,
+        sdk: this,
         sdkKey,
         mock: this.isMock(),
         sdkStatus: "LOADING",
@@ -619,7 +617,7 @@ export class XenditComponents extends EventTarget {
    *
    * @example
    * ```
-   * const cardsChannel = components.getActiveChannels().find(ch => ch.channelCode === "CARDS");
+   * const cardsChannel = components.getActiveChannels({ filter: "CARDS" })[0];
    * const paymentComponent = components.createChannelComponent(cardsChannel);
    * document.querySelector(".payment-container").appendChild(paymentComponent);
    * ```
@@ -640,6 +638,11 @@ export class XenditComponents extends EventTarget {
 
     const channelCode = channel[internal][0].channel_code;
 
+    if (active) {
+      // make it active (before creating the component)
+      this[internal].currentChannelCode = channelCode;
+    }
+
     // return previously created component if it exists
     const cachedComponent =
       this[internal].liveComponents.paymentChannels.get(channelCode);
@@ -651,6 +654,7 @@ export class XenditComponents extends EventTarget {
       channelFormRef = cachedComponent.channelFormRef;
     } else {
       container = document.createElement("xendit-payment-channel");
+      container.setAttribute("data-channel-code", channelCode);
       container.setAttribute("inert", "");
       this.setupUiEventsForPaymentChannel(container);
 
@@ -665,8 +669,12 @@ export class XenditComponents extends EventTarget {
 
     this.renderPaymentChannel(channelCode);
     if (active) {
-      this.setCurrentChannel(channel);
+      this.behaviorTreeUpdate();
+      this.syncInertAttribute();
     }
+
+    // rerender other components next tick because we may already be in a render
+    this.dispatchEvent(new InternalNeedsRerenderEvent());
 
     return container;
   }
@@ -740,6 +748,8 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
+    this[internal].currentChannelCode = channelCode;
+
     // if channel is not null, the component must exist
     let component: CachedChannelComponent | null = null;
     if (channel && channelCode) {
@@ -753,9 +763,9 @@ export class XenditComponents extends EventTarget {
       }
     }
 
-    this[internal].currentChannelCode = channelCode;
     this.behaviorTreeUpdate();
     this.syncInertAttribute();
+    this.renderChannelPicker();
   }
 
   /**
@@ -864,7 +874,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const form = component.channelFormRef.current;
-    form?.validate();
+    form?.setAllFieldsTouched();
   }
 
   /**
@@ -1350,7 +1360,7 @@ export class XenditComponents extends EventTarget {
  * Test version of XenditComponents that uses mock data instead of API calls.
  * Use this class for testing and development purposes.
  *
- * The sessionClientKey option is ignored.
+ * The componentsSdkKey option is ignored.
  *
  * @example
  * ```
@@ -1366,17 +1376,23 @@ export class XenditComponentsTest extends XenditComponents {
 
   /**
    * @public
-   * Test SDK ignores sessionClientKey and uses a mock key.
+   * Test SDK ignores componentsSdkKey and uses a mock key.
    */
   constructor(
-    options: Omit<XenditComponentsOptions, "sessionClientKey"> & {
-      sessionClientKey?: string;
+    options: Omit<XenditComponentsOptions, "componentsSdkKey"> & {
+      componentsSdkKey?: string;
     },
   ) {
     super({
       ...options,
-      sessionClientKey: makeTestSdkKey(),
+      componentsSdkKey: makeTestSdkKey(),
     });
+
+    // internal event listeners
+    (this as EventTarget).addEventListener(
+      InternalScheduleMockUpdateEvent.type,
+      this.setNextMockUpdate.bind(this),
+    );
   }
 
   /**
@@ -1416,7 +1432,16 @@ export class XenditComponentsTest extends XenditComponents {
   public isMock(): boolean {
     return true;
   }
+
+  /**
+   * @internal
+   * Sets the next mock update to use.
+   */
+  setNextMockUpdate(_event: Event): void {
+    const event = _event as InternalScheduleMockUpdateEvent;
+    this.nextMockUpdate = event.mockData;
+  }
 }
 
 // re-exports
-export type { ChannelProperties };
+export type { ChannelProperties, ChannelPropertyPrimative };

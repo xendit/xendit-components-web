@@ -4,7 +4,16 @@
   "description": "Xendit frontend payment components SDK",
   "type": "module",
   "author": "Xendit",
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "keywords": [
+    "xendit",
+    "payment",
+    "payments",
+    "payment processing",
+    "credit cards",
+    "checkout",
+    "components"
+  ],
   "files": [
     "./sdk/dist/index.umd.js",
     "./sdk/dist/index.umd.js.map",

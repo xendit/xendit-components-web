@@ -67,27 +67,8 @@ describe("SubmissionBehavior - Exit Logic", () => {
         paymentEntity: null,
       },
       dispatchEvent: mockDispatchEvent,
-      sdkEvents: {
-        sdk: {
-          t: mockTranslation,
-          initializeAsync: vi.fn(),
-          assertInitialized: vi.fn(),
-          isMock: false,
-          findChannel: vi.fn(),
-          // Additional minimal mock properties to satisfy interface
-        } as unknown,
-        updateWorld: vi.fn(),
-        hasInFlightRequest: false,
-        submitting: false,
-        action: false,
-        scheduleMockUpdate: vi.fn(),
-        setInitialized: vi.fn(),
-        setHasAction: vi.fn(),
-        setSessionState: vi.fn(),
-        setWillRedirect: vi.fn(),
-        ensureHasActionContainer: vi.fn(),
-        emptyActionContainer: vi.fn(),
-        populateActionContainerWithIframe: vi.fn(),
+      sdk: {
+        t: mockTranslation,
       },
     } as unknown as Partial<BlackboardType>;
 

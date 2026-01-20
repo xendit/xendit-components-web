@@ -1,7 +1,20 @@
+import { createElement, render } from "preact";
 import { IframeActionCompleteEvent } from "../../../../shared/types";
-import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import {
+  InternalBehaviorTreeUpdateEvent,
+  InternalScheduleMockUpdateEvent,
+} from "../../private-event-types";
+import { XenditWillRedirectEvent } from "../../public-event-types";
+import {
+  makeTestPollResponseForFailure,
+  makeTestPollResponseForSuccess,
+} from "../../test-data";
+import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
+import { ActionIframe } from "../../components/action-iframe";
+import { internal } from "../../internal";
+import DefaultActionContainer from "../../components/default-action-container";
 
 export class ActionCompletedBehavior implements Behavior {
   constructor(private bb: BlackboardType) {}
@@ -15,7 +28,7 @@ export class ActionRedirectBehavior implements Behavior {
   ) {}
 
   enter() {
-    this.bb.sdkEvents.setWillRedirect();
+    this.bb.dispatchEvent(new XenditWillRedirectEvent());
     window.location.href = this.url;
   }
 }
@@ -29,8 +42,8 @@ export class ActionIframeBehavior implements Behavior {
   ) {}
 
   enter() {
-    this.cleanupFn = this.bb.sdkEvents.ensureHasActionContainer();
-    this.bb.sdkEvents.populateActionContainerWithIframe(
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainerWithIframe(
       this.url,
       this.bb.mock,
       (event: IframeActionCompleteEvent) => {
@@ -48,11 +61,26 @@ export class ActionIframeBehavior implements Behavior {
   }
 
   updateMocksOnIframeCompletion(success: boolean) {
+    assert(this.bb.world?.paymentEntity);
     if (this.bb.mock) {
       if (success) {
-        this.bb.sdkEvents.scheduleMockUpdate("ACTION_SUCCESS");
+        this.bb.dispatchEvent(
+          new InternalScheduleMockUpdateEvent(
+            makeTestPollResponseForSuccess(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
+          ),
+        );
       } else {
-        this.bb.sdkEvents.scheduleMockUpdate("ACTION_FAILURE");
+        this.bb.dispatchEvent(
+          new InternalScheduleMockUpdateEvent(
+            makeTestPollResponseForFailure(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
+          ),
+        );
       }
     }
   }
@@ -64,8 +92,86 @@ export class ActionIframeBehavior implements Behavior {
     }
   }
 
+  /**
+   * Creates a default action container if the user has not created one already.
+   * Returns a cleanup function that destroys the default action container if it was created.
+   */
+  ensureHasActionContainer() {
+    if (this.bb.sdk[internal].liveComponents.actionContainer) {
+      // user created action container already
+      // TODO: validate it's in the dom and the right size
+      return () => {
+        this.emptyActionContainer();
+      };
+    }
+
+    let cleanedUp = false;
+    let success = false;
+
+    const container = document.createElement("div");
+    container.setAttribute("class", "xendit-default-action-container");
+    const props = {
+      sdk: this.bb.sdk,
+      title: "Complete your payment",
+      onClose: () => {
+        cleanedUp = true;
+        render(null, container);
+        container.remove();
+        if (!success) {
+          this.bb.sdk.abortSubmission();
+        }
+      },
+    };
+    render(createElement(DefaultActionContainer, props), container);
+    document.body.appendChild(container);
+
+    // Cleanup function
+    // (if actionCancelledByUser is true, abort the submission after the modal closes)
+    return (actionCancelledByUser: boolean) => {
+      if (!actionCancelledByUser) {
+        success = true;
+      }
+
+      if (cleanedUp) return;
+
+      // make the dialog play its close animation before removing it
+      render(
+        createElement(DefaultActionContainer, {
+          ...props,
+          close: true,
+        }),
+        container,
+      );
+    };
+  }
+
+  emptyActionContainer() {
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+    if (container) {
+      render(null, container);
+    }
+  }
+
+  populateActionContainerWithIframe(
+    url: string,
+    mock: boolean,
+    onIframeComplete: (event: IframeActionCompleteEvent) => void,
+  ) {
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+    if (!container) {
+      throw new Error(
+        "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
+      );
+    }
+
+    render(
+      createElement(ActionIframe, { url, mock, onIframeComplete }),
+      container,
+    );
+  }
+
   exit() {
     this.cleanupActionContainer(false);
-    this.bb.sdkEvents.emptyActionContainer();
+    this.emptyActionContainer();
   }
 }

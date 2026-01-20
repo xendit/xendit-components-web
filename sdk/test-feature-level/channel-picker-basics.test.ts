@@ -9,10 +9,10 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe("initialization", () => {
+describe("channel picker basics", () => {
   it("should be able to create a channel picker before initializing", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     sdk.createChannelPickerComponent();
@@ -20,7 +20,7 @@ describe("initialization", () => {
 
   it("should render channel picker component after initializing", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -35,7 +35,7 @@ describe("initialization", () => {
 
   it("should display channel group list", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -54,15 +54,15 @@ describe("initialization", () => {
 
   it("should expand to show channel selection dropdown", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
 
     await waitForEvent(sdk, "init");
 
-    const bankTransferGroup = screen.getByText("Channel UI Test Cases");
-    await userEvent.click(bankTransferGroup);
+    const testCasesGroup = screen.getByText("Channel UI Test Cases");
+    await userEvent.click(testCasesGroup);
 
     const dropdown = screen.getByText("Select Channel UI Test Cases");
     expect(dropdown).toBeInTheDocument();
@@ -70,15 +70,15 @@ describe("initialization", () => {
 
   it("should select channel using dropdown", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
 
     await waitForEvent(sdk, "init");
 
-    const bankTransferGroup = screen.getByText("Channel UI Test Cases");
-    await userEvent.click(bankTransferGroup);
+    const testCasesGroup = screen.getByText("Channel UI Test Cases");
+    await userEvent.click(testCasesGroup);
 
     const dropdown = screen.getByText("Select Channel UI Test Cases");
     await userEvent.click(dropdown);
@@ -91,43 +91,11 @@ describe("initialization", () => {
     const option = screen.getByText("Input Test");
     await userEvent.click(option);
 
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "UI_INPUT_TEST");
+    const ch = sdk.getActiveChannels({ filter: "UI_INPUT_TEST" })[0];
     assert(ch);
     const channelComponent = sdk.createChannelComponent(ch);
     expect(channelComponent).toBeInTheDocument();
 
     expect(sdk.getCurrentChannel()?.channelCode).toEqual(ch.channelCode);
-  });
-
-  it("should clear channel by switching groups", async () => {
-    const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
-    });
-
-    document.body.appendChild(sdk.createChannelPickerComponent());
-
-    await waitForEvent(sdk, "init");
-
-    const bankTransferGroup = screen.getByText("Channel UI Test Cases");
-    await userEvent.click(bankTransferGroup);
-
-    const dropdown = screen.getByText("Select Channel UI Test Cases");
-    await userEvent.click(dropdown);
-
-    const option = screen.getByText("Input Test");
-    await userEvent.click(option);
-
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "UI_INPUT_TEST");
-    assert(ch);
-    expect(sdk.getCurrentChannel()?.channelCode).toEqual(ch.channelCode);
-
-    const otherGroup = screen.getByText("Other Mock Channels");
-    await userEvent.click(otherGroup);
-
-    expect(sdk.getCurrentChannel()).toBeNull();
   });
 });

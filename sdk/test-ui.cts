@@ -78,7 +78,7 @@ const { XenditComponents, XenditComponentsTest } = (
 ).Xendit;
 
 let components: import("./src/public-sdk").XenditComponents;
-const iframeFieldAppearance: import("../shared/types").IframeAppearanceOptions =
+const iframeFieldAppearance: import("./src/public-options-types").IframeAppearanceOptions =
   {
     // inputStyles: {
     //   color: "red",
@@ -97,7 +97,7 @@ const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
-    sessionClientKey: savedKey,
+    componentsSdkKey: savedKey,
     iframeFieldAppearance,
   });
 } else {
@@ -143,7 +143,7 @@ components.addEventListener("fatal-error", logEvent);
 
 setInterval(() => {
   const internalState = components.getState();
-  const { world, channel, dispatchEvent, sdkEvents, ...bbFlags } =
+  const { world, channel, dispatchEvent, sdk, ...bbFlags } =
     internalState.behaviorTree.bb;
   outputChannelPropertiesLog.value = JSON.stringify(
     {

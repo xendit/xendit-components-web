@@ -66,15 +66,19 @@ export class CardInfoBehavior implements Behavior {
           // mock card details
           return {
             schemes: ["VISA"],
-            country_codes: ["US"],
-            require_billing_information: true,
+            country_codes: ["ID"],
+            require_billing_information: false,
           };
         } else {
+          // remove encoded validation error -
+          // normally, an invalid card number would have some other stuff appended to the end, but we still want to look up the card details even if the user hasn't finished typing
+          const cleanedCardNumber = cardNumber.split("-").slice(0, 6).join("-");
+
           // real card details
           return lookupCardDetails(
             this.bb.sdkKey,
             {
-              card_number: cardNumber,
+              card_number: cleanedCardNumber,
             },
             this.bb.sdkKey.sessionAuthKey,
             undefined,

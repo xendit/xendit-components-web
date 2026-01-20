@@ -42,10 +42,10 @@ import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 const testData = makeTestBffData();
 
 const mockBlackboard: BlackboardType & { world: object } = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sdk: {} as any,
   mock: true,
   sdkKey: parseSdkKey(makeTestSdkKey()),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sdkEvents: {} as any,
   world: {
     business: testData.business,
     customer: testData.customer,
@@ -217,7 +217,7 @@ describe("Behavior Tree - Payment Entity", () => {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
           withPaymentEntityStatus(
-            makeTestPaymentRequest("MOCK_QR"),
+            makeTestPaymentRequest("MOCK_QR", undefined),
             "SUCCEEDED",
           ),
         ),
@@ -239,7 +239,10 @@ describe("Behavior Tree - Payment Entity", () => {
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
-          withPaymentEntityStatus(makeTestPaymentRequest("MOCK_QR"), "FAILED"),
+          withPaymentEntityStatus(
+            makeTestPaymentRequest("MOCK_QR", undefined),
+            "FAILED",
+          ),
         ),
         sessionTokenRequestId: randomUUID(),
       },
@@ -262,7 +265,9 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       actionCompleted: true,
       world: {
         ...mockBlackboard.world,
-        paymentEntity: toPaymentEntity(makeTestPaymentRequest("MOCK_QR")),
+        paymentEntity: toPaymentEntity(
+          makeTestPaymentRequest("MOCK_QR", "IFRAME"),
+        ),
         sessionTokenRequestId: randomUUID(),
       },
     });
@@ -282,7 +287,9 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       simulatePaymentRequested: true,
       world: {
         ...mockBlackboard.world,
-        paymentEntity: toPaymentEntity(makeTestPaymentRequest("MOCK_QR")),
+        paymentEntity: toPaymentEntity(
+          makeTestPaymentRequest("MOCK_QR", "IFRAME"),
+        ),
         sessionTokenRequestId: randomUUID(),
       },
     });
@@ -304,7 +311,9 @@ describe("Behavior Tree - Actions", () => {
       submissionRequested: true,
       world: {
         ...mockBlackboard.world,
-        paymentEntity: toPaymentEntity(makeTestPaymentRequest("MOCK_QR")),
+        paymentEntity: toPaymentEntity(
+          makeTestPaymentRequest("MOCK_QR", "IFRAME"),
+        ),
         sessionTokenRequestId: randomUUID(),
       },
     });

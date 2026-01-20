@@ -24,7 +24,7 @@ export default function DefaultActionContainer(props: Props) {
 
   return (
     <Dialog title={title} onClose={onClose} close={props.close}>
-      <div ref={wrapperRef} />
+      <div className="xendit-default-action-container" ref={wrapperRef} />
     </Dialog>
   );
 }

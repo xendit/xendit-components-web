@@ -7,17 +7,15 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe("initialization", () => {
+describe("channel component basics", () => {
   it("should render channel picker component", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "MOCK_EWALLET");
+    const ch = sdk.getActiveChannels({ filter: "MOCK_EWALLET" })[0];
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 
@@ -27,14 +25,12 @@ describe("initialization", () => {
 
   it("should render channel picker component with single input form", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "MOCK_EWALLET_WITH_PHONE");
+    const ch = sdk.getActiveChannels({ filter: "MOCK_EWALLET_WITH_PHONE" })[0];
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 

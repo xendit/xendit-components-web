@@ -1,11 +1,9 @@
-import { useEffect, useRef, useCallback, useLayoutEffect } from "preact/hooks";
+import { useRef, useCallback, useLayoutEffect } from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
-import { validate } from "../validation";
-import { InternalInputValidateEvent } from "../private-event-types";
 import {
   formFieldName,
   getValueFromChannelProperty,
@@ -17,9 +15,10 @@ import { useChannelProperties } from "./channel-form";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import { BffSession } from "../backend-types/session";
 import { FunctionComponent, TargetedEvent } from "preact";
+import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
-  const { field, onChange, onError } = props;
+  const { field, onChange } = props;
   const id = formFieldName(field);
 
   const session = useSession();
@@ -27,28 +26,6 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const channelProperties = useChannelProperties();
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
-
-  const validateField = useCallback(
-    (value: string) => {
-      const errorCode = validate(field, value) ?? null;
-      if (onError) onError(id, errorCode);
-      return errorCode;
-    },
-    [field, id, onError],
-  );
-
-  useEffect(() => {
-    const input = hiddenFieldRef.current;
-    if (!input) return;
-    const listener = (e: Event) => {
-      const value = (e as CustomEvent).detail.value;
-      validateField(value);
-    };
-    input.addEventListener(InternalInputValidateEvent.type, listener);
-    return () => {
-      input.removeEventListener(InternalInputValidateEvent.type, listener);
-    };
-  }, [id, validateField]);
 
   const clearValue = useCallback(() => {
     if (hiddenFieldRef.current) {
@@ -61,22 +38,22 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
     (option: DropdownOption) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = option.value;
-        validateField(hiddenFieldRef.current.value);
       }
       onChange();
+      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     },
-    [onChange, validateField],
+    [onChange],
   );
 
   const onChangeInput = useCallback(
     (e: TargetedEvent<HTMLInputElement>) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = (e.target as HTMLInputElement).value;
-        validateField(hiddenFieldRef.current.value);
       }
       onChange();
+      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     },
-    [onChange, validateField],
+    [onChange],
   );
 
   // get the list of provinces for the chosen country

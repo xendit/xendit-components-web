@@ -1,15 +1,7 @@
-import {
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useEffect,
-} from "preact/hooks";
+import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode, getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
-import { validate } from "../validation";
-import { InternalInputValidateEvent } from "../private-event-types";
 import { formFieldName, usePrevious } from "../utils";
 import { useCardDetails } from "./session-provider";
 import { FunctionComponent } from "preact";
@@ -38,7 +30,7 @@ const FlagIcon: FunctionComponent<FlagIconProps> = ({
 };
 
 export const CountryField: FunctionComponent<FieldProps> = (props) => {
-  const { field, onChange, onError } = props;
+  const { field, onChange } = props;
   const id = formFieldName(field);
 
   const [selectedCountry, setSelectedCountry] = useState<
@@ -49,28 +41,6 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
   );
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
-
-  const validateField = useCallback(
-    (value: string) => {
-      const errorCode = validate(field, value) ?? null;
-      if (onError) onError(id, errorCode);
-      return errorCode;
-    },
-    [field, id, onError],
-  );
-
-  useEffect(() => {
-    const input = hiddenFieldRef.current;
-    if (!input) return;
-    const listener = (e: Event) => {
-      const value = (e as CustomEvent).detail.value;
-      validateField(value);
-    };
-    input.addEventListener(InternalInputValidateEvent.type, listener);
-    return () => {
-      input.removeEventListener(InternalInputValidateEvent.type, listener);
-    };
-  }, [id, validateField]);
 
   useOnCardCountryChange((newCountry: CountryCode) => {
     if (hiddenFieldRef.current) {

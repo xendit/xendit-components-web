@@ -6,10 +6,10 @@ import {
 } from "../src";
 import { findEvent, waitForEvent, watchEvents } from "./utils";
 
-describe("initialization", () => {
+describe("sdk initialization", () => {
   it("should fire the init event after constructing with mock data", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     expect(sdk).toBeInstanceOf(XenditComponents);
 
@@ -24,7 +24,7 @@ describe("initialization", () => {
 
   it("should be able to call getter methods only after init", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
     expect(sdk).toBeInstanceOf(XenditComponents);
 
@@ -51,9 +51,7 @@ describe("initialization", () => {
       }),
     );
 
-    const cardsChannel = sdk.getActiveChannels().find((ch) => {
-      return ch.channelCode === "CARDS";
-    });
+    const cardsChannel = sdk.getActiveChannels({ filter: "CARDS" })[0];
     expect(cardsChannel?.channelCode).toEqual("CARDS"); // cannot expect channel object due to getters
   });
 });

@@ -1,5 +1,5 @@
 import { createPaymentRequest, createPaymentToken } from "../../api";
-import { ChannelProperties } from "../../backend-types/channel";
+import { ChannelProperties, MockActionType } from "../../backend-types/channel";
 import {
   BffPaymentEntity,
   BffPaymentEntityType,
@@ -15,6 +15,8 @@ import { BffSessionType } from "../../backend-types/session";
 import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
+  InternalScheduleMockUpdateEvent,
+  InternalUpdateWorldState,
 } from "../../private-event-types";
 import {
   XenditPaymentRequestCreatedEvent,
@@ -51,7 +53,7 @@ export class SubmissionBehavior implements Behavior {
 
   enter() {
     this.bb.dispatchEvent(new XenditSubmissionBeginEvent());
-    this.bb.sdkEvents.scheduleMockUpdate("NONE");
+    this.bb.dispatchEvent(new InternalScheduleMockUpdateEvent(null));
     this.submit();
   }
 
@@ -59,7 +61,7 @@ export class SubmissionBehavior implements Behavior {
     this.exited = true;
 
     assert(this.bb.world?.session);
-    const t = this.bb.sdkEvents.sdk.t;
+    const t = this.bb.sdk.t;
 
     // If session is not complete, discard payment entity
     const paymentEntity = this.bb.world.paymentEntity;
@@ -78,10 +80,12 @@ export class SubmissionBehavior implements Behavior {
         default:
           paymentEntity satisfies never;
       }
-      this.bb.sdkEvents.updateWorld({
-        paymentEntity: null,
-        sessionTokenRequestId: null,
-      });
+      this.bb.dispatchEvent(
+        new InternalUpdateWorldState({
+          paymentEntity: null,
+          sessionTokenRequestId: null,
+        }),
+      );
     }
 
     // Determine reason for submission end
@@ -177,6 +181,7 @@ export class SubmissionBehavior implements Behavior {
       this.bb.channel?.allow_save;
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
+    const mockActionType = this.bb.channel._mock_action_type;
     const channelProperties = this.bb.channelProperties ?? {};
     const abortController = new AbortController();
     const promise = asyncSubmit(
@@ -184,6 +189,7 @@ export class SubmissionBehavior implements Behavior {
       this.bb.mock,
       sessionType,
       channelCode,
+      mockActionType,
       channelProperties,
       abortController,
       shouldSendSavePaymentMethod
@@ -210,10 +216,13 @@ export class SubmissionBehavior implements Behavior {
         }
 
         // TODO: the payment-entity-created event should be sent only after the updateWorld call but that causes a behavior tree update which would cause events to fire in the wrong order
-        this.bb.sdkEvents.updateWorld({
-          paymentEntity,
-          sessionTokenRequestId: paymentEntity.entity.session_token_request_id,
-        });
+        this.bb.dispatchEvent(
+          new InternalUpdateWorldState({
+            paymentEntity,
+            sessionTokenRequestId:
+              paymentEntity.entity.session_token_request_id,
+          }),
+        );
       })
       .catch((error) => {
         if (isAbortError(error)) return;
@@ -241,6 +250,7 @@ async function asyncSubmit(
   mock: boolean,
   sessionType: BffSessionType,
   channelCode: string,
+  mockActionType: MockActionType | undefined,
   channelProperties: ChannelProperties,
   abortController: AbortController,
   savePaymentMethod: boolean | undefined,
@@ -251,12 +261,12 @@ async function asyncSubmit(
     switch (sessionType) {
       case "PAY": {
         await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
-        result = makeTestPaymentRequest(channelCode);
+        result = makeTestPaymentRequest(channelCode, mockActionType);
         break;
       }
       case "SAVE": {
         await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
-        result = makeTestPaymentToken(channelCode);
+        result = makeTestPaymentToken(channelCode, mockActionType);
         break;
       }
       default: {

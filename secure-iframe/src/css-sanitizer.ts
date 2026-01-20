@@ -1,4 +1,4 @@
-import { IframeAppearanceOptions } from "../../shared/types";
+import type { IframeAppearanceOptions } from "../../sdk/src";
 
 export type AllowedCssProperty =
   | "fontFamily"

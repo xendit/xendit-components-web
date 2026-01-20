@@ -229,7 +229,7 @@ function makeGroupsByGroupId(
 /**
  * Return true if the channel passes the filter criteria.
  */
-function channelFilterFn(
+export function channelFilterFn(
   channel: BffChannel,
   marshalConfig: ChannelMarshalConfig,
 ) {

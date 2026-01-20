@@ -22,10 +22,10 @@ This release contains credit card payment and tokenization flows.
 
 ```typescript
 const components: XenditComponents = new XenditComponents({
-  sessionClientKey: componentsSdkKeyFromYourServer,
+  componentsSdkKey: componentsSdkKeyFromYourServer,
 });
 
-const cardsChannel = components.getActiveChannels("CARDS")[0];
+const cardsChannel = components.getActiveChannels({ filter: "CARDS" })[0];
 const channelPicker: HTMLElement =
   components.createChannelComponent(cardsChannel);
 

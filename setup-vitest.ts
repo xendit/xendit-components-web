@@ -1,4 +1,7 @@
 import "@testing-library/jest-dom";
+import { setupPreactBatch } from "./sdk/src/preact-batch";
+
+setupPreactBatch();
 
 function isJSDOM() {
   return (

@@ -1,10 +1,6 @@
 import { useCallback, useLayoutEffect, useRef } from "preact/hooks";
 import Icon from "./icon";
-import {
-  ComponentChildren,
-  FunctionComponent,
-  TargetedMouseEvent,
-} from "preact";
+import { ComponentChildren, FunctionComponent } from "preact";
 
 type Props = {
   /**
@@ -57,16 +53,6 @@ export const Dialog: FunctionComponent<Props> = (props) => {
     animation.onfinish = onCloseSafe;
   }, [onCloseSafe]);
 
-  const handleBackdropClick = useCallback(
-    (event: TargetedMouseEvent<HTMLDivElement>) => {
-      // Close dialog only if the backdrop itself is clicked, not the dialog content
-      if (event.target === event.currentTarget) {
-        onCloseWithAnimation();
-      }
-    },
-    [onCloseWithAnimation],
-  );
-
   // play fade-in animation
   useLayoutEffect(() => {
     backdropRef.current?.animate(backdropFadeKeyframes, animationOptions);
@@ -80,11 +66,7 @@ export const Dialog: FunctionComponent<Props> = (props) => {
   }, [props.close, onCloseWithAnimation]);
 
   return (
-    <div
-      className="xendit-dialog-backdrop"
-      onClick={handleBackdropClick}
-      ref={backdropRef}
-    >
+    <div className="xendit-dialog-backdrop" ref={backdropRef}>
       <div className="xendit-dialog" ref={dialogRef}>
         <div className="xendit-dialog-header xendit-text-16 xendit-text-semibold">
           {title}
