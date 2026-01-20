@@ -1,18 +1,30 @@
+# Unreleased
+
+No unreleased changes.
+
 # 0.0.8
 
-Features:
+### Notable
 
-- Disable channels other than CARDS
-- Support searching channels by channel code to getActiveChannels
-- Allow the module to be imported in Node.js (the XenditComponents constructor still throws in Node.js)
-- In mock mode, mock channels use an appropriate action based on the channel type (previously all mock channels used iframe actions)
-- Improve the layout of the default action container component and the mock iframe action
+- Channels other than `"CARDS"` are disabled for the initial release.
+- `sessionClientKey` is renamed to `componentsSdkKey`
 
-Bugfixes:
+### New features
 
-- Fix bug where channel picker sometimes collapses the cards group while typing a card number
-- Rename sessionClientKey to componentsSdkKey
-- Fix missing types in the .d.ts file
+Support searching channels by channel code to `getActiveChannels`:
+
+```typescript
+const cardsComponent = components.getActiveChannels({ filter: "CARDS" })[0];
+```
+
+The layout of the default action container component and the mock iframe action have been improved.
+
+### Bug fixes
+
+- Prevent channel picker from sometimes collapsing the cards group while typing a card number
+- Fix missing types in the `.d.ts` file
+- In mock mode, mock channels now use an appropriate action type based on their channel type
+- The module can now be imported in Node.js. It asserts it's running on a browser in the `XenditComponents` constructor instead.
 
 # 0.0.7
 
