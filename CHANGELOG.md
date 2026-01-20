@@ -11,6 +11,8 @@ Features:
 Bugfixes:
 
 - Fix bug where channel picker sometimes collapses the cards group while typing a card number
+- Rename sessionClientKey to componentsSdkKey
+- Fix missing types in the .d.ts file
 
 # 0.0.7
 
