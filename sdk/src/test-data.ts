@@ -9,6 +9,7 @@ import {
   BffPaymentToken,
   BffPaymentTokenStatus,
 } from "./backend-types/payment-entity";
+import { BffSession } from "./backend-types/session";
 import { assert } from "./utils";
 
 const examplePublicKey =
@@ -1145,10 +1146,9 @@ function randomHexString(length: number) {
 }
 
 export function makeTestPollResponseForSuccess(
+  session: BffSession,
   paymentEntity: BffPaymentEntity,
 ): BffPollResponse {
-  const baseData = makeTestBffData();
-
   const paymentRequest =
     paymentEntity.type === BffPaymentEntityType.PaymentRequest
       ? paymentEntity.entity
@@ -1160,7 +1160,7 @@ export function makeTestPollResponseForSuccess(
 
   return {
     session: {
-      ...baseData.session,
+      ...session,
       status: "COMPLETED",
       payment_request_id: paymentRequest?.payment_request_id,
       payment_token_id: paymentToken?.payment_token_id,
@@ -1175,10 +1175,9 @@ export function makeTestPollResponseForSuccess(
 }
 
 export function makeTestPollResponseForFailure(
+  session: BffSession,
   paymentEntity: BffPaymentEntity,
 ): BffPollResponse {
-  const baseData = makeTestBffData();
-
   const paymentRequest =
     paymentEntity.type === BffPaymentEntityType.PaymentRequest
       ? paymentEntity.entity
@@ -1190,7 +1189,7 @@ export function makeTestPollResponseForFailure(
 
   return {
     session: {
-      ...baseData.session,
+      ...session,
       status: "ACTIVE",
     },
     payment_request: withPaymentEntityStatus(paymentRequest, "FAILED"),

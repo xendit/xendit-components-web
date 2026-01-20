@@ -40,7 +40,10 @@ export class PePendingBehavior implements Behavior {
         case "SUCCEEDED":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponseForSuccess(this.bb.world.paymentEntity),
+              makeTestPollResponseForSuccess(
+                this.bb.world.session,
+                this.bb.world.paymentEntity,
+              ),
             ),
           );
           break;
@@ -49,7 +52,10 @@ export class PePendingBehavior implements Behavior {
         case "EXPIRED":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponseForFailure(this.bb.world.paymentEntity),
+              makeTestPollResponseForFailure(
+                this.bb.world.session,
+                this.bb.world.paymentEntity,
+              ),
             ),
           );
           break;
