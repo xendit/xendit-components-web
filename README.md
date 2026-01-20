@@ -283,10 +283,8 @@ The following variables are available:
 | --xendit-color-text-placeholder | Placeholder color |
 | --xendit-color-disabled | Background color of disabled elements |
 | --xendit-color-danger | Border color of elements with validation errors and text color of validation errors |
-| --xendit-color-border | TODO: remove this |
-| --xendit-color-border-subtle | TODO: rename this |
-| --xendit-color-border-default | TODO: rename this |
-| --xendit-color-background | Background color of elements |
+| --xendit-color-border | Border color used on accordions, input fields, and logos |
+| --xendit-color-background | Background color of input fields |
 | --xendit-focus-shadow | Box-shadow applied to elements with focus |
 | --xendit-animation-duration | Duration of animations (affects the channel picker accordion) |
 | --xendit-animation-ease | Ease function of animations |
@@ -297,13 +295,25 @@ The following variables are available:
 
 Some form fields (credit card inputs) are implemented inside iframes to protect the user's information.
 
-Regular CSS doesn't apply inside iframes. The SDK instead provides overrides in the constructor which
-it applies to the iframe fields.
+You can't override the CSS inside the iframe fields. Instead, you can pass some limited styles to the constructor
+which we'll pass along to the iframes.
 
 ```typescript
 const sdk = new XenditComponents({
-  appearance: {
-    // TODO
+  iframeFieldAppearance: {
+    inputStyles: {
+      // apply styles to inputs within iframe fields
+      color: "#000",
+    },
+    placeholderStyles: {
+      // apply styles to input placeholders in iframe fields
+      color: "#ccc",
+    },
+    fontFace: {
+      // insert a @font-face rule inside iframe fields
+      source: "url(https://example.com/my-font-file) format(woff2)",
+      descriptors: { display: "swap" },
+    },
   },
 });
 ```

@@ -45,8 +45,6 @@ export function ActionIframe(props: Props) {
       <iframe
         ref={iframeRef}
         srcDoc={MOCK_IFRAME_SRCDOC}
-        width="250"
-        height="400"
         className="xendit-action-iframe"
       />
     );
@@ -56,8 +54,6 @@ export function ActionIframe(props: Props) {
     <iframe
       ref={iframeRef}
       src={url}
-      width="500"
-      height="600"
       // sandbox="allow-scripts"
       className="xendit-action-iframe"
     />
@@ -68,16 +64,53 @@ const MOCK_IFRAME_SRCDOC = `
   <html>
     <head>
       <title>Xendit Mock Action Iframe</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          font-size: 14px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        p {
+          margin: 0;
+        }
+        .buttons {
+          display: flex;
+          gap: 8px;
+        }
+        button {
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+          text-align: left;
+          background-color: white;
+          border: 1px solid rgba(243, 243, 243);
+          border-radius: 4px;
+          justify-content: space-between;
+          padding: 4px;
+          cursor: pointer;
+        }
+        button:hover {
+          border-color: #1762ee;
+          background-color: #1762ee;
+          color: white;
+        }
+      </style>
     </head>
     <body>
-      <p>This is a mock action iframe.</p>
-      <p>Click the button below to simulate completion of the action.</p>
-      <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete', mockStatus: 'success'}, '*')">
-        Simulate Success
-      </button>
-      <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete', mockStatus: 'fail'}, '*')">
-        Simulate Failure
-      </button>
+      <p>This is a mock action page.</p>
+      <p>Normally, this would be a 3DS authentication page.</p>
+      <p>Click a button below to simulate the result of the action.</p>
+      <div class="buttons">
+        <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete', mockStatus: 'success'}, '*')">
+          Simulate Success
+        </button>
+        <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete', mockStatus: 'fail'}, '*')">
+          Simulate Failure
+        </button>
+      </div>
     </body>
   </html>
 `;
