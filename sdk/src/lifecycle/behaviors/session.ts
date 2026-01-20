@@ -1,4 +1,8 @@
 import { InternalNeedsRerenderEvent } from "../../private-event-types";
+import {
+  XenditSessionCompleteEvent,
+  XenditSessionExpiredOrCanceledEvent,
+} from "../../public-event-types";
 import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
@@ -20,7 +24,7 @@ export class SessionCompletedBehavior implements Behavior {
   constructor(private bb: BlackboardType) {}
 
   enter() {
-    this.bb.sdkEvents.setSessionState("COMPLETED");
+    this.bb.dispatchEvent(new XenditSessionCompleteEvent());
   }
 }
 
@@ -29,6 +33,6 @@ export class SessionFailedBehavior implements Behavior {
 
   enter() {
     assert(this.bb.world?.session);
-    this.bb.sdkEvents.setSessionState(this.bb.world.session.status);
+    this.bb.dispatchEvent(new XenditSessionExpiredOrCanceledEvent());
   }
 }

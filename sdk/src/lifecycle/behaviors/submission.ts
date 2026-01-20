@@ -15,6 +15,8 @@ import { BffSessionType } from "../../backend-types/session";
 import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
+  InternalScheduleMockUpdateEvent,
+  InternalUpdateWorldState,
 } from "../../private-event-types";
 import {
   XenditPaymentRequestCreatedEvent,
@@ -51,7 +53,7 @@ export class SubmissionBehavior implements Behavior {
 
   enter() {
     this.bb.dispatchEvent(new XenditSubmissionBeginEvent());
-    this.bb.sdkEvents.scheduleMockUpdate("NONE");
+    this.bb.dispatchEvent(new InternalScheduleMockUpdateEvent(null));
     this.submit();
   }
 
@@ -59,7 +61,7 @@ export class SubmissionBehavior implements Behavior {
     this.exited = true;
 
     assert(this.bb.world?.session);
-    const t = this.bb.sdkEvents.sdk.t;
+    const t = this.bb.sdk.t;
 
     // If session is not complete, discard payment entity
     const paymentEntity = this.bb.world.paymentEntity;
@@ -78,10 +80,12 @@ export class SubmissionBehavior implements Behavior {
         default:
           paymentEntity satisfies never;
       }
-      this.bb.sdkEvents.updateWorld({
-        paymentEntity: null,
-        sessionTokenRequestId: null,
-      });
+      this.bb.dispatchEvent(
+        new InternalUpdateWorldState({
+          paymentEntity: null,
+          sessionTokenRequestId: null,
+        }),
+      );
     }
 
     // Determine reason for submission end
@@ -212,10 +216,13 @@ export class SubmissionBehavior implements Behavior {
         }
 
         // TODO: the payment-entity-created event should be sent only after the updateWorld call but that causes a behavior tree update which would cause events to fire in the wrong order
-        this.bb.sdkEvents.updateWorld({
-          paymentEntity,
-          sessionTokenRequestId: paymentEntity.entity.session_token_request_id,
-        });
+        this.bb.dispatchEvent(
+          new InternalUpdateWorldState({
+            paymentEntity,
+            sessionTokenRequestId:
+              paymentEntity.entity.session_token_request_id,
+          }),
+        );
       })
       .catch((error) => {
         if (isAbortError(error)) return;

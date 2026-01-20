@@ -1,8 +1,7 @@
 import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { BffAction, BffPaymentEntity } from "../backend-types/payment-entity";
 import { BffSession } from "../backend-types/session";
-import { WorldState } from "../public-sdk";
-import { SdkEventManager } from "../sdk-event-manager";
+import { WorldState, XenditComponents } from "../public-sdk";
 import {
   findBestAction,
   ParsedSdkKey,
@@ -44,9 +43,9 @@ export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
  * "Blackboard" means mutable state available to the behavior tree and all behavior instances.
  */
 export type BlackboardType = {
+  readonly sdk: XenditComponents;
   readonly mock: boolean;
   readonly sdkKey: ParsedSdkKey;
-  readonly sdkEvents: SdkEventManager; // TODO: factor this out
 
   // backend state
   world: WorldState | null;
