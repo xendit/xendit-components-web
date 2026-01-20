@@ -1,5 +1,11 @@
 import { registerElement } from "../dom-utils";
 
+// prevent crash if running in node
+const HTMLElement: (typeof window)["HTMLElement"] =
+  typeof window !== "undefined" && window.HTMLElement
+    ? window.HTMLElement
+    : (EventTarget as typeof HTMLElement);
+
 /**
  * https://html.spec.whatwg.org/multipage/forms.html#category-label
  * See the definition of "labelable".
