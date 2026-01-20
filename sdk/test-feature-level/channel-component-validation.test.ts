@@ -12,14 +12,12 @@ afterEach(() => {
 describe("channel component validation", () => {
   it("should show validation errors only after blurring a field", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "UI_TEXT_VALIDATION_TEST");
+    const ch = sdk.getActiveChannels({ filter: "UI_TEXT_VALIDATION_TEST" })[0];
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 
@@ -45,14 +43,12 @@ describe("channel component validation", () => {
 
   it("should not show validation errors (field is required) on blur if the field is empty", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "UI_TEXT_VALIDATION_TEST");
+    const ch = sdk.getActiveChannels({ filter: "UI_TEXT_VALIDATION_TEST" })[0];
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 
@@ -70,14 +66,12 @@ describe("channel component validation", () => {
 
   it("should show validation errors (field is required) when calling showValidationErrors", async () => {
     const sdk = new XenditComponentsTest({
-      sessionClientKey: "test-client-key",
+      componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
-    const ch = sdk
-      .getActiveChannels()
-      .find((c) => c.channelCode === "UI_TEXT_VALIDATION_TEST");
+    const ch = sdk.getActiveChannels({ filter: "UI_TEXT_VALIDATION_TEST" })[0];
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 

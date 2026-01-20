@@ -1,8 +1,5 @@
-import {
-  IframeAppearanceOptions,
-  IframeEvent,
-  IframeFieldType,
-} from "../../shared/types";
+import type { IframeAppearanceOptions } from "../../sdk/src";
+import type { IframeEvent, IframeFieldType } from "../../shared/types";
 import {
   deriveSharedKey,
   encryptText,
