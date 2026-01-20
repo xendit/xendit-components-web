@@ -3,6 +3,7 @@
 Features:
 
 - Disable channels other than CARDS
+- Support searching channels by channel code to getActiveChannels
 - Allow the module to be imported in Node.js (the XenditComponents constructor still throws in Node.js)
 - In mock mode, mock channels use an appropriate action based on the channel type (previously all mock channels used iframe actions)
 - Improve the layout of the default action container component and the mock iframe action
