@@ -8,12 +8,12 @@ import {
 } from "preact";
 
 interface Props {
-  id: number;
+  id: string;
   title: string;
   subtitle?: string;
   disabled?: boolean;
   open: boolean;
-  onClick: (id: number) => void;
+  onClick: (id: string) => void;
   children: ComponentChildren;
 }
 

@@ -655,6 +655,7 @@ export class XenditComponents extends EventTarget {
       channelFormRef = cachedComponent.channelFormRef;
     } else {
       container = document.createElement("xendit-payment-channel");
+      container.setAttribute("data-channel-code", channelCode);
       container.setAttribute("inert", "");
       this.setupUiEventsForPaymentChannel(container);
 
@@ -760,6 +761,7 @@ export class XenditComponents extends EventTarget {
     this[internal].currentChannelCode = channelCode;
     this.behaviorTreeUpdate();
     this.syncInertAttribute();
+    this.renderChannelPicker();
   }
 
   /**

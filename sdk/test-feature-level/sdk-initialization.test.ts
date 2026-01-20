@@ -6,7 +6,7 @@ import {
 } from "../src";
 import { findEvent, waitForEvent, watchEvents } from "./utils";
 
-describe("initialization", () => {
+describe("sdk initialization", () => {
   it("should fire the init event after constructing with mock data", async () => {
     const sdk = new XenditComponentsTest({
       sessionClientKey: "test-client-key",
