@@ -157,27 +157,25 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
   return (
-    <>
-      <div className={`xendit-iframe-container ${focusClass}`}>
-        <XenditFormAssociatedFocusTrap.tag
-          id={id}
-          onFocus={giveFocusToIframe}
-          tabIndex={-1}
+    <div className={`xendit-iframe-container ${focusClass}`}>
+      <XenditFormAssociatedFocusTrap.tag
+        id={id}
+        onFocus={giveFocusToIframe}
+        tabIndex={-1}
+      />
+      <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
+      <iframe
+        src={iframeUrl.toString()}
+        ref={iframeRef}
+        sandbox="allow-scripts allow-same-origin"
+      />
+      {field.type.name === "credit_card_number" && card && (
+        <CardBrands
+          cardsBrandList={card.brands}
+          selectedCardBrand={cardBrand}
         />
-        <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
-        <iframe
-          src={iframeUrl.toString()}
-          ref={iframeRef}
-          sandbox="allow-scripts allow-same-origin"
-        />
-        {field.type.name === "credit_card_number" && card && (
-          <CardBrands
-            cardsBrandList={card.brands}
-            selectedCardBrand={cardBrand}
-          />
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 };
 

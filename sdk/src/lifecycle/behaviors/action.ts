@@ -66,13 +66,19 @@ export class ActionIframeBehavior implements Behavior {
       if (success) {
         this.bb.dispatchEvent(
           new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForSuccess(this.bb.world.paymentEntity),
+            makeTestPollResponseForSuccess(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
           ),
         );
       } else {
         this.bb.dispatchEvent(
           new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForFailure(this.bb.world.paymentEntity),
+            makeTestPollResponseForFailure(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
           ),
         );
       }
