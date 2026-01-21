@@ -38,8 +38,7 @@ jobs:
           npx pnpm@latest-10 build
 
           # modify README.md
-          VERSION=$(jq -r .version package.json)
-          sed -i.bak "s/VERSION_NUMBER_HERE/v$VERSION/g" README.md
+          sed -i.bak "s/VERSION_NUMBER_HERE/$XENDIT_COMPONENTS_VERSION/g" README.md
           # restore README.md on exit
           trap 'mv README.md.bak README.md' EXIT
 
