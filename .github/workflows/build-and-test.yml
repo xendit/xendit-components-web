@@ -99,7 +99,7 @@ jobs:
 
       - name: Build
         run: |
-          export XENDIT_COMPONENTS_VERSION=v$(jq -r .version package.json)
+          export XENDIT_COMPONENTS_VERSION=v$(node -p "require('./package.json').version")
           npx pnpm@latest-10 build
         env:
           XENDIT_COMPONENTS_SECURE_IFRAME_URL: https://assets.xendit.co/components/secure-iframe-${{ github.event.inputs.tag }}.html
