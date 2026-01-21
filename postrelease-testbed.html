@@ -15,7 +15,7 @@
         font-family: Arial, sans-serif;
         margin: 20px;
       }
-      form {
+      #config-form {
         display: flex;
         flex-direction: column;
         border: 1px solid #ccc;
@@ -23,20 +23,20 @@
         width: 350px;
         gap: 8px;
       }
-      label {
+      #config-form label {
         display: block;
       }
-      input,
-      select {
+      #config-form input,
+      #config-form select {
         height: 28px;
         box-sizing: border-box;
         padding: 4px;
       }
-      button {
+      #config-form button {
         align-self: flex-start;
         padding: 4px 12px;
       }
-      ::placeholder {
+      #config-form ::placeholder {
         color: #aaa;
       }
       #container {
@@ -91,9 +91,17 @@
           const scriptSrc = scriptSrcTemplate.replace("%s", version);
           const script = document.createElement("script");
           script.src = scriptSrc;
-          script.onload = init.bind(null, key);
+          script.onload = function () {
+            try {
+              init(key);
+            } catch (e) {
+              alert("Failed to initialize components: " + e.message);
+              console.error(e);
+            }
+          };
           script.onerror = (err) => {
             alert("Failed to load script: " + err.message);
+            console.error(err);
           };
           document.body.appendChild(script);
         },
@@ -101,7 +109,9 @@
       );
 
       function init(key) {
-        const XenditComponents = window.Xendit.XenditComponents;
+        const XenditComponents = key
+          ? window.Xendit.XenditComponents
+          : window.Xendit.XenditComponentsTest;
 
         const container = $("#container");
         container.replaceChildren();

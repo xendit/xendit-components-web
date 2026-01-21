@@ -1,6 +1,6 @@
 {
   "name": "xendit-components-web",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Xendit frontend payment components SDK",
   "type": "module",
   "author": "Xendit",
@@ -19,7 +19,9 @@
     "./sdk/dist/index.umd.js.map",
     "./sdk/dist/index.esm.js",
     "./sdk/dist/index.esm.js.map",
-    "./sdk/dist/index.d.ts"
+    "./sdk/dist/index.d.ts",
+    "./README.md",
+    "./CHANGELOG.md"
   ],
   "types": "./sdk/dist/index.d.ts",
   "exports": {
