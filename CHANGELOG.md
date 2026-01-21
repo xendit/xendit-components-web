@@ -2,6 +2,10 @@
 
 No unreleased changes.
 
+# 0.0.9
+
+Missing `.d.ts` file is restored.
+
 # 0.0.8
 
 ### Notable
