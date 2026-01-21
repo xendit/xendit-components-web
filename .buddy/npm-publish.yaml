@@ -7,37 +7,13 @@
   fetch_all_refs: true
   trigger_condition: "ALWAYS"
   actions:
-    - action: "Execute: install dependencies"
-      type: "BUILD"
-      working_directory: "/buddy/xendit-components-web"
-      docker_image_name: "library/node"
-      docker_image_tag: "22"
-      execute_commands:
-        - "npx pnpm@latest-10 i --frozen-lockfile"
-      volume_mappings:
-        - "/:/buddy/xendit-components-web"
-      trigger_condition: "ALWAYS"
-      shell: "BASH"
-
-    - action: "Execute: build package"
-      type: "BUILD"
-      working_directory: "/buddy/xendit-components-web"
-      docker_image_name: "library/node"
-      docker_image_tag: "22"
-      execute_commands:
-        - "npx pnpm@latest-10 build"
-      volume_mappings:
-        - "/:/buddy/xendit-components-web"
-      trigger_condition: "ALWAYS"
-      shell: "BASH"
-
     - action: "Execute: npm publish"
       type: "BUILD"
       working_directory: "/buddy/xendit-components-web"
       docker_image_name: "library/node"
       docker_image_tag: "22"
       execute_commands:
-        - "npm publish"
+        - ./build-and-publish
       volume_mappings:
         - "/:/buddy/xendit-components-web"
       trigger_condition: "ALWAYS"
