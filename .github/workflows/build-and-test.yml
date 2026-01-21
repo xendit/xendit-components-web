@@ -1,4 +1,4 @@
-name: Build and test on every commit
+name: Build and test
 
 on:
   push:
@@ -101,4 +101,4 @@ jobs:
         run: npx pnpm@latest-10 build
         env:
           XENDIT_COMPONENTS_SECURE_IFRAME_URL: https://assets.xendit.co/components/secure-iframe-${{ github.event.inputs.tag }}.html
-          XENDIT_COMPONENTS_VERSION: "0.0.0"
+          XENDIT_COMPONENTS_VERSION: $(node -p "require('./package.json').version")
