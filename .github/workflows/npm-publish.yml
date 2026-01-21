@@ -20,7 +20,7 @@ jobs:
     if: github.repository == 'xendit/xendit-components-web' && startsWith(github.event.inputs.tag, 'v')
 
     container:
-      image: node:22
+      image: node:24
 
     steps:
       - name: Checkout code
@@ -31,6 +31,9 @@ jobs:
 
       - name: Publish to NPM
         run: |
+          # check version (must be >11.4)
+          npm -v
+
           # install build tools
           npx pnpm@latest-10 i --frozen-lockfile
 
@@ -43,7 +46,7 @@ jobs:
           trap 'mv README.md.bak README.md' EXIT
 
           # publish to npm
-          npx pnpm@latest-10 publish --no-git-checks
+          npm publish --no-git-checks
         env:
           XENDIT_COMPONENTS_SECURE_IFRAME_URL: https://assets.xendit.co/components/secure-iframe-${{ github.event.inputs.tag }}.html
           XENDIT_COMPONENTS_VERSION: ${{ github.event.inputs.tag }}

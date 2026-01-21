@@ -9,7 +9,7 @@ jobs:
   install-dependencies:
     runs-on: ubuntu-latest
     container:
-      image: node:22
+      image: node:24
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
     needs: install-dependencies
     runs-on: ubuntu-latest
     container:
-      image: node:22
+      image: node:24
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,7 +47,7 @@ jobs:
     needs: install-dependencies
     runs-on: ubuntu-latest
     container:
-      image: node:22
+      image: node:24
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,7 +66,7 @@ jobs:
     needs: install-dependencies
     runs-on: ubuntu-latest
     container:
-      image: node:22
+      image: node:24
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -85,7 +85,7 @@ jobs:
     needs: install-dependencies
     runs-on: ubuntu-latest
     container:
-      image: node:22
+      image: node:24
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
