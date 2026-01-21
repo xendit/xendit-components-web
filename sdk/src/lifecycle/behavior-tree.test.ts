@@ -44,12 +44,8 @@ const testData = makeTestBffData();
 const mockBlackboard: BlackboardType & { world: object } = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sdk: {} as any,
-  mock: true,
-  sdkKey: parseSdkKey(makeTestSdkKey()),
+      mock: true,
   world: {
-    business: testData.business,
-    customer: testData.customer,
-    session: testData.session,
     channels: testData.channels,
     channelUiGroups: testData.channel_ui_groups,
     paymentEntity: null,
