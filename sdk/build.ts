@@ -61,6 +61,9 @@ const envs = {
   ...checkoutUiGatewayHosts,
 };
 
+const year = new Date().getFullYear();
+const bannerComment = `/*! Copyright (c) ${year} Xendit Inc. Licensed under the MIT License (MIT). */`;
+
 function resolveModule(moduleName: string): string {
   return path.join(import.meta.dirname, "..", "node_modules", moduleName);
 }
@@ -76,6 +79,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
         exports: "named",
         sourcemap: true,
         inlineDynamicImports: true,
+        banner: bannerComment,
       },
       {
         file: path.join(import.meta.dirname, "dist", "index.umd.js"),
@@ -84,6 +88,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
         exports: "named",
         sourcemap: true,
         inlineDynamicImports: true,
+        banner: bannerComment,
       },
     ],
     plugins: [
