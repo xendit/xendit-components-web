@@ -8,7 +8,7 @@ npx pnpm@latest-10 build
 
 # modify README.md
 VERSION=$(jq -r .version package.json)
-sed -i.bak "s/VERSION_NUMBER_HERE/$VERSION/g" README.md
+sed -i.bak "s/VERSION_NUMBER_HERE/v$VERSION/g" README.md
 
 # publish to npm
 npx pnpm@latest-10 publish --no-git-checks
