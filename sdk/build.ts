@@ -43,7 +43,7 @@ if (process.env.CI) {
   assert(
     process.env.XENDIT_COMPONENTS_VERSION === "v0.0.0" ||
       process.env.XENDIT_COMPONENTS_VERSION === `v${packageJson.version}`,
-    `env XENDIT_COMPONENTS_VERSION does not match package.json`,
+    `env XENDIT_COMPONENTS_VERSION does not match package.json, expected v${packageJson.version} but got ${process.env.XENDIT_COMPONENTS_VERSION}`,
   );
 } else {
   // dev mode defaults
