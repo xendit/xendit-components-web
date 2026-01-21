@@ -23,4 +23,4 @@ No unreleased changes.
 6. Test using the staging postrelease testbed: https://assets.stg.tidnex.dev/components/postrelease-testbed.html
 7. Trigger a prod release on the new tag https://buddy.tidnex.com/xendit-inc/xendit-components-web/pipelines/pipeline/14901/run
 8. Test using the prod postrelease testbed: https://assets.xendit.co/components/postrelease-testbed.html
-9. Publish to npm by running https://github.com/xendit/xendit-components-web/actions/workflows/npm-publish.yml
+9. Publish to npm by running https://github.com/xendit/xendit-components-web/actions/workflows/npm-publish.yml, enter the tag name as the input (with v prefix)

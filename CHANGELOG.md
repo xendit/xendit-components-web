@@ -2,7 +2,15 @@
 
 No unreleased changes.
 
+# 0.0.10
+
+## Bug fixes
+
+Fixed npm publish.
+
 # 0.0.9
+
+## Bug fixes
 
 Missing `.d.ts` file is restored.
 
