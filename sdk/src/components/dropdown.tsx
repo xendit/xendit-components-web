@@ -1,13 +1,15 @@
-import { ComponentChildren, TargetedMouseEvent } from "preact";
+import { ComponentChildren, TargetedEvent, TargetedMouseEvent } from "preact";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "preact/hooks";
 import Icon from "./icon";
 import { useIdSafe } from "../utils";
+import { useSdk } from "./session-provider";
 
 export type DropdownOption = {
   leadingAsset?: ComponentChildren; // e.g. flag/icon URL
@@ -16,11 +18,6 @@ export type DropdownOption = {
   description?: string; // secondary line
   disabled?: boolean;
   value: string;
-};
-
-type FilteredOption = {
-  option: DropdownOption;
-  originalIndex: number;
 };
 
 export type DropdownProps = {
@@ -63,6 +60,8 @@ export const Dropdown = (props: DropdownProps) => {
     placeholder,
   } = props;
 
+  const t = useSdk().t;
+
   const generatedId = useIdSafe();
   const id = _id || generatedId;
 
@@ -81,23 +80,13 @@ export const Dropdown = (props: DropdownProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const activeRef = useRef<HTMLLIElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Filter options based on search query
   const filteredOptions = useMemo(() => {
-    const mapToFiltered = (
-      opt: DropdownOption,
-      index: number,
-    ): FilteredOption => ({
-      option: opt,
-      originalIndex: index,
-    });
-
-    if (!searchQuery) {
-      return options.map(mapToFiltered);
-    }
-
-    const filtered = options.map(mapToFiltered).filter(({ option: opt }) => {
+    const filtered = options.map(withIndex).filter(({ item: opt }) => {
+      if (searchQuery.trim() === "") return true;
       const query = searchQuery.toLowerCase();
       return (
         opt.title.toLowerCase().includes(query) ||
@@ -107,20 +96,13 @@ export const Dropdown = (props: DropdownProps) => {
     });
 
     // Show all options if no results found
-    return filtered.length > 0 ? filtered : options.map(mapToFiltered);
+    return filtered.length > 0 ? filtered : options.map(withIndex);
   }, [searchQuery, options]);
-
-  // Ids for ARIA wiring
-  const labelId = `${id}-label`;
-  const listboxId = `${id}-listbox`;
 
   const clampedActive = Math.max(
     0,
     Math.min(filteredOptions.length - 1, activeIndex),
   );
-  const activeOptionId = filteredOptions[clampedActive]
-    ? `${id}-opt-${clampedActive}`
-    : `${id}-opt-none`;
 
   // Close on outside click
   useEffect(() => {
@@ -135,27 +117,23 @@ export const Dropdown = (props: DropdownProps) => {
   }, [open]);
 
   // Keep active in sync with current selection when opening
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     if (currentIndex >= 0) setActiveIndex(currentIndex);
   }, [open, currentIndex]);
 
-  const scrollActiveIntoView = useCallback((el: HTMLElement | null) => {
-    el?.scrollIntoView({ block: "end", behavior: "instant" });
-  }, []);
-
-  const commit = useCallback(
-    (index: number, disabled?: boolean) => {
-      if (disabled === true) return;
-      const opt = options[index];
-      if (!opt) return;
-      if (!isControlled) setInternalIndex(index);
-      onChange(opt, index);
-      setOpen(false);
-      btnRef.current?.focus();
-    },
-    [isControlled, onChange, options],
-  );
+  // when open state or active index changes, scroll to active item
+  useLayoutEffect(() => {
+    if (!open) return;
+    if (!activeRef.current) return;
+    if (!listRef.current) return;
+    const scrollContainer = listRef.current.parentElement;
+    if (!scrollContainer) return;
+    scrollContainer.scrollTop =
+      activeRef.current.offsetTop -
+      scrollContainer.clientHeight / 2 +
+      activeRef.current.clientHeight / 2;
+  }, [open, activeIndex]);
 
   const openList = useCallback(() => {
     if (!open) {
@@ -171,6 +149,26 @@ export const Dropdown = (props: DropdownProps) => {
       btnRef.current?.focus();
     }
   }, [open]);
+
+  const onButtonClick = useCallback(() => {
+    if (open) {
+      closeList();
+    } else {
+      openList();
+    }
+  }, [closeList, open, openList]);
+
+  const selectItemAndClose = useCallback(
+    (index: number) => {
+      const opt = options[index];
+      if (!opt) return;
+      if (opt.disabled) return;
+      if (!isControlled) setInternalIndex(index);
+      onChange(opt, index);
+      closeList();
+    },
+    [closeList, isControlled, onChange, options],
+  );
 
   const onButtonKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -190,8 +188,7 @@ export const Dropdown = (props: DropdownProps) => {
   const onListKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Allow normal typing in search input
-      const isSearchInput =
-        (e.target as HTMLElement)?.id === "dropdown-search-input";
+      const isSearchInput = e.target === searchInputRef.current;
 
       if (e.key === "Escape") {
         e.preventDefault();
@@ -206,7 +203,7 @@ export const Dropdown = (props: DropdownProps) => {
         e.preventDefault();
         const activeItem = filteredOptions[clampedActive];
         if (activeItem) {
-          commit(activeItem.originalIndex, activeItem.option.disabled);
+          selectItemAndClose(activeItem.originalIndex);
         }
         return;
       }
@@ -231,17 +228,24 @@ export const Dropdown = (props: DropdownProps) => {
         return;
       }
     },
-    [clampedActive, closeList, commit, filteredOptions],
+    [clampedActive, closeList, selectItemAndClose, filteredOptions],
   );
 
   const onOptionClick = useCallback(
-    (event: TargetedMouseEvent<HTMLLIElement>) => {
-      commit(
-        Number(event.currentTarget.dataset.index),
-        Boolean(event.currentTarget.dataset.disabled),
-      );
+    (e: TargetedMouseEvent<HTMLLIElement>) => {
+      e.stopPropagation();
+      e.preventDefault();
+      selectItemAndClose(Number(e.currentTarget.dataset.index));
     },
-    [commit],
+    [selectItemAndClose],
+  );
+
+  const onSearchTermChange = useCallback(
+    (e: TargetedEvent<HTMLInputElement>) => {
+      setSearchQuery(e.currentTarget.value);
+      setActiveIndex(0);
+    },
+    [],
   );
 
   const selected = currentIndex >= 0 ? options[currentIndex] : undefined;
@@ -253,10 +257,9 @@ export const Dropdown = (props: DropdownProps) => {
         ref={btnRef}
         type="button"
         className={selected?.leadingAsset ? "xendit-dropdown-has-asset" : ""}
-        aria-controls={listboxId}
         aria-expanded={open ? "true" : "false"}
-        onClick={() => (open ? closeList() : openList())}
-        onKeyDown={(e) => onButtonKeyDown(e as unknown as KeyboardEvent)}
+        onClick={onButtonClick}
+        onKeyDown={onButtonKeyDown}
       >
         {selected?.leadingAsset ? selected.leadingAsset : null}
 
@@ -283,27 +286,20 @@ export const Dropdown = (props: DropdownProps) => {
           <div className="xendit-dropdown-search">
             <input
               ref={searchInputRef}
-              id="dropdown-search-input"
-              placeholder={"Search.."}
+              placeholder={t("combobox.default_search_placeholder")}
               value={searchQuery}
-              onInput={(e) => {
-                setSearchQuery((e.target as HTMLInputElement).value);
-                setActiveIndex(0);
-              }}
-              onClick={(e) => e.stopPropagation()}
+              onInput={onSearchTermChange}
+              onClick={stopPropagation}
               onKeyDown={onListKeyDown}
             />
           </div>
           <ul
             ref={listRef}
-            id={listboxId}
             role="listbox"
             tabIndex={-1}
-            aria-labelledby={labelId}
-            aria-activedescendant={activeOptionId}
             onKeyDown={onListKeyDown}
           >
-            {filteredOptions.map(({ option: opt, originalIndex }, i) => {
+            {filteredOptions.map(({ item: opt, originalIndex }, i) => {
               const isSelected = originalIndex === currentIndex;
               const isActive = i === clampedActive;
               return (
@@ -311,14 +307,13 @@ export const Dropdown = (props: DropdownProps) => {
                   key={originalIndex}
                   role="option"
                   data-index={originalIndex}
-                  data-disabled={opt.disabled ? true : undefined}
                   aria-disabled={opt.disabled ? true : undefined}
                   aria-selected={isSelected}
                   onClick={onOptionClick}
-                  ref={isActive ? scrollActiveIntoView : undefined}
+                  ref={isActive ? activeRef : undefined}
                 >
                   <div
-                    className={`xendit-dropdown-item xendit-text-14 ${isActive ? "is-active" : ""} ${opt.leadingAsset ? "xendit-dropdown-has-asset" : ""} ${opt.disabled ? "xendit-dropdown-item-disabled" : ""}`}
+                    className={`xendit-dropdown-item xendit-text-14 ${isActive ? "xendit-dropdown-item-active" : ""} ${opt.leadingAsset ? "xendit-dropdown-has-asset" : ""} ${opt.disabled ? "xendit-dropdown-item-disabled" : ""}`}
                   >
                     {opt.leadingAsset ? opt.leadingAsset : null}
                     <div className="xendit-dropdown-item-text xendit-text-14">
@@ -348,3 +343,17 @@ export const Dropdown = (props: DropdownProps) => {
     </div>
   );
 };
+
+function stopPropagation(e: Event) {
+  e.stopPropagation();
+}
+
+function withIndex<T>(
+  item: T,
+  originalIndex: number,
+): { item: T; originalIndex: number } {
+  return {
+    item,
+    originalIndex,
+  };
+}
