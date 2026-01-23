@@ -9,13 +9,14 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { useCardDetails, useSession } from "./session-provider";
+import { useSession } from "./session-provider";
 import FieldGroup from "./field-group";
 import { BffCardDetails } from "../backend-types/card-details";
 import { usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { useChannelComponentData } from "./payment-channel";
 
 interface Props {
   form: ChannelFormField[];
@@ -28,7 +29,7 @@ export interface ChannelFormHandle {
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
-    const cardDetails = useCardDetails();
+    const cardDetails = useChannelComponentData()?.cardDetails;
     const formRef = useRef<HTMLFormElement>(null);
 
     const [channelProperties, setChannelProperties] =
@@ -72,7 +73,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     const filteredForm = useFilteredFormFields(
       session,
       form,
-      cardDetails.details ?? null,
+      cardDetails?.details ?? null,
     );
 
     // trigger a field changed callback when the form changes

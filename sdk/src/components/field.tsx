@@ -30,11 +30,18 @@ const Field: FunctionComponent<FieldProps> = (props) => {
         return <TextField {...props} />;
       case "dropdown":
         return <DropdownField {...props} />;
+      case "installment_plan":
+        return null; // TODO
       case "country":
         return <CountryField {...props} />;
       case "province":
         return <ProvinceField {...props} />;
     }
+
+    field.type satisfies never;
+    throw new Error(
+      `Unsupported field type: ${(field as ChannelFormField).type.name}`,
+    );
   }
 
   return (

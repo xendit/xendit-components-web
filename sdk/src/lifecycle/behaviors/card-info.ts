@@ -1,9 +1,9 @@
 import { lookupCardDetails } from "../../api";
-import { InternalUpdateWorldState } from "../../private-event-types";
+import { InternalUpdateChannelComponentData } from "../../private-event-types";
 import {
   AbortError,
   cancellableSleep,
-  getCardNunberFromChannelProperties,
+  getCardNumberFromChannelProperties,
   isAbortError,
 } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
@@ -16,7 +16,10 @@ export class CardInfoBehavior implements Behavior {
     abortController: AbortController;
   } | null = null;
 
-  constructor(public bb: BlackboardType) {}
+  constructor(
+    public bb: BlackboardType,
+    private channelCode: string,
+  ) {}
 
   enter() {
     this.lookupCardDetails();
@@ -38,7 +41,7 @@ export class CardInfoBehavior implements Behavior {
   }
 
   lookupCardDetails() {
-    const cardNumber = getCardNunberFromChannelProperties(
+    const cardNumber = getCardNumberFromChannelProperties(
       this.bb.channelProperties,
     );
     if (!cardNumber) {
@@ -51,7 +54,7 @@ export class CardInfoBehavior implements Behavior {
     }
 
     // don't look up the card number if we already have the details
-    if (this.bb.world?.cardDetails?.cardNumber === cardNumber) {
+    if (this.bb.channelData?.cardDetails?.cardNumber === cardNumber) {
       return;
     }
 
@@ -63,7 +66,15 @@ export class CardInfoBehavior implements Behavior {
     const promise = cancellableSleep(300, abortController.signal) // debounce
       .then(() => {
         if (this.bb.mock) {
-          // mock card details
+          // in mock mode, if the ciphertext is actually a base64-encoded JSON string, then use that as the mock response
+          const encodedError = cardNumber.split("-")[5];
+          try {
+            return JSON.parse(atob(encodedError));
+          } catch {
+            // not json, ignore
+          }
+
+          // otherwise, return a fixed mock response
           return {
             schemes: ["VISA"],
             country_codes: ["ID"],
@@ -88,7 +99,7 @@ export class CardInfoBehavior implements Behavior {
       })
       .then((response) => {
         this.bb.dispatchEvent(
-          new InternalUpdateWorldState({
+          new InternalUpdateChannelComponentData(this.channelCode, {
             cardDetails: {
               cardNumber,
               details: response,
