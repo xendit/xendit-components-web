@@ -112,7 +112,7 @@ your own channel selection UI. Each channel has a `uiGroup` property which match
 ```typescript
 const channel = components.getActiveChannels({ filter: "CARDS" })[0];
 if (channel) {
-  const htmlElement = components.createChannelPickerComponent(channel);
+  const htmlElement = components.createChannelComponent(channel);
   myContainer.replaceChildren(htmlElement);
 }
 ```
