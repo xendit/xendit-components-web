@@ -106,9 +106,12 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
         }
         case "xendit-iframe-blur": {
           setFocusWithin(false);
-          hiddenFieldRef.current?.dispatchEvent(
-            new InternalSetFieldTouchedEvent(),
-          );
+          if (hiddenFieldRef.current?.value) {
+            // mark field as touched if not empty
+            hiddenFieldRef.current?.dispatchEvent(
+              new InternalSetFieldTouchedEvent(),
+            );
+          }
           break;
         }
         case "xendit-iframe-failed-init": {
