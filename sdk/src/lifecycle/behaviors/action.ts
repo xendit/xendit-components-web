@@ -13,84 +13,17 @@ import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { ActionIframe } from "../../components/action-iframe";
+import { ActionQr } from "../../components/action-qr";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
 
-export class ActionCompletedBehavior implements Behavior {
-  constructor(private bb: BlackboardType) {}
-  enter() {}
-}
-
-export class ActionRedirectBehavior implements Behavior {
-  constructor(
-    private bb: BlackboardType,
-    private url: string,
-  ) {}
-
-  enter() {
-    this.bb.dispatchEvent(new XenditWillRedirectEvent());
-    window.location.href = this.url;
-  }
-}
-
-export class ActionIframeBehavior implements Behavior {
+abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
 
-  constructor(
-    private bb: BlackboardType,
-    private url: string,
-  ) {}
+  constructor(protected bb: BlackboardType) {}
 
-  enter() {
-    this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainerWithIframe(
-      this.url,
-      this.bb.mock,
-      (event: IframeActionCompleteEvent) => {
-        this.cleanupActionContainer(false);
-        this.updateMocksOnIframeCompletion(event.mockStatus === "success");
-
-        // setting actionCompleted will ensure the action UI isn't shown again
-        this.bb.actionCompleted = true;
-        // request immediate poll on next update
-        this.bb.pollImmediatelyRequested = true;
-
-        this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
-      },
-    );
-  }
-
-  updateMocksOnIframeCompletion(success: boolean) {
-    assert(this.bb.world?.paymentEntity);
-    if (this.bb.mock) {
-      if (success) {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForSuccess(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      } else {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForFailure(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  cleanupActionContainer(cancelledByUser: boolean) {
-    if (this.cleanupFn) {
-      this.cleanupFn(cancelledByUser);
-      this.cleanupFn = null;
-    }
-  }
+  // abstract populateActionContainer(): void;
+  // abstract updateMocksOnCompletion(success: boolean): void;
 
   /**
    * Creates a default action container if the user has not created one already.
@@ -145,10 +78,94 @@ export class ActionIframeBehavior implements Behavior {
     };
   }
 
+  cleanupActionContainer(cancelledByUser: boolean) {
+    if (this.cleanupFn) {
+      this.cleanupFn(cancelledByUser);
+      this.cleanupFn = null;
+    }
+  }
+
   emptyActionContainer() {
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
     if (container) {
       render(null, container);
+    }
+  }
+
+  exit() {
+    this.cleanupActionContainer(false);
+    this.emptyActionContainer();
+  }
+}
+
+export class ActionCompletedBehavior implements Behavior {
+  constructor(private bb: BlackboardType) {}
+  enter() {}
+}
+
+export class ActionRedirectBehavior implements Behavior {
+  constructor(
+    private bb: BlackboardType,
+    private url: string,
+  ) {}
+
+  enter() {
+    this.bb.dispatchEvent(new XenditWillRedirectEvent());
+    window.location.href = this.url;
+  }
+}
+
+export class ActionIframeBehavior extends ContainerActionBehavior {
+  cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
+
+  constructor(
+    protected bb: BlackboardType,
+    private url: string,
+  ) {
+    super(bb);
+  }
+
+  enter() {
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainerWithIframe(
+      this.url,
+      this.bb.mock,
+      (event: IframeActionCompleteEvent) => {
+        this.cleanupActionContainer(false);
+        this.updateMocksOnIframeCompletion(event.mockStatus === "success");
+
+        // setting actionCompleted will ensure the action UI isn't shown again
+        this.bb.actionCompleted = true;
+        // request immediate poll on next update
+        this.bb.pollImmediatelyRequested = true;
+
+        this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+      },
+    );
+  }
+
+  updateMocksOnIframeCompletion(success: boolean) {
+    assert(this.bb.world?.paymentEntity);
+    if (this.bb.mock) {
+      if (success) {
+        this.bb.dispatchEvent(
+          new InternalScheduleMockUpdateEvent(
+            makeTestPollResponseForSuccess(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
+          ),
+        );
+      } else {
+        this.bb.dispatchEvent(
+          new InternalScheduleMockUpdateEvent(
+            makeTestPollResponseForFailure(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -169,9 +186,31 @@ export class ActionIframeBehavior implements Behavior {
       container,
     );
   }
+}
 
-  exit() {
-    this.cleanupActionContainer(false);
-    this.emptyActionContainer();
+export class ActionQrBehavior extends ContainerActionBehavior {
+  cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
+
+  constructor(
+    protected bb: BlackboardType,
+    private qrString: string,
+  ) {
+    super(bb);
+  }
+
+  enter(): void {
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.renderQrCodeInContainer(this.qrString);
+  }
+
+  renderQrCodeInContainer(qrString: string) {
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+    if (!container) {
+      throw new Error(
+        "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
+      );
+    }
+
+    render(createElement(ActionQr, { qrString }), container);
   }
 }
