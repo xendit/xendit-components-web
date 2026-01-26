@@ -203,6 +203,11 @@ export class XenditComponents extends EventTarget {
      * This is used as a key into `paymentChannelComponents`.
      */
     currentChannelCode: string | null;
+
+    /**
+     * Tracks which event listeners are present on the SDK instance.
+     */
+    eventListenersPresent: Map<string, boolean>;
   };
 
   /**
@@ -258,8 +263,20 @@ export class XenditComponents extends EventTarget {
         savePaymentMethod: null,
       }),
       currentChannelCode: null,
+      eventListenersPresent: new Map(),
     };
     lockDownInteralProperty(this as unknown as { [internal]: unknown });
+
+    // log fatal errors if user didn't attach a listener
+    this.addEventListener("fatal-error", (event) => {
+      const fatalErrorEvent = event as XenditFatalErrorEvent;
+      if (!this[internal].eventListenersPresent.get("fatal-error")) {
+        console.error(
+          `XenditComponents: A "fatal-error" event occurred but no event listener was attached: ${fatalErrorEvent.message}`,
+        );
+      }
+    });
+    this[internal].eventListenersPresent.set("fatal-error", false);
 
     this.behaviorTreeUpdate();
 
@@ -1323,6 +1340,7 @@ export class XenditComponents extends EventTarget {
     listener: unknown,
     options?: boolean | AddEventListenerOptions,
   ): void {
+    this[internal].eventListenersPresent.set(type, true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.addEventListener(type, listener as any, options);
   }
