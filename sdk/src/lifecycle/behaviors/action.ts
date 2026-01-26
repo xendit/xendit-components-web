@@ -1,4 +1,4 @@
-import { createElement, render } from "preact";
+import { createElement, render, ComponentChildren } from "preact";
 import { IframeActionCompleteEvent } from "../../../../shared/types";
 import {
   InternalBehaviorTreeUpdateEvent,
@@ -21,9 +21,6 @@ abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
 
   constructor(protected bb: BlackboardType) {}
-
-  // abstract populateActionContainer(): void;
-  // abstract updateMocksOnCompletion(success: boolean): void;
 
   /**
    * Creates a default action container if the user has not created one already.
@@ -92,6 +89,21 @@ abstract class ContainerActionBehavior implements Behavior {
     }
   }
 
+  /**
+   * Populates the action container with the provided component.
+   * This method handles the common logic of getting the container and rendering the component.
+   */
+  populateActionContainer(createComponent: () => ComponentChildren) {
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+    if (!container) {
+      throw new Error(
+        "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
+      );
+    }
+
+    render(createComponent(), container);
+  }
+
   exit() {
     this.cleanupActionContainer(false);
     this.emptyActionContainer();
@@ -116,8 +128,6 @@ export class ActionRedirectBehavior implements Behavior {
 }
 
 export class ActionIframeBehavior extends ContainerActionBehavior {
-  cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
-
   constructor(
     protected bb: BlackboardType,
     private url: string,
@@ -127,20 +137,22 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
 
   enter() {
     this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainerWithIframe(
-      this.url,
-      this.bb.mock,
-      (event: IframeActionCompleteEvent) => {
-        this.cleanupActionContainer(false);
-        this.updateMocksOnIframeCompletion(event.mockStatus === "success");
+    this.populateActionContainer(() =>
+      createElement(ActionIframe, {
+        url: this.url,
+        mock: this.bb.mock,
+        onIframeComplete: (event: IframeActionCompleteEvent) => {
+          this.cleanupActionContainer(false);
+          this.updateMocksOnIframeCompletion(event.mockStatus === "success");
 
-        // setting actionCompleted will ensure the action UI isn't shown again
-        this.bb.actionCompleted = true;
-        // request immediate poll on next update
-        this.bb.pollImmediatelyRequested = true;
+          // setting actionCompleted will ensure the action UI isn't shown again
+          this.bb.actionCompleted = true;
+          // request immediate poll on next update
+          this.bb.pollImmediatelyRequested = true;
 
-        this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
-      },
+          this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+        },
+      }),
     );
   }
 
@@ -168,29 +180,9 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
       }
     }
   }
-
-  populateActionContainerWithIframe(
-    url: string,
-    mock: boolean,
-    onIframeComplete: (event: IframeActionCompleteEvent) => void,
-  ) {
-    const container = this.bb.sdk[internal].liveComponents.actionContainer;
-    if (!container) {
-      throw new Error(
-        "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
-      );
-    }
-
-    render(
-      createElement(ActionIframe, { url, mock, onIframeComplete }),
-      container,
-    );
-  }
 }
 
 export class ActionQrBehavior extends ContainerActionBehavior {
-  cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
-
   constructor(
     protected bb: BlackboardType,
     private qrString: string,
@@ -200,17 +192,10 @@ export class ActionQrBehavior extends ContainerActionBehavior {
 
   enter(): void {
     this.cleanupFn = this.ensureHasActionContainer();
-    this.renderQrCodeInContainer(this.qrString);
-  }
-
-  renderQrCodeInContainer(qrString: string) {
-    const container = this.bb.sdk[internal].liveComponents.actionContainer;
-    if (!container) {
-      throw new Error(
-        "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
-      );
-    }
-
-    render(createElement(ActionQr, { qrString }), container);
+    this.populateActionContainer(() =>
+      createElement(ActionQr, {
+        qrString: this.qrString,
+      }),
+    );
   }
 }
