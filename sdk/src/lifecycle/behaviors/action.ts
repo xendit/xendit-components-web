@@ -195,7 +195,29 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     this.populateActionContainer(() =>
       createElement(ActionQr, {
         qrString: this.qrString,
+        mock: this.bb.mock,
+        onSimulatePayment: () => {
+          this.updateMocksOnSimulatePaymentCompletion();
+        },
       }),
     );
+    // request immediate poll on next update
+    this.bb.pollImmediatelyRequested = true;
+
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+  }
+
+  updateMocksOnSimulatePaymentCompletion() {
+    assert(this.bb.world?.paymentEntity);
+    if (this.bb.mock) {
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponseForSuccess(
+            this.bb.world.session,
+            this.bb.world.paymentEntity,
+          ),
+        ),
+      );
+    }
   }
 }
