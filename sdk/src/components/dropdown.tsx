@@ -1,7 +1,6 @@
 import { ComponentChildren, TargetedEvent, TargetedMouseEvent } from "preact";
 import {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -105,7 +104,7 @@ export const Dropdown = (props: DropdownProps) => {
   );
 
   // Close on outside click
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
       const root = rootRef.current;
