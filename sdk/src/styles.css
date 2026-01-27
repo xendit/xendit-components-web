@@ -129,6 +129,12 @@ xendit-payment-channel select::placeholder {
   letter-spacing: -0.09px;
 }
 
+.xendit-text-20 {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.33px;
+}
+
 .xendit-text-12,
 .xendit-text-14,
 .xendit-text-16 {
@@ -145,6 +151,10 @@ xendit-payment-channel select::placeholder {
 
 .xendit-text-secondary {
   color: var(--xendit-color-text-secondary);
+}
+
+.xendit-text-center {
+  text-align: center;
 }
 
 /* Accordion component */
@@ -730,7 +740,34 @@ xendit-payment-channel[inert] {
 
 .xendit-default-action-container {
   display: flex;
+  flex-direction: column;
   width: calc(min(100vw - 64px, 400px));
   height: calc(min(100vh - 64px, 600px));
   border: none;
+}
+
+.xendit-default-action-instructions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 24px 16px 0 16px;
+  text-align: center;
+}
+.xendit-default-action-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 24px;
+  gap: 16px;
+}
+.xendit-action-qr-qrcode-container {
+  height: 256px;
+  width: 256px;
+  border: 1px solid var(--xendit-color-border);
+  border-radius: var(--xendit-radius-1);
+  padding: 16px;
 }

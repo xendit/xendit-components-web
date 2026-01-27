@@ -196,15 +196,30 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       createElement(ActionQr, {
         qrString: this.qrString,
         mock: this.bb.mock,
-        onSimulatePayment: () => {
-          this.updateMocksOnSimulatePaymentCompletion();
-        },
+        onAffirm: this.affirmPayment.bind(this),
       }),
     );
     // request immediate poll on next update
     this.bb.pollImmediatelyRequested = true;
 
     this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+  }
+
+  /**
+   * Fired when user affirms they have made the payment by clicking
+   * the affirm button.
+   */
+  affirmPayment() {
+    if (this.bb.mock) {
+      this.updateMocksOnSimulatePaymentCompletion();
+    } else {
+      if (this.bb.sdkKey.hostId) {
+        // live mode
+        this.bb.pollImmediatelyRequested = true;
+      } else {
+        this.bb.simulatePaymentRequested = true;
+      }
+    }
   }
 
   updateMocksOnSimulatePaymentCompletion() {
