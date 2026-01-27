@@ -129,6 +129,12 @@ xendit-payment-channel select::placeholder {
   letter-spacing: -0.09px;
 }
 
+.xendit-text-18 {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.26px;
+}
+
 .xendit-text-20 {
   font-size: 20px;
   line-height: 28px;
@@ -751,7 +757,7 @@ xendit-payment-channel[inert] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
   padding: 24px 16px 0 16px;
   text-align: center;
 }
@@ -763,6 +769,16 @@ xendit-payment-channel[inert] {
   justify-content: center;
   padding: 16px 24px;
   gap: 16px;
+}
+.xendit-action-channel-logo {
+  height: 24px;
+  object-fit: contain;
+}
+.xendit-action-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 .xendit-action-qr-qrcode-container {
   height: 256px;

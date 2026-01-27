@@ -9,7 +9,7 @@ import {
   makeTestPollResponseForFailure,
   makeTestPollResponseForSuccess,
 } from "../../test-data";
-import { assert } from "../../utils";
+import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { ActionIframe } from "../../components/action-iframe";
@@ -191,14 +191,26 @@ export class ActionQrBehavior extends ContainerActionBehavior {
   }
 
   enter(): void {
-    this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainer(() =>
-      createElement(ActionQr, {
-        qrString: this.qrString,
-        mock: this.bb.mock,
-        onAffirm: this.affirmPayment.bind(this),
-      }),
+    const qrAction = this.bb.world?.paymentEntity?.entity.actions.find(
+      (a) => a.type === "PRESENT_TO_CUSTOMER" && a.descriptor === "QR_STRING",
     );
+
+    assertEquals(qrAction?.type, "PRESENT_TO_CUSTOMER");
+    assert(this.bb.world);
+    assert(this.bb.channel);
+
+    const actionQrProps = {
+      amount: this.bb.world.session.amount,
+      channelLogo: this.bb.channel.brand_logo_url,
+      currency: this.bb.world.session.currency,
+      mock: this.bb.mock,
+      onAffirm: this.affirmPayment.bind(this),
+      qrString: this.qrString,
+      title: qrAction.action_title,
+    };
+
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => createElement(ActionQr, actionQrProps));
     // request immediate poll on next update
     this.bb.pollImmediatelyRequested = true;
 

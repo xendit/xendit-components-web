@@ -1,15 +1,21 @@
 import { useCallback, useMemo, useState } from "preact/hooks";
 import qrcode from "qrcode";
 import qrSvgRenderer from "qrcode/lib/renderer/svg-tag";
+import { amountFormat } from "../amount-format";
 
 type Props = {
-  qrString: string;
+  amount: number;
+  channelLogo: string;
+  currency: string;
   mock: boolean;
   onAffirm: () => void;
+  qrString: string;
+  title: string;
 };
 
 export function ActionQr(props: Props) {
-  const { qrString, mock, onAffirm } = props;
+  const { amount, channelLogo, currency, mock, onAffirm, qrString, title } =
+    props;
 
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -29,10 +35,14 @@ export function ActionQr(props: Props) {
   return (
     <div>
       <div className="xendit-default-action-instructions">
-        {/* logo here */}
         <div className="xendit-text-20 xendit-text-semibold xendit-text-center">
-          Scan to pay
+          {title}
         </div>
+        <img
+          src={channelLogo}
+          alt={title}
+          className="xendit-action-channel-logo"
+        />
       </div>
       <div className="xendit-default-action-content">
         <div
@@ -45,7 +55,14 @@ export function ActionQr(props: Props) {
             }
           }}
         />
-        {/* amount here */}
+        <div className="xendit-action-amount">
+          <div className="xendit-text-14 xendit-text-secondary xendit-text-center">
+            Amount
+          </div>
+          <div className="xendit-text-18 xendit-text-semibold xendit-text-center">
+            {amountFormat(amount, currency)}
+          </div>
+        </div>
         <button disabled={showSpinner} onClick={onMadePaymentClicked}>
           {showSpinner ? "Please wait" : "I've made this payment"}
         </button>
