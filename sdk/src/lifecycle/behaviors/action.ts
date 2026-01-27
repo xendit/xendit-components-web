@@ -19,6 +19,8 @@ import DefaultActionContainer from "../../components/default-action-container";
 
 abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
+  defaultContainerHeight = 0;
+  defaultContainerWidth = 400;
 
   constructor(protected bb: BlackboardType) {}
 
@@ -40,9 +42,12 @@ abstract class ContainerActionBehavior implements Behavior {
 
     const container = document.createElement("div");
     container.setAttribute("class", "xendit-default-action-container");
+
     const props = {
       sdk: this.bb.sdk,
       title: "Complete your payment",
+      width: this.defaultContainerWidth,
+      height: this.defaultContainerHeight,
       onClose: () => {
         cleanedUp = true;
         render(null, container);
@@ -133,6 +138,7 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
     private url: string,
   ) {
     super(bb);
+    this.defaultContainerHeight = 600;
   }
 
   enter() {
@@ -188,6 +194,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     private qrString: string,
   ) {
     super(bb);
+    this.defaultContainerWidth = 300;
   }
 
   enter(): void {

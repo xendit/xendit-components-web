@@ -56,9 +56,6 @@ export function ActionQr(props: Props) {
           }}
         />
         <div className="xendit-action-amount">
-          <div className="xendit-text-14 xendit-text-secondary xendit-text-center">
-            Amount
-          </div>
           <div className="xendit-text-18 xendit-text-semibold xendit-text-center">
             {amountFormat(amount, currency)}
           </div>

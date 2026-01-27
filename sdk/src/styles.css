@@ -747,8 +747,6 @@ xendit-payment-channel[inert] {
 .xendit-default-action-container {
   display: flex;
   flex-direction: column;
-  width: calc(min(100vw - 64px, 400px));
-  height: calc(min(100vh - 64px, 600px));
   border: none;
 }
 
@@ -781,8 +779,7 @@ xendit-payment-channel[inert] {
   gap: 4px;
 }
 .xendit-action-qr-qrcode-container {
-  height: 256px;
-  width: 256px;
+  width: 100%;
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   padding: 16px;
