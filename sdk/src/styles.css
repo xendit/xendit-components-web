@@ -699,6 +699,10 @@ xendit-payment-channel[inert] {
   --xendit-dropdown-item-hover-bg-color: var(--xendit-color-disabled);
 }
 
+.xendit-dropdown-item-active {
+  box-shadow: var(--xendit-focus-shadow);
+}
+
 .xendit-dropdown-item:hover {
   background-color: var(--xendit-dropdown-item-hover-bg-color);
 }
@@ -732,7 +736,7 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dropdown-item-disabled:hover,
-.xendit-dropdown-item-disabled.is-active {
+.xendit-dropdown-item-disabled.xendit-dropdown-item-active {
   background-color: var(--xendit-color-disabled);
 }
 

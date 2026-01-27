@@ -9,31 +9,33 @@ import { ComponentChildren, createContext, FunctionComponent } from "preact";
 import { useContext } from "preact/hooks";
 
 // Create contexts
-const SessionContext = createContext<BffSession | null>(null);
+export const SessionContext = createContext<BffSession | null>(null);
 SessionContext.displayName = "SessionContext";
 
-const BusinessContext = createContext<BffBusiness | null>(null);
+export const BusinessContext = createContext<BffBusiness | null>(null);
 BusinessContext.displayName = "BusinessContext";
 
-const CustomerContext = createContext<BffCustomer | null>(null);
+export const CustomerContext = createContext<BffCustomer | null>(null);
 CustomerContext.displayName = "CustomerContext";
 
-const ChannelsContext = createContext<BffChannel[] | null>(null);
+export const ChannelsContext = createContext<BffChannel[] | null>(null);
 ChannelsContext.displayName = "ChannelsContext";
 
-const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | null>(null);
+export const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | null>(
+  null,
+);
 ChannelUiGroupsContext.displayName = "ChannelUiGroupsContext";
 
-const CardDetailsContext = createContext<{
+export const CardDetailsContext = createContext<{
   cardNumber: string | null;
   details: BffCardDetails | null;
 }>({ cardNumber: null, details: null });
 CardDetailsContext.displayName = "CardDetailsContext";
 
-const SdkContext = createContext<XenditComponents | null>(null);
+export const SdkContext = createContext<XenditComponents | null>(null);
 SdkContext.displayName = "SdkContext";
 
-const CurrentChannelContext = createContext<BffChannel | null>(null);
+export const CurrentChannelContext = createContext<BffChannel | null>(null);
 CurrentChannelContext.displayName = "CurrentChannelContext";
 
 // Custom hooks for consuming contexts
