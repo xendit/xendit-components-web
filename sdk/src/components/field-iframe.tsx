@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
 import { CardBrand, IframeEvent } from "../../../shared/types";
@@ -135,7 +135,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
     }
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.addEventListener("message", handleEventFromIframe);
     return () => {
       window.removeEventListener("message", handleEventFromIframe);

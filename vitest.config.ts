@@ -10,8 +10,9 @@ const packageJson = JSON.parse(
 export default defineConfig({
   plugins: [preact()],
   define: {
-    "process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL":
-      JSON.stringify("https://localhost"),
+    "process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL": JSON.stringify(
+      "https://xendit-secure-iframe/iframe.html",
+    ),
     "process.env.XENDIT_COMPONENTS_VERSION": JSON.stringify(
       `v${packageJson.version}`,
     ),
