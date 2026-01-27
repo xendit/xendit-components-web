@@ -11,14 +11,15 @@ import parsePhoneNumberFromString, {
 } from "libphonenumber-js";
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
-import { formFieldName } from "../utils";
+import { formFieldId, formFieldName } from "../utils";
 import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
-  const id = formFieldName(field);
+  const id = formFieldId(field);
+  const name = formFieldName(field);
 
   const session = useSession();
 
@@ -138,9 +139,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
           autoComplete="tel"
         />
       </div>
-
-      {/* Hidden canonical value (useful for non-JS form posts) */}
-      <input type="hidden" name={id} ref={hiddenFieldRef} />
+      <input type="hidden" name={name} ref={hiddenFieldRef} />
     </div>
   );
 };

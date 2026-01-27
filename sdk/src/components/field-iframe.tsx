@@ -5,7 +5,7 @@ import { CardBrand, IframeEvent } from "../../../shared/types";
 import { useChannel } from "./payment-channel";
 import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
 import { internal } from "../internal";
-import { assert, formFieldName } from "../utils";
+import { assert, formFieldId, formFieldName } from "../utils";
 import { FunctionComponent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
@@ -22,7 +22,8 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
 
   const sdk = useSdk();
 
-  const id = formFieldName(field);
+  const id = formFieldId(field);
+  const name = formFieldName(field);
   const session = useSession();
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -166,7 +167,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
         onFocus={giveFocusToIframe}
         tabIndex={-1}
       />
-      <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
+      <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
       <iframe
         src={iframeUrl.toString()}
         ref={iframeRef}

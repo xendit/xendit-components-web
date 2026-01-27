@@ -2,7 +2,7 @@ import { useState, useLayoutEffect, useRef } from "preact/hooks";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import Field from "./field";
 import classNames from "classnames";
-import { formFieldName } from "../utils";
+import { formFieldId, formFieldName } from "../utils";
 import { useSdk } from "./session-provider";
 import { getLocalizedErrorMessage } from "../localization";
 import { channelPropertyFieldValidate } from "../validation";
@@ -128,7 +128,7 @@ const FieldGroup = ({
 
   return (
     <div className="xendit-channel-form-field-group">
-      <label htmlFor={formFieldName(fieldGroup[0])} className="xendit-text-14">
+      <label htmlFor={formFieldId(fieldGroup[0])} className="xendit-text-14">
         {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
       </label>
       <div
