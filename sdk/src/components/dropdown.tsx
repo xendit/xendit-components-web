@@ -115,16 +115,17 @@ export const Dropdown = (props: DropdownProps) => {
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [open]);
 
-  // Close on outside focusin
+  // Close on outside focusout
   useLayoutEffect(() => {
     if (!open) return;
-    const onFocusIn = (e: FocusEvent) => {
+    const onFocusOut = (e: FocusEvent) => {
       const root = rootRef.current;
       if (!root) return;
-      if (!root.contains(e.target as Node)) setOpen(false);
+      if (!e.relatedTarget) return;
+      if (!root.contains(e.relatedTarget as Node)) setOpen(false);
     };
-    document.body.addEventListener("focusin", onFocusIn);
-    return () => document.body.removeEventListener("focusin", onFocusIn);
+    document.body.addEventListener("focusout", onFocusOut);
+    return () => document.body.removeEventListener("focusout", onFocusOut);
   }, [open]);
 
   // Keep active in sync with current selection when opening
@@ -293,7 +294,7 @@ export const Dropdown = (props: DropdownProps) => {
       </button>
 
       {open ? (
-        <div className="xendit-dropdown-menu" onClick={closeList}>
+        <div className="xendit-dropdown-menu">
           <div className="xendit-dropdown-search">
             <input
               ref={searchInputRef}
