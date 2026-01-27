@@ -106,13 +106,25 @@ export const Dropdown = (props: DropdownProps) => {
   // Close on outside click
   useLayoutEffect(() => {
     if (!open) return;
-    const onDoc = (e: MouseEvent) => {
+    const onMouseDown = (e: MouseEvent) => {
       const root = rootRef.current;
       if (!root) return;
       if (!root.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [open]);
+
+  // Close on outside focusin
+  useLayoutEffect(() => {
+    if (!open) return;
+    const onFocusIn = (e: FocusEvent) => {
+      const root = rootRef.current;
+      if (!root) return;
+      if (!root.contains(e.target as Node)) setOpen(false);
+    };
+    document.body.addEventListener("focusin", onFocusIn);
+    return () => document.body.removeEventListener("focusin", onFocusIn);
   }, [open]);
 
   // Keep active in sync with current selection when opening
