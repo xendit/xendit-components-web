@@ -1,268 +1,250 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { BffChannel, ChannelFormField } from "./backend-types/channel";
 import {
-  validateEmail,
-  validatePhoneNumber,
-  validatePostalCode,
-  validateText,
+  channelPropertiesAreValid,
+  channelPropertyFieldValidate,
 } from "./validation";
 
-import type { CountryCode } from "libphonenumber-js";
-import { ChannelFormField } from "./backend-types/channel";
-
-// --- validateEmail ---
-describe("validateEmail", () => {
-  it("returns undefined for valid email", () => {
-    expect(validateEmail("test@example.com")).toBeUndefined();
-    expect(validateEmail("user.name+tag@sub.domain.co")).toBeUndefined();
-  });
-
-  it("returns error for missing @", () => {
-    expect(validateEmail("testexample.com")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-  });
-
-  it("returns error for missing domain", () => {
-    expect(validateEmail("test@")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-  });
-
-  it("returns error for missing TLD", () => {
-    expect(validateEmail("test@example")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-  });
-
-  it("returns error for invalid characters", () => {
-    expect(validateEmail("test@exa mple.com")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-    expect(validateEmail("test@.com")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-  });
-});
-
-const countries: CountryCode[] = ["ID", "MY", "PH", "SG", "TH", "VN"];
-
-const validNumbers: Record<string, string[]> = {
-  ID: ["+628123456789"],
-  MY: ["+60123456789"],
-  PH: ["+639171234567"],
-  SG: ["+6581234567"],
-  TH: ["+66812345678"],
-  VN: ["+84901234567"],
-};
-
-const invalidNumbers: Record<string, string[]> = {
-  ID: ["123", "abcdefgh", "+6281"],
-  MY: ["123", "abcdefgh", "+6012"],
-  PH: ["123", "abcdefgh", "+6391"],
-  SG: ["123", "abcdefgh", "+6581"],
-  TH: ["123", "abcdefgh", "+6681"],
-  VN: ["123", "abcdefgh", "+8490"],
-};
-
-// --- validatePhoneNumber ---
-describe("validatePhoneNumber", () => {
-  countries.forEach((country) => {
-    describe(`Country: ${country}`, () => {
-      validNumbers[country].forEach((number) => {
-        it(`validates valid number: ${number}`, () => {
-          const result = validatePhoneNumber(number);
-          expect(result).toBeUndefined();
-        });
-      });
-
-      invalidNumbers[country].forEach((number) => {
-        it(`invalidates invalid number: ${number}`, () => {
-          const result = validatePhoneNumber(number);
-          expect(result?.localeKey).toBe("validation.generic_invalid");
-        });
-      });
-    });
-  });
-});
-
-// --- validatePostalCode ---
-describe("validatePostalCode", () => {
-  it("returns undefined for valid postal code", () => {
-    expect(validatePostalCode("12345")).toBeUndefined();
-    expect(validatePostalCode("A1B 2C3")).toBeUndefined();
-    expect(validatePostalCode("123-456")).toBeUndefined();
-  });
-
-  it("returns error for invalid characters", () => {
-    expect(validatePostalCode("123$456")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-    expect(validatePostalCode("!@#")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-  });
-
-  it("returns error for only hyphens", () => {
-    expect(validatePostalCode("---")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-    expect(validatePostalCode(" - ")?.localeKey).toBe(
-      "validation.generic_invalid",
-    );
-  });
-});
-
-// --- validateText ---
-describe("validateText", () => {
-  const baseField: ChannelFormField & {
-    type: { name: "text" };
-  } = {
-    required: true,
-    type: {
-      name: "text",
-      min_length: 2,
-      max_length: 5,
-      regex_validators: [],
-    },
-    channel_property: "test_property",
-    placeholder: "Enter text",
+function makeField(
+  channelProperty: string,
+  fieldType: ChannelFormField["type"],
+): ChannelFormField {
+  return {
+    label: "encrypted field",
+    channel_property: channelProperty,
+    type: fieldType,
+    required: false,
+    placeholder: "encrypted field",
     span: 2,
-    label: "Test Field",
   };
+}
 
-  it("returns undefined for valid text within length", () => {
-    expect(validateText(baseField, "abcd")).toBeUndefined();
-    expect(validateText(baseField, "abcde")).toBeUndefined();
+const encryptedField = makeField("encrypted_field", {
+  name: "credit_card_number",
+});
+
+const textField = makeField("text", {
+  name: "text",
+  max_length: 10,
+  min_length: 2,
+  regex_validators: [
+    {
+      message: "error message from regex rule",
+      regex: "^[a-zA-Z -]+$",
+    },
+    {
+      message: "error message with regex rule with slashes",
+      regex: "/^[^Q]+$/",
+    },
+  ],
+});
+
+const emailField = makeField("email", {
+  name: "email",
+});
+
+const postalCodeField = makeField("postal_code", {
+  name: "postal_code",
+});
+
+const phoneNumberField = makeField("phone_number", {
+  name: "phone_number",
+});
+
+const requiredField = makeField("required", {
+  name: "text",
+  max_length: 10,
+});
+requiredField.required = true;
+
+const noValidationField = makeField("no_validation", {
+  name: "country",
+});
+
+function channelWithForm(form: ChannelFormField[]): BffChannel {
+  return {
+    brand_name: "Mock channel",
+    channel_code: "MOCK_CHANNEL",
+    brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+    ui_group: "other",
+    allow_pay_without_save: false,
+    allow_save: false,
+    brand_color: "#000000",
+    min_amount: 1,
+    max_amount: 100000000,
+    requires_customer_details: false,
+    _mock_action_type: "REDIRECT",
+    form,
+    instructions: [],
+  };
+}
+
+describe("validation", () => {
+  it("should validate encrypted fields", () => {
+    // valid
+    const props1 = {
+      encrypted_field: "xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT",
+    };
+    expect(channelPropertyFieldValidate(encryptedField, props1)).toBe(
+      undefined,
+    );
+
+    // embedded error message
+    const props2 = {
+      encrypted_field: `xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT-invalid-${btoa("validation.card_expiry_invalid")}`,
+    };
+    expect(channelPropertyFieldValidate(encryptedField, props2)).toEqual({
+      localeKey: "validation.card_expiry_invalid",
+    });
+
+    // unexpected format (wrong prefix)
+    const props3 = {
+      encrypted_field: `junk`,
+    };
+    expect(() =>
+      channelPropertyFieldValidate(encryptedField, props3),
+    ).toThrow();
+
+    // unexpected formats (wrong number of parts)
+    const props4 = {
+      encrypted_field: `xendit-encrypted-1-PUBLICKEY-IV`,
+    };
+    expect(() =>
+      channelPropertyFieldValidate(encryptedField, props4),
+    ).toThrow();
   });
 
-  it("returns validation.text_too_short for text shorter than min_length", () => {
-    expect(validateText(baseField, "a")).toStrictEqual({
-      localeKey: "validation.text_too_short",
-    });
-    expect(validateText(baseField, "")).toStrictEqual({
-      localeKey: "validation.text_too_short",
-    });
-    expect(validateText(baseField, " ")).toStrictEqual({
-      localeKey: "validation.text_too_short",
-    });
-  });
+  it("should validate text fields", () => {
+    // valid
+    const props1 = {
+      text: "valid",
+    };
+    expect(channelPropertyFieldValidate(textField, props1)).toBe(undefined);
 
-  it("returns validation.text_too_long for text longer than max_length", () => {
-    expect(validateText(baseField, "abcdef")).toStrictEqual({
+    // too long
+    const props2 = {
+      text: "too long too long",
+    };
+    expect(channelPropertyFieldValidate(textField, props2)).toEqual({
       localeKey: "validation.text_too_long",
     });
-  });
 
-  it("returns undefined if regex_validators pass", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        regex_validators: [
-          { regex: "^[a-z]+$", message: "Should only be lowercase" },
-        ],
-      },
+    // too short
+    const props3 = {
+      text: "a",
     };
-    expect(validateText(field, "abc")).toBeUndefined();
-  });
-
-  it("does not set errorCode for regex_validators failure (returns undefined)", () => {
-    // Note: The implementation does not set errorCode for regex failure, only returns pattern.message from .every
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        regex_validators: [
-          { regex: "^[a-z]+$", message: "Should only be lowercase" },
-        ],
-      },
-    };
-    expect(validateText(field, "ABC")).toStrictEqual({
-      value: "Should only be lowercase",
-    });
-  });
-
-  it("returns validation.text_too_short if regex passes but length fails", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        regex_validators: [
-          { regex: "^[a-z]+$", message: "Should only be lowercase" },
-        ],
-      },
-    };
-    expect(validateText(field, "a")).toStrictEqual({
+    expect(channelPropertyFieldValidate(textField, props3)).toEqual({
       localeKey: "validation.text_too_short",
     });
-  });
 
-  it("returns validation.text_too_long if regex passes but length fails", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        regex_validators: [
-          { regex: "^[a-z]+$", message: "Should only be lowercase" },
-        ],
-      },
+    // fail regex rule
+    const props4 = {
+      text: "1234",
     };
-    expect(validateText(field, "abcdef")).toStrictEqual({
-      localeKey: "validation.text_too_long",
+    expect(channelPropertyFieldValidate(textField, props4)).toEqual({
+      value: "error message from regex rule",
+    });
+
+    // fail regex rule with slashes
+    const props5 = {
+      text: "Q",
+    };
+    expect(channelPropertyFieldValidate(textField, props5)).toEqual({
+      value: "error message with regex rule with slashes",
     });
   });
 
-  it("handles multiple regex_validators", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        regex_validators: [
-          { regex: "^[a-z]+$", message: "Should only be lowercase" },
-          { regex: "^.{2,}$", message: "Should be at least two characters" },
-        ],
-      },
+  it("should validate email fields", () => {
+    // valid
+    const props1 = {
+      email: "test@test.com",
     };
-    expect(validateText(field, "ab")).toBeUndefined();
-    expect(validateText(field, "a")).toStrictEqual({
-      value: "Should be at least two characters",
+    expect(channelPropertyFieldValidate(emailField, props1)).toBe(undefined);
+
+    // invalid
+    const props2 = {
+      email: "not-an-email",
+    };
+    expect(channelPropertyFieldValidate(emailField, props2)).toEqual({
+      localeKey: "validation.generic_invalid",
     });
   });
 
-  it("returns undefined if no regex_validators and valid length", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        regex_validators: undefined,
-      },
+  it("should validate postal code", () => {
+    // valid
+    const props1 = {
+      postal_code: "12345",
     };
-    expect(validateText(field, "abcd")).toBeUndefined();
-  });
+    expect(channelPropertyFieldValidate(postalCodeField, props1)).toBe(
+      undefined,
+    );
 
-  it("returns validation.text_too_long if max_length is exceeded", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        max_length: 3,
-      },
+    // invalid
+    const props2 = {
+      postal_code: "invalid-postal-code!",
     };
-    expect(validateText(field, "abcd")).toStrictEqual({
-      localeKey: "validation.text_too_long",
+    expect(channelPropertyFieldValidate(postalCodeField, props2)).toEqual({
+      localeKey: "validation.generic_invalid",
     });
   });
 
-  it("returns undefined for exact min_length and max_length", () => {
-    const field = {
-      ...baseField,
-      type: {
-        ...baseField.type,
-        min_length: 2,
-        max_length: 4,
-      },
+  it("should validate phone number", () => {
+    // valid
+    const props1 = {
+      phone_number: "+6581234567",
     };
-    expect(validateText(field, "ab")).toBeUndefined();
-    expect(validateText(field, "abcd")).toBeUndefined();
+    expect(channelPropertyFieldValidate(phoneNumberField, props1)).toBe(
+      undefined,
+    );
+
+    // invalid
+    const props2 = {
+      phone_number: "zzzzzzzz",
+    };
+    expect(channelPropertyFieldValidate(phoneNumberField, props2)).toEqual({
+      localeKey: "validation.generic_invalid",
+    });
+  });
+
+  it("should validate unvalidated field", () => {
+    // valid
+    const props1 = {
+      no_validation: "any value",
+    };
+    expect(channelPropertyFieldValidate(noValidationField, props1)).toBe(
+      undefined,
+    );
+  });
+
+  it("should validate required field", () => {
+    // valid
+    const props1 = {
+      required: "some value",
+    };
+    expect(channelPropertyFieldValidate(requiredField, props1)).toBe(undefined);
+
+    // valid
+    const props2 = {};
+    expect(channelPropertyFieldValidate(requiredField, props2)).toEqual({
+      localeKey: "validation.required",
+    });
+  });
+
+  it("should validate all fields together", () => {
+    // valid
+    const props1 = {
+      required: "some value",
+      text: "valid",
+    };
+    const channel = channelWithForm([textField, requiredField]);
+    expect(channelPropertiesAreValid("PAY", channel, props1, true)).toBe(true);
+
+    // null is also treated as empty
+    const channel2 = channelWithForm([textField]);
+    expect(channelPropertiesAreValid("PAY", channel2, null, true)).toBe(true);
+
+    // invalid
+    const props3 = {};
+    expect(channelPropertiesAreValid("PAY", channel, props3, true)).toBe(false);
   });
 });

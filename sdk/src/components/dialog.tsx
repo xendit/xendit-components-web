@@ -45,8 +45,8 @@ export const Dialog: FunctionComponent<Props> = (props) => {
     }
     closeAnimationPlaying.current = true;
 
-    backdropRef.current.animate(backdropFadeOutKeyframes, animationOptions);
-    const animation = dialogRef.current.animate(
+    backdropRef.current.animate?.(backdropFadeOutKeyframes, animationOptions);
+    const animation = dialogRef.current.animate?.(
       foregroundFadeOutKeyframes,
       animationOptions,
     );
@@ -55,8 +55,8 @@ export const Dialog: FunctionComponent<Props> = (props) => {
 
   // play fade-in animation
   useLayoutEffect(() => {
-    backdropRef.current?.animate(backdropFadeKeyframes, animationOptions);
-    dialogRef.current?.animate(foregroundFadeKeyframes, animationOptions);
+    backdropRef.current?.animate?.(backdropFadeKeyframes, animationOptions);
+    dialogRef.current?.animate?.(foregroundFadeKeyframes, animationOptions);
   }, []);
 
   useLayoutEffect(() => {

@@ -20,17 +20,23 @@ export function waitForEvent(
   sdk: XenditComponents,
   eventName: keyof XenditEventMap,
 ) {
-  return new Promise<void>((resolve) => {
-    sdk.addEventListener(
-      eventName,
-      () => {
-        resolve();
-      },
-      { once: true },
-    );
+  return new Promise<void>((resolve, reject) => {
+    const fn = () => {
+      clearTimeout(timeout);
+      resolve();
+    };
+    const timeout = setTimeout(() => {
+      sdk.removeEventListener(eventName, fn);
+      reject(new Error(`Expected event "${eventName}" but it did not fire`));
+    }, 3000);
+    sdk.addEventListener(eventName, fn, { once: true });
   });
 }
 
 export function findEvent(arr: ReturnType<typeof watchEvents>, name: string) {
   return arr.find((e) => e.name === name);
 }
+
+export type Writable<T> = {
+  -readonly [K in keyof T]: T[K];
+};
