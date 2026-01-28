@@ -5,6 +5,7 @@ import { Dropdown, DropdownOption } from "./dropdown";
 import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
 import {
+  formFieldId,
   formFieldName,
   getValueFromChannelProperty,
   objectId,
@@ -19,7 +20,8 @@ import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
-  const id = formFieldName(field);
+  const id = formFieldId(field);
+  const name = formFieldName(field);
 
   const session = useSession();
   const allFields = useChannel()?.form;
@@ -76,7 +78,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   return (
     <>
-      <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
+      <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
       {options ? (
         <Dropdown
           key={objectId(options)}
