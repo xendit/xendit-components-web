@@ -1,3 +1,4 @@
+import { TFunction } from "i18next";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import qrcode from "qrcode";
 import qrSvgRenderer from "qrcode/lib/renderer/svg-tag";
@@ -11,10 +12,11 @@ type Props = {
   onAffirm: () => void;
   qrString: string;
   title: string;
+  t: TFunction<"session">;
 };
 
 export function ActionQr(props: Props) {
-  const { amount, channelLogo, currency, mock, onAffirm, qrString, title } =
+  const { amount, channelLogo, currency, mock, onAffirm, qrString, title, t } =
     props;
 
   const [showSpinner, setShowSpinner] = useState(false);
@@ -61,8 +63,9 @@ export function ActionQr(props: Props) {
           </div>
         </div>
         <button disabled={showSpinner} onClick={onMadePaymentClicked}>
-          {showSpinner ? "Please wait" : "I've made this payment"}
+          {t("action.payment_made")}
         </button>
+        <p>{t("action.payment_confirmation_instructions")}</p>
       </div>
     </div>
   );
