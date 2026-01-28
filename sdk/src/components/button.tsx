@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { FunctionComponent } from "preact";
+import { ComponentChildren, FunctionComponent } from "preact";
 
 export enum ButtonVariant {
   BARE = "bare",
@@ -8,7 +8,7 @@ export enum ButtonVariant {
 }
 
 type Props = {
-  children: React.ReactNode;
+  children: ComponentChildren;
   className?: string;
   disabled?: boolean;
   onClick?: (event: MouseEvent) => void;

@@ -220,10 +220,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     this.title = qrAction.action_title;
     this.cleanupFn = this.ensureHasActionContainer();
     this.populateActionContainer(() => createElement(ActionQr, actionQrProps));
-    // request immediate poll on next update
-    this.bb.pollImmediatelyRequested = true;
-
-    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 
   /**
@@ -234,7 +230,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.updateMocksOnSimulatePaymentCompletion();
     } else {
-      if (this.bb.sdkKey.hostId) {
+      if (this.bb.sdkKey.hostId === "pl") {
         // live mode
         this.bb.pollImmediatelyRequested = true;
       } else {
