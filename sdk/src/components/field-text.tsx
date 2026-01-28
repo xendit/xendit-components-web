@@ -1,13 +1,14 @@
 import { ChannelFormField } from "../backend-types/channel";
 import { FieldProps } from "./field";
-import { formFieldName } from "../utils";
+import { formFieldId, formFieldName } from "../utils";
 import { useRef } from "preact/hooks";
 import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
 export const TextField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
-  const id = formFieldName(field);
+  const id = formFieldId(field);
+  const name = formFieldName(field);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleChange(event: TargetedEvent<HTMLInputElement>): void {
@@ -23,7 +24,7 @@ export const TextField: FunctionComponent<FieldProps> = (props) => {
   return (
     <input
       id={id}
-      name={id}
+      name={name}
       ref={inputRef}
       type="text"
       placeholder={field.placeholder}

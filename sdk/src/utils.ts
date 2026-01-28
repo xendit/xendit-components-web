@@ -264,6 +264,47 @@ export function formFieldName(field: ChannelFormField): string {
   return id;
 }
 
+const seed =
+  process.env.NODE_ENV !== "test" ? Math.floor(Math.random() * 255) : 0;
+
+/**
+ * Get an ID for a channel field, for the "id" and label "for" attributes.
+ */
+export function formFieldId(field: ChannelFormField): string {
+  const obfuscatedId = formFieldName(field)
+    .split("")
+    .map((c) => {
+      const code = (c.charCodeAt(0) % 256) ^ seed;
+      return code.toString(16);
+    })
+    .join("");
+  return `xendit-id-${obfuscatedId}`;
+}
+
+function randomBytes(length: number) {
+  const arr = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    arr[i] = Math.floor(Math.random() * 256);
+  }
+  return arr;
+}
+
+function randomHexString(length: number) {
+  assert(length % 2 === 0);
+  const bytes = randomBytes(length / 2);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * useId but doesn't sometimes return the same id in different components
+ */
+export function useIdSafe(): string {
+  const id = useRef(randomHexString(12));
+  return `xendit-id-${id.current}`;
+}
+
 export function canBeSimulated(channel: BffChannel): boolean {
   switch (channel.pm_type) {
     case "QR_CODE":
@@ -363,14 +404,6 @@ export function objectId(object: object): string {
     objectIdMap.set(object, objectIdCounter++);
   }
   return objectIdMap.get(object)!.toString();
-}
-
-/**
- * useId but doesn't sometimes return the same id in different components
- */
-export function useIdSafe(): string {
-  const id = useRef(Math.random().toString(36).substring(2, 10));
-  return `xendit-id-${id.current}`;
 }
 
 export function resolvePairedChannel(

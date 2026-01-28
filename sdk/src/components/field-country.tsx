@@ -2,7 +2,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode, getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
-import { formFieldName, usePrevious } from "../utils";
+import { formFieldId, formFieldName, usePrevious } from "../utils";
 import { useCardDetails } from "./session-provider";
 import { FunctionComponent } from "preact";
 
@@ -31,7 +31,8 @@ const FlagIcon: FunctionComponent<FlagIconProps> = ({
 
 export const CountryField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
-  const id = formFieldName(field);
+  const id = formFieldId(field);
+  const name = formFieldName(field);
 
   const [selectedCountry, setSelectedCountry] = useState<
     CountryCode | undefined
@@ -64,7 +65,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
 
   return (
     <div>
-      <input type="hidden" name={id} defaultValue="" ref={hiddenFieldRef} />
+      <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
       <Dropdown
         id={id}
         options={COUNTRIES_AS_DROPDOWN_OPTIONS}
