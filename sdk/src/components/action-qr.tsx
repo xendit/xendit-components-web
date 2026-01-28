@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "preact/hooks";
 import qrcode from "qrcode";
 import qrSvgRenderer from "qrcode/lib/renderer/svg-tag";
 import { amountFormat } from "../amount-format";
+import { Button, ButtonLoadingSpinner, ButtonVariant } from "./button";
 
 type Props = {
   amount: number;
@@ -71,13 +72,14 @@ export function ActionQr(props: Props) {
         </div>
         <hr className="xendit-dotted-line" />
         <div>
-          <button
+          <Button
+            variant={ButtonVariant.WHITE_ROUNDED}
             disabled={showSpinner}
             onClick={onMadePaymentClicked}
-            className="xendit-button xendit-button-outline xendit-button-block"
+            className="xendit-button-block"
           >
-            {t("action.payment_made")}
-          </button>
+            {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
+          </Button>
           <p className="xendit-text-12 xendit-text-secondary xendit-text-center">
             {t("action.payment_confirmation_instructions")}
           </p>
