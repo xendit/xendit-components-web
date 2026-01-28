@@ -21,6 +21,7 @@ abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
   defaultContainerHeight = 0;
   defaultContainerWidth = 400;
+  title = "Complete your payment";
 
   constructor(protected bb: BlackboardType) {}
 
@@ -45,7 +46,7 @@ abstract class ContainerActionBehavior implements Behavior {
 
     const props = {
       sdk: this.bb.sdk,
-      title: "Complete your payment",
+      title: this.title,
       width: this.defaultContainerWidth,
       height: this.defaultContainerHeight,
       onClose: () => {
@@ -194,10 +195,9 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     private qrString: string,
   ) {
     super(bb);
-    this.defaultContainerWidth = 300;
   }
 
-  enter(): void {
+  enter() {
     const qrAction = this.bb.world?.paymentEntity?.entity.actions.find(
       (a) => a.type === "PRESENT_TO_CUSTOMER" && a.descriptor === "QR_STRING",
     );
@@ -213,10 +213,10 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
       qrString: this.qrString,
-      title: qrAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
 
+    this.title = qrAction.action_title;
     this.cleanupFn = this.ensureHasActionContainer();
     this.populateActionContainer(() => createElement(ActionQr, actionQrProps));
     // request immediate poll on next update

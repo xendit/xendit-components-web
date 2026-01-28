@@ -11,13 +11,11 @@ type Props = {
   mock: boolean;
   onAffirm: () => void;
   qrString: string;
-  title: string;
   t: TFunction<"session">;
 };
 
 export function ActionQr(props: Props) {
-  const { amount, channelLogo, currency, mock, onAffirm, qrString, title, t } =
-    props;
+  const { amount, channelLogo, currency, mock, onAffirm, qrString, t } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -35,37 +33,53 @@ export function ActionQr(props: Props) {
   }, [qrString]);
 
   return (
-    <div>
-      <div className="xendit-default-action-instructions">
+    <div className="xendit-action-present-to-customer">
+      <div className="xendit-action-present-to-customer-header">
         <div className="xendit-text-20 xendit-text-semibold xendit-text-center">
-          {title}
+          Scan to Pay
         </div>
-        <img
-          src={channelLogo}
-          alt={title}
-          className="xendit-action-channel-logo"
-        />
       </div>
-      <div className="xendit-default-action-content">
-        <div
-          data-testid="qr-code"
-          className="xendit-action-qr-qrcode-container"
-          ref={(r) => {
-            if (r && (r.childNodes.length !== 1 || r.firstChild !== svgNode)) {
-              // insert svg if not already present
-              r?.replaceChildren(svgNode);
-            }
-          }}
-        />
-        <div className="xendit-action-amount">
-          <div className="xendit-text-18 xendit-text-semibold xendit-text-center">
-            {amountFormat(amount, currency)}
+      <div className="xendit-action-present-to-customer-content">
+        <div className="xendit-action-qr-content">
+          <div className="xendit-action-qr-channel-logo-container">
+            <img
+              src={channelLogo}
+              alt="Channel Logo"
+              className="xendit-action-qr-channel-logo"
+            />
+          </div>
+          <div
+            data-testid="qr-code"
+            className="xendit-action-qr-qrcode-container"
+            ref={(r) => {
+              if (
+                r &&
+                (r.childNodes.length !== 1 || r.firstChild !== svgNode)
+              ) {
+                // insert svg if not already present
+                r?.replaceChildren(svgNode);
+              }
+            }}
+          />
+          <div className="xendit-action-qr-amount-container">
+            <div className="xendit-text-18 xendit-text-semibold xendit-text-center">
+              {amountFormat(amount, currency)}
+            </div>
           </div>
         </div>
-        <button disabled={showSpinner} onClick={onMadePaymentClicked}>
-          {t("action.payment_made")}
-        </button>
-        <p>{t("action.payment_confirmation_instructions")}</p>
+        <hr className="xendit-dotted-line" />
+        <div>
+          <button
+            disabled={showSpinner}
+            onClick={onMadePaymentClicked}
+            className="xendit-button xendit-button-outline xendit-button-block"
+          >
+            {t("action.payment_made")}
+          </button>
+          <p className="xendit-text-12 xendit-text-secondary xendit-text-center">
+            {t("action.payment_confirmation_instructions")}
+          </p>
+        </div>
       </div>
     </div>
   );
