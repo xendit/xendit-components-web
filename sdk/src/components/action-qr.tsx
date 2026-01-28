@@ -12,10 +12,12 @@ type Props = {
   onAffirm: () => void;
   qrString: string;
   t: TFunction<"session">;
+  title: string;
 };
 
 export function ActionQr(props: Props) {
-  const { amount, channelLogo, currency, mock, onAffirm, qrString, t } = props;
+  const { amount, channelLogo, currency, mock, onAffirm, qrString, t, title } =
+    props;
 
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -36,7 +38,7 @@ export function ActionQr(props: Props) {
     <div className="xendit-action-present-to-customer">
       <div className="xendit-action-present-to-customer-header">
         <div className="xendit-text-20 xendit-text-semibold xendit-text-center">
-          Scan to Pay
+          {title}
         </div>
       </div>
       <div className="xendit-action-present-to-customer-content">
