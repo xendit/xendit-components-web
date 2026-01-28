@@ -557,6 +557,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const container = document.createElement("xendit-channel-picker");
+    container.setAttribute("translate", "no");
 
     // Store the container for later population
     this[internal].liveComponents.channelPicker = container;
@@ -673,6 +674,8 @@ export class XenditComponents extends EventTarget {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("data-channel-code", channelCode);
       container.setAttribute("inert", "");
+      container.setAttribute("translate", "no");
+
       this.setupUiEventsForPaymentChannel(container);
 
       this[internal].liveComponents.paymentChannels.set(channelCode, {
@@ -936,6 +939,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const container = document.createElement("xendit-action-container");
+    container.setAttribute("translate", "no");
 
     this[internal].liveComponents.actionContainer = container;
 
