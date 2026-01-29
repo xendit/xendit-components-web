@@ -226,6 +226,14 @@ if (channel) {
 
 Makes the provided channel the current channel.
 
+### `pollImmediately`
+
+```typescript
+components.pollImmediately();
+```
+
+Request an immediate poll for session status. Useful for handling payment affirmation (e.g. I have made the payment) by the user. The session must still be active.
+
 ## Events
 
 ### `init`

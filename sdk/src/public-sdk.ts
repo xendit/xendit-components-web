@@ -1139,6 +1139,32 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
+   * @public
+   * Request an immediate poll for session status. Useful for handling payment
+   * affirmation (e.g. I have made the payment) by the user. The session must still
+   * be active.
+   *
+   * @example
+   * ```
+   * function onUserAffirmPayment() {
+   *   components.pollImmediately();
+   * }
+   * ```
+   */
+  pollImmediately() {
+    this.assertInitialized();
+
+    if (this[internal].worldState.session.status !== "ACTIVE") {
+      throw new Error(
+        "Unable to poll immediately; the session is not longer active.",
+      );
+    }
+
+    this[internal].behaviorTree.bb.pollImmediatelyRequested = true;
+    this.behaviorTreeUpdate();
+  }
+
+  /**
    * @internal
    * TODO: remove this, it's for debugging
    */
