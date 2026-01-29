@@ -229,6 +229,8 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   }
 
   const action = findBestAction(bb.world.paymentEntity.entity.actions);
+  const actionIndex = bb.world.paymentEntity.entity.actions.indexOf(action);
+
   switch (action.type) {
     case "REDIRECT_CUSTOMER": {
       switch (action.descriptor) {
@@ -255,7 +257,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
     case "PRESENT_TO_CUSTOMER": {
       switch (action.descriptor) {
         case "QR_STRING": {
-          return behaviorNode(ActionQrBehavior, action.value);
+          return behaviorNode(ActionQrBehavior, String(actionIndex));
         }
         case "PAYMENT_CODE": {
           throw new Error(

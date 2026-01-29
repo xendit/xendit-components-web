@@ -192,15 +192,14 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
 export class ActionQrBehavior extends ContainerActionBehavior {
   constructor(
     protected bb: BlackboardType,
-    private qrString: string,
+    private actionIndex: string,
   ) {
     super(bb);
   }
 
   enter() {
-    const qrAction = this.bb.world?.paymentEntity?.entity.actions.find(
-      (a) => a.type === "PRESENT_TO_CUSTOMER" && a.descriptor === "QR_STRING",
-    );
+    const qrAction =
+      this.bb.world?.paymentEntity?.entity.actions[Number(this.actionIndex)];
 
     assertEquals(qrAction?.type, "PRESENT_TO_CUSTOMER");
     assert(this.bb.world);
@@ -212,7 +211,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       currency: this.bb.world.session.currency,
       mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
-      qrString: this.qrString,
+      qrString: qrAction.value,
       t: this.bb.sdk.t.bind(this.bb.sdk),
       title: qrAction.action_subtitle,
     };
