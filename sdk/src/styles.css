@@ -281,6 +281,12 @@ xendit-payment-channel[inert] {
   gap: 16px;
 }
 
+.xendit-payment-channel-banner {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
 .xendit-payment-channel-instructions {
   display: grid;
   grid-template-columns: auto 1fr;
