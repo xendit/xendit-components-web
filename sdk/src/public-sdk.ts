@@ -1139,6 +1139,25 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
+   * @public
+   * Request an immediate poll for session status. Useful for handling payment
+   * affirmation (e.g. I have made the payment) by the user.
+   *
+   * @example
+   * ```
+   * function onUserAffirmPayment() {
+   *   components.pollImmediately();
+   * }
+   * ```
+   */
+  pollImmediately() {
+    this.assertInitialized();
+
+    this[internal].behaviorTree.bb.pollImmediatelyRequested = true;
+    this.behaviorTreeUpdate();
+  }
+
+  /**
    * @internal
    * TODO: remove this, it's for debugging
    */
