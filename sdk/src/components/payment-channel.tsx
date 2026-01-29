@@ -6,7 +6,11 @@ import {
   RefObject,
   TargetedEvent,
 } from "preact";
-import { BffChannel, ChannelProperties } from "../backend-types/channel";
+import {
+  BffChannel,
+  BffChannelBanner,
+  ChannelProperties,
+} from "../backend-types/channel";
 import { InstructionsIcon } from "./instructions-icon";
 import { useSdk, useSession } from "./session-provider";
 import { Checkbox } from "./checkbox";
@@ -86,6 +90,9 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
             checked={savePaymentMethod}
           />
         )}
+        {resolvedChannel.banner ? (
+          <Banner banner={resolvedChannel.banner} />
+        ) : null}
         {instructions ? (
           <div className="xendit-payment-channel-instructions">
             <InstructionsIcon />
@@ -103,6 +110,34 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
         ) : null}
       </div>
     </ChannelContext.Provider>
+  );
+};
+
+const Banner: FunctionComponent<{ banner: BffChannelBanner }> = (props) => {
+  if (props.banner?.link_url) {
+    return (
+      <a href={props.banner.link_url} target="_blank" rel="noopener noreferrer">
+        <img
+          src={props.banner.image_url}
+          alt={props.banner.alt_text}
+          className="xendit-payment-channel-banner"
+          style={{
+            aspectRatio: props.banner.aspect_ratio,
+          }}
+        />
+      </a>
+    );
+  }
+
+  return (
+    <img
+      src={props.banner.image_url}
+      alt={props.banner.alt_text}
+      className="xendit-payment-channel-banner"
+      style={{
+        aspectRatio: props.banner.aspect_ratio,
+      }}
+    />
   );
 };
 
