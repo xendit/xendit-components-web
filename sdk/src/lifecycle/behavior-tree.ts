@@ -8,6 +8,7 @@ import {
 } from "../public-sdk";
 import {
   findBestAction,
+  formHasFieldOfType,
   ParsedSdkKey,
   redirectCanBeHandledInIframe,
 } from "../utils";
@@ -29,6 +30,7 @@ import {
   PePendingBehavior,
   PeRequiresActionBehavior,
 } from "./behaviors/payment-entity";
+import { PaymentOptionsBehavior } from "./behaviors/payment-options";
 import {
   SdkActiveBehavior,
   SdkFatalErrorBehavior,
@@ -142,29 +144,30 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     return undefined;
   }
 
-  const billingInformationRequired =
-    bb.channelData?.cardDetails?.details?.require_billing_information ?? false;
-
   const channelPropertiesValid = channelPropertiesAreValid(
     bb.world.session.session_type,
     bb.channel,
-    bb.channelProperties ?? null,
-    billingInformationRequired,
+    bb.channelProperties,
+    bb.channelData,
   );
 
-  const formValidityBehavior = channelPropertiesValid
+  let result = channelPropertiesValid
     ? behaviorNode(ChannelValidBehavior)
     : behaviorNode(ChannelInvalidBehavior);
 
-  if (bb.channel.channel_code === "CARDS") {
-    return behaviorNode(
-      CardInfoBehavior,
-      bb.channel.channel_code,
-      formValidityBehavior,
-    );
-  } else {
-    return formValidityBehavior;
+  if (formHasFieldOfType(bb.channel, "credit_card_number")) {
+    result = behaviorNode(CardInfoBehavior, bb.channel.channel_code, result);
   }
+
+  if (formHasFieldOfType(bb.channel, "installment_plan")) {
+    result = behaviorNode(
+      PaymentOptionsBehavior,
+      bb.channel.channel_code,
+      result,
+    );
+  }
+
+  return result;
 }
 
 export function behaviorTreeForSubmission(bb: BlackboardType) {

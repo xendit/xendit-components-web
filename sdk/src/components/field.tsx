@@ -6,6 +6,7 @@ import { IframeField } from "./field-iframe";
 import { PhoneNumberField } from "./field-phone-number";
 import { ProvinceField } from "./field-province";
 import { TextField } from "./field-text";
+import { FieldInstallmentPlan } from "./field-installment-plan";
 
 export interface FieldProps {
   field: ChannelFormField;
@@ -31,7 +32,7 @@ const Field: FunctionComponent<FieldProps> = (props) => {
       case "dropdown":
         return <DropdownField {...props} />;
       case "installment_plan":
-        return null; // TODO
+        return <FieldInstallmentPlan {...props} />;
       case "country":
         return <CountryField {...props} />;
       case "province":

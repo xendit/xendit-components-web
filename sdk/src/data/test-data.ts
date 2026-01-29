@@ -192,6 +192,20 @@ export function makeTestBffData(): BffResponse {
             span: 2,
           },
           {
+            label: "Installment plan",
+            placeholder: "Select installment plan",
+            type: {
+              name: "installment_plan",
+            },
+            channel_property: [
+              "installment_configuration.terms",
+              "installment_configuration.interval",
+              "installment_configuration.code",
+            ],
+            required: false,
+            span: 2,
+          },
+          {
             group_label: "Billing Address",
             label: "First Name",
             placeholder: "First Name",
@@ -586,6 +600,16 @@ export function makeTestBffData(): BffResponse {
                 { label: "Option 1", value: "option_1" },
                 { label: "Option 2", value: "option_2" },
                 { label: "Option 3", value: "option_3" },
+                {
+                  label: "Option 4",
+                  value: "option_4",
+                  subtitle: "With subtitle",
+                },
+                {
+                  label: "Option 5",
+                  value: "option_5",
+                  subtitle: "With subtitle",
+                },
               ],
             },
             channel_property: "dropdown_field",

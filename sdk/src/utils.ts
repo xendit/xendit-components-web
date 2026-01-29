@@ -407,6 +407,51 @@ export function getCardNumberFromChannelProperties(
   return cardNumber;
 }
 
+export function parseEncryptedFieldValue(str: string) {
+  const out = {
+    version: 0,
+    publicKey: "",
+    iv: "",
+    cipherText: "",
+    valid: false,
+    validationError: null as string | null,
+    withoutValidationError: str,
+  };
+  if (!str) {
+    return out;
+  }
+
+  const parts = str.split("-");
+  if (parts.length < 6) {
+    throw new Error("Invalid encrypted field value format.");
+  }
+  if (parts[0] !== "xendit") {
+    throw new Error("Invalid encrypted field value format.");
+  }
+  if (parts[1] !== "encrypted") {
+    throw new Error("Invalid encrypted field value format.");
+  }
+  const version = parseInt(parts[2], 10);
+  if (isNaN(version) || version <= 0) {
+    throw new Error("Invalid encrypted field value format.");
+  }
+  out.version = version;
+  out.publicKey = parts[3];
+  out.iv = parts[4];
+  out.cipherText = parts[5];
+  if (parts.length > 6) {
+    if (parts[6] !== "invalid") {
+      throw new Error("Invalid encrypted field value format.");
+    }
+    out.validationError = atob(parts[7]);
+    out.withoutValidationError = parts.slice(0, 6).join("-");
+  } else {
+    out.valid = true;
+  }
+
+  return out;
+}
+
 const objectIdMap = new WeakMap<object, number>();
 let objectIdCounter = 1;
 export function objectId(object: object): string {
@@ -471,4 +516,13 @@ const RELEASED_CHANNELS: Record<string, boolean> = {
 // filter out channels not supported by this SDK version
 export function removeUnreleasedChannels(channels: BffChannel[]): BffChannel[] {
   return channels.filter((channel) => RELEASED_CHANNELS[channel.channel_code]);
+}
+
+export function formHasFieldOfType(channel: BffChannel, type: string): boolean {
+  for (const field of channel.form) {
+    if (field.type.name === type) {
+      return true;
+    }
+  }
+  return false;
 }
