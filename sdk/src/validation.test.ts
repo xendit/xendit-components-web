@@ -237,14 +237,14 @@ describe("validation", () => {
       text: "valid",
     };
     const channel = channelWithForm([textField, requiredField]);
-    expect(channelPropertiesAreValid("PAY", channel, props1, true)).toBe(true);
+    expect(channelPropertiesAreValid("PAY", channel, props1, null)).toBe(true);
 
     // null is also treated as empty
     const channel2 = channelWithForm([textField]);
-    expect(channelPropertiesAreValid("PAY", channel2, null, true)).toBe(true);
+    expect(channelPropertiesAreValid("PAY", channel2, null, null)).toBe(true);
 
     // invalid
     const props3 = {};
-    expect(channelPropertiesAreValid("PAY", channel, props3, true)).toBe(false);
+    expect(channelPropertiesAreValid("PAY", channel, props3, null)).toBe(false);
   });
 });

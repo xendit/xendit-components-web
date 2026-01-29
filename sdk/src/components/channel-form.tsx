@@ -11,12 +11,12 @@ import {
 } from "preact/hooks";
 import { useSession } from "./session-provider";
 import FieldGroup from "./field-group";
-import { BffCardDetails } from "../backend-types/card-details";
 import { usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { useChannelComponentData } from "./payment-channel";
+import { ChannelComponentData } from "../public-sdk";
 
 interface Props {
   form: ChannelFormField[];
@@ -29,7 +29,7 @@ export interface ChannelFormHandle {
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
-    const cardDetails = useChannelComponentData()?.cardDetails;
+    const channelComponentData = useChannelComponentData();
     const formRef = useRef<HTMLFormElement>(null);
 
     const [channelProperties, setChannelProperties] =
@@ -73,7 +73,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     const filteredForm = useFilteredFormFields(
       session,
       form,
-      cardDetails?.details ?? null,
+      channelComponentData ?? null,
     );
 
     // trigger a field changed callback when the form changes
@@ -232,15 +232,11 @@ function formValueToStringArray(subkeys: string[], value: string): string[] {
 export function useFilteredFormFields(
   session: BffSession,
   form: ChannelFormField[],
-  cardInfo: BffCardDetails | null,
+  channelComponentData: ChannelComponentData | null,
 ) {
   const filteredForm = useMemo(() => {
-    return filterFormFields(
-      session.session_type,
-      form,
-      cardInfo?.require_billing_information ?? false,
-    );
-  }, [cardInfo?.require_billing_information, form, session.session_type]);
+    return filterFormFields(session.session_type, form, channelComponentData);
+  }, [channelComponentData, form, session.session_type]);
 
   return filteredForm;
 }
@@ -248,13 +244,22 @@ export function useFilteredFormFields(
 export function filterFormFields(
   sessionType: BffSessionType,
   form: ChannelFormField[],
-  showBillingDetailsFields: boolean,
+  channelComponentData: ChannelComponentData | null,
 ) {
+  const showBillingDetailsFields =
+    channelComponentData?.cardDetails?.details?.require_billing_information;
+  const hasInstallmentPlans =
+    !!channelComponentData?.paymentOptions?.options?.installment_plans?.length;
+
   return form.filter((field) => {
     if (field.flags?.require_billing_information) {
       // these fields should only be shown if billing details are required
       if (sessionType !== "PAY") return false;
       if (!showBillingDetailsFields) return false;
+    }
+    if (field.type.name === "installment_plan") {
+      // only show installment plan field if there are installment plans
+      if (!hasInstallmentPlans) return false;
     }
     return true;
   });

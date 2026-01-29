@@ -38,6 +38,7 @@ import {
   ActionIframeBehavior,
 } from "./behaviors/action";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
+import { PaymentOptionsBehavior } from "./behaviors/payment-options";
 
 const testData = makeTestBffData();
 
@@ -186,6 +187,7 @@ describe("Behavior Tree - Form validity and card info", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      PaymentOptionsBehavior,
       CardInfoBehavior,
       ChannelInvalidBehavior,
     ]);
