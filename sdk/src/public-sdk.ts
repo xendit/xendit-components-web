@@ -1154,7 +1154,7 @@ export class XenditComponents extends EventTarget {
   pollImmediately() {
     this.assertInitialized();
 
-    if (this[internal].behaviorTree.bb.world?.session.status !== "ACTIVE") {
+    if (this[internal].worldState.session.status !== "ACTIVE") {
       throw new Error(
         "Unable to poll immediately; the session is not longer active.",
       );
