@@ -853,7 +853,7 @@ xendit-payment-channel[inert] {
   border-bottom: none;
 }
 .xendit-action-qr-channel-logo {
-  height: 24px;
+  height: 40px;
   object-fit: contain;
 }
 .xendit-action-qr-qrcode-container {
