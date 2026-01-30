@@ -561,28 +561,32 @@ xendit-payment-channel[inert] {
   align-items: center;
 }
 
+.xendit-dialog {
+  background-color: var(--xendit-color-background);
+  border-radius: 8px;
+}
+
 .xendit-dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--xendit-color-background);
-  padding: 8px 0;
+  color: var(--xendit-color-text);
+  padding: 16px;
   gap: 16px;
-  line-height: 24px;
+  line-height: 20px;
+  border-bottom: 1px solid var(--xendit-color-border);
 }
 
 .xendit-dialog-header button {
   background: none;
   border: none;
-  color: var(--xendit-color-background);
+  color: var(--xendit-color-text);
   cursor: pointer;
   padding: 0;
 }
 
 .xendit-dialog-body {
   display: flex;
-  background-color: var(--xendit-color-background);
-  border-radius: 8px;
   padding: 8px;
 }
 
