@@ -557,6 +557,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const container = document.createElement("xendit-channel-picker");
+    container.setAttribute("translate", "no");
 
     // Store the container for later population
     this[internal].liveComponents.channelPicker = container;
@@ -673,6 +674,8 @@ export class XenditComponents extends EventTarget {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("data-channel-code", channelCode);
       container.setAttribute("inert", "");
+      container.setAttribute("translate", "no");
+
       this.setupUiEventsForPaymentChannel(container);
 
       this[internal].liveComponents.paymentChannels.set(channelCode, {
@@ -936,6 +939,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const container = document.createElement("xendit-action-container");
+    container.setAttribute("translate", "no");
 
     this[internal].liveComponents.actionContainer = container;
 
@@ -1135,6 +1139,32 @@ export class XenditComponents extends EventTarget {
     }
 
     this[internal].behaviorTree.bb.simulatePaymentRequested = true;
+    this.behaviorTreeUpdate();
+  }
+
+  /**
+   * @public
+   * Request an immediate poll for session status. Useful for handling payment
+   * affirmation (e.g. I have made the payment) by the user. The session must still
+   * be active.
+   *
+   * @example
+   * ```
+   * function onUserAffirmPayment() {
+   *   components.pollImmediately();
+   * }
+   * ```
+   */
+  pollImmediately() {
+    this.assertInitialized();
+
+    if (this[internal].worldState.session.status !== "ACTIVE") {
+      throw new Error(
+        "Unable to poll immediately; the session is not longer active.",
+      );
+    }
+
+    this[internal].behaviorTree.bb.pollImmediatelyRequested = true;
     this.behaviorTreeUpdate();
   }
 
