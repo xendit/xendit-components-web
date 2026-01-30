@@ -321,3 +321,14 @@ const sdk = new XenditComponents({
   },
 });
 ```
+
+### Appearance of QR codes
+
+```typescript
+const sdk = new XenditComponents({
+  qrCodeAppearance: {
+    // set to true to remove any additional UI elements and just render the QR code
+    qrCodeOnly: true,
+  },
+});
+```
