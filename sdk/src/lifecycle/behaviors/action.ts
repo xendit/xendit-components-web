@@ -209,6 +209,8 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
+      hideUi:
+        this.bb.sdk[internal].options.qrCodeAppearance?.qrCodeOnly ?? false,
       mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,

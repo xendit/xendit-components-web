@@ -93,15 +93,23 @@ const iframeFieldAppearance: import("./src/public-options-types").IframeAppearan
       },
     },
   };
+const qrCodeAppearance: import("./src/public-options-types").QrCodeAppearanceOptions =
+  {
+    // qrCodeOnly: true,
+  };
 const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     componentsSdkKey: savedKey,
     iframeFieldAppearance,
+    qrCodeAppearance,
   });
 } else {
-  components = new XenditComponentsTest({ iframeFieldAppearance });
+  components = new XenditComponentsTest({
+    iframeFieldAppearance,
+    qrCodeAppearance,
+  });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
