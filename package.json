@@ -53,6 +53,7 @@
     "i18next": "^25.8.0",
     "libphonenumber-js": "^1.12.35",
     "preact": "^10.28.2",
+    "qrcode": "^1.5.4",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
@@ -71,6 +72,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^24.10.1",
+    "@types/qrcode": "^1.5.6",
     "@vitest/coverage-v8": "4.0.17",
     "eslint": "^9.39.2",
     "eslint-plugin-react-hooks": "^7.0.1",

@@ -1,4 +1,4 @@
-import { createElement, render } from "preact";
+import { createElement, render, ComponentChildren } from "preact";
 import { IframeActionCompleteEvent } from "../../../../shared/types";
 import {
   InternalBehaviorTreeUpdateEvent,
@@ -9,88 +9,21 @@ import {
   makeTestPollResponseForFailure,
   makeTestPollResponseForSuccess,
 } from "../../test-data";
-import { assert } from "../../utils";
+import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { ActionIframe } from "../../components/action-iframe";
+import { ActionQr } from "../../components/action-qr";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
 
-export class ActionCompletedBehavior implements Behavior {
-  constructor(private bb: BlackboardType) {}
-  enter() {}
-}
-
-export class ActionRedirectBehavior implements Behavior {
-  constructor(
-    private bb: BlackboardType,
-    private url: string,
-  ) {}
-
-  enter() {
-    this.bb.dispatchEvent(new XenditWillRedirectEvent());
-    window.location.href = this.url;
-  }
-}
-
-export class ActionIframeBehavior implements Behavior {
+abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
+  defaultContainerHeight = 0;
+  defaultContainerWidth = 400;
+  title = "Complete your payment";
 
-  constructor(
-    private bb: BlackboardType,
-    private url: string,
-  ) {}
-
-  enter() {
-    this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainerWithIframe(
-      this.url,
-      this.bb.mock,
-      (event: IframeActionCompleteEvent) => {
-        this.cleanupActionContainer(false);
-        this.updateMocksOnIframeCompletion(event.mockStatus === "success");
-
-        // setting actionCompleted will ensure the action UI isn't shown again
-        this.bb.actionCompleted = true;
-        // request immediate poll on next update
-        this.bb.pollImmediatelyRequested = true;
-
-        this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
-      },
-    );
-  }
-
-  updateMocksOnIframeCompletion(success: boolean) {
-    assert(this.bb.world?.paymentEntity);
-    if (this.bb.mock) {
-      if (success) {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForSuccess(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      } else {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForFailure(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  cleanupActionContainer(cancelledByUser: boolean) {
-    if (this.cleanupFn) {
-      this.cleanupFn(cancelledByUser);
-      this.cleanupFn = null;
-    }
-  }
+  constructor(protected bb: BlackboardType) {}
 
   /**
    * Creates a default action container if the user has not created one already.
@@ -110,9 +43,12 @@ export class ActionIframeBehavior implements Behavior {
 
     const container = document.createElement("div");
     container.setAttribute("class", "xendit-default-action-container");
+
     const props = {
       sdk: this.bb.sdk,
-      title: "Complete your payment",
+      title: this.title,
+      width: this.defaultContainerWidth,
+      height: this.defaultContainerHeight,
       onClose: () => {
         cleanedUp = true;
         render(null, container);
@@ -145,6 +81,13 @@ export class ActionIframeBehavior implements Behavior {
     };
   }
 
+  cleanupActionContainer(cancelledByUser: boolean) {
+    if (this.cleanupFn) {
+      this.cleanupFn(cancelledByUser);
+      this.cleanupFn = null;
+    }
+  }
+
   emptyActionContainer() {
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
     if (container) {
@@ -152,11 +95,11 @@ export class ActionIframeBehavior implements Behavior {
     }
   }
 
-  populateActionContainerWithIframe(
-    url: string,
-    mock: boolean,
-    onIframeComplete: (event: IframeActionCompleteEvent) => void,
-  ) {
+  /**
+   * Populates the action container with the provided component.
+   * This method handles the common logic of getting the container and rendering the component.
+   */
+  populateActionContainer(createComponent: () => ComponentChildren) {
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
     if (!container) {
       throw new Error(
@@ -164,14 +107,148 @@ export class ActionIframeBehavior implements Behavior {
       );
     }
 
-    render(
-      createElement(ActionIframe, { url, mock, onIframeComplete }),
-      container,
-    );
+    render(createComponent(), container);
   }
 
   exit() {
     this.cleanupActionContainer(false);
     this.emptyActionContainer();
+  }
+}
+
+export class ActionCompletedBehavior implements Behavior {
+  constructor(private bb: BlackboardType) {}
+  enter() {}
+}
+
+export class ActionRedirectBehavior implements Behavior {
+  constructor(
+    private bb: BlackboardType,
+    private url: string,
+  ) {}
+
+  enter() {
+    this.bb.dispatchEvent(new XenditWillRedirectEvent());
+    window.location.href = this.url;
+  }
+}
+
+export class ActionIframeBehavior extends ContainerActionBehavior {
+  constructor(
+    protected bb: BlackboardType,
+    private url: string,
+  ) {
+    super(bb);
+    this.defaultContainerHeight = 600;
+  }
+
+  enter() {
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() =>
+      createElement(ActionIframe, {
+        url: this.url,
+        mock: this.bb.mock,
+        onIframeComplete: (event: IframeActionCompleteEvent) => {
+          this.cleanupActionContainer(false);
+          this.updateMocksOnIframeCompletion(event.mockStatus === "success");
+
+          // setting actionCompleted will ensure the action UI isn't shown again
+          this.bb.actionCompleted = true;
+          // request immediate poll on next update
+          this.bb.pollImmediatelyRequested = true;
+
+          this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+        },
+      }),
+    );
+  }
+
+  updateMocksOnIframeCompletion(success: boolean) {
+    assert(this.bb.world?.paymentEntity);
+    if (this.bb.mock) {
+      if (success) {
+        this.bb.dispatchEvent(
+          new InternalScheduleMockUpdateEvent(
+            makeTestPollResponseForSuccess(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
+          ),
+        );
+      } else {
+        this.bb.dispatchEvent(
+          new InternalScheduleMockUpdateEvent(
+            makeTestPollResponseForFailure(
+              this.bb.world.session,
+              this.bb.world.paymentEntity,
+            ),
+          ),
+        );
+      }
+    }
+  }
+}
+
+export class ActionQrBehavior extends ContainerActionBehavior {
+  constructor(
+    protected bb: BlackboardType,
+    private actionIndex: string,
+  ) {
+    super(bb);
+  }
+
+  enter() {
+    const qrAction =
+      this.bb.world?.paymentEntity?.entity.actions[Number(this.actionIndex)];
+
+    assertEquals(qrAction?.type, "PRESENT_TO_CUSTOMER");
+    assert(this.bb.world);
+    assert(this.bb.channel);
+
+    const actionQrProps = {
+      amount: this.bb.world.session.amount,
+      channelLogo: this.bb.channel.brand_logo_url,
+      currency: this.bb.world.session.currency,
+      mock: this.bb.mock,
+      onAffirm: this.affirmPayment.bind(this),
+      qrString: qrAction.value,
+      t: this.bb.sdk.t.bind(this.bb.sdk),
+      title: qrAction.action_subtitle,
+    };
+
+    this.title = qrAction.action_title;
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => createElement(ActionQr, actionQrProps));
+  }
+
+  /**
+   * Fired when user affirms they have made the payment by clicking
+   * the affirm button.
+   */
+  affirmPayment() {
+    if (this.bb.mock) {
+      this.updateMocksOnSimulatePaymentCompletion();
+    } else {
+      if (this.bb.sdkKey.hostId === "pl") {
+        // live mode
+        this.bb.pollImmediatelyRequested = true;
+      } else {
+        this.bb.simulatePaymentRequested = true;
+      }
+    }
+  }
+
+  updateMocksOnSimulatePaymentCompletion() {
+    assert(this.bb.world?.paymentEntity);
+    if (this.bb.mock) {
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponseForSuccess(
+            this.bb.world.session,
+            this.bb.world.paymentEntity,
+          ),
+        ),
+      );
+    }
   }
 }

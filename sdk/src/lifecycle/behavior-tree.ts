@@ -12,6 +12,7 @@ import { behaviorNode } from "./behavior-tree-runner";
 import {
   ActionCompletedBehavior,
   ActionIframeBehavior,
+  ActionQrBehavior,
   ActionRedirectBehavior,
 } from "./behaviors/action";
 import { CardInfoBehavior } from "./behaviors/card-info";
@@ -228,6 +229,8 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   }
 
   const action = findBestAction(bb.world.paymentEntity.entity.actions);
+  const actionIndex = bb.world.paymentEntity.entity.actions.indexOf(action);
+
   switch (action.type) {
     case "REDIRECT_CUSTOMER": {
       switch (action.descriptor) {
@@ -254,9 +257,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
     case "PRESENT_TO_CUSTOMER": {
       switch (action.descriptor) {
         case "QR_STRING": {
-          throw new Error(
-            `Unsupported action type ${action.type} ${action.descriptor}`,
-          );
+          return behaviorNode(ActionQrBehavior, String(actionIndex));
         }
         case "PAYMENT_CODE": {
           throw new Error(
