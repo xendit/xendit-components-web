@@ -1,5 +1,7 @@
 # xendit-components-web
 
+![npm badge](https://img.shields.io/npm/v/xendit-components-web) ![build status badge](https://img.shields.io/github/actions/workflow/status/xendit/xendit-components-web/build-and-test.yml) ![coverage badge](https://img.shields.io/codecov/c/github/xendit/xendit-components-web/config/badge.svg)
+
 Xendit Components allows you to accept payments directly on your website using the Xendit Sessions API.
 
 This SDK's role is to take a Session (created on your server using the Xendit Sessions API) and render a payment UI, and allow you to customize the UI to match your site's look & feel.
