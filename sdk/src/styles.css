@@ -168,13 +168,15 @@ xendit-payment-channel select::placeholder {
 .xendit-accordion {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  border: 1px solid var(--xendit-color-border);
+  border-radius: var(--xendit-radius-1);
+  background: var(--xendit-color-background);
 }
 
-.xendit-accordion-item {
-  border: 1px solid var(--xendit-color-border);
-  border-radius: 8px;
-  background: var(--xendit-color-background);
+.xendit-accordion-item:not(:first-child) {
+  border-top: 1px solid var(--xendit-color-border);
+  border-top-left-radius: var(--xendit-radius-1);
+  border-top-right-radius: var(--xendit-radius-1);
 }
 
 .xendit-accordion-item-header {
@@ -188,12 +190,8 @@ xendit-payment-channel select::placeholder {
   border-radius: 8px;
 }
 
-.xendit-accordion-item-disabled.xendit-accordion-item {
-  background-color: var(--xendit-color-disabled);
-  border-color: var(--xendit-color-disabled);
-}
-
 .xendit-accordion-item-disabled .xendit-accordion-item-header {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -308,6 +306,12 @@ xendit-payment-channel[inert] {
   grid-template-columns: auto 1fr;
   grid-gap: 12px;
   color: var(--xendit-color-text-secondary);
+}
+
+.xendit-payment-channel-instructions-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .xendit-payment-channel-instructions-text {

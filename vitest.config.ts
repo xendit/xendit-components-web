@@ -33,7 +33,7 @@ export default defineConfig({
     testTimeout: 10000,
     coverage: {
       enabled: true,
-      reporter: ["html"],
+      reporter: process.env.CI ? ["lcov"] : ["html"],
       include: ["sdk/src/**/*.{ts,tsx}", "secure-iframe/src/**/*.{ts,tsx}"],
     },
     pool: "threads",
