@@ -3,8 +3,8 @@ import { FieldProps } from "./field";
 import { CountryCode, getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { formFieldId, formFieldName, usePrevious } from "../utils";
-import { useCardDetails } from "./session-provider";
 import { FunctionComponent } from "preact";
+import { useChannelComponentData } from "./payment-channel";
 
 type FlagIconProps = {
   countryCode: string;
@@ -92,8 +92,8 @@ export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
   .sort((a, b) => a.title.localeCompare(b.title));
 
 export function useOnCardCountryChange(fn: (newCountry: CountryCode) => void) {
-  const cardDetails = useCardDetails();
-  const cardDetailsCountry = cardDetails.details?.country_codes[0];
+  const cardDetails = useChannelComponentData()?.cardDetails;
+  const cardDetailsCountry = cardDetails?.details?.country_codes[0];
 
   // if card details changes, set country to card's country
   const previousCardDetailsCountry = usePrevious(cardDetailsCountry);

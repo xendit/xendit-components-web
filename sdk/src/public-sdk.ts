@@ -42,7 +42,6 @@ import {
 import {
   PaymentChannel,
   XenditChannelPropertiesChangedEvent,
-  XenditSavePaymentMethodChangedEvent,
 } from "./components/payment-channel";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
@@ -61,6 +60,7 @@ import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
   InternalScheduleMockUpdateEvent,
+  InternalUpdateChannelComponentData,
   InternalUpdateWorldState,
 } from "./private-event-types";
 import {
@@ -99,6 +99,7 @@ import { BffCardDetails } from "./backend-types/card-details";
 import { initI18n } from "./localization";
 import { TFunction } from "i18next";
 import { amountFormat } from "./amount-format";
+import { BffPaymentOptions } from "./backend-types/payment-options";
 
 /**
  * @internal
@@ -109,7 +110,20 @@ type CachedChannelComponent = {
   channel: XenditPaymentChannel;
   channelProperties: ChannelProperties | null;
   channelFormRef: RefObject<ChannelFormHandle>;
+  data: ChannelComponentData;
+};
+
+/**
+ * @internal
+ * Properties of a component updatable by events
+ */
+export type ChannelComponentData = {
   savePaymentMethod: boolean;
+  cardDetails: {
+    cardNumber: string;
+    details: BffCardDetails | null;
+  } | null;
+  paymentOptions: BffPaymentOptions | null;
 };
 
 /**
@@ -125,10 +139,6 @@ export type WorldState = {
   paymentEntity: BffPaymentEntity | null;
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
-  cardDetails: {
-    cardNumber: string | null;
-    details: BffCardDetails | null;
-  };
 };
 
 /**
@@ -140,8 +150,7 @@ export type UpdatableWorldState = {
     | "session"
     | "paymentEntity"
     | "sessionTokenRequestId"
-    | "succeededChannel"
-    | "cardDetails"]?: WorldState[K] | undefined;
+    | "succeededChannel"]?: WorldState[K] | undefined;
 };
 
 /**
@@ -254,13 +263,13 @@ export class XenditComponents extends EventTarget {
         sdkFatalErrorMessage: null,
         channel: null,
         channelProperties: null,
+        channelData: null,
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
         simulatePaymentRequested: false,
         actionCompleted: false,
         pollImmediatelyRequested: false,
-        savePaymentMethod: null,
       }),
       currentChannelCode: null,
       eventListenersPresent: new Map(),
@@ -284,6 +293,10 @@ export class XenditComponents extends EventTarget {
     (this as EventTarget).addEventListener(
       InternalUpdateWorldState.type,
       this.onUpdateWorldState.bind(this),
+    );
+    (this as EventTarget).addEventListener(
+      InternalUpdateChannelComponentData.type,
+      this.onUpdateChannelComponentData.bind(this),
     );
     (this as EventTarget).addEventListener(
       InternalBehaviorTreeUpdateEvent.type,
@@ -339,10 +352,6 @@ export class XenditComponents extends EventTarget {
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
-        cardDetails: {
-          cardNumber: null,
-          details: null,
-        },
       } satisfies WorldState),
     );
   }
@@ -402,6 +411,27 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @internal
+   * Updates channel component data and updates behavior tree and rerenders.
+   */
+  private onUpdateChannelComponentData(event: Event) {
+    const channelCode = (event as InternalUpdateChannelComponentData)
+      .channelCode;
+    const newData = (event as InternalUpdateChannelComponentData).data;
+    const component =
+      this[internal].liveComponents.paymentChannels.get(channelCode);
+    if (!component) {
+      return;
+    }
+
+    component.data = mergeIgnoringUndefined(component.data, newData);
+    this.behaviorTreeUpdate();
+
+    // TODO: need to re-collect all channel properties since form fields may have been added or removed
+    this.rerenderAllComponents();
+  }
+
+  /**
+   * @internal
    * Updates the behavior tree with the latest world state and component state.
    */
   private behaviorTreeUpdate(): void {
@@ -421,11 +451,11 @@ export class XenditComponents extends EventTarget {
     bb.channel = component
       ? resolvePairedChannel(
           component.channel[internal],
-          component.savePaymentMethod,
+          component.data.savePaymentMethod,
         )
       : null;
     bb.channelProperties = component ? component.channelProperties : null;
-    bb.savePaymentMethod = component ? component.savePaymentMethod : null;
+    bb.channelData = component ? component.data : null;
 
     try {
       this[internal].behaviorTree.update();
@@ -683,7 +713,11 @@ export class XenditComponents extends EventTarget {
         channel,
         channelProperties: null,
         channelFormRef: channelFormRef,
-        savePaymentMethod: false,
+        data: {
+          savePaymentMethod: false,
+          cardDetails: null,
+          paymentOptions: null,
+        },
       });
     }
 
@@ -706,23 +740,24 @@ export class XenditComponents extends EventTarget {
   private renderPaymentChannel(channelCode: string): void {
     this.assertInitialized();
 
-    const container =
+    const component =
       this[internal].liveComponents.paymentChannels.get(channelCode);
-    if (!container) return;
+    if (!component) return;
 
-    const channelObject = container.channel;
+    const channelObject = component.channel;
 
     render(
       createElement(XenditSessionProvider, {
         data: this[internal].worldState,
         sdk: this,
         children: createElement(PaymentChannel, {
-          channels: channelObject[internal],
-          savePaymentMethod: container.savePaymentMethod,
-          formRef: container.channelFormRef,
+          channelOrPair: channelObject[internal],
+          channelData: component.data,
+          savePaymentMethod: component.data.savePaymentMethod,
+          formRef: component.channelFormRef,
         }),
       }),
-      container.element,
+      component.element,
     );
   }
 
@@ -838,26 +873,6 @@ export class XenditComponents extends EventTarget {
 
         // update behavior tree (form validity may have changed)
         this.behaviorTreeUpdate();
-      },
-    );
-
-    // update save payment method setting
-    container.addEventListener(
-      XenditSavePaymentMethodChangedEvent.type,
-      (_event) => {
-        const event = _event as XenditSavePaymentMethodChangedEvent;
-        const channelCode = event.channel;
-        const component =
-          this[internal].liveComponents.paymentChannels.get(channelCode);
-        if (!component) {
-          return;
-        }
-
-        component.savePaymentMethod = event.savePaymentMethod;
-        this.behaviorTreeUpdate();
-
-        // TODO: need to re-collect all channel properties since form fields may have been added or removed
-        this.rerenderAllComponents();
       },
     );
   }
@@ -1398,6 +1413,18 @@ export class XenditComponents extends EventTarget {
     return super.removeEventListener(type, listener as any, options);
   }
 
+  /**
+   * @public
+   * Formats a currency value according to the currency's conventions.
+   *
+   * e.g.
+   * ```
+   * USD 1000 -> "$1,000"
+   * USD 1000.5 -> "$1,000.50"
+   * IDR 1000000 -> "Rp1.000.000"
+   * PHP 1000 -> "₱1,000.00"
+   * ```
+   */
   static amountFormat(amount: number, currency: string): string {
     return amountFormat(amount, currency);
   }
@@ -1465,10 +1492,6 @@ export class XenditComponentsTest extends XenditComponents {
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
-        cardDetails: {
-          cardNumber: null,
-          details: null,
-        },
       } satisfies WorldState),
     );
   }

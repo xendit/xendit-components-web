@@ -141,6 +141,8 @@ export type FieldType =
   | { name: "country" }
   // has dropdown with a list of provinces/states depending on the selected country
   | { name: "province" }
+  // fetches data from server to populate options
+  | { name: "installment_plan" }
 
   // generic fields
   | {

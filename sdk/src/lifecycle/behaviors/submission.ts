@@ -193,7 +193,7 @@ export class SubmissionBehavior implements Behavior {
       channelProperties,
       abortController,
       shouldSendSavePaymentMethod
-        ? (this.bb.savePaymentMethod ?? false)
+        ? (this.bb.channelData?.savePaymentMethod ?? false)
         : undefined,
     )
       .then((paymentEntity: BffPaymentEntity) => {

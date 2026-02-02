@@ -55,16 +55,16 @@ const mockBlackboard: BlackboardType & { world: object } = {
     paymentEntity: null,
     sessionTokenRequestId: null,
     succeededChannel: null,
-    cardDetails: {
-      cardNumber: null,
-      details: null,
-    },
   },
   sdkStatus: "ACTIVE",
   sdkFatalErrorMessage: null,
   channel: null,
   channelProperties: null,
-  savePaymentMethod: null,
+  channelData: {
+    savePaymentMethod: false,
+    cardDetails: null,
+    paymentOptions: null,
+  },
   dispatchEvent: () => {
     throw new Error("Should not be called in this test");
   },

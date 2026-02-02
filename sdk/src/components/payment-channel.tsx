@@ -15,6 +15,8 @@ import { InstructionsIcon } from "./instructions-icon";
 import { useSdk, useSession } from "./session-provider";
 import { Checkbox } from "./checkbox";
 import { resolvePairedChannel } from "../utils";
+import { ChannelComponentData } from "../public-sdk";
+import { InternalUpdateChannelComponentData } from "../private-event-types";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -26,25 +28,39 @@ export const useChannel = () => {
   return context;
 };
 
+const ChannelComponentDataContext = createContext<ChannelComponentData | null>(
+  null,
+);
+ChannelComponentDataContext.displayName = "ChannelComponentDataContext";
+
+export const useChannelComponentData = () => {
+  const context = useContext(ChannelComponentDataContext);
+  return context;
+};
+
 interface Props {
   /** The channels to use. If this has two items then the first is the non-save channel and the second is the save version. */
-  channels: BffChannel[];
+  channelOrPair: BffChannel[];
+  channelData: ChannelComponentData;
   savePaymentMethod: boolean;
   formRef: RefObject<ChannelFormHandle>;
 }
 
 export const PaymentChannel: FunctionComponent<Props> = (props) => {
-  const { channels, savePaymentMethod, formRef } = props;
+  const { channelOrPair, channelData, savePaymentMethod, formRef } = props;
   const divRef = useRef<HTMLDivElement>(null);
   const sdk = useSdk();
   const { t } = sdk;
   const session = useSession();
 
-  // events always use channels[0] because the CachedChannelComponents are keyed by that
-  const firstMemberChannel = channels[0];
+  // events always use channelOrPair[0] because the CachedChannelComponents are keyed by that
+  const firstMemberChannel = channelOrPair[0];
 
-  const hasPairedChannel = channels.length > 1;
-  const resolvedChannel = resolvePairedChannel(channels, savePaymentMethod);
+  const hasPairedChannel = channelOrPair.length > 1;
+  const resolvedChannel = resolvePairedChannel(
+    channelOrPair,
+    savePaymentMethod,
+  );
 
   const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
@@ -62,11 +78,10 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
 
   const handleCheckboxChange = (e: TargetedEvent<HTMLInputElement>) => {
     const checked = (e.target as HTMLInputElement)?.checked;
-    divRef.current?.dispatchEvent(
-      new XenditSavePaymentMethodChangedEvent(
-        firstMemberChannel.channel_code,
-        checked,
-      ),
+    sdk?.dispatchEvent(
+      new InternalUpdateChannelComponentData(firstMemberChannel.channel_code, {
+        savePaymentMethod: checked,
+      }),
     );
   };
 
@@ -77,38 +92,40 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
 
   return (
     <ChannelContext.Provider value={resolvedChannel}>
-      <div className="xendit-payment-channel" ref={divRef}>
-        <ChannelForm
-          ref={formRef}
-          form={resolvedChannel.form}
-          onChannelPropertiesChanged={onChannelPropertiesChanged}
-        />
-        {shouldShowSaveCheckbox && (
-          <Checkbox
-            label={t("payment.save_checkbox_label")}
-            onChange={handleCheckboxChange}
-            checked={savePaymentMethod}
+      <ChannelComponentDataContext.Provider value={channelData}>
+        <div className="xendit-payment-channel" ref={divRef}>
+          <ChannelForm
+            ref={formRef}
+            form={resolvedChannel.form}
+            onChannelPropertiesChanged={onChannelPropertiesChanged}
           />
-        )}
-        {resolvedChannel.banner ? (
-          <Banner banner={resolvedChannel.banner} />
-        ) : null}
-        {instructions ? (
-          <div className="xendit-payment-channel-instructions">
-            <InstructionsIcon />
-            <div className="xendit-payment-channel-instructions-text xendit-text-12">
-              {instructions.map((instr, i) => (
-                <p
-                  key={i}
-                  className={i === 0 ? "xendit-text-semibold" : undefined}
-                >
-                  {instr}
-                </p>
-              ))}
+          {resolvedChannel.banner ? (
+            <Banner banner={resolvedChannel.banner} />
+          ) : null}
+          {shouldShowSaveCheckbox && (
+            <Checkbox
+              label={t("payment.save_checkbox_label")}
+              onChange={handleCheckboxChange}
+              checked={savePaymentMethod}
+            />
+          )}
+          {instructions ? (
+            <div className="xendit-payment-channel-instructions">
+              <InstructionsIcon />
+              <div className="xendit-payment-channel-instructions-text xendit-text-12">
+                {instructions.map((instr, i) => (
+                  <p
+                    key={i}
+                    className={i === 0 ? "xendit-text-semibold" : undefined}
+                  >
+                    {instr}
+                  </p>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+        </div>
+      </ChannelComponentDataContext.Provider>
     </ChannelContext.Provider>
   );
 };
@@ -162,20 +179,5 @@ export class XenditChannelPropertiesChangedEvent extends Event {
     });
     this.channel = channel;
     this.channelProperties = channelProperties;
-  }
-}
-
-export class XenditSavePaymentMethodChangedEvent extends Event {
-  static readonly type = "xendit-save-payment-method-changed" as const;
-  channel: string;
-  savePaymentMethod: boolean;
-
-  constructor(channel: string, savePaymentMethod: boolean) {
-    super(XenditSavePaymentMethodChangedEvent.type, {
-      bubbles: true,
-      composed: true,
-    });
-    this.channel = channel;
-    this.savePaymentMethod = savePaymentMethod;
   }
 }

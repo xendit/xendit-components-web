@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 describe("channel component basics", () => {
-  it("should render channel picker component", async () => {
+  it("should render channel component", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
     });
@@ -23,7 +23,7 @@ describe("channel component basics", () => {
     expect(el).toBeInTheDocument();
   });
 
-  it("should render channel picker component with single input form", async () => {
+  it("should render channel component with single input form", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
     });
@@ -45,9 +45,6 @@ describe("channel component basics", () => {
       el.getAttribute("name"),
     );
     expect(inputs).toHaveLength(1);
-
-    if (!(inputs[0] instanceof HTMLInputElement)) {
-      throw new Error("Expected input element");
-    }
+    expect(inputs[0]).toBeInstanceOf(HTMLInputElement);
   });
 });
