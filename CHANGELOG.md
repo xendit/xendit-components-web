@@ -6,8 +6,6 @@ No unreleased changes.
 
 ### Notable
 
-Added support for installment plan selector in channel forms.
-
 Disabled Google Translate using the `translate=no` attribute as it causes issues.
 
 Added new public method `pollImmediately` to immediently check for updates.
