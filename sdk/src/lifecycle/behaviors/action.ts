@@ -16,6 +16,7 @@ import { ActionIframe } from "../../components/action-iframe";
 import { ActionQr } from "../../components/action-qr";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
+import { ActionVa } from "../../components/action-va";
 
 abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
@@ -222,6 +223,70 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     this.title = qrAction.action_title;
     this.cleanupFn = this.ensureHasActionContainer();
     this.populateActionContainer(() => createElement(ActionQr, actionQrProps));
+  }
+
+  /**
+   * Fired when user affirms they have made the payment by clicking
+   * the affirm button.
+   */
+  affirmPayment() {
+    if (this.bb.mock) {
+      this.updateMocksOnSimulatePaymentCompletion();
+    } else {
+      if (this.bb.sdkKey.hostId === "pl") {
+        // live mode
+        this.bb.pollImmediatelyRequested = true;
+      } else {
+        this.bb.simulatePaymentRequested = true;
+      }
+    }
+  }
+
+  updateMocksOnSimulatePaymentCompletion() {
+    assert(this.bb.world?.paymentEntity);
+    if (this.bb.mock) {
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponseForSuccess(
+            this.bb.world.session,
+            this.bb.world.paymentEntity,
+          ),
+        ),
+      );
+    }
+  }
+}
+export class ActionVaBehavior extends ContainerActionBehavior {
+  constructor(
+    protected bb: BlackboardType,
+    private actionIndex: string,
+  ) {
+    super(bb);
+  }
+
+  enter() {
+    const vaAction =
+      this.bb.world?.paymentEntity?.entity.actions[Number(this.actionIndex)];
+
+    assertEquals(vaAction?.type, "PRESENT_TO_CUSTOMER");
+    assert(this.bb.world);
+    assert(this.bb.channel);
+
+    const actionVaProps = {
+      amount: this.bb.world.session.amount,
+      channelLogo: this.bb.channel.brand_logo_url,
+      currency: this.bb.world.session.currency,
+      mock: this.bb.mock,
+      onAffirm: this.affirmPayment.bind(this),
+      vaNumber: vaAction.value,
+      merchantName: this.bb.world.business.name ?? "",
+      t: this.bb.sdk.t.bind(this.bb.sdk),
+      title: vaAction.action_subtitle,
+    };
+
+    this.title = vaAction.action_title;
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => createElement(ActionVa, actionVaProps));
   }
 
   /**
