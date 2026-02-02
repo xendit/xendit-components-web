@@ -93,22 +93,16 @@ const iframeFieldAppearance: import("./src/public-options-types").IframeAppearan
       },
     },
   };
-const qrCodeAppearance: import("./src/public-options-types").QrCodeAppearanceOptions =
-  {
-    // qrCodeOnly: true,
-  };
 const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     componentsSdkKey: savedKey,
     iframeFieldAppearance,
-    qrCodeAppearance,
   });
 } else {
   components = new XenditComponentsTest({
     iframeFieldAppearance,
-    qrCodeAppearance,
   });
 }
 
@@ -134,7 +128,18 @@ components.addEventListener("submission-not-ready", logEvent);
 
 components.addEventListener("submission-begin", logEvent);
 components.addEventListener("submission-end", logEvent);
-components.addEventListener("action-begin", logEvent);
+components.addEventListener("action-begin", (event) => {
+  logEvent(event);
+  // if (components.getCurrentChannel()?.channelCode === "MOCK_QR") {
+  //   const element = components.createActionContainerComponent({
+  //     qrCode: {
+  //       qrCodeOnly: true,
+  //     },
+  //   });
+  //   element.style.width = "400px";
+  //   document.body.appendChild(element);
+  // }
+});
 components.addEventListener("action-end", logEvent);
 components.addEventListener("will-redirect", logEvent);
 

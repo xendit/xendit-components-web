@@ -9,7 +9,6 @@ export interface XenditSdkOptions {
    */
   componentsSdkKey: string;
   iframeFieldAppearance?: IframeAppearanceOptions;
-  qrCodeAppearance?: QrCodeAppearanceOptions;
 }
 
 /**
@@ -27,6 +26,22 @@ export interface XenditGetChannelsOptions {
    * Default true.
    */
   filterMinMax?: boolean;
+}
+
+/**
+ * @public
+ * Options for configuring action containers.
+ */
+export interface ActionContainerOptions {
+  /**
+   * QR code specific options.
+   */
+  qrCode?: {
+    /**
+     * If true, only the QR code will be displayed without any additional UI elements.
+     */
+    qrCodeOnly?: boolean;
+  };
 }
 
 /**
@@ -67,14 +82,4 @@ export type IframeAppearanceOptions = {
      */
     descriptors?: Pick<FontFaceDescriptors, "display" | "style" | "stretch">;
   };
-};
-
-/**
- * @public
- */
-export type QrCodeAppearanceOptions = {
-  /**
-   * If true, only the QR code will be displayed without any additional UI elements.
-   */
-  qrCodeOnly?: boolean;
 };

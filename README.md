@@ -129,7 +129,11 @@ values the user enters into any form fields. If you don't want that, use `destro
 
 ```typescript
 components.addEventListener("action-begin", () => {
-  const htmlElement = components.createActionContainerComponent();
+  const htmlElement = components.createActionContainerComponent({
+    qrCode: {
+      qrCodeOnly: true,
+    },
+  });
   myActionContainer.replaceChildren(htmlElement);
 });
 ```
@@ -318,17 +322,6 @@ const sdk = new XenditComponents({
       source: "url(https://example.com/my-font-file) format(woff2)",
       descriptors: { display: "swap" },
     },
-  },
-});
-```
-
-### Appearance of QR codes
-
-```typescript
-const sdk = new XenditComponents({
-  qrCodeAppearance: {
-    // set to true to remove any additional UI elements and just render the QR code
-    qrCodeOnly: true,
   },
 });
 ```

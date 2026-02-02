@@ -205,12 +205,13 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     assert(this.bb.world);
     assert(this.bb.channel);
 
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+
     const actionQrProps = {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
-      hideUi:
-        this.bb.sdk[internal].options.qrCodeAppearance?.qrCodeOnly ?? false,
+      hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
       mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,

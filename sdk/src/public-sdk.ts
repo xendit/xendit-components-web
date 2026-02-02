@@ -19,6 +19,7 @@ import {
 import {
   XenditSdkOptions as XenditComponentsOptions,
   XenditGetChannelsOptions,
+  ActionContainerOptions,
 } from "./public-options-types";
 import {
   XenditCustomer,
@@ -913,23 +914,39 @@ export class XenditComponents extends EventTarget {
   createActionContainerComponent(): HTMLElement;
 
   /**
+   * @public
+   * Creates a container element for rendering action UIs with options.
+   *
+   * @param options - Configuration options for the action container
+   */
+  createActionContainerComponent(options: ActionContainerOptions): HTMLElement;
+
+  /**
    * @internal If isInternal is passed, it bypasses the action-in-progress check.
    **/
   createActionContainerComponent(isInternal: typeof internal): HTMLElement;
 
   // implementation
-  createActionContainerComponent(isInternal?: typeof internal): HTMLElement {
+  createActionContainerComponent(
+    optionsOrInternal?: ActionContainerOptions | typeof internal,
+  ): HTMLElement {
     this.assertInitialized();
 
     if (this[internal].liveComponents.actionContainer) {
       this.destroyComponent(this[internal].liveComponents.actionContainer);
     }
 
+    // Type guard to check if parameter is the internal symbol
+    const isInternal = optionsOrInternal === internal;
+    const options = isInternal
+      ? undefined
+      : (optionsOrInternal as ActionContainerOptions | undefined);
+
     const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
       PeRequiresActionBehavior,
     );
     if (
-      isInternal !== internal &&
+      !isInternal &&
       requiresActionBehavior &&
       !requiresActionBehavior.canCreateActionContainer
     ) {
@@ -940,6 +957,16 @@ export class XenditComponents extends EventTarget {
 
     const container = document.createElement("xendit-action-container");
     container.setAttribute("translate", "no");
+
+    // Apply QR code options as data attributes if provided
+    if (options?.qrCode) {
+      if (options.qrCode.qrCodeOnly !== undefined) {
+        container.setAttribute(
+          "data-qr-code-only",
+          options.qrCode.qrCodeOnly.toString(),
+        );
+      }
+    }
 
     this[internal].liveComponents.actionContainer = container;
 
