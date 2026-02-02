@@ -1,6 +1,6 @@
 # xendit-components-web
 
-[![npm badge](https://img.shields.io/npm/v/xendit-components-web)](https://www.npmjs.com/package/xendit-components-web) ![build status badge](https://img.shields.io/github/actions/workflow/status/xendit/xendit-components-web/build-and-test.yml) ![coverage badge](https://img.shields.io/codecov/c/github/xendit/xendit-components-web)
+[![npm badge](https://img.shields.io/npm/v/xendit-components-web)](https://www.npmjs.com/package/xendit-components-web) [![build status badge](https://img.shields.io/github/actions/workflow/status/xendit/xendit-components-web/build-and-test.yml)](https://github.com/xendit/xendit-components-web/actions/workflows/build-and-test.yml?query=branch%3Amain) [![coverage badge](https://img.shields.io/codecov/c/github/xendit/xendit-components-web)](https://app.codecov.io/gh/xendit/xendit-components-web)
 
 With Xendit Components, you can build a checkout experience tightly integrated into your site, powered by the Xendit Sessions API.
 
