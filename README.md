@@ -1,12 +1,12 @@
 # xendit-components-web
 
-![npm badge](https://img.shields.io/npm/v/xendit-components-web) ![build status badge](https://img.shields.io/github/actions/workflow/status/xendit/xendit-components-web/build-and-test.yml) ![coverage badge](https://img.shields.io/codecov/c/github/xendit/xendit-components-web/config/badge.svg)
+[![npm badge](https://img.shields.io/npm/v/xendit-components-web)](https://www.npmjs.com/package/xendit-components-web) ![build status badge](https://img.shields.io/github/actions/workflow/status/xendit/xendit-components-web/build-and-test.yml) ![coverage badge](https://img.shields.io/codecov/c/github/xendit/xendit-components-web)
 
 With Xendit Components, you can build a checkout experience tightly integrated into your site, powered by the Xendit Sessions API.
 
 This SDK provides UI components for payment method selection, user input (e.g. credit cards), and user actions (e.g. 3DS), all of which can be customized to match your site's look & feel.
 
-View a live demo [here](https://github.com/xendit/demo-store/tree/main/src/integrations) by choosing "Xendit Components". View the demo source code [here](https://github.com/xendit/demo-store).
+View a live demo [here](https://demo-store.xendit.co/) by choosing "Xendit Components". View the demo source code [here](https://github.com/xendit/demo-store/tree/main/src/integrations).
 
 ## Installation
 
