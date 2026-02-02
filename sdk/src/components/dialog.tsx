@@ -71,7 +71,7 @@ export const Dialog: FunctionComponent<Props> = (props) => {
         <div className="xendit-dialog-header xendit-text-16 xendit-text-semibold">
           {title}
           <button aria-label="Close" onClick={onCloseWithAnimation}>
-            <Icon name="x" size={24} />
+            <Icon name="x" size={20} />
           </button>
         </div>
         <div className="xendit-dialog-body">{children}</div>
