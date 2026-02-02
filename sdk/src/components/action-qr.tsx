@@ -9,6 +9,7 @@ type Props = {
   amount: number;
   channelLogo: string;
   currency: string;
+  hideUi: boolean;
   mock: boolean;
   onAffirm: () => void;
   qrString: string;
@@ -34,6 +35,20 @@ export function ActionQr(props: Props) {
   const svgNode = useMemo(() => {
     return generateQrSvg(qrString);
   }, [qrString]);
+
+  if (props.hideUi) {
+    return (
+      <div
+        data-testid="qr-code"
+        ref={(r) => {
+          if (r && (r.childNodes.length !== 1 || r.firstChild !== svgNode)) {
+            // insert svg if not already present
+            r?.replaceChildren(svgNode);
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <div className="xendit-action-present-to-customer">
