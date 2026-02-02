@@ -95,7 +95,18 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
         ) : null}
         {instructions ? (
           <div className="xendit-payment-channel-instructions">
-            <InstructionsIcon />
+            {
+              // Since there should only be one QR_CODE channel per market, show brand logo instead
+              resolvedChannel.pm_type === "QR_CODE" ? (
+                <img
+                  src={resolvedChannel.brand_logo_url}
+                  alt={resolvedChannel.brand_name}
+                  className="xendit-payment-channel-instructions-logo"
+                />
+              ) : (
+                <InstructionsIcon />
+              )
+            }
             <div className="xendit-payment-channel-instructions-text xendit-text-12">
               {instructions.map((instr, i) => (
                 <p
