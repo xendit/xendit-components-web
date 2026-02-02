@@ -101,7 +101,9 @@ if (savedKey) {
     iframeFieldAppearance,
   });
 } else {
-  components = new XenditComponentsTest({ iframeFieldAppearance });
+  components = new XenditComponentsTest({
+    iframeFieldAppearance,
+  });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,7 +128,18 @@ components.addEventListener("submission-not-ready", logEvent);
 
 components.addEventListener("submission-begin", logEvent);
 components.addEventListener("submission-end", logEvent);
-components.addEventListener("action-begin", logEvent);
+components.addEventListener("action-begin", (event) => {
+  logEvent(event);
+  // if (components.getCurrentChannel()?.channelCode === "MOCK_QR") {
+  //   const element = components.createActionContainerComponent({
+  //     qrCode: {
+  //       qrCodeOnly: true,
+  //     },
+  //   });
+  //   element.style.width = "400px";
+  //   document.body.appendChild(element);
+  // }
+});
 components.addEventListener("action-end", logEvent);
 components.addEventListener("will-redirect", logEvent);
 
