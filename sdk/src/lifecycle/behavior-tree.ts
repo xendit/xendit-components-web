@@ -1,7 +1,11 @@
 import { BffChannel, ChannelProperties } from "../backend-types/channel";
 import { BffAction, BffPaymentEntity } from "../backend-types/payment-entity";
 import { BffSession } from "../backend-types/session";
-import { WorldState, XenditComponents } from "../public-sdk";
+import {
+  ChannelComponentData,
+  WorldState,
+  XenditComponents,
+} from "../public-sdk";
 import {
   findBestAction,
   ParsedSdkKey,
@@ -56,7 +60,7 @@ export type BlackboardType = {
   sdkFatalErrorMessage: string | null;
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
-  savePaymentMethod: boolean | null;
+  channelData: ChannelComponentData | null;
 
   // dispatch event on the SDK instance
   dispatchEvent(event: Event): boolean;
@@ -135,7 +139,7 @@ export function behaviorTreeForForm(bb: BlackboardType) {
   }
 
   const billingInformationRequired =
-    bb.world.cardDetails.details?.require_billing_information ?? false;
+    bb.channelData?.cardDetails?.details?.require_billing_information ?? false;
 
   const channelPropertiesValid = channelPropertiesAreValid(
     bb.world.session.session_type,
@@ -149,7 +153,11 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     : behaviorNode(ChannelInvalidBehavior);
 
   if (bb.channel.channel_code === "CARDS") {
-    return behaviorNode(CardInfoBehavior, "card-info", formValidityBehavior);
+    return behaviorNode(
+      CardInfoBehavior,
+      bb.channel.channel_code,
+      formValidityBehavior,
+    );
   } else {
     return formValidityBehavior;
   }

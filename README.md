@@ -129,7 +129,11 @@ values the user enters into any form fields. If you don't want that, use `destro
 
 ```typescript
 components.addEventListener("action-begin", () => {
-  const htmlElement = components.createActionContainerComponent();
+  const htmlElement = components.createActionContainerComponent({
+    qrCode: {
+      qrCodeOnly: true,
+    },
+  });
   myActionContainer.replaceChildren(htmlElement);
 });
 ```

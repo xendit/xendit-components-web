@@ -138,6 +138,7 @@ export function validate(
     }
     case "country":
     case "province":
+    case "installment_plan":
     case "dropdown": {
       // no validation required for now
       return undefined;

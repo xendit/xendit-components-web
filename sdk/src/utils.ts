@@ -384,7 +384,7 @@ export function getValueFromChannelProperty(
   }
 }
 
-export function getCardNunberFromChannelProperties(
+export function getCardNumberFromChannelProperties(
   channelProperties: ChannelProperties | null,
 ) {
   const cardNumber = getValueFromChannelProperty(

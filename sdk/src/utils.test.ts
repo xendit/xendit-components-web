@@ -6,7 +6,7 @@ import {
   camelCaseToKebabCase,
   cancellableSleep,
   errorToString,
-  getCardNunberFromChannelProperties,
+  getCardNumberFromChannelProperties,
   getValueFromChannelProperty,
   isAbortError,
   mergeIgnoringUndefined,
@@ -151,13 +151,13 @@ describe("utils - getCardNunberFromChannelProperties", () => {
         card_number: "encrypted-string",
       },
     };
-    expect(getCardNunberFromChannelProperties(channelProperties)).toBe(
+    expect(getCardNumberFromChannelProperties(channelProperties)).toBe(
       "encrypted-string",
     );
   });
   it("should return null if card number not present", () => {
     const channelProperties: ChannelProperties = {};
-    expect(getCardNunberFromChannelProperties(channelProperties)).toBeNull();
+    expect(getCardNumberFromChannelProperties(channelProperties)).toBeNull();
   });
 });
 
