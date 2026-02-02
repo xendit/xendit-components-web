@@ -431,6 +431,7 @@ export function makeTestBffData(): BffResponse {
           "Mock QR channel",
           "This mock channel behaves similarly to production QR channels.",
         ],
+        pm_type: "QR_CODE",
       },
       {
         brand_name: "Mock Direct Debit Channel",
