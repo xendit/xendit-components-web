@@ -431,6 +431,30 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Mock FPX Business Channel",
+        channel_code: "MOCK_FPX_BUSINESS",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: "PENDING",
+        form: [],
+        instructions: [
+          "Mock FPX channel",
+          "This mock channel behaves similarly to production FPX channels. It has a banner and it will enter the pending state after submission.",
+        ],
+        banner: {
+          image_url:
+            "https://assets.xendit.co/payment-session/banners/fpx-banner.svg",
+          alt_text: "FPX Pay with Online Banking",
+          aspect_ratio: 9.7,
+        },
+      },
+      {
         brand_name: "Mock OTC Channel",
         channel_code: "MOCK_OTC",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",

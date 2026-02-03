@@ -13,10 +13,7 @@ import {
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { PollWorker } from "./poll-worker";
-import {
-  makeTestPollResponseForFailure,
-  makeTestPollResponseForSuccess,
-} from "../../data/test-data-modifiers";
+import { makeTestPollResponse } from "../../data/test-data-modifiers";
 
 export class PePendingBehavior implements Behavior {
   private pollWorker: PollWorker;
@@ -38,12 +35,10 @@ export class PePendingBehavior implements Behavior {
         case "ACTIVE":
         case "AUTHORIZED":
         case "SUCCEEDED":
+        case "PENDING":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponseForSuccess(
-                this.bb.world.session,
-                this.bb.world.paymentEntity,
-              ),
+              makeTestPollResponse(this.bb.world, this.bb.channel, true),
             ),
           );
           break;
@@ -52,10 +47,7 @@ export class PePendingBehavior implements Behavior {
         case "EXPIRED":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponseForFailure(
-                this.bb.world.session,
-                this.bb.world.paymentEntity,
-              ),
+              makeTestPollResponse(this.bb.world, this.bb.channel, false),
             ),
           );
           break;

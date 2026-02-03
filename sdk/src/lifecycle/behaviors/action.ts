@@ -5,10 +5,6 @@ import {
   InternalScheduleMockUpdateEvent,
 } from "../../private-event-types";
 import { XenditWillRedirectEvent } from "../../public-event-types";
-import {
-  makeTestPollResponseForFailure,
-  makeTestPollResponseForSuccess,
-} from "../../data/test-data-modifiers";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
@@ -16,6 +12,7 @@ import { ActionIframe } from "../../components/action-iframe";
 import { ActionQr } from "../../components/action-qr";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
+import { makeTestPollResponse } from "../../data/test-data-modifiers";
 
 abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
@@ -166,25 +163,11 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
   updateMocksOnIframeCompletion(success: boolean) {
     assert(this.bb.world?.paymentEntity);
     if (this.bb.mock) {
-      if (success) {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForSuccess(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      } else {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForFailure(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      }
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponse(this.bb.world, this.bb.channel, success),
+        ),
+      );
     }
   }
 }
@@ -246,10 +229,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.bb.dispatchEvent(
         new InternalScheduleMockUpdateEvent(
-          makeTestPollResponseForSuccess(
-            this.bb.world.session,
-            this.bb.world.paymentEntity,
-          ),
+          makeTestPollResponse(this.bb.world, this.bb.channel, true),
         ),
       );
     }

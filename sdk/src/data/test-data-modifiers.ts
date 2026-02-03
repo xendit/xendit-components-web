@@ -1,4 +1,4 @@
-import { MockActionType } from "../backend-types/channel";
+import { BffChannel, MockActionType } from "../backend-types/channel";
 import { BffPollResponse } from "../backend-types/common";
 import {
   BffAction,
@@ -10,7 +10,8 @@ import {
   BffPaymentTokenStatus,
 } from "../backend-types/payment-entity";
 import { BffSession } from "../backend-types/session";
-import { randomHexString, randomUUID } from "../utils";
+import { WorldState } from "../public-sdk";
+import { assert, randomHexString, randomUUID } from "../utils";
 
 const examplePublicKey =
   "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEyCADI5pdf6KmN8+Fxl2ES3yolUKXunNeY3gGScGNEvDcrcHAPKxIInAo5DVnDvTtYtqZvx/bu7HLeBJNMXwHhie/uyNEtT8dSaLc9bd0WSlYdxI+iUsTv2Qu0LiiPrZs";
@@ -19,6 +20,37 @@ const exampleSignature =
 
 export function makeTestSdkKey() {
   return `session-${randomHexString(32)}-mock-${examplePublicKey}-${exampleSignature}`;
+}
+
+export function makeTestPollResponse(
+  world: WorldState,
+  channel: BffChannel | null,
+  success: boolean,
+) {
+  const { session, paymentEntity } = world;
+  assert(session);
+  assert(paymentEntity);
+  assert(channel);
+
+  if (channel._mock_action_type === "PENDING") {
+    // channels requesting mock pending state
+    return makeTestPollResponseForPending(session);
+  } else if (success) {
+    return makeTestPollResponseForSuccess(session, paymentEntity);
+  } else {
+    return makeTestPollResponseForFailure(session, paymentEntity);
+  }
+}
+
+export function makeTestPollResponseForPending(
+  session: BffSession,
+): BffPollResponse {
+  return {
+    session: {
+      ...session,
+      status: "PENDING",
+    },
+  };
 }
 
 export function makeTestPollResponseForSuccess(
@@ -94,7 +126,15 @@ export function makeTestPaymentRequest(
   channelCode: string,
   mockActionType: MockActionType | undefined,
 ): BffPaymentRequest {
-  if (mockActionType) {
+  if (mockActionType === "PENDING") {
+    return {
+      payment_request_id: `pr-${randomUUID()}`,
+      status: "PENDING",
+      channel_code: channelCode,
+      actions: [],
+      session_token_request_id: randomUUID(),
+    };
+  } else if (mockActionType) {
     return {
       payment_request_id: `pr-${randomUUID()}`,
       status: "REQUIRES_ACTION",
@@ -117,7 +157,15 @@ export function makeTestPaymentToken(
   channelCode: string,
   mockActionType: MockActionType | undefined,
 ): BffPaymentToken {
-  if (mockActionType) {
+  if (mockActionType === "PENDING") {
+    return {
+      payment_token_id: `pt-${randomUUID()}`,
+      status: "PENDING",
+      channel_code: channelCode,
+      actions: makeMockActions(mockActionType),
+      session_token_request_id: randomUUID(),
+    };
+  } else if (mockActionType) {
     return {
       payment_token_id: `pt-${randomUUID()}`,
       status: "REQUIRES_ACTION",
