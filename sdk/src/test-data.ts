@@ -1,4 +1,4 @@
-import { MockActionType } from "./backend-types/channel";
+import { BffChannel, MockActionType } from "./backend-types/channel";
 import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
   BffAction,
@@ -10,6 +10,7 @@ import {
   BffPaymentTokenStatus,
 } from "./backend-types/payment-entity";
 import { BffSession } from "./backend-types/session";
+import { WorldState } from "./public-sdk";
 import { assert } from "./utils";
 
 const examplePublicKey =
@@ -449,6 +450,30 @@ export function makeTestBffData(): BffResponse {
           "Mock Direct Debit channel",
           "This mock channel behaves similarly to production Direct Debit channels.",
         ],
+      },
+      {
+        brand_name: "Mock FPX Business Channel",
+        channel_code: "MOCK_FPX_BUSINESS",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: "PENDING",
+        form: [],
+        instructions: [
+          "Mock FPX channel",
+          "This mock channel behaves similarly to production FPX channels. It has a banner and it will enter the pending state after submission.",
+        ],
+        banner: {
+          image_url:
+            "https://assets.xendit.co/payment-session/banners/fpx-banner.svg",
+          alt_text: "FPX Pay with Online Banking",
+          aspect_ratio: 9.7,
+        },
       },
       {
         brand_name: "Mock OTC Channel",
@@ -1164,6 +1189,37 @@ function randomHexString(length: number) {
     .join("");
 }
 
+export function makeTestPollResponse(
+  world: WorldState,
+  channel: BffChannel | null,
+  success: boolean,
+) {
+  const { session, paymentEntity } = world;
+  assert(session);
+  assert(paymentEntity);
+  assert(channel);
+
+  if (channel._mock_action_type === "PENDING") {
+    // channels requesting mock pending state
+    return makeTestPollResponseForPending(session);
+  } else if (success) {
+    return makeTestPollResponseForSuccess(session, paymentEntity);
+  } else {
+    return makeTestPollResponseForFailure(session, paymentEntity);
+  }
+}
+
+export function makeTestPollResponseForPending(
+  session: BffSession,
+): BffPollResponse {
+  return {
+    session: {
+      ...session,
+      status: "PENDING",
+    },
+  };
+}
+
 export function makeTestPollResponseForSuccess(
   session: BffSession,
   paymentEntity: BffPaymentEntity,
@@ -1237,7 +1293,15 @@ export function makeTestPaymentRequest(
   channelCode: string,
   mockActionType: MockActionType | undefined,
 ): BffPaymentRequest {
-  if (mockActionType) {
+  if (mockActionType === "PENDING") {
+    return {
+      payment_request_id: `pr-${randomUUID()}`,
+      status: "PENDING",
+      channel_code: channelCode,
+      actions: [],
+      session_token_request_id: randomUUID(),
+    };
+  } else if (mockActionType) {
     return {
       payment_request_id: `pr-${randomUUID()}`,
       status: "REQUIRES_ACTION",
@@ -1260,7 +1324,15 @@ export function makeTestPaymentToken(
   channelCode: string,
   mockActionType: MockActionType | undefined,
 ): BffPaymentToken {
-  if (mockActionType) {
+  if (mockActionType === "PENDING") {
+    return {
+      payment_token_id: `pt-${randomUUID()}`,
+      status: "PENDING",
+      channel_code: channelCode,
+      actions: makeMockActions(mockActionType),
+      session_token_request_id: randomUUID(),
+    };
+  } else if (mockActionType) {
     return {
       payment_token_id: `pt-${randomUUID()}`,
       status: "REQUIRES_ACTION",
@@ -1332,6 +1404,9 @@ export function makeOneMockAction(mockActionType: MockActionType): BffAction {
         action_graphic: "",
         instructions: null,
       };
+    case "PENDING": {
+      throw new Error("Mock pending state should be handled elsewhere");
+    }
   }
   throw new Error(`Unknown mock action type: ${mockActionType}`);
 }

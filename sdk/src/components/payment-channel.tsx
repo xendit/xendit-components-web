@@ -150,7 +150,7 @@ const Banner: FunctionComponent<{ banner: BffChannelBanner }> = (props) => {
           alt={props.banner.alt_text}
           className="xendit-payment-channel-banner"
           style={{
-            aspectRatio: props.banner.aspect_ratio,
+            aspectRatio: String(props.banner.aspect_ratio),
           }}
         />
       </a>
@@ -163,7 +163,7 @@ const Banner: FunctionComponent<{ banner: BffChannelBanner }> = (props) => {
       alt={props.banner.alt_text}
       className="xendit-payment-channel-banner"
       style={{
-        aspectRatio: props.banner.aspect_ratio,
+        aspectRatio: String(props.banner.aspect_ratio),
       }}
     />
   );
