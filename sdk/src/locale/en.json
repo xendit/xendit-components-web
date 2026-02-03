@@ -65,6 +65,8 @@
     "payment_token_status.failed.subtext": "Your payment couldn't be processed. Please try a different payment method or submit an inquiry to the seller by sharing your Unique Identifiers.",
     "payment_token_status.failed.title": "Payment method couldn't be added",
     "action.payment_confirmation_instructions": "Once you've paid, click the button above to get your payment confirmation.",
-    "action.payment_made": "I've made this payment"
+    "action.payment_made": "I've made this payment",
+    "action_va.amount_to_pay": "Amount to Pay",
+    "action_va.virtual_account_number": "Virtual Account Number"
   }
 }

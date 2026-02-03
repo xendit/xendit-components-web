@@ -880,3 +880,26 @@ xendit-payment-channel[inert] {
   border: 1px solid var(--xendit-color-border);
   border-top: none;
 }
+
+.xendit-action-va-content {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+.xendit-action-va-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.xendit-action-va-heading {
+  color: var(--xendit-color-text-placeholder);
+}
+.xendit-action-va-value {
+}
+.xendit-action-va-tag {
+  color: var(--xendit-color-text-placeholder);
+  background-color: #fafafa;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
