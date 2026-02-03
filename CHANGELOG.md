@@ -2,6 +2,21 @@
 
 No unreleased changes.
 
+# 0.0.11
+
+### Notable
+
+Disabled Google Translate using the `translate=no` attribute as it causes issues.
+
+Added new public method `pollImmediately` to immediently check for updates.
+
+Changed the layout of the default action container.
+
+## Bug fixes
+
+- Fixed UX bugs in the dropdown widget.
+- Prevent auto-updating the phone number country code if the user already typed a phone number.
+
 # 0.0.10
 
 ## Bug fixes

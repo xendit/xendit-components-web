@@ -308,6 +308,12 @@ xendit-payment-channel[inert] {
   color: var(--xendit-color-text-secondary);
 }
 
+.xendit-payment-channel-instructions-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
 .xendit-payment-channel-instructions-text {
   display: flex;
   flex-direction: column;

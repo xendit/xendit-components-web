@@ -1,8 +1,12 @@
 # xendit-components-web
 
-Xendit Components allows you to accept payments directly on your website using the Xendit Sessions API.
+[![npm badge](https://img.shields.io/npm/v/xendit-components-web)](https://www.npmjs.com/package/xendit-components-web) [![build status badge](https://img.shields.io/github/actions/workflow/status/xendit/xendit-components-web/build-and-test.yml)](https://github.com/xendit/xendit-components-web/actions/workflows/build-and-test.yml?query=branch%3Amain) [![coverage badge](https://img.shields.io/codecov/c/github/xendit/xendit-components-web)](https://app.codecov.io/gh/xendit/xendit-components-web)
 
-This SDK's role is to take a Session (created on your server using the Xendit Sessions API) and render a payment UI, and allow you to customize the UI to match your site's look & feel.
+With Xendit Components, you can build a checkout experience tightly integrated into your site, powered by the Xendit Sessions API.
+
+This SDK provides UI components for payment method selection, user input (e.g. credit cards), and user actions (e.g. 3DS), all of which can be customized to match your site's look & feel.
+
+View a live demo [here](https://demo-store.xendit.co/) by choosing "Xendit Components". View the demo source code [here](https://github.com/xendit/demo-store/tree/main/src/integrations).
 
 ## Installation
 
@@ -18,7 +22,7 @@ Or load it directly from our CDN:
 <script src="https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.umd.js"></script>
 ```
 
-Our npm package includes TypeScript types. If you're using the CDN, download type declarations from `https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.d.ts`
+Our npm package includes TypeScript types. You also download the [.d.ts file](https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.d.ts) directly.
 
 ## Sessions
 
@@ -36,11 +40,11 @@ Two types of sessions are available:
 
 First, initialize the SDK either with either:
 
-- `XenditComponentsTest` for frontend development or unit tests
-- `XenditComponents`, for production, which requires a `componentsSdkKey`. That key comes from the session object you create on your server. Make an endpoint that creates a session for the user's current transaction, return the `components_sdk_key` to the client, and pass it into the constructor.
+- Use `XenditComponentsTest` to use mock payment methods for development and testing.
+- Use `XenditComponents` to connect to the Xendit backend (including Xendit's test mode). This requires a `componentsSdkKey` option, which you can get by calling the Create Session endpoint. Create a session from your server, passing the `components_sdk_key` property back to your frontend.
 
 ```typescript
-// For frontend development, use XenditComponentsTest
+// For frontend development, use XenditComponentsTest, this provides built-in mock payment methods
 const components: XenditComponents = new XenditComponentsTest({});
 // For production or e2e testing, use XenditComponents, passing in the components_sdk_key from the Session object
 const components: XenditComponents = new XenditComponents({ componentsSdkKey });
@@ -69,11 +73,9 @@ components.addEventListener("session-expired-or-canceled", () => {
 
 ### `XenditComponents` and `XenditComponentsTest`
 
-The constructor.
+Constructor functions.
 
-For production and e2e testing, you need to pass the `componentsSdkKey`, which you can get when you create a Session on your server.
-
-For development and unit testing, use `XenditComponentsTest`, which uses mock data and doesn't connect to Xendit servers.
+Both have the same API. `XenditComponents` will connect to Xendit servers, while `XenditComponentsTest` provides mock payment channels.
 
 ### `createChannelPickerComponent`
 
@@ -236,7 +238,7 @@ Makes the provided channel the current channel.
 components.pollImmediately();
 ```
 
-Request an immediate poll for session status. Useful for handling payment affirmation (e.g. I have made the payment) by the user. The session must still be active.
+Immediately poll for the status of a submission. Only applicable while a submission is ongoing. Useful for handling payment affirmation (e.g. I have made the payment) by the user.
 
 ## Events
 

@@ -1,9 +1,13 @@
-name: Build and test
+name: tests
 
 on:
   push:
     branches:
       - "**"
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   install-dependencies:
@@ -103,3 +107,29 @@ jobs:
           npx pnpm@latest-10 build
         env:
           XENDIT_COMPONENTS_SECURE_IFRAME_URL: https://assets.xendit.co/components/secure-iframe-${{ github.event.inputs.tag }}.html
+
+  test:
+    needs: install-dependencies
+    runs-on: ubuntu-latest
+    container:
+      image: node:24
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Test
+        run: |
+          npx pnpm@latest-10 test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: ./coverage/lcov.info
