@@ -86,6 +86,9 @@ export type IframeAppearanceOptions = {
   };
 };
 
+/**
+ * @public
+ */
 export type QrCodeAppearanceOptions = {
   /**
    * Custom colors for the QR code. The default colors are black on white. This only
