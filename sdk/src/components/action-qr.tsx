@@ -12,14 +12,27 @@ type Props = {
   hideUi: boolean;
   mock: boolean;
   onAffirm: () => void;
+  qrCodeOptions?: {
+    backgroundColor?: string;
+    foregroundColor?: string;
+  };
   qrString: string;
   t: TFunction<"session">;
   title: string;
 };
 
 export function ActionQr(props: Props) {
-  const { amount, channelLogo, currency, mock, onAffirm, qrString, t, title } =
-    props;
+  const {
+    amount,
+    channelLogo,
+    currency,
+    mock,
+    onAffirm,
+    qrCodeOptions,
+    qrString,
+    t,
+    title,
+  } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -33,8 +46,23 @@ export function ActionQr(props: Props) {
   }, [mock, onAffirm]);
 
   const svgNode = useMemo(() => {
-    return generateQrSvg(qrString);
-  }, [qrString]);
+    try {
+      return generateQrSvg(
+        qrString,
+        qrCodeOptions?.foregroundColor,
+        qrCodeOptions?.backgroundColor,
+      );
+    } catch (error) {
+      // show the error message in place of the QR code
+      const node = document.createElement("div");
+      node.innerText = (error as Error).message;
+      return node;
+    }
+  }, [
+    qrString,
+    qrCodeOptions?.foregroundColor,
+    qrCodeOptions?.backgroundColor,
+  ]);
 
   if (props.hideUi) {
     return (
@@ -109,11 +137,28 @@ export function ActionQr(props: Props) {
  *
  * Returns the svg node and the size of the image including margins.
  */
-function generateQrSvg(text: string) {
+function generateQrSvg(
+  text: string,
+  darkColor?: string,
+  lightColor?: string,
+): SVGSVGElement {
+  if (darkColor && !isHexColorCode(darkColor)) {
+    throw new Error(`Invalid darkColor hex color code: ${darkColor}`);
+  }
+  if (lightColor && !isHexColorCode(lightColor)) {
+    throw new Error(`Invalid lightColor hex color code: ${lightColor}`);
+  }
+  darkColor = darkColor ?? "#000000";
+  lightColor = lightColor ?? "#ffffff";
+
   const qr = qrcode.create(text);
   const margin = 1;
   const svgText = qrSvgRenderer.render(qr, {
     margin,
+    color: {
+      dark: darkColor,
+      light: lightColor,
+    },
   });
   const parser = new DOMParser();
   const svgNode = parser.parseFromString(svgText, "image/svg+xml")
@@ -125,4 +170,8 @@ function generateQrSvg(text: string) {
   svgNode.setAttribute("height", String(qr.modules.size + margin * 2));
 
   return svgNode;
+}
+
+function isHexColorCode(s: string) {
+  return /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(s);
 }

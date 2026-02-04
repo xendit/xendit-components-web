@@ -9,6 +9,8 @@ export interface XenditSdkOptions {
    */
   componentsSdkKey: string;
   iframeFieldAppearance?: IframeAppearanceOptions;
+
+  qrCodeAppearance?: QrCodeAppearanceOptions;
 }
 
 /**
@@ -82,4 +84,13 @@ export type IframeAppearanceOptions = {
      */
     descriptors?: Pick<FontFaceDescriptors, "display" | "style" | "stretch">;
   };
+};
+
+export type QrCodeAppearanceOptions = {
+  /**
+   * Custom colors for the QR code. The default colors are black on white. This only
+   * accepts hex color codes (e.g. #RRGGBB).
+   */
+  backgroundColor?: string;
+  foregroundColor?: string;
 };
