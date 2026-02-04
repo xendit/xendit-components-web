@@ -53,15 +53,17 @@ export function ActionQr(props: Props) {
         qrCodeOptions?.backgroundColor,
       );
     } catch (error) {
-      // show the error message in place of the QR code
+      console.log("Error generating QR code SVG:", error);
+      // show an error message in place of the QR code
       const node = document.createElement("div");
-      node.innerText = (error as Error).message;
+      node.innerText = t("action_qr.unable_to_generate");
       return node;
     }
   }, [
     qrString,
     qrCodeOptions?.foregroundColor,
     qrCodeOptions?.backgroundColor,
+    t,
   ]);
 
   if (props.hideUi) {
