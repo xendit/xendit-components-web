@@ -165,6 +165,7 @@ export function channelPropertiesAreValid(
     sessionType,
     channel.form,
     showBillingDetails,
+    channelProperties,
   )) {
     if (channelPropertyFieldValidate(field, channelProperties)) {
       return false;

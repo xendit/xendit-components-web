@@ -74,6 +74,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       session,
       form,
       cardDetails?.details ?? null,
+      channelProperties || {},
     );
 
     // trigger a field changed callback when the form changes
@@ -233,14 +234,21 @@ export function useFilteredFormFields(
   session: BffSession,
   form: ChannelFormField[],
   cardInfo: BffCardDetails | null,
+  rawChannelProperties: ChannelProperties,
 ) {
   const filteredForm = useMemo(() => {
     return filterFormFields(
       session.session_type,
       form,
       cardInfo?.require_billing_information ?? false,
+      rawChannelProperties,
     );
-  }, [cardInfo?.require_billing_information, form, session.session_type]);
+  }, [
+    cardInfo?.require_billing_information,
+    form,
+    session.session_type,
+    rawChannelProperties,
+  ]);
 
   return filteredForm;
 }
@@ -249,12 +257,26 @@ export function filterFormFields(
   sessionType: BffSessionType,
   form: ChannelFormField[],
   showBillingDetailsFields: boolean,
+  rawChannelProperties: ChannelProperties,
 ) {
   return form.filter((field) => {
     if (field.flags?.require_billing_information) {
       // these fields should only be shown if billing details are required
       if (sessionType !== "PAY") return false;
       if (!showBillingDetailsFields) return false;
+    }
+    // if any condition is not met, hide the field
+    for (const condition of field.display_if || []) {
+      const [property, operator, value] = condition;
+      const channelValue = rawChannelProperties[property];
+      switch (operator) {
+        case "equals":
+          if (channelValue !== value) return false;
+          break;
+        case "not_equals":
+          if (channelValue === value) return false;
+          break;
+      }
     }
     return true;
   });
