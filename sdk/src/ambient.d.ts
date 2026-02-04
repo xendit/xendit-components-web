@@ -7,6 +7,6 @@ declare module "qrcode/lib/renderer/svg-tag" {
   import qrcode from "qrcode";
   export function render(
     qr: qrcode.QRCode,
-    options: { margin?: number; color?: { dark?: string; light?: string } },
+    options: { margin?: number },
   ): string;
 }

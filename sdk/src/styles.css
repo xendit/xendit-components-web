@@ -873,6 +873,12 @@ xendit-payment-channel[inert] {
   border-radius: var(--xendit-radius-1);
   padding: 12px;
 }
+.xendit-action-qr-qrcode-container svg path[fill] {
+  fill: var(--xendit-qr-background-color);
+}
+.xendit-action-qr-qrcode-container svg path[stroke] {
+  stroke: var(--xendit-qr-foreground-color);
+}
 .xendit-action-qr-amount-container {
   display: flex;
   justify-content: center;

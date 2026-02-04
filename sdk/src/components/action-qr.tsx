@@ -33,13 +33,8 @@ export function ActionQr(props: Props) {
   }, [mock, onAffirm]);
 
   const svgNode = useMemo(() => {
-    const style = window.getComputedStyle(document.body);
     try {
-      return generateQrSvg(
-        qrString,
-        style.getPropertyValue("--xendit-qr-foreground-color"),
-        style.getPropertyValue("--xendit-qr-background-color"),
-      );
+      return generateQrSvg(qrString);
     } catch (error) {
       console.log("Error generating QR code SVG:", error);
       // show an error message in place of the QR code
@@ -122,28 +117,11 @@ export function ActionQr(props: Props) {
  *
  * Returns the svg node and the size of the image including margins.
  */
-function generateQrSvg(
-  text: string,
-  darkColor?: string,
-  lightColor?: string,
-): SVGSVGElement {
-  if (darkColor && !isHexColorCode(darkColor)) {
-    throw new Error(`Invalid darkColor hex color code: ${darkColor}`);
-  }
-  if (lightColor && !isHexColorCode(lightColor)) {
-    throw new Error(`Invalid lightColor hex color code: ${lightColor}`);
-  }
-  darkColor = darkColor ?? "#000000";
-  lightColor = lightColor ?? "#ffffff";
-
+function generateQrSvg(text: string): SVGSVGElement {
   const qr = qrcode.create(text);
   const margin = 1;
   const svgText = qrSvgRenderer.render(qr, {
     margin,
-    color: {
-      dark: darkColor,
-      light: lightColor,
-    },
   });
   const parser = new DOMParser();
   const svgNode = parser.parseFromString(svgText, "image/svg+xml")
@@ -155,8 +133,4 @@ function generateQrSvg(
   svgNode.setAttribute("height", String(qr.modules.size + margin * 2));
 
   return svgNode;
-}
-
-function isHexColorCode(s: string) {
-  return /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(s);
 }
