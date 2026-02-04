@@ -12,27 +12,14 @@ type Props = {
   hideUi: boolean;
   mock: boolean;
   onAffirm: () => void;
-  qrCodeOptions?: {
-    backgroundColor?: string;
-    foregroundColor?: string;
-  };
   qrString: string;
   t: TFunction<"session">;
   title: string;
 };
 
 export function ActionQr(props: Props) {
-  const {
-    amount,
-    channelLogo,
-    currency,
-    mock,
-    onAffirm,
-    qrCodeOptions,
-    qrString,
-    t,
-    title,
-  } = props;
+  const { amount, channelLogo, currency, mock, onAffirm, qrString, t, title } =
+    props;
 
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -46,11 +33,12 @@ export function ActionQr(props: Props) {
   }, [mock, onAffirm]);
 
   const svgNode = useMemo(() => {
+    const style = window.getComputedStyle(document.body);
     try {
       return generateQrSvg(
         qrString,
-        qrCodeOptions?.foregroundColor,
-        qrCodeOptions?.backgroundColor,
+        style.getPropertyValue("--xendit-qr-foreground-color"),
+        style.getPropertyValue("--xendit-qr-background-color"),
       );
     } catch (error) {
       console.log("Error generating QR code SVG:", error);
@@ -59,12 +47,7 @@ export function ActionQr(props: Props) {
       node.innerText = t("action_qr.unable_to_generate");
       return node;
     }
-  }, [
-    qrString,
-    qrCodeOptions?.foregroundColor,
-    qrCodeOptions?.backgroundColor,
-    t,
-  ]);
+  }, [qrString, t]);
 
   if (props.hideUi) {
     return (

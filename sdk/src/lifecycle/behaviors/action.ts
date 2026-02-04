@@ -206,12 +206,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     assert(this.bb.channel);
 
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
-    const qrCodeOptions = {
-      backgroundColor:
-        this.bb.sdk[internal].options.qrCodeAppearance?.backgroundColor,
-      foregroundColor:
-        this.bb.sdk[internal].options.qrCodeAppearance?.foregroundColor,
-    };
 
     const actionQrProps = {
       amount: this.bb.world.session.amount,
@@ -220,7 +214,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
       mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
-      qrCodeOptions,
       qrString: qrAction.value,
       t: this.bb.sdk.t.bind(this.bb.sdk),
       title: qrAction.action_subtitle,

@@ -93,23 +93,16 @@ const iframeFieldAppearance: import("./src/public-options-types").IframeAppearan
       },
     },
   };
-const qrCodeAppearance: import("./src/public-options-types").QrCodeAppearanceOptions =
-  {
-    // backgroundColor: "#ff0000",
-    // foregroundColor: "#0000ff",
-  };
 const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     componentsSdkKey: savedKey,
     iframeFieldAppearance,
-    qrCodeAppearance,
   });
 } else {
   components = new XenditComponentsTest({
     iframeFieldAppearance,
-    qrCodeAppearance,
   });
 }
 
