@@ -10,6 +10,9 @@ export type ValidationResult = {
 };
 
 export const validateCreditCardNumber = (value: string): ValidationResult => {
+  // remove whitespace - validation library does not allow it but our backend does
+  value = value.replace(/\s+/g, "");
+
   const errorCodes: LocaleKey[] = [];
 
   // Check for non-numeric input
