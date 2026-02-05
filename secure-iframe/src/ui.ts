@@ -176,7 +176,7 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
         return;
       }
 
-      if (beforeCursor.includes("/")) {
+      if (beforeCursor.includes("/") || afterCursor.includes("/")) {
         // already has a slash, ignore
         event.preventDefault();
         return;
@@ -214,7 +214,7 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
   }
 
   function formatAndSendEvent() {
-    const { value, hasCollapsedSelection, beforeCursor, afterCursor } =
+    const { hasCollapsedSelection, beforeCursor, afterCursor } =
       inputStats(input);
 
     const out: string[] = [];
@@ -248,7 +248,7 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
     }
 
     input.dispatchEvent(
-      new SecureInputEvent("change", { value: value.replace(/\s/g, "") }),
+      new SecureInputEvent("change", { value: newValue.replace(/\s/g, "") }),
     );
   }
 

@@ -160,6 +160,7 @@ export type FieldType =
         regex: string;
         message: string;
       }[];
+      autocomplete?: string;
     }
   | {
       name: "dropdown";
