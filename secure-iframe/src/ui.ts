@@ -176,7 +176,7 @@ function creditCardExpiryEvents(input: HTMLInputElement) {
         return;
       }
 
-      if (beforeCursor.includes("/")) {
+      if (beforeCursor.includes("/") || afterCursor.includes("/")) {
         // already has a slash, ignore
         event.preventDefault();
         return;

@@ -10,23 +10,22 @@ export type ValidationResult = {
 };
 
 export const validateCreditCardNumber = (value: string): ValidationResult => {
-  const trimmedValue = value.replace(/\s+/g, "");
   const errorCodes: LocaleKey[] = [];
 
   // Check for non-numeric input
-  if (!/^\d*$/.test(trimmedValue)) {
+  if (!/^\d*$/.test(value)) {
     errorCodes.push({
       localeKey: "validation.card_number_invalid",
     });
   }
 
-  const cardInfo = cardValidator.number(trimmedValue);
+  const cardInfo = cardValidator.number(value);
   const cardBrand = cardInfo.card
     ? (cardInfo.card.type?.toUpperCase() as CardBrand)
     : undefined;
 
   // Brand detection
-  if (!cardBrand && trimmedValue.length >= 6) {
+  if (!cardBrand && value.length >= 6) {
     // Unable to detect brand from IIN range
     errorCodes.push({
       localeKey: "validation.card_number_invalid",
@@ -36,14 +35,14 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
   // Length validation
   if (cardBrand) {
     const validLengths = cardInfo.card?.lengths || [];
-    if (!validLengths.includes(trimmedValue.length)) {
+    if (!validLengths.includes(value.length)) {
       // Invalid length for detected brand
       errorCodes.push({
         localeKey: "validation.card_number_invalid",
       });
     }
   } else {
-    if (trimmedValue.length < 12 || trimmedValue.length > 19) {
+    if (value.length < 12 || value.length > 19) {
       // Too short or too long for any card brand
       errorCodes.push({
         localeKey: "validation.card_number_invalid",
@@ -52,7 +51,7 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
   }
 
   // Luhn validation (only if length is valid for the brand)
-  if (cardBrand && cardInfo.card?.lengths?.includes(trimmedValue.length)) {
+  if (cardBrand && cardInfo.card?.lengths?.includes(value.length)) {
     if (!cardInfo.isValid) {
       // Luhn check failed
       errorCodes.push({
@@ -62,7 +61,7 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
   }
 
   return {
-    empty: trimmedValue.length === 0,
+    empty: value.length === 0,
     valid: errorCodes.length === 0,
     errorCodes,
     cardBrand,
@@ -70,48 +69,47 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
 };
 
 export const validateCreditCardExpiry = (value: string): ValidationResult => {
-  const trimmedValue = value.replace(/\s+/g, "");
   const errorCodes: LocaleKey[] = [];
 
-  const expiryInfo = cardValidator.expirationDate(trimmedValue);
+  const MAX = 99;
+  const expiryInfo = cardValidator.expirationDate(value, MAX);
   const { isPotentiallyValid, isValid, month, year } = expiryInfo;
   if (!isPotentiallyValid || month === null || year === null) {
     errorCodes.push({ localeKey: "validation.card_expiry_invalid" });
   }
 
   return {
-    empty: trimmedValue.length === 0,
+    empty: value.length === 0,
     valid: isValid,
     errorCodes,
   };
 };
 
 export const validateCreditCardCVN = (value: string): ValidationResult => {
-  const trimmedValue = value.replace(/\s+/g, "");
   const errorCodes: LocaleKey[] = [];
-  const cvnInfo = cardValidator.cvv(trimmedValue);
+  const cvnInfo = cardValidator.cvv(value);
 
-  if (!/^\d*$/.test(trimmedValue)) {
+  if (!/^\d*$/.test(value)) {
     errorCodes.push({
       localeKey: "validation.card_cvn_invalid",
     });
   } else {
-    if (!cvnInfo.isPotentiallyValid && trimmedValue.length > 0) {
-      if (trimmedValue.length < 3) {
+    if (!cvnInfo.isPotentiallyValid && value.length > 0) {
+      if (value.length < 3) {
         errorCodes.push({
           localeKey: "validation.text_too_short",
         });
-      } else if (trimmedValue.length > 4) {
+      } else if (value.length > 4) {
         errorCodes.push({
           localeKey: "validation.text_too_long",
         });
       }
-    } else if (!cvnInfo.isValid && trimmedValue.length > 0) {
-      if (trimmedValue.length < 3) {
+    } else if (!cvnInfo.isValid && value.length > 0) {
+      if (value.length < 3) {
         errorCodes.push({
           localeKey: "validation.text_too_short",
         });
-      } else if (trimmedValue.length > 4) {
+      } else if (value.length > 4) {
         errorCodes.push({
           localeKey: "validation.text_too_long",
         });
@@ -120,7 +118,7 @@ export const validateCreditCardCVN = (value: string): ValidationResult => {
   }
 
   return {
-    empty: trimmedValue.length === 0,
+    empty: value.length === 0,
     valid: errorCodes.length === 0,
     errorCodes,
   };
