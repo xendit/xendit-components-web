@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useRef } from "preact/hooks";
+import { useState, useLayoutEffect, useRef, useMemo } from "preact/hooks";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import Field from "./field";
 import classNames from "classnames";
@@ -40,39 +40,29 @@ const FieldGroup = ({
     {},
   );
 
-  const fieldGroupSpans = fieldGroup.map((f) => f.span);
-  const groupRowCount = Math.ceil(
-    fieldGroup.reduce((agg, field) => agg + field.span, 0) / 2,
+  const fieldPositions = useMemo(
+    () => calculateFieldPositions(fieldGroup),
+    [fieldGroup],
   );
 
-  const calculateFieldPosition = (index: number) => {
-    const fieldPositionBySpan = fieldGroupSpans
-      .slice(0, index)
-      .reduce((agg, span) => agg + span, 0);
-    const fieldRow = index === 0 ? 0 : Math.floor(fieldPositionBySpan / 2);
-    const fieldColumn = fieldPositionBySpan % 2;
-    const isLastRow = fieldRow === groupRowCount - 1;
-
-    return { fieldPositionBySpan, fieldRow, fieldColumn, isLastRow };
-  };
-
-  const getFieldClassNames = (
-    field: ChannelFormField,
-    index: number,
-    position: ReturnType<typeof calculateFieldPosition>,
-  ) => {
-    const { fieldPositionBySpan, fieldRow, fieldColumn, isLastRow } = position;
+  const getFieldClassNames = (field: ChannelFormField, index: number) => {
+    const span = field.span;
+    const { fieldColumn, isFirstRow, isLastRow } = fieldPositions[index];
     return classNames({
+      // remove border radius on corners that are touching another corner
       [CSS_CLASSES.BOTTOM_LEFT_0]:
-        groupRowCount > fieldRow + 1 || fieldPositionBySpan % 2 === 1,
-      [CSS_CLASSES.BOTTOM_RIGHT_0]: !!fieldGroupSpans[index + 1],
-      [CSS_CLASSES.TOP_LEFT_0]: index > 0,
+        !isLastRow || (span === 1 && fieldColumn === 1),
+      [CSS_CLASSES.BOTTOM_RIGHT_0]:
+        !isLastRow || (span === 1 && fieldColumn === 0),
+      [CSS_CLASSES.TOP_LEFT_0]:
+        !isFirstRow || (span === 1 && fieldColumn === 1),
       [CSS_CLASSES.TOP_RIGHT_0]:
-        !(fieldRow === 0 && fieldColumn === 1) &&
-        !(fieldRow === 0 && fieldColumn === 0 && field.span === 2),
+        !isFirstRow || (span === 1 && fieldColumn === 0),
+
+      // remove borders between fields
       [CSS_CLASSES.COLLAPSE_RIGHT]: field.span === 1 && fieldColumn === 0,
       [CSS_CLASSES.COLLAPSE_LEFT]: field.span === 1 && fieldColumn === 1,
-      [CSS_CLASSES.COLLAPSE_TOP]: fieldPositionBySpan >= 2,
+      [CSS_CLASSES.COLLAPSE_TOP]: !isFirstRow,
       [CSS_CLASSES.COLLAPSE_BOTTOM]: !isLastRow,
     });
   };
@@ -137,8 +127,7 @@ const FieldGroup = ({
         className={`xendit-form-field-group ${error ? "invalid" : ""}`}
       >
         {fieldGroup.map((field, index) => {
-          const position = calculateFieldPosition(index);
-          const className = getFieldClassNames(field, index, position);
+          const className = getFieldClassNames(field, index);
 
           return (
             <Field
@@ -154,5 +143,36 @@ const FieldGroup = ({
     </div>
   );
 };
+
+export function calculateFieldPositions(fieldsInGroup: ChannelFormField[]) {
+  const fieldPositions: {
+    fieldRow: number;
+    fieldColumn: number;
+    isFirstRow: boolean;
+    isLastRow: boolean;
+  }[] = [];
+  let cursor = 0;
+  for (let i = 0; i < fieldsInGroup.length; i++) {
+    const fieldRow = Math.floor(cursor / 2);
+    const fieldColumn = cursor % 2;
+    fieldPositions.push({
+      fieldRow,
+      fieldColumn,
+      isFirstRow: fieldRow === 0,
+      isLastRow: false,
+    });
+    cursor += fieldsInGroup[i].span;
+  }
+  let i = fieldPositions.length;
+  const lastRow = fieldPositions[fieldPositions.length - 1];
+  while (i--) {
+    if (fieldPositions[i].fieldRow === lastRow.fieldRow) {
+      fieldPositions[i].isLastRow = true;
+    } else {
+      break;
+    }
+  }
+  return fieldPositions;
+}
 
 export default FieldGroup;
