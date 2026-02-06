@@ -2,6 +2,14 @@
 
 No unreleased changes.
 
+# 0.0.12
+
+### Bug fixes
+
+- Fixed a bug where the credit card expiry field would not insert a slash if the user pasted the expiry date without a slash.
+- Fixed poor UX when typing a slash in the credit card expiry field.
+- Allow card expiry up to 2099
+
 # 0.0.11
 
 ### Notable
@@ -12,20 +20,20 @@ Added new public method `pollImmediately` to immediently check for updates.
 
 Changed the layout of the default action container.
 
-## Bug fixes
+### Bug fixes
 
 - Fixed UX bugs in the dropdown widget.
 - Prevent auto-updating the phone number country code if the user already typed a phone number.
 
 # 0.0.10
 
-## Bug fixes
+### Bug fixes
 
 Fixed npm publish.
 
 # 0.0.9
 
-## Bug fixes
+### Bug fixes
 
 Missing `.d.ts` file is restored.
 
