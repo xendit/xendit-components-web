@@ -124,7 +124,10 @@ export type ChannelComponentData = {
     cardNumber: string;
     details: BffCardDetails | null;
   } | null;
-  paymentOptions: BffPaymentOptions | null;
+  paymentOptions: {
+    cardNumber: string | null;
+    options: BffPaymentOptions | null;
+  } | null;
 };
 
 /**

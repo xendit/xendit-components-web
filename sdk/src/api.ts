@@ -7,6 +7,7 @@ import {
 } from "./backend-types/payment-entity";
 import { BffCardDetails } from "./backend-types/card-details";
 import { endpoint } from "./networking";
+import { BffPaymentOptions } from "./backend-types/payment-options";
 
 /**
  * Initialization method, returns session, customer, business, and channels.
@@ -92,3 +93,21 @@ export const lookupCardDetails = endpoint<
   BffCardDetails,
   string
 >("POST", (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/card_info`);
+
+type GetPaymentOptionsRequest = {
+  channel_code: string;
+  channel_properties?: {
+    card_number: string;
+  };
+};
+/**
+ * Returns metadata about a card number.
+ */
+export const getPaymentOptions = endpoint<
+  GetPaymentOptionsRequest,
+  BffPaymentOptions,
+  string
+>(
+  "POST",
+  (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/payment_options`,
+);

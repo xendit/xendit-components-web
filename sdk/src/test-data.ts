@@ -1,3 +1,4 @@
+import { amountFormat } from "./amount-format";
 import { MockActionType } from "./backend-types/channel";
 import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
@@ -9,6 +10,7 @@ import {
   BffPaymentToken,
   BffPaymentTokenStatus,
 } from "./backend-types/payment-entity";
+import { BffPaymentOptions } from "./backend-types/payment-options";
 import { BffSession } from "./backend-types/session";
 import { assert } from "./utils";
 
@@ -209,6 +211,20 @@ export function makeTestBffData(): BffResponse {
             },
             channel_property: "card_details.cardholder_phone_number",
             required: true,
+            span: 2,
+          },
+          {
+            label: "Installment plan",
+            placeholder: "Select installment plan",
+            type: {
+              name: "installment_plan",
+            },
+            channel_property: [
+              "installment_configuration.terms",
+              "installment_configuration.interval",
+              "installment_configuration.code",
+            ],
+            required: false,
             span: 2,
           },
           {
@@ -582,6 +598,16 @@ export function makeTestBffData(): BffResponse {
                 { label: "Option 1", value: "option_1" },
                 { label: "Option 2", value: "option_2" },
                 { label: "Option 3", value: "option_3" },
+                {
+                  label: "Option 4",
+                  value: "option_4",
+                  subtitle: "With subtitle",
+                },
+                {
+                  label: "Option 5",
+                  value: "option_5",
+                  subtitle: "With subtitle",
+                },
               ],
             },
             channel_property: "dropdown_field",
@@ -1334,4 +1360,38 @@ export function makeOneMockAction(mockActionType: MockActionType): BffAction {
       };
   }
   throw new Error(`Unknown mock action type: ${mockActionType}`);
+}
+
+export function makeMockPaymentOptions(
+  channelCode: string,
+  session: BffSession,
+): BffPaymentOptions {
+  return {
+    channel_code: channelCode,
+    country: session.country,
+    currency: session.currency,
+    amount: session.amount,
+    installment_plans: [
+      {
+        interval: "MONTH",
+        interval_count: 1,
+        terms: 3,
+        installment_amount: Math.floor(session.amount / 3),
+        total_amount: session.amount,
+        description: `3x Installment — ${amountFormat(Math.floor(session.amount / 3), session.currency)}`,
+        code: "3M",
+        interest_rate: 1,
+      },
+      {
+        interval: "MONTH",
+        interval_count: 1,
+        terms: 6,
+        installment_amount: Math.floor(session.amount / 6),
+        total_amount: session.amount,
+        description: `6x Installment — ${amountFormat(Math.floor(session.amount / 6), session.currency)}`,
+        code: "6M",
+        interest_rate: 1,
+      },
+    ],
+  };
 }
