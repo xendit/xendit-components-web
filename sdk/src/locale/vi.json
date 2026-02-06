@@ -64,6 +64,7 @@
     "payment_token_status.failed.subtext": "Không thể thực hiện thanh toán. Vui lòng thử phương thức khác hoặc gửi yêu cầu đến người bán bằng cách chia sẻ Mã định danh duy nhất.",
     "payment_token_status.failed.title": "Không thể thêm phương thức thanh toán",
     "action.payment_confirmation_instructions": "Sau khi bạn đã thanh toán, hãy nhấp nút phía trên để nhận xác nhận thanh toán.",
-    "action.payment_made": "Tôi đã thực hiện thanh toán này"
+    "action.payment_made": "Tôi đã thực hiện thanh toán này",
+    "action_qr.unable_to_generate": "Không thể tạo mã QR"
   }
 }

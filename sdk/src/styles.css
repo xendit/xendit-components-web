@@ -75,6 +75,10 @@ html {
   /* Browser-specific border collapse margins */
   --xendit-border-collapse-offset: -0.5px; /* Default for Chrome/Edge */
   --xendit-border-collapse-webkit-gecko: -1.5px; /* Fix Safari and Firefox subpixel rendering */
+
+  /* QR code colors */
+  --xendit-qr-foreground-color: #000000;
+  --xendit-qr-background-color: #ffffff;
 }
 
 /* Set default font for root components */
@@ -868,6 +872,12 @@ xendit-payment-channel[inert] {
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   padding: 12px;
+}
+.xendit-action-qr-qrcode-container svg path[fill] {
+  fill: var(--xendit-qr-background-color);
+}
+.xendit-action-qr-qrcode-container svg path[stroke] {
+  stroke: var(--xendit-qr-foreground-color);
 }
 .xendit-action-qr-amount-container {
   display: flex;
