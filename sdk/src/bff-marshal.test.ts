@@ -203,7 +203,7 @@ describe("BFF Marshal - bffChannelsToPublic", () => {
       },
     );
 
-    expect(publicChannels.length).toBe(6);
+    expect(publicChannels.length).toBe(7);
     expect(publicChannels.map((ch) => ch.channelCode)).toEqual([
       "MOCK_EWALLET",
       "MOCK_EWALLET_IFRAME",
@@ -211,6 +211,7 @@ describe("BFF Marshal - bffChannelsToPublic", () => {
       "MOCK_QR",
       "MOCK_DIRECT_DEBIT",
       "MOCK_OTC",
+      "MOCK_VA",
     ]);
   });
 });
