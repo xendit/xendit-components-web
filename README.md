@@ -254,6 +254,12 @@ Notifies you when the session is in a terminal state.
 
 `session-complete` means the session was successful, `session-expired-or-canceled` means the session was cancelled or expired.
 
+### `session-pending` and `session-not-pending`
+
+Notifies you when the session is in the pending state. The pending state means a payment request or token will take some time to complete due to a manual approval flow. This affects FPX business payments. No other payment attempts can be made while in the pending state.
+
+You might want to show a pending state UI when in the pending state.
+
 ### `submission-ready` and `submission-not-ready`
 
 Notifies you when the user is ready to submit the payment, meaning a channel is selected and all required information is collected.
@@ -267,13 +273,13 @@ You might want to disable your submit button when not in the ready state.
 
 Notifies you when a submission is in progress.
 
-You might want to show a pending state UI when in the submission state.
+You might want to show a pending state UI when in the submission state, and allowing the action UI to show on top.
 
 ### `action-begin` and `action-end`
 
 Notifies you when an action is in progress.
 
-You might want to create an action container in the action-begin event.
+Optionally, you can create an action container in the action-begin event. A default action container modal will be created if you don't.
 
 ## Appearance
 

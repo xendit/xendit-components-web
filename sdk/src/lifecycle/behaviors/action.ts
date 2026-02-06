@@ -5,10 +5,7 @@ import {
   InternalScheduleMockUpdateEvent,
 } from "../../private-event-types";
 import { XenditWillRedirectEvent } from "../../public-event-types";
-import {
-  makeTestPollResponseForFailure,
-  makeTestPollResponseForSuccess,
-} from "../../test-data";
+import { makeTestPollResponse } from "../../test-data";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
@@ -166,25 +163,11 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
   updateMocksOnIframeCompletion(success: boolean) {
     assert(this.bb.world?.paymentEntity);
     if (this.bb.mock) {
-      if (success) {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForSuccess(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      } else {
-        this.bb.dispatchEvent(
-          new InternalScheduleMockUpdateEvent(
-            makeTestPollResponseForFailure(
-              this.bb.world.session,
-              this.bb.world.paymentEntity,
-            ),
-          ),
-        );
-      }
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponse(this.bb.world, this.bb.channel, success),
+        ),
+      );
     }
   }
 }
@@ -246,10 +229,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.bb.dispatchEvent(
         new InternalScheduleMockUpdateEvent(
-          makeTestPollResponseForSuccess(
-            this.bb.world.session,
-            this.bb.world.paymentEntity,
-          ),
+          makeTestPollResponse(this.bb.world, this.bb.channel, true),
         ),
       );
     }
