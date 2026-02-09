@@ -83,3 +83,7 @@ export type IframeAppearanceOptions = {
     descriptors?: Pick<FontFaceDescriptors, "display" | "style" | "stretch">;
   };
 };
+
+export type SetCurrentChannelOptions = {
+  digitalWalletSubmission: boolean;
+};
