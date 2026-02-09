@@ -144,7 +144,7 @@ export type WorldState = {
 };
 
 /**
- * @internal
+ * @public
  */
 export type DigitalWalletCode = "GOOGLE_PAY";
 

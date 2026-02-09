@@ -84,6 +84,9 @@ export type IframeAppearanceOptions = {
   };
 };
 
+/**
+ * @public
+ */
 export type SetCurrentChannelOptions = {
   digitalWalletSubmission: boolean;
 };
