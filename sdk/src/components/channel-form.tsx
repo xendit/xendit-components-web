@@ -17,6 +17,7 @@ import { createContext } from "preact";
 import { forwardRef } from "react";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { useChannelComponentData } from "./payment-channel";
+import { getChannelPropertyValue } from "../validation";
 
 interface Props {
   form: ChannelFormField[];
@@ -80,7 +81,10 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     // trigger a field changed callback when the form changes
     const previousFilteredForm = usePrevious(filteredForm);
     useEffect(() => {
-      if (previousFilteredForm !== filteredForm) {
+      if (
+        // only trigger if the form structure changed
+        JSON.stringify(previousFilteredForm) !== JSON.stringify(filteredForm)
+      ) {
         handleFieldChanged();
       }
     }, [filteredForm, handleFieldChanged, previousFilteredForm]);
@@ -234,20 +238,20 @@ export function useFilteredFormFields(
   session: BffSession,
   form: ChannelFormField[],
   cardInfo: BffCardDetails | null,
-  rawChannelProperties: ChannelProperties,
+  channelProperties: ChannelProperties,
 ) {
   const filteredForm = useMemo(() => {
     return filterFormFields(
       session.session_type,
       form,
       cardInfo?.require_billing_information ?? false,
-      rawChannelProperties,
+      channelProperties,
     );
   }, [
     cardInfo?.require_billing_information,
     form,
     session.session_type,
-    rawChannelProperties,
+    channelProperties,
   ]);
 
   return filteredForm;
@@ -257,7 +261,7 @@ export function filterFormFields(
   sessionType: BffSessionType,
   form: ChannelFormField[],
   showBillingDetailsFields: boolean,
-  rawChannelProperties: ChannelProperties,
+  channelProperties: ChannelProperties,
 ) {
   return form.filter((field) => {
     if (field.flags?.require_billing_information) {
@@ -268,7 +272,7 @@ export function filterFormFields(
     // if any condition is not met, hide the field
     for (const condition of field.display_if || []) {
       const [property, operator, value] = condition;
-      const channelValue = rawChannelProperties[property];
+      const channelValue = getChannelPropertyValue(channelProperties, property);
       switch (operator) {
         case "equals":
           if (channelValue !== value) return false;
