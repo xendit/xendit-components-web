@@ -28,6 +28,7 @@ import {
   makeChannelsByGroupId,
   singleBffChannelToPublic,
 } from "../bff-marshal";
+import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
 
 type Props = object;
 
@@ -136,8 +137,8 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
   }
 
   return (
-    // FIXME: make it work without this extra div
     <div ref={thisRef}>
+      <ChannelPickerDigitalWalletSection />
       <Accordion>
         {channelUiGroups
           .filter((group) => {

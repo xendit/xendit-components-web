@@ -215,6 +215,7 @@ async function generateTestPage() {
     <title>Xendit SDK Test Page</title>
   </head>
   <body>
+    <script src="https://pay.google.com/gp/p/js/pay.js"></script>
     <script type="module">${stripTypeScriptTypes(code)}</script>
   </body>
 </html>`;

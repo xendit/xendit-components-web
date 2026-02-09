@@ -2,7 +2,9 @@
 
 Use `pnpm` to install dependencies, not npm.
 
-Run `pnpm dev` to run the dev server. It hosts a development UI on https://localhost:4443/. You must trust or ignore the self signed certificate.
+Run `pnpm dev` to run the dev server. It hosts a development UI on https://localhost:4443/.
+
+You MUST configure the browser to trust the certificate or googlepay will not work. For chrome, go to `chrome://certificate-manager/` and import the cert. If you _ever_ ignore the cert error you must restart your browser, even after importing the cert.
 
 Run `pnpm test` to run tests.
 

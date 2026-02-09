@@ -64,6 +64,7 @@ export type BlackboardType = {
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;
+  channelIsDigitalWallet: boolean;
 
   // dispatch event on the SDK instance
   dispatchEvent(event: Event): boolean;
@@ -141,6 +142,10 @@ export function behaviorTreeForSession(bb: BlackboardType) {
 
 export function behaviorTreeForForm(bb: BlackboardType) {
   if (!bb.channel || !bb.world?.session) {
+    return undefined;
+  }
+
+  if (bb.channelIsDigitalWallet) {
     return undefined;
   }
 

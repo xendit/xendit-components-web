@@ -103,6 +103,7 @@ import { initI18n } from "./localization";
 import { TFunction } from "i18next";
 import { amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
+import { DigitalWalletContainer } from "./components/digital-wallet-container";
 
 /**
  * @internal
@@ -146,6 +147,11 @@ export type WorldState = {
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
 };
+
+/**
+ * @public
+ */
+export type DigitalWalletCode = "GOOGLE_PAY";
 
 /**
  * @internal
@@ -211,6 +217,12 @@ export class XenditComponents extends EventTarget {
       channelPicker: HTMLElement | null;
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
+      digitalWalletContainer: Map<
+        DigitalWalletCode,
+        {
+          element: HTMLElement;
+        }
+      >;
     };
 
     /**
@@ -218,6 +230,15 @@ export class XenditComponents extends EventTarget {
      * This is used as a key into `paymentChannelComponents`.
      */
     currentChannelCode: string | null;
+
+    /**
+     * The ongoing digital wallet submission, if any.
+     */
+    currentDigitalWalletSubmission: {
+      digitalWalletCode: DigitalWalletCode;
+      channelCode: string;
+      channelProperties: ChannelProperties;
+    } | null;
 
     /**
      * Tracks which event listeners are present on the SDK instance.
@@ -260,6 +281,7 @@ export class XenditComponents extends EventTarget {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
+        digitalWalletContainer: new Map(),
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
         sdk: this,
@@ -270,6 +292,7 @@ export class XenditComponents extends EventTarget {
         channel: null,
         channelProperties: null,
         channelData: null,
+        channelIsDigitalWallet: false,
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
@@ -278,6 +301,7 @@ export class XenditComponents extends EventTarget {
         pollImmediatelyRequested: false,
       }),
       currentChannelCode: null,
+      currentDigitalWalletSubmission: null,
       eventListenersPresent: new Map(),
     };
     lockDownInteralProperty(this as unknown as { [internal]: unknown });
@@ -449,19 +473,32 @@ export class XenditComponents extends EventTarget {
 
     bb.world = this[internal].worldState;
 
-    const component = this[internal].currentChannelCode
-      ? this[internal].liveComponents.paymentChannels.get(
-          this[internal].currentChannelCode,
-        )
-      : null;
-    bb.channel = component
-      ? resolvePairedChannel(
-          component.channel[internal],
-          component.data.savePaymentMethod,
-        )
-      : null;
-    bb.channelProperties = component ? component.channelProperties : null;
-    bb.channelData = component ? component.data : null;
+    if (this[internal].currentDigitalWalletSubmission) {
+      // populate data for digital wallet submission
+      bb.channel = this.findChannel(
+        this[internal].currentDigitalWalletSubmission.channelCode,
+      );
+      bb.channelProperties =
+        this[internal].currentDigitalWalletSubmission.channelProperties;
+      bb.channelData = null;
+      bb.channelIsDigitalWallet = true;
+    } else {
+      // populate data for normal channel component
+      const component = this[internal].currentChannelCode
+        ? this[internal].liveComponents.paymentChannels.get(
+            this[internal].currentChannelCode,
+          )
+        : null;
+      bb.channel = component
+        ? resolvePairedChannel(
+            component.channel[internal],
+            component.data.savePaymentMethod,
+          )
+        : null;
+      bb.channelProperties = component ? component.channelProperties : null;
+      bb.channelData = component ? component.data : null;
+      bb.channelIsDigitalWallet = false;
+    }
 
     try {
       this[internal].behaviorTree.update();
@@ -765,6 +802,37 @@ export class XenditComponents extends EventTarget {
       }),
       component.element,
     );
+  }
+
+  /**
+   * @internal
+   */
+  createDigitalWalletComponent(
+    digitalWalletCode: DigitalWalletCode,
+  ): HTMLElement {
+    this.assertInitialized();
+
+    const element = document.createElement("xendit-digital-wallet");
+    element.setAttribute("translate", "no");
+    this[internal].liveComponents.digitalWalletContainer.set(
+      digitalWalletCode,
+      {
+        element,
+      },
+    );
+
+    render(
+      createElement(XenditSessionProvider, {
+        data: this[internal].worldState,
+        sdk: this,
+        children: createElement(DigitalWalletContainer, {
+          digitalWalletCode,
+        }),
+      }),
+      element,
+    );
+
+    return element;
   }
 
   /**
@@ -1103,6 +1171,35 @@ export class XenditComponents extends EventTarget {
         "Unable to submit; the SDK is not in a valid state for submission. Listen to the `submission-ready` and `submission-not-ready` events, do not allow submission while in the not-ready state.",
       );
     }
+
+    this[internal].behaviorTree.bb.submissionRequested = true;
+    this.behaviorTreeUpdate();
+
+    this.syncInertAttribute();
+  }
+
+  submitDigitalWallet(
+    digitalWalletCode: DigitalWalletCode,
+    channel: XenditPaymentChannel,
+    channelProperties: ChannelProperties,
+  ) {
+    this.assertInitialized();
+
+    this.setCurrentChannel(null);
+
+    this[internal].currentDigitalWalletSubmission = {
+      digitalWalletCode,
+      channelCode: channel[internal][0].channel_code,
+      channelProperties,
+    };
+
+    this.addEventListener(
+      XenditSubmissionEndEvent.type,
+      () => {
+        this[internal].currentDigitalWalletSubmission = null;
+      },
+      { once: true },
+    );
 
     this[internal].behaviorTree.bb.submissionRequested = true;
     this.behaviorTreeUpdate();

@@ -66,6 +66,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
     cardDetails: null,
     paymentOptions: null,
   },
+  channelIsDigitalWallet: false,
   dispatchEvent: () => {
     throw new Error("Should not be called in this test");
   },
