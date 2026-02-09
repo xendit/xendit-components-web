@@ -218,3 +218,26 @@ export interface XenditPaymentChannelGroup {
   /** @internal */
   [internal]: BffChannelUiGroup;
 }
+
+/**
+ * @public
+ */
+export type XenditDigitalWalletCode = "GOOGLE_PAY";
+
+/**
+ * @public
+ */
+export type XenditDigitalWallet = {
+  /**
+   * Identifier for the digital wallet, the only supported one right now is GOOGLE_PAY.
+   */
+  digitalWalletCode: XenditDigitalWalletCode;
+  /**
+   * The supported channel codes for this digital wallet.
+   */
+  channels: XenditPaymentChannel[];
+  /**
+   * @internal
+   */
+  [internal]: true;
+};

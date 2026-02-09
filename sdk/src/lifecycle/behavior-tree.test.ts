@@ -53,6 +53,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
     session: testData.session,
     channels: testData.channels,
     channelUiGroups: testData.channel_ui_groups,
+    digitalWallets: testData.digital_wallets ?? null,
     paymentEntity: null,
     sessionTokenRequestId: null,
     succeededChannel: null,
@@ -66,6 +67,8 @@ const mockBlackboard: BlackboardType & { world: object } = {
     cardDetails: null,
     paymentOptions: null,
   },
+  channelIsDigitalWallet: false,
+  instantSubmissionError: null,
   dispatchEvent: () => {
     throw new Error("Should not be called in this test");
   },
