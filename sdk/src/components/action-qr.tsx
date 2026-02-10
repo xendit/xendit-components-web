@@ -132,5 +132,11 @@ function generateQrSvg(text: string): SVGSVGElement {
   svgNode.setAttribute("width", String(qr.modules.size + margin * 2));
   svgNode.setAttribute("height", String(qr.modules.size + margin * 2));
 
+  // Override colors to use CSS variables
+  const backgroundPath = svgNode.querySelector("[fill]");
+  backgroundPath?.setAttribute("fill", "var(--xendit-qr-background-color)");
+  const foregroundPath = svgNode.querySelector("[stroke]");
+  foregroundPath?.setAttribute("stroke", "var(--xendit-qr-foreground-color)");
+
   return svgNode;
 }
