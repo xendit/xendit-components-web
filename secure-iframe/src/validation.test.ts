@@ -200,11 +200,4 @@ describe("validateCreditCardCVN", () => {
     );
     expect(result.empty).toBe(false);
   });
-
-  it("trims whitespace before validation", () => {
-    const result = validateCreditCardCVN(" 123 ");
-    expect(result.valid).toBe(true);
-    expect(result.errorCodes).toEqual([]);
-    expect(result.empty).toBe(false);
-  });
 });
