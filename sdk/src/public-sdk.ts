@@ -82,7 +82,7 @@ import {
   satisfiesMinMax,
   sleep,
 } from "./utils";
-import { makeTestSdkKey } from "./test-data";
+import { makeTestSdkKey } from "./data/test-data-modifiers";
 import {
   ChannelInvalidBehavior,
   ChannelValidBehavior,
@@ -1506,7 +1506,7 @@ export class XenditComponentsTest extends XenditComponents {
     await sleep(MOCK_NETWORK_DELAY_MS);
 
     // Always use test data for this class
-    const bff = (await import("./test-data")).makeTestBffData();
+    const bff = (await import("./data/test-data")).makeTestBffData();
 
     // Update internal data
     this.dispatchEvent(

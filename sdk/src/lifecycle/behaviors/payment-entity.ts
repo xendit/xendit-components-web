@@ -16,7 +16,7 @@ import { PollWorker } from "./poll-worker";
 import {
   makeTestPollResponseForFailure,
   makeTestPollResponseForSuccess,
-} from "../../test-data";
+} from "../../data/test-data-modifiers";
 
 export class PePendingBehavior implements Behavior {
   private pollWorker: PollWorker;
