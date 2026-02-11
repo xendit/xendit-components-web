@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "preact/hooks";
+import { useCallback, useLayoutEffect, useRef } from "preact/hooks";
 import { IframeActionCompleteEvent } from "../../../shared/types";
 
 type Props = {
@@ -33,7 +33,7 @@ export function ActionIframe(props: Props) {
     [onIframeComplete],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.addEventListener("message", handleEventFromIframe);
     return () => {
       window.removeEventListener("message", handleEventFromIframe);

@@ -7,6 +7,9 @@ export type XenditEventMap = {
   "submission-ready": XenditReadyEvent;
   "submission-not-ready": XenditReadyEvent;
 
+  "submission-begin": XenditSubmissionBeginEvent;
+  "submission-end": XenditSubmissionEndEvent;
+
   "action-begin": XenditActionBeginEvent;
   "action-end": XenditActionEndEvent;
 
