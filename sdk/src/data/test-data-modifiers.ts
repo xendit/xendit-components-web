@@ -273,6 +273,15 @@ export function makeMockPaymentOptions(
         code: "6M",
         interest_rate: 1,
       },
+      {
+        interval: "MONTH",
+        interval_count: 1,
+        terms: 6,
+        installment_amount: Math.floor(session.amount / 6),
+        total_amount: session.amount,
+        description: `6x Installment — ${amountFormat(Math.floor(session.amount / 6), session.currency)} (without plan code)`,
+        interest_rate: 1,
+      },
     ],
   };
 }

@@ -4,7 +4,7 @@ export interface BffInstallmentPlan {
   terms: number;
   installment_amount: number;
   total_amount: number;
-  code: string;
+  code?: string;
   interest_rate: number;
   description: string;
 }

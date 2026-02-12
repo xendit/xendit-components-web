@@ -7,6 +7,7 @@ import { useChannelComponentData } from "./payment-channel";
 import { amountFormat } from "../amount-format";
 import { useSession } from "./session-provider";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { BffInstallmentPlan } from "../backend-types/payment-options";
 
 export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -19,7 +20,7 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   const paymentOptions = useChannelComponentData()?.paymentOptions;
   const installmentPlans = paymentOptions?.options?.installment_plans;
 
-  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
 
   const dropdownItems = useMemo(() => {
     const arr =
@@ -27,7 +28,7 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
         (plan) => ({
           title: plan.description,
           subtitle: plan.interest_rate,
-          value: plan.code,
+          value: planKey(plan),
         }),
       ) ?? [];
     arr.unshift({
@@ -41,8 +42,8 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
     session.currency,
   ]);
 
-  let selectedItemIndex = dropdownItems?.findIndex((plan) => {
-    return plan.value === selectedCode;
+  let selectedItemIndex = dropdownItems?.findIndex((item) => {
+    return item.value === selectedItemKey;
   });
   if (selectedItemIndex === -1) {
     selectedItemIndex = 0;
@@ -51,35 +52,44 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   function handleChange(option: DropdownOption): void {
     if (hiddenFieldRef.current) {
       const newPlan = installmentPlans?.find(
-        (plan) => plan.code === option.value,
+        (plan) => planKey(plan) === option.value,
       );
       if (newPlan) {
-        hiddenFieldRef.current.value = JSON.stringify([
-          newPlan.terms,
-          newPlan.interval,
-          newPlan.code,
-        ]);
+        if (newPlan.code) {
+          // with plan code
+          hiddenFieldRef.current.value = JSON.stringify([
+            newPlan.terms,
+            newPlan.interval,
+            newPlan.code,
+          ]);
+        } else {
+          // without plan code
+          hiddenFieldRef.current.value = JSON.stringify([
+            newPlan.terms,
+            newPlan.interval,
+          ]);
+        }
       } else {
         hiddenFieldRef.current.value = "";
       }
       hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     }
-    setSelectedCode(option.value);
+    setSelectedItemKey(option.value);
     onChange();
   }
 
   useLayoutEffect(() => {
     // if options change, and the selected code no longer exists, clear the field
     if (
-      selectedCode &&
-      !installmentPlans?.some((plan) => plan.code === selectedCode)
+      selectedItemKey &&
+      !installmentPlans?.some((plan) => planKey(plan) === selectedItemKey)
     ) {
-      setSelectedCode(null);
+      setSelectedItemKey(null);
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = "";
       }
     }
-  }, [selectedCode, installmentPlans]);
+  }, [installmentPlans, selectedItemKey]);
 
   if (!installmentPlans || installmentPlans.length === 0) {
     return null;
@@ -99,3 +109,7 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
     </>
   );
 };
+
+function planKey(plan: BffInstallmentPlan) {
+  return `${plan.terms}_${plan.interval}_${plan.code ?? ""}`;
+}
