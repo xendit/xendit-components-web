@@ -63,6 +63,7 @@ export type BffPaymentToken = {
 export type BffPaymentRequestStatus =
   | "ACCEPTING_PAYMENTS"
   | "REQUIRES_ACTION"
+  | "PENDING"
   | "AUTHORIZED"
   | "CANCELED"
   | "EXPIRED"

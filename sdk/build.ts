@@ -71,15 +71,15 @@ function resolveModule(moduleName: string): string {
 function rollupConfig(production: boolean): rollup.RollupOptions {
   return {
     input: path.join(import.meta.dirname, "./src/index.ts"),
+    preserveEntrySignatures: "allow-extension",
     output: [
       {
-        file: path.join(import.meta.dirname, "dist", "index.esm.js"),
-        name: "Xendit",
+        dir: path.join(import.meta.dirname, "dist", "esm"),
         format: "esm",
-        exports: "named",
         sourcemap: true,
-        inlineDynamicImports: true,
+        inlineDynamicImports: false,
         banner: bannerComment,
+        chunkFileNames: "[name].js",
       },
       {
         file: path.join(import.meta.dirname, "dist", "index.umd.js"),
@@ -134,10 +134,6 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
           },
         ],
       }),
-      // this seems to break watch mode, so disable it for now
-      // sourcemaps({
-      //   exclude: ["**/*.css", "**/*.ts"]
-      // }),
       production
         ? terser({
             keep_classnames: true,
@@ -169,16 +165,18 @@ async function rollupWatch() {
       case "BUNDLE_END": {
         if (event.result) {
           for (const o of options.output as rollup.OutputOptions[]) {
-            lastSeenBuildOutput = new Map(
-              (await event.result.generate(o)).output.map((chunkOrAsset) => [
-                chunkOrAsset.fileName,
-                Buffer.from(
-                  chunkOrAsset.type === "chunk"
-                    ? chunkOrAsset.code
-                    : chunkOrAsset.source,
-                ),
-              ]),
-            );
+            if (o.format === "esm") {
+              lastSeenBuildOutput = new Map(
+                (await event.result.generate(o)).output.map((chunkOrAsset) => [
+                  chunkOrAsset.fileName,
+                  Buffer.from(
+                    chunkOrAsset.type === "chunk"
+                      ? chunkOrAsset.code
+                      : chunkOrAsset.source,
+                  ),
+                ]),
+              );
+            }
             await event.result.write(o);
           }
           await event.result.close();
@@ -209,7 +207,6 @@ async function generateTestPage() {
     <title>Xendit SDK Test Page</title>
   </head>
   <body>
-    <script type="application/javascript" src="./index.umd.js" charset="UTF-8"></script>
     <script type="module">${stripTypeScriptTypes(code)}</script>
   </body>
 </html>`;
@@ -240,20 +237,16 @@ async function handleDevServerRequest(
     return;
   }
 
+  if (pathname.startsWith("/esm/")) {
+    const filename = pathname.slice("/esm/".length);
+    return await serveFileFromBundle(filename, "application/javascript");
+  }
+
   switch (`${req.method} ${pathname}`) {
     case "GET /": {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(await generateTestPage());
       return;
-    }
-    case "GET /index.umd.js": {
-      return await serveFileFromBundle(
-        "index.umd.js",
-        "application/javascript",
-      );
-    }
-    case "GET /index.umd.js.map": {
-      return await serveFileFromBundle("index.umd.js.map", "application/json");
     }
     case "GET /favicon.ico": {
       res.writeHead(201, {}).end();

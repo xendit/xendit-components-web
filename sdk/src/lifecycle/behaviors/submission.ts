@@ -20,13 +20,14 @@ import {
 } from "../../private-event-types";
 import {
   XenditPaymentRequestCreatedEvent,
-  XenditPaymentRequestDiscardedEvent,
   XenditPaymentTokenCreatedEvent,
-  XenditPaymentTokenDiscardedEvent,
   XenditSubmissionBeginEvent,
   XenditSubmissionEndEvent,
 } from "../../public-event-types";
-import { makeTestPaymentRequest, makeTestPaymentToken } from "../../test-data";
+import {
+  makeTestPaymentRequest,
+  makeTestPaymentToken,
+} from "../../data/test-data-modifiers";
 import {
   AbortError,
   assert,
@@ -39,6 +40,7 @@ import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
 import { TFunction } from "i18next";
+import { discardPaymentEntity } from "./discard";
 
 export class SubmissionBehavior implements Behavior {
   private exited = false;
@@ -63,29 +65,14 @@ export class SubmissionBehavior implements Behavior {
     assert(this.bb.world?.session);
     const t = this.bb.sdk.t;
 
-    // If session is not complete, discard payment entity
+    // If session is not complete or pending, discard payment entity
     const paymentEntity = this.bb.world.paymentEntity;
-    if (this.bb.world.session.status !== "COMPLETED" && paymentEntity) {
-      switch (paymentEntity.type) {
-        case BffPaymentEntityType.PaymentRequest:
-          this.bb.dispatchEvent(
-            new XenditPaymentRequestDiscardedEvent(paymentEntity.id),
-          );
-          break;
-        case BffPaymentEntityType.PaymentToken:
-          this.bb.dispatchEvent(
-            new XenditPaymentTokenDiscardedEvent(paymentEntity.id),
-          );
-          break;
-        default:
-          paymentEntity satisfies never;
-      }
-      this.bb.dispatchEvent(
-        new InternalUpdateWorldState({
-          paymentEntity: null,
-          sessionTokenRequestId: null,
-        }),
-      );
+    if (
+      this.bb.world.session.status !== "COMPLETED" &&
+      this.bb.world.session.status !== "PENDING" &&
+      paymentEntity
+    ) {
+      discardPaymentEntity(paymentEntity, this.bb.dispatchEvent);
     }
 
     // Determine reason for submission end

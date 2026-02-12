@@ -2,6 +2,11 @@
 This must be a single file with no imports.
 */
 
+const Xendit =
+  // @ts-expect-error (not a real file, this points to the build output)
+  (await import("./esm/index.js")) as typeof import("./src/public-sdk");
+const { XenditComponents, XenditComponentsTest } = Xendit;
+
 const LOCALSTORAGE_KEY = "test_ui_components_sdk_key";
 
 const outer = document.createElement("div");
@@ -73,9 +78,9 @@ const simulateButton = document.createElement("button");
 simulateButton.textContent = "Simulate Payment";
 controlsDiv.appendChild(simulateButton);
 
-const { XenditComponents, XenditComponentsTest } = (
-  window as unknown as { Xendit: typeof import("./src/public-sdk") }
-).Xendit;
+// const { XenditComponents, XenditComponentsTest } = (
+//   window as unknown as { Xendit: typeof import("./src/public-sdk") }
+// ).Xendit;
 
 let components: import("./src/public-sdk").XenditComponents;
 const iframeFieldAppearance: import("./src/public-options-types").IframeAppearanceOptions =
@@ -145,6 +150,9 @@ components.addEventListener("will-redirect", logEvent);
 
 components.addEventListener("session-complete", logEvent);
 components.addEventListener("session-expired-or-canceled", logEvent);
+
+components.addEventListener("session-pending", logEvent);
+components.addEventListener("session-not-pending", logEvent);
 
 components.addEventListener("payment-request-created", logEvent);
 components.addEventListener("payment-request-discarded", logEvent);

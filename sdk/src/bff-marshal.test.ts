@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeTestBffData } from "./test-data";
+import { makeTestBffData } from "./data/test-data";
 import {
   bffChannelsToPublic,
   bffCustomerToPublic,
@@ -203,13 +203,14 @@ describe("BFF Marshal - bffChannelsToPublic", () => {
       },
     );
 
-    expect(publicChannels.length).toBe(6);
+    expect(publicChannels.length).toBe(7);
     expect(publicChannels.map((ch) => ch.channelCode)).toEqual([
       "MOCK_EWALLET",
       "MOCK_EWALLET_IFRAME",
       "MOCK_EWALLET_WITH_PHONE",
       "MOCK_QR",
       "MOCK_DIRECT_DEBIT",
+      "MOCK_FPX_BUSINESS",
       "MOCK_OTC",
     ]);
   });
