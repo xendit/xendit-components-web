@@ -151,6 +151,9 @@ components.addEventListener("will-redirect", logEvent);
 components.addEventListener("session-complete", logEvent);
 components.addEventListener("session-expired-or-canceled", logEvent);
 
+components.addEventListener("session-pending", logEvent);
+components.addEventListener("session-not-pending", logEvent);
+
 components.addEventListener("payment-request-created", logEvent);
 components.addEventListener("payment-request-discarded", logEvent);
 
