@@ -281,7 +281,7 @@ export function formFieldId(field: ChannelFormField): string {
   return `xendit-id-${obfuscatedId}`;
 }
 
-function randomBytes(length: number) {
+export function randomBytes(length: number) {
   const arr = new Uint8Array(length);
   for (let i = 0; i < length; i++) {
     arr[i] = Math.floor(Math.random() * 256);
@@ -289,12 +289,22 @@ function randomBytes(length: number) {
   return arr;
 }
 
-function randomHexString(length: number) {
+export function randomHexString(length: number) {
   assert(length % 2 === 0);
   const bytes = randomBytes(length / 2);
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+export function randomUUID() {
+  return [
+    randomHexString(8),
+    randomHexString(4),
+    randomHexString(4),
+    randomHexString(4),
+    randomHexString(12),
+  ].join("-");
 }
 
 /**

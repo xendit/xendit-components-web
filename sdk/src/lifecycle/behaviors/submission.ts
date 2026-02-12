@@ -26,7 +26,10 @@ import {
   XenditSubmissionBeginEvent,
   XenditSubmissionEndEvent,
 } from "../../public-event-types";
-import { makeTestPaymentRequest, makeTestPaymentToken } from "../../test-data";
+import {
+  makeTestPaymentRequest,
+  makeTestPaymentToken,
+} from "../../data/test-data-modifiers";
 import {
   AbortError,
   assert,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeTestBffData } from "./test-data";
+import { makeTestBffData } from "./data/test-data";
 import {
   bffChannelsToPublic,
   bffCustomerToPublic,

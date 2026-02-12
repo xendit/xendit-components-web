@@ -8,7 +8,7 @@ import { XenditWillRedirectEvent } from "../../public-event-types";
 import {
   makeTestPollResponseForFailure,
   makeTestPollResponseForSuccess,
-} from "../../test-data";
+} from "../../data/test-data-modifiers";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
