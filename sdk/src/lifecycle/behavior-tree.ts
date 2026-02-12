@@ -38,6 +38,7 @@ import {
   SessionActiveBehavior,
   SessionCompletedBehavior,
   SessionFailedBehavior,
+  SessionPendingBehavior,
 } from "./behaviors/session";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior } from "./behaviors/submission";
@@ -123,6 +124,9 @@ export function behaviorTreeForSession(bb: BlackboardType) {
     }
     case "CANCELED": {
       return behaviorNode(SessionFailedBehavior, bb.world.session.status);
+    }
+    case "PENDING": {
+      return behaviorNode(SessionPendingBehavior, bb.world.session.status);
     }
     default: {
       bb.world.session.status satisfies never;

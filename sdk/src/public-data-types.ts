@@ -63,7 +63,7 @@ export interface XenditSession {
   /**
    * Status of the session.
    */
-  status: "ACTIVE" | "CANCELED" | "EXPIRED" | "COMPLETED";
+  status: "ACTIVE" | "PENDING" | "CANCELED" | "EXPIRED" | "COMPLETED";
   /**
    * Indicates whether the customer is allowed to save their payment method during this session.
    *
