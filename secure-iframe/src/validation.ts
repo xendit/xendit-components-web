@@ -90,34 +90,19 @@ export const validateCreditCardExpiry = (value: string): ValidationResult => {
 
 export const validateCreditCardCVN = (value: string): ValidationResult => {
   const errorCodes: LocaleKey[] = [];
-  const cvnInfo = cardValidator.cvv(value);
 
   if (!/^\d*$/.test(value)) {
     errorCodes.push({
       localeKey: "validation.card_cvn_invalid",
     });
-  } else {
-    if (!cvnInfo.isPotentiallyValid && value.length > 0) {
-      if (value.length < 3) {
-        errorCodes.push({
-          localeKey: "validation.text_too_short",
-        });
-      } else if (value.length > 4) {
-        errorCodes.push({
-          localeKey: "validation.text_too_long",
-        });
-      }
-    } else if (!cvnInfo.isValid && value.length > 0) {
-      if (value.length < 3) {
-        errorCodes.push({
-          localeKey: "validation.text_too_short",
-        });
-      } else if (value.length > 4) {
-        errorCodes.push({
-          localeKey: "validation.text_too_long",
-        });
-      }
-    }
+  } else if (value.length < 3) {
+    errorCodes.push({
+      localeKey: "validation.text_too_short",
+    });
+  } else if (value.length > 4) {
+    errorCodes.push({
+      localeKey: "validation.text_too_long",
+    });
   }
 
   return {
