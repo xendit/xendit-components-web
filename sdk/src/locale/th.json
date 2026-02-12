@@ -64,6 +64,7 @@
     "payment_token_status.failed.subtext": "ไม่สามารถดำเนินการชำระเงินได้ กรุณาลองใช้วิธีการชำระเงินอื่น หรือส่งคำถามไปยังผู้ขายโดยแชร์ Unique Identifiers ของคุณ",
     "payment_token_status.failed.title": "ไม่สามารถเพิ่มวิธีการชําระเงินได้",
     "action.payment_confirmation_instructions": "เมื่อคุณชำระเงินแล้ว คลิกที่ปุ่มด้านบนเพื่อยืนยันการชำระเงิน",
-    "action.payment_made": "ฉันได้ชำระเงินแล้ว"
+    "action.payment_made": "ฉันได้ชำระเงินแล้ว",
+    "action_qr.unable_to_generate": "ไม่สามารถสร้างคิวอาร์โค้ดได้"
   }
 }
