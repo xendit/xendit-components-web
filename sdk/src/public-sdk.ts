@@ -15,6 +15,8 @@ import {
   XenditSubmissionBeginEvent,
   XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
+  XenditSessionPendingEvent,
+  XenditSessionNotPendingEvent,
 } from "./public-event-types";
 import {
   XenditSdkOptions as XenditComponentsOptions,
@@ -82,7 +84,7 @@ import {
   satisfiesMinMax,
   sleep,
 } from "./utils";
-import { makeTestSdkKey } from "./test-data";
+import { makeTestSdkKey } from "./data/test-data-modifiers";
 import {
   ChannelInvalidBehavior,
   ChannelValidBehavior,
@@ -1384,6 +1386,37 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
+   * Event handler called on pending state. You should show a pending UI in response to this event.
+   *
+   * The pending state means an associated payment request or token will take some time to complete.
+   * No other payment attempts can be made while in the pending state.
+   *
+   * This occurs for payments requiring manual confirmation, e.g. FPX business payments.
+   *
+   * The pending state usually occurs after a submission-end event.
+   * This event will also be fired if the SDK is initialized and the session is already pending.
+   */
+  addEventListener(
+    name: "session-pending",
+    listener: XenditEventListener<XenditSessionPendingEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Event handler called when exiting the pending state.
+   *
+   * After the pending state, the session may be in the active state, allowing further attempts, or
+   * it may be completed or expired/canceled, in which case the respective event will be fired immediently after this one.
+   */
+  addEventListener(
+    name: "session-not-pending",
+    listener: XenditEventListener<XenditSessionNotPendingEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
    * Event handler called when something unrecoverable has happened. You should create a new
    * session and a new SDK instance.
    */
@@ -1506,7 +1539,7 @@ export class XenditComponentsTest extends XenditComponents {
     await sleep(MOCK_NETWORK_DELAY_MS);
 
     // Always use test data for this class
-    const bff = (await import("./test-data")).makeTestBffData();
+    const bff = (await import("./data/test-data")).makeTestBffData();
 
     // Update internal data
     this.dispatchEvent(

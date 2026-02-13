@@ -33,8 +33,16 @@ export function ActionQr(props: Props) {
   }, [mock, onAffirm]);
 
   const svgNode = useMemo(() => {
-    return generateQrSvg(qrString);
-  }, [qrString]);
+    try {
+      return generateQrSvg(qrString);
+    } catch (error) {
+      console.log("Error generating QR code SVG:", error);
+      // show an error message in place of the QR code
+      const node = document.createElement("div");
+      node.innerText = t("action_qr.unable_to_generate");
+      return node;
+    }
+  }, [qrString, t]);
 
   if (props.hideUi) {
     return (
@@ -109,7 +117,7 @@ export function ActionQr(props: Props) {
  *
  * Returns the svg node and the size of the image including margins.
  */
-function generateQrSvg(text: string) {
+function generateQrSvg(text: string): SVGSVGElement {
   const qr = qrcode.create(text);
   const margin = 1;
   const svgText = qrSvgRenderer.render(qr, {
@@ -123,6 +131,12 @@ function generateQrSvg(text: string) {
   svgNode.style.height = "100%";
   svgNode.setAttribute("width", String(qr.modules.size + margin * 2));
   svgNode.setAttribute("height", String(qr.modules.size + margin * 2));
+
+  // Override colors to use CSS variables
+  const backgroundPath = svgNode.querySelector("[fill]");
+  backgroundPath?.setAttribute("fill", "var(--xendit-qr-background-color)");
+  const foregroundPath = svgNode.querySelector("[stroke]");
+  foregroundPath?.setAttribute("stroke", "var(--xendit-qr-foreground-color)");
 
   return svgNode;
 }

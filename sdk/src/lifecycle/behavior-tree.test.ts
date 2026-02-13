@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { behaviorTreeForSdk, BlackboardType } from "./behavior-tree";
 import { parseSdkKey } from "../utils";
-import {
-  makeTestBffData,
-  makeTestPaymentRequest,
-  makeTestSdkKey,
-  withPaymentEntityStatus,
-} from "../test-data";
+import { makeTestBffData } from "../data/test-data";
 import {
   SdkActiveBehavior,
   SdkFatalErrorBehavior,
@@ -38,6 +33,11 @@ import {
   ActionIframeBehavior,
 } from "./behaviors/action";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
+import {
+  makeTestPaymentRequest,
+  makeTestSdkKey,
+  withPaymentEntityStatus,
+} from "../data/test-data-modifiers";
 
 const testData = makeTestBffData();
 

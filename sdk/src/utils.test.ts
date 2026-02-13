@@ -1,6 +1,6 @@
 import { BffAction } from "./backend-types/payment-entity";
 import { ChannelProperties } from "./public-sdk";
-import { makeTestBffData, makeTestSdkKey } from "./test-data";
+import { makeTestBffData } from "./data/test-data";
 import {
   assert,
   camelCaseToKebabCase,
@@ -16,6 +16,7 @@ import {
   SLEEP_MULTIPLIER,
 } from "./utils";
 import { describe, expect, it } from "vitest";
+import { makeTestSdkKey } from "./data/test-data-modifiers";
 
 const D = 10000;
 

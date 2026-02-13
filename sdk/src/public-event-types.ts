@@ -14,6 +14,8 @@ export type XenditEventMap = {
 
   "session-complete": XenditSessionCompleteEvent;
   "session-expired-or-canceled": XenditSessionExpiredOrCanceledEvent;
+  "session-pending": XenditSessionPendingEvent;
+  "session-not-pending": XenditSessionNotPendingEvent;
 
   "payment-request-created": XenditPaymentRequestCreatedEvent;
   "payment-request-discarded": XenditPaymentRequestDiscardedEvent;
@@ -193,6 +195,30 @@ export class XenditSessionExpiredOrCanceledEvent extends Event {
 
   constructor() {
     super(XenditSessionExpiredOrCanceledEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Event fired when the session is pending.
+ */
+export class XenditSessionPendingEvent extends Event {
+  static type = "session-pending" as const;
+
+  constructor() {
+    super(XenditSessionPendingEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Event fired when the session is no longer pending.
+ */
+export class XenditSessionNotPendingEvent extends Event {
+  static type = "session-not-pending" as const;
+
+  constructor() {
+    super(XenditSessionNotPendingEvent.type, {});
   }
 }
 
