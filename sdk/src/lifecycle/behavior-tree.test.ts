@@ -38,6 +38,7 @@ import {
   makeTestSdkKey,
   withPaymentEntityStatus,
 } from "../data/test-data-modifiers";
+import { PaymentOptionsBehavior } from "./behaviors/payment-options";
 
 const testData = makeTestBffData();
 
@@ -186,6 +187,7 @@ describe("Behavior Tree - Form validity and card info", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      PaymentOptionsBehavior,
       CardInfoBehavior,
       ChannelInvalidBehavior,
     ]);
