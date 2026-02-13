@@ -128,6 +128,13 @@ jobs:
         run: |
           npx pnpm@latest-10 test
 
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          use_oidc: true
+          files: ./test-report.junit.xml
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
