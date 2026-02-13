@@ -5,6 +5,7 @@ import {
   cancellableSleep,
   getCardNumberFromChannelProperties,
   isAbortError,
+  parseEncryptedFieldValue,
 } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
@@ -67,7 +68,7 @@ export class CardInfoBehavior implements Behavior {
       .then(() => {
         if (this.bb.mock) {
           // in mock mode, if the ciphertext is actually a base64-encoded JSON string, then use that as the mock response
-          const encodedError = cardNumber.split("-")[5];
+          const encodedError = parseEncryptedFieldValue(cardNumber).cipherText;
           try {
             return JSON.parse(atob(encodedError));
           } catch {
@@ -83,7 +84,8 @@ export class CardInfoBehavior implements Behavior {
         } else {
           // remove encoded validation error -
           // normally, an invalid card number would have some other stuff appended to the end, but we still want to look up the card details even if the user hasn't finished typing
-          const cleanedCardNumber = cardNumber.split("-").slice(0, 6).join("-");
+          const cleanedCardNumber =
+            parseEncryptedFieldValue(cardNumber).withoutValidationError;
 
           // real card details
           return lookupCardDetails(

@@ -192,6 +192,20 @@ export function makeTestBffData(): BffResponse {
             span: 2,
           },
           {
+            label: "Installment plan",
+            placeholder: "Select installment plan",
+            type: {
+              name: "installment_plan",
+            },
+            channel_property: [
+              "installment_configuration.terms",
+              "installment_configuration.interval",
+              "installment_configuration.code",
+            ],
+            required: false,
+            span: 2,
+          },
+          {
             group_label: "Billing Address",
             label: "First Name",
             placeholder: "First Name",
@@ -485,6 +499,38 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Mock Installments Channel",
+        channel_code: "MOCK_INSTALLMENTS",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        form: [
+          {
+            label: "Installment plan",
+            placeholder: "Select installment plan",
+            type: {
+              name: "installment_plan",
+            },
+            channel_property: [
+              "installment_configuration.terms",
+              "installment_configuration.interval",
+              "installment_configuration.code",
+            ],
+            required: false,
+            span: 2,
+          },
+        ],
+        instructions: [
+          "Mock Installments channel",
+          "This mock channel behaves similarly to production installment channels in Thailand.",
+        ],
+      },
+      {
         brand_name: "Input Test",
         channel_code: "UI_INPUT_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
@@ -586,6 +632,16 @@ export function makeTestBffData(): BffResponse {
                 { label: "Option 1", value: "option_1" },
                 { label: "Option 2", value: "option_2" },
                 { label: "Option 3", value: "option_3" },
+                {
+                  label: "Option 4",
+                  value: "option_4",
+                  subtitle: "With subtitle",
+                },
+                {
+                  label: "Option 5",
+                  value: "option_5",
+                  subtitle: "With subtitle",
+                },
               ],
             },
             channel_property: "dropdown_field",
