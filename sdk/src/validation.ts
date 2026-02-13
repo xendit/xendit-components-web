@@ -8,6 +8,8 @@ import parsePhoneNumberFromString from "libphonenumber-js/min";
 import { filterFormFields } from "./components/channel-form";
 import { BffSessionType } from "./backend-types/session";
 import { LocaleKey, LocalizedString } from "./localization";
+import { ChannelComponentData } from "./public-sdk";
+import { parseEncryptedFieldValue } from "./utils";
 
 export type ValidationResult = {
   errorCode: LocaleKey | LocalizedString | undefined;
@@ -16,21 +18,14 @@ export type ValidationResult = {
 export function validateEncryptedCardField(
   value: string,
 ): LocaleKey | undefined {
-  const parts = value.split("-");
-  if (parts[0] !== "xendit" || parts[1] !== "encrypted") {
-    throw new Error(
-      "Unexpected value in encrypted field, this is a bug, please contact support.",
-    );
-  }
-  if (parts.length === 6) {
-    // ok, normal encrypted value
+  const parsed = parseEncryptedFieldValue(value);
+  if (parsed.valid) {
     return undefined;
-  } else if (parts.length === 8 && parts[6] === "invalid") {
-    // validation error encoded
-    const encodedError = parts[7];
-    const decoded = atob(encodedError);
-    return { localeKey: decoded as LocaleKey["localeKey"] };
   }
+  if (parsed.validationError) {
+    return { localeKey: parsed.validationError as LocaleKey["localeKey"] };
+  }
+  // unreachable
   throw new Error(
     "Unexpected value in encrypted field, this is a bug, please contact support.",
   );
@@ -157,15 +152,15 @@ export function channelPropertiesAreValid(
   sessionType: BffSessionType,
   channel: BffChannel,
   channelProperties: ChannelProperties | null,
-  showBillingDetails: boolean,
+  channelComponentData: ChannelComponentData | null,
 ): boolean {
   if (!channelProperties) channelProperties = {};
 
   for (const field of filterFormFields(
     sessionType,
     channel.form,
-    showBillingDetails,
     channelProperties,
+    channelComponentData,
   )) {
     if (channelPropertyFieldValidate(field, channelProperties)) {
       return false;
