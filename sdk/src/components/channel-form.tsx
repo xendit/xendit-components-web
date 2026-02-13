@@ -82,8 +82,8 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     const previousFilteredForm = usePrevious(filteredForm);
     useEffect(() => {
       if (
-        // only trigger if the form structure changed
-        JSON.stringify(previousFilteredForm) !== JSON.stringify(filteredForm)
+        // only trigger if the form changed
+        !formsAreEqual(previousFilteredForm || [], filteredForm)
       ) {
         handleFieldChanged();
       }
@@ -229,6 +229,29 @@ function formValueToStringArray(subkeys: string[], value: string): string[] {
   } catch (_e) {
     return [value];
   }
+}
+
+/**
+ * Checks if two forms are equal by comparing each field's properties.
+ */
+function formsAreEqual(a: ChannelFormField[], b: ChannelFormField[]) {
+  if (a.length !== b.length) return false;
+
+  function fieldsAreEqual(
+    fieldA: { [key: string]: unknown },
+    fieldB: { [key: string]: unknown },
+  ) {
+    const keysA = Object.keys(fieldA);
+    const keysB = Object.keys(fieldB);
+
+    if (keysA.length !== keysB.length) return false;
+
+    return keysA.every((key) => fieldA[key] === fieldB[key]);
+  }
+
+  return a.every((fieldA, index) => {
+    return fieldsAreEqual(fieldA, b[index]);
+  });
 }
 
 /**
