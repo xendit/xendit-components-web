@@ -9,6 +9,14 @@ const { XenditComponents, XenditComponentsTest } = Xendit;
 
 const LOCALSTORAGE_KEY = "test_ui_components_sdk_key";
 
+// document.documentElement.style.setProperty(
+//   "--xendit-qr-foreground-color",
+//   "#1762ee",
+// );
+// document.documentElement.style.setProperty(
+//   "--xendit-qr-background-color",
+//   "#fafafa",
+// );
 const outer = document.createElement("div");
 outer.id = "wrapper";
 outer.style.display = "grid";
