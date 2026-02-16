@@ -237,7 +237,3 @@ export function fatalError(err: Error) {
     type: "xendit-iframe-failed-init",
   });
 }
-
-if (process.env.NODE_ENV !== "test") {
-  main().catch(fatalError);
-}

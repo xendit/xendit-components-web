@@ -95,7 +95,7 @@ async function generateIframeHtml(js: string) {
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
   return {
-    input: path.join(import.meta.dirname, "src/main.ts"),
+    input: path.join(import.meta.dirname, "src/entry.ts"),
     output: {
       file: "dist/not-a-real-file.js",
       format: "cjs",
