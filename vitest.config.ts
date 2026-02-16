@@ -7,6 +7,19 @@ const packageJson = JSON.parse(
   readFileSync(path.join(import.meta.dirname, "./package.json"), "utf-8"),
 ) as typeof import("./package.json");
 
+const pinningKeys: JsonWebKey[] = JSON.parse(
+  readFileSync(
+    path.join(import.meta.dirname, "./test-pinning-keys.json"),
+    "utf-8",
+  ),
+);
+
+const PINNING_KEYS_MACRO = pinningKeys.map((key) => ({
+  ...key,
+  d: undefined,
+}));
+const PRIVATE_PINNING_KEY_MACRO = pinningKeys[0];
+
 export default defineConfig({
   plugins: [preact()],
   define: {
@@ -16,6 +29,8 @@ export default defineConfig({
     "process.env.XENDIT_COMPONENTS_VERSION": JSON.stringify(
       `v${packageJson.version}`,
     ),
+    PINNING_KEYS_MACRO,
+    PRIVATE_PINNING_KEY_MACRO,
   },
   test: {
     globals: true,

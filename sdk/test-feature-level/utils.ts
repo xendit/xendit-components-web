@@ -1,6 +1,8 @@
 import { expect } from "vitest";
 import { XenditEventMap, XenditComponents } from "../src";
 
+/* v8 ignore start */
+
 export function watchEvents<T extends keyof XenditEventMap>(
   sdk: XenditComponents,
   eventNames: T[],
