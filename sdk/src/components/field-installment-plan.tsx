@@ -27,7 +27,10 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
     const arr =
       paymentOptions?.options?.installment_plans?.map<DropdownOption>(
         (plan) => ({
-          title: plan.description,
+          title: t(`installment_plan.pay_in_installments`, {
+            installments: plan.terms,
+            amount: amountFormat(plan.installment_amount, session.currency),
+          }),
           subtitle: plan.interest_rate,
           value: planKey(plan),
         }),
