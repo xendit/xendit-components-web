@@ -1,6 +1,8 @@
 import { expect } from "vitest";
 import { XenditEventMap, XenditComponents } from "../src";
 
+/* v8 ignore start */
+
 export function watchEvents<T extends keyof XenditEventMap>(
   sdk: XenditComponents,
   eventNames: T[],
@@ -91,19 +93,14 @@ export function waitForEventSequence(
     expectedKeys?: Record<string, unknown>;
   }[],
 ) {
-  let resolve: (res: void | PromiseLike<void>) => void;
-  let reject: (res: unknown) => void;
-  const promise = new Promise<void>((res, rej) => {
-    resolve = res;
-    reject = rej;
+  return new Promise<void>((resolve, reject) => {
+    waitForEventSequenceHelper(sdk, events, (err) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve();
+    });
   });
-  waitForEventSequenceHelper(sdk, events, (err) => {
-    if (err) {
-      return reject(err);
-    }
-    resolve();
-  });
-  return promise;
 }
 
 export function findEvent(arr: ReturnType<typeof watchEvents>, name: string) {

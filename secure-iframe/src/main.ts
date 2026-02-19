@@ -21,6 +21,13 @@ import {
 import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
 import { validate } from "./validation";
 
+// @ts-expect-error This macro is replaced with a JSON array by the build script
+const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
+
+function insecurePostMessage<T extends IframeEvent>(message: T) {
+  window.parent.postMessage(message, "*");
+}
+
 function getQueryInputs() {
   const query = new URLSearchParams(location.search);
 
@@ -46,14 +53,7 @@ function getQueryInputs() {
   };
 }
 
-// @ts-expect-error This macro is replaced with a JSON array by the build script
-const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
-
-function insecurePostMessage<T extends IframeEvent>(message: T) {
-  window.parent.postMessage(message, "*");
-}
-
-export async function init() {
+export async function main() {
   document.body.style.margin = "0";
 
   assert(masterPinningKeys.length > 0, "missing pinning keys");
@@ -226,7 +226,9 @@ export async function init() {
 }
 
 export function fatalError(err: Error) {
-  console.error(`Xendit secure iframe`, err);
+  if (process.env.NODE_ENV !== "test") {
+    console.error(`Xendit secure iframe`, err);
+  }
   const errorComponent = createFatalErrorComponent(
     (err as unknown as { code?: string }).code ?? "error",
   );

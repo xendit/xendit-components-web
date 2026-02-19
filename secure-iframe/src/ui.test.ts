@@ -430,17 +430,16 @@ async function expectEventToBeFired(
   await fn();
   expect(eventHandler).toHaveBeenCalled();
 
-  let passes = 0;
   let lastError: Error | null = null;
   for (const call of eventHandler.mock.calls) {
     try {
       expect(call[0]).toMatchObject(event);
-      passes++;
+      element.removeEventListener(event.type, eventHandler);
+      return;
     } catch (e) {
       lastError = e as Error;
     }
   }
-  if (passes === 0) {
-    throw lastError;
-  }
+  element.removeEventListener(event.type, eventHandler);
+  throw lastError;
 }
