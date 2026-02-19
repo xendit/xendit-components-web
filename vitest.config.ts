@@ -46,6 +46,8 @@ export default defineConfig({
     ],
     css: false,
     testTimeout: 10000,
+    reporters: process.env.CI ? ["default", "junit"] : ["default"],
+    outputFile: process.env.CI ? "test-report.junit.xml" : undefined,
     coverage: {
       enabled: true,
       reporter: process.env.CI ? ["lcov"] : ["html"],
