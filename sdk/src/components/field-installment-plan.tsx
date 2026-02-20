@@ -19,7 +19,13 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
   const paymentOptions = useChannelComponentData()?.paymentOptions;
-  const installmentPlans = paymentOptions?.options?.installment_plans;
+  const installmentPlansUnsorted = paymentOptions?.options?.installment_plans;
+  const installmentPlans = useMemo(() => {
+    if (!installmentPlansUnsorted) return null;
+    return [...installmentPlansUnsorted].sort((a, b) => {
+      return a.terms - b.terms;
+    });
+  }, [installmentPlansUnsorted]);
 
   const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
 
@@ -27,7 +33,10 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
     const arr =
       paymentOptions?.options?.installment_plans?.map<DropdownOption>(
         (plan) => ({
-          title: plan.description,
+          title: t(`installment_plan.pay_in_installments`, {
+            installments: plan.terms,
+            amount: amountFormat(plan.installment_amount, session.currency),
+          }),
           subtitle: plan.interest_rate,
           value: planKey(plan),
         }),

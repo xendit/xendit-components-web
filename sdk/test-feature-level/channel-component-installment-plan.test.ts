@@ -39,7 +39,7 @@ describe("channel component installment plan", () => {
     // open the dropdown and choose 3 installments
     assert(noneSelected);
     await userEvent.click(noneSelected);
-    const option3 = await screen.findByText("3x Installment — Rp3.333");
+    const option3 = await screen.findByText("3x Installments — Rp3.333");
     expect(option3).toBeInTheDocument();
     await userEvent.click(option3);
 
