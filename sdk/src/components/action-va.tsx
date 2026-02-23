@@ -43,7 +43,7 @@ export function ActionVa(props: Props) {
           </div>
         </div>
         <hr className="xendit-dotted-line" />
-        <div className="xendit-action-va-details">
+        <div className="xendit-action-va-detail-item">
           <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
             {t("action_va.amount_to_pay")}
           </div>

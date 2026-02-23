@@ -28,7 +28,7 @@ export const SingleTabInstructions: FunctionComponent<{
 }> = (props) => {
   return (
     <div>
-      <p className={"xendit-instructions-single-tab-heading"}>
+      <p className="xendit-instructions-single-tab-heading">
         {props.instruction.title}
       </p>
       <InstructionsSteps instruction={props.instruction} />
@@ -43,7 +43,7 @@ const MultiTabInstructions: FunctionComponent<{
 
   return (
     <div>
-      <div className={"xendit-instructions-tab-list"}>
+      <div className="xendit-instructions-tab-list">
         {props.instructions.map((instruction, index) => (
           <button
             key={index}
@@ -66,14 +66,14 @@ export const InstructionsSteps: FunctionComponent<{
 }> = (props) => {
   return (
     <ol
-      className={"xendit-instructions-numbered-list"}
+      className="xendit-instructions-numbered-list"
       data-testid="instructions-steps"
     >
       {props.instruction.content.map((step, index) => {
         const stepItems = Array.isArray(step) ? step : [step];
         return (
-          <li className={"xendit-instructions-step-li"} key={index}>
-            <div className={"xendit-instructions-step-box"}>
+          <li className="xendit-instructions-step-li" key={index}>
+            <div className="xendit-instructions-step-box">
               {stepItems.map((s, i) => (
                 <Fragment key={i}>{renderStep(s)}</Fragment>
               ))}
@@ -134,7 +134,7 @@ function renderFormattedString(text: FormattedString): ComponentChildren {
 function renderStep(step: string | InstructionsStep): ComponentChildren {
   if (typeof step === "string") {
     return (
-      <p className={"xendit-instructions-step-item"}>
+      <p className="xendit-instructions-step-item">
         {renderFormattedString(step)}
       </p>
     );
@@ -176,7 +176,7 @@ function renderBulletsStep(
   step: Extract<InstructionsStep, { type: "bullets" }>,
 ) {
   return (
-    <ul className={"xendit-instructions-bullet-list"}>
+    <ul className="xendit-instructions-bullet-list">
       {step.items.map((item, index) => (
         <li key={index}>{renderFormattedString(item)}</li>
       ))}
@@ -186,18 +186,18 @@ function renderBulletsStep(
 
 function renderFormStep(step: Extract<InstructionsStep, { type: "form" }>) {
   return (
-    <div className={"xendit-instructions-form-card"}>
+    <div className="xendit-instructions-form-card">
       {step.heading ? (
-        <h3 className={"xendit-instructions-form-heading"}>
+        <h3 className="xendit-instructions-form-heading">
           {renderFormattedString(step.heading)}
         </h3>
       ) : null}
       {step.fields.map((field, index) => (
-        <div className={"xendit-instructions-form-field"} key={index}>
-          <div className={"xendit-instructions-form-field-label"}>
+        <div className="xendit-instructions-form-field" key={index}>
+          <div className="xendit-instructions-form-field-label">
             {renderFormattedString(field.label)}
           </div>
-          <div className={"xendit-instructions-form-field-value"}>
+          <div className="xendit-instructions-form-field-value">
             {renderFormattedString(field.value)}
           </div>
         </div>
@@ -208,11 +208,11 @@ function renderFormStep(step: Extract<InstructionsStep, { type: "form" }>) {
 
 function renderTableStep(step: Extract<InstructionsStep, { type: "table" }>) {
   return (
-    <table className={"xendit-instructions-table"}>
+    <table className="xendit-instructions-table">
       <thead>
         <tr>
           {step.headers.map((header, index) => (
-            <th className={"xendit-instructions-table-header"} key={index}>
+            <th className="xendit-instructions-table-header" key={index}>
               {renderFormattedString(header)}
             </th>
           ))}
@@ -222,7 +222,7 @@ function renderTableStep(step: Extract<InstructionsStep, { type: "table" }>) {
         {step.rows.map((row, rowIndex) => (
           <tr key={rowIndex}>
             {row.map((cell, cellIndex) => (
-              <td className={"xendit-instructions-table-cell"} key={cellIndex}>
+              <td className="xendit-instructions-table-cell" key={cellIndex}>
                 {renderFormattedString(cell)}
               </td>
             ))}

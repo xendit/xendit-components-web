@@ -822,8 +822,6 @@ xendit-payment-channel[inert] {
 
 /* Instructions */
 
-.xendit-instructions-active-tab {
-}
 .xendit-instructions-bold {
   font-weight: 600;
 }
@@ -853,10 +851,21 @@ xendit-payment-channel[inert] {
   border-bottom: 1px solid var(--xendit-color-border);
 }
 .xendit-instructions-form-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--xendit-color-text-secondary);
 }
 .xendit-instructions-form-field-value {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--xendit-color-text);
 }
 .xendit-instructions-form-heading {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  margin: 4px 0;
 }
 .xendit-instructions-italics {
   font-style: italic;
@@ -869,15 +878,19 @@ xendit-payment-channel[inert] {
   padding-left: 40px;
 }
 .xendit-instructions-single-tab-heading {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  margin-bottom: 16px;
 }
 .xendit-instructions-step-box {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.xendit-instructions-step-item {
-}
 .xendit-instructions-step-li {
+  font-size: 14px;
+  line-height: 20px;
 }
 .xendit-instructions-step-li p {
   margin: 0;
@@ -886,11 +899,18 @@ xendit-payment-channel[inert] {
   margin-left: 20px;
 }
 .xendit-instructions-tab-button {
+  font-family: var(--xendit-font-family);
+  font-size: 14px;
   padding: 8px 4px;
   background-color: transparent;
   border: none;
   border-top: 3px solid transparent;
   border-bottom: 3px solid transparent;
+}
+.xendit-instructions-active-tab {
+  border-bottom-color: var(--xendit-color-primary);
+  color: var(--xendit-color-primary);
+  font-weight: 600;
 }
 .xendit-instructions-tab-list {
   display: flex;
@@ -899,12 +919,21 @@ xendit-payment-channel[inert] {
   border-bottom: 1px solid var(--xendit-color-border);
 }
 .xendit-instructions-table {
+  font-size: 14px;
+  line-height: 16px;
+  width: 100%;
+  border-collapse: collapse;
 }
 .xendit-instructions-table-cell {
   padding: 4px;
   border: 1px solid black;
 }
 .xendit-instructions-table-header {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  padding: 4px;
+  border: 1px solid black;
 }
 
 /* Instructions ends */
