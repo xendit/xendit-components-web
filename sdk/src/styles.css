@@ -893,6 +893,11 @@ xendit-payment-channel[inert] {
 .xendit-action-va-details {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+.xendit-action-va-detail-item {
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 4px;
 }
