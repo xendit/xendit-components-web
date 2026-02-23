@@ -159,6 +159,7 @@ export function channelPropertiesAreValid(
   for (const field of filterFormFields(
     sessionType,
     channel.form,
+    channelProperties,
     channelComponentData,
   )) {
     if (channelPropertyFieldValidate(field, channelProperties)) {

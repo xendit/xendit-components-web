@@ -16,6 +16,7 @@ import { createContext } from "preact";
 import { forwardRef } from "react";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { useChannelComponentData } from "./payment-channel";
+import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
 
 interface Props {
@@ -73,13 +74,17 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     const filteredForm = useFilteredFormFields(
       session,
       form,
+      channelProperties || {},
       channelComponentData ?? null,
     );
 
     // trigger a field changed callback when the form changes
     const previousFilteredForm = usePrevious(filteredForm);
     useEffect(() => {
-      if (previousFilteredForm !== filteredForm) {
+      if (
+        // only trigger if the form changed
+        !formsAreEqual(previousFilteredForm || [], filteredForm)
+      ) {
         handleFieldChanged();
       }
     }, [filteredForm, handleFieldChanged, previousFilteredForm]);
@@ -227,16 +232,33 @@ function formValueToStringArray(subkeys: string[], value: string): string[] {
 }
 
 /**
+ * Checks if two forms are equal
+ */
+function formsAreEqual(a: ChannelFormField[], b: ChannelFormField[]) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+/**
  * Takes a form and filters out fields that should not be shown based on context.
  */
 export function useFilteredFormFields(
   session: BffSession,
   form: ChannelFormField[],
+  channelProperties: ChannelProperties,
   channelComponentData: ChannelComponentData | null,
 ) {
   const filteredForm = useMemo(() => {
-    return filterFormFields(session.session_type, form, channelComponentData);
-  }, [channelComponentData, form, session.session_type]);
+    return filterFormFields(
+      session.session_type,
+      form,
+      channelProperties,
+      channelComponentData,
+    );
+  }, [channelComponentData, channelProperties, form, session.session_type]);
 
   return filteredForm;
 }
@@ -244,6 +266,7 @@ export function useFilteredFormFields(
 export function filterFormFields(
   sessionType: BffSessionType,
   form: ChannelFormField[],
+  channelProperties: ChannelProperties,
   channelComponentData: ChannelComponentData | null,
 ) {
   const showBillingDetailsFields =
@@ -260,6 +283,19 @@ export function filterFormFields(
     if (field.type.name === "installment_plan") {
       // only show installment plan field if there are installment plans
       if (!hasInstallmentPlans) return false;
+    }
+    // if any condition is not met, hide the field
+    for (const condition of field.display_if || []) {
+      const [property, operator, value] = condition;
+      const channelValue = getChannelPropertyValue(channelProperties, property);
+      switch (operator) {
+        case "equals":
+          if (channelValue !== value) return false;
+          break;
+        case "not_equals":
+          if (channelValue === value) return false;
+          break;
+      }
     }
     return true;
   });
