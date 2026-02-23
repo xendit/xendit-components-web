@@ -19,13 +19,7 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
   const paymentOptions = useChannelComponentData()?.paymentOptions;
-  const installmentPlansUnsorted = paymentOptions?.options?.installment_plans;
-  const installmentPlans = useMemo(() => {
-    if (!installmentPlansUnsorted) return null;
-    return [...installmentPlansUnsorted].sort((a, b) => {
-      return a.terms - b.terms;
-    });
-  }, [installmentPlansUnsorted]);
+  const installmentPlans = paymentOptions?.options?.installment_plans;
 
   const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
 
