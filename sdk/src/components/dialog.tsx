@@ -27,6 +27,8 @@ export const Dialog: FunctionComponent<Props> = (props) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
 
+  const supportsAnimation = HTMLElement.prototype.animate !== undefined;
+
   // call close callback only once
   const onCloseSafe = useCallback(() => {
     if (closeCalledRef.current) return;
@@ -45,19 +47,28 @@ export const Dialog: FunctionComponent<Props> = (props) => {
     }
     closeAnimationPlaying.current = true;
 
+    if (!supportsAnimation) {
+      onCloseSafe();
+      return;
+    }
+
     backdropRef.current.animate?.(backdropFadeOutKeyframes, animationOptions);
     const animation = dialogRef.current.animate?.(
       foregroundFadeOutKeyframes,
       animationOptions,
     );
     animation.onfinish = onCloseSafe;
-  }, [onCloseSafe]);
+  }, [onCloseSafe, supportsAnimation]);
 
   // play fade-in animation
   useLayoutEffect(() => {
+    if (!supportsAnimation) {
+      return;
+    }
+
     backdropRef.current?.animate?.(backdropFadeKeyframes, animationOptions);
     dialogRef.current?.animate?.(foregroundFadeKeyframes, animationOptions);
-  }, []);
+  }, [supportsAnimation]);
 
   useLayoutEffect(() => {
     if (props.close) {

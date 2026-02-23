@@ -66,6 +66,7 @@
     "action.payment_confirmation_instructions": "Setelah Anda bayar, klik tombol di atas untuk mendapatkan konfirmasi pembayaran Anda.",
     "action.payment_made": "Saya telah melakukan pembayaran ini",
     "action_va.amount_to_pay": "Jumlah Pembayaran",
-    "action_va.virtual_account_number": "Nomor Virtual Account"
+    "action_va.virtual_account_number": "Nomor Virtual Account",
+    "action_qr.unable_to_generate": "Tidak dapat membuat kode QR"
   }
 }

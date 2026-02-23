@@ -18,6 +18,7 @@
     "default_error.message_2": "Please try again later.",
     "default_error.title": "Error",
     "combobox.default_search_placeholder": "Search...",
+    "installment_plan.pay_in_full": "Pay in Full — {{amount}}",
     "failure_code.account_access_blocked": "Your payment was declined. Please try again or use a different payment method.",
     "failure_code.account_already_linked": "Your account has already been linked. Please use a different payment method.",
     "failure_code.account_not_activated": "Your payment couldn’t be processed because your account hasn’t been activated. Please activate your account and try again.",
@@ -67,6 +68,7 @@
     "action.payment_confirmation_instructions": "Once you've paid, click the button above to get your payment confirmation.",
     "action.payment_made": "I've made this payment",
     "action_va.amount_to_pay": "Amount to Pay",
-    "action_va.virtual_account_number": "Virtual Account Number"
+    "action_va.virtual_account_number": "Virtual Account Number",
+    "action_qr.unable_to_generate": "Unable to generate QR code"
   }
 }

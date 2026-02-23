@@ -33,6 +33,7 @@ export const TextField: FunctionComponent<FieldProps> = (props) => {
       onChange={handleChange}
       minLength={isTextField(field) ? field.type.min_length : undefined}
       maxLength={isTextField(field) ? field.type.max_length : undefined}
+      autoComplete={isTextField(field) ? field.type.autocomplete : undefined}
     />
   );
 };

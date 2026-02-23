@@ -1,6 +1,6 @@
 import { BffAction } from "./backend-types/payment-entity";
 import { ChannelProperties } from "./public-sdk";
-import { makeTestBffData, makeTestSdkKey } from "./test-data";
+import { makeTestBffData } from "./data/test-data";
 import {
   assert,
   camelCaseToKebabCase,
@@ -10,12 +10,14 @@ import {
   getValueFromChannelProperty,
   isAbortError,
   mergeIgnoringUndefined,
+  parseEncryptedFieldValue,
   parseSdkKey,
   resolvePairedChannel,
   satisfiesMinMax,
   SLEEP_MULTIPLIER,
 } from "./utils";
 import { describe, expect, it } from "vitest";
+import { makeTestSdkKey } from "./data/test-data-modifiers";
 
 const D = 10000;
 
@@ -222,5 +224,42 @@ describe("utils - findBestAction", () => {
       (action) => action.descriptor === "WEB_URL",
     );
     expect(bestAction).toBe(actions[0]);
+  });
+});
+
+describe("utils - parseEncryptedFieldValue", () => {
+  it("should parse valid encrypted field values", () => {
+    expect(parseEncryptedFieldValue("")).toEqual({
+      version: 0,
+      publicKey: "",
+      iv: "",
+      cipherText: "",
+      valid: false,
+      validationError: null,
+      withoutValidationError: "",
+    });
+
+    const valid = `xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT`;
+    const invalid = `xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT-invalid-${btoa("error_code")}`;
+
+    expect(parseEncryptedFieldValue(valid)).toEqual({
+      version: 1,
+      publicKey: "PUBLICKEY",
+      iv: "IV",
+      cipherText: "CIPHERTEXT",
+      valid: true,
+      validationError: null,
+      withoutValidationError: valid,
+    });
+
+    expect(parseEncryptedFieldValue(invalid)).toEqual({
+      version: 1,
+      publicKey: "PUBLICKEY",
+      iv: "IV",
+      cipherText: "CIPHERTEXT",
+      valid: false,
+      validationError: "error_code",
+      withoutValidationError: `xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT`,
+    });
   });
 });

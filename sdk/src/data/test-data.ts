@@ -1,25 +1,5 @@
-import { MockActionType } from "./backend-types/channel";
-import { BffPollResponse, BffResponse } from "./backend-types/common";
-import {
-  BffAction,
-  BffPaymentEntity,
-  BffPaymentEntityType,
-  BffPaymentRequest,
-  BffPaymentRequestStatus,
-  BffPaymentToken,
-  BffPaymentTokenStatus,
-} from "./backend-types/payment-entity";
-import { BffSession } from "./backend-types/session";
-import { assert } from "./utils";
-
-const examplePublicKey =
-  "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEyCADI5pdf6KmN8+Fxl2ES3yolUKXunNeY3gGScGNEvDcrcHAPKxIInAo5DVnDvTtYtqZvx/bu7HLeBJNMXwHhie/uyNEtT8dSaLc9bd0WSlYdxI+iUsTv2Qu0LiiPrZs";
-const exampleSignature =
-  "NKf7whM9meUs/eRCvG0oc180MDiyeli3kH6EQ3ZahECHsZQi5G2IpH6vk3cYMtf01Y1L4OBn1SZCOv1kwpjIUet4DJeoTwwq2nM5b+K7rD+/WFTi3AEX4NWJNkKi0a91";
-
-export function makeTestSdkKey() {
-  return `session-${randomHexString(32)}-mock-${examplePublicKey}-${exampleSignature}`;
-}
+import { BffResponse } from "../backend-types/common";
+import { randomHexString, randomUUID } from "../utils";
 
 const ONE_MONTH_IN_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -209,6 +189,20 @@ export function makeTestBffData(): BffResponse {
             },
             channel_property: "card_details.cardholder_phone_number",
             required: true,
+            span: 2,
+          },
+          {
+            label: "Installment plan",
+            placeholder: "Select installment plan",
+            type: {
+              name: "installment_plan",
+            },
+            channel_property: [
+              "installment_configuration.terms",
+              "installment_configuration.interval",
+              "installment_configuration.code",
+            ],
+            required: false,
             span: 2,
           },
           {
@@ -451,6 +445,30 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Mock FPX Business Channel",
+        channel_code: "MOCK_FPX_BUSINESS",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: "PENDING",
+        form: [],
+        instructions: [
+          "Mock FPX channel",
+          "This mock channel behaves similarly to production FPX channels. It has a banner and it will enter the pending state after submission.",
+        ],
+        banner: {
+          image_url:
+            "https://assets.xendit.co/payment-session/banners/fpx-banner.svg",
+          alt_text: "FPX Pay with Online Banking",
+          aspect_ratio: 9.7,
+        },
+      },
+      {
         brand_name: "Mock OTC Channel",
         channel_code: "MOCK_OTC",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
@@ -496,6 +514,38 @@ export function makeTestBffData(): BffResponse {
         instructions: [
           "Mock VA channel",
           "This mock channel behaves similarly to production VA channels.",
+        ],
+      },
+      {
+        brand_name: "Mock Installments Channel",
+        channel_code: "MOCK_INSTALLMENTS",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        form: [
+          {
+            label: "Installment plan",
+            placeholder: "Select installment plan",
+            type: {
+              name: "installment_plan",
+            },
+            channel_property: [
+              "installment_configuration.terms",
+              "installment_configuration.interval",
+              "installment_configuration.code",
+            ],
+            required: false,
+            span: 2,
+          },
+        ],
+        instructions: [
+          "Mock Installments channel",
+          "This mock channel behaves similarly to production installment channels in Thailand.",
         ],
       },
       {
@@ -600,6 +650,16 @@ export function makeTestBffData(): BffResponse {
                 { label: "Option 1", value: "option_1" },
                 { label: "Option 2", value: "option_2" },
                 { label: "Option 3", value: "option_3" },
+                {
+                  label: "Option 4",
+                  value: "option_4",
+                  subtitle: "With subtitle",
+                },
+                {
+                  label: "Option 5",
+                  value: "option_5",
+                  subtitle: "With subtitle",
+                },
               ],
             },
             channel_property: "dropdown_field",
@@ -1154,202 +1214,4 @@ export function makeTestBffData(): BffResponse {
       },
     ],
   };
-}
-
-function randomBytes(length: number) {
-  const arr = new Uint8Array(length);
-  for (let i = 0; i < length; i++) {
-    arr[i] = Math.floor(Math.random() * 256);
-  }
-  return arr;
-}
-
-function randomUUID() {
-  return [
-    randomHexString(8),
-    randomHexString(4),
-    randomHexString(4),
-    randomHexString(4),
-    randomHexString(12),
-  ].join("-");
-}
-
-function randomHexString(length: number) {
-  assert(length % 2 === 0);
-  const bytes = randomBytes(length / 2);
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-export function makeTestPollResponseForSuccess(
-  session: BffSession,
-  paymentEntity: BffPaymentEntity,
-): BffPollResponse {
-  const paymentRequest =
-    paymentEntity.type === BffPaymentEntityType.PaymentRequest
-      ? paymentEntity.entity
-      : undefined;
-  const paymentToken =
-    paymentEntity.type === BffPaymentEntityType.PaymentToken
-      ? paymentEntity.entity
-      : undefined;
-
-  return {
-    session: {
-      ...session,
-      status: "COMPLETED",
-      payment_request_id: paymentRequest?.payment_request_id,
-      payment_token_id: paymentToken?.payment_token_id,
-    },
-    payment_request: withPaymentEntityStatus(paymentRequest, "SUCCEEDED"),
-    payment_token: withPaymentEntityStatus(paymentToken, "ACTIVE"),
-    succeeded_channel: {
-      channel_code: paymentEntity.entity.channel_code,
-      logo_url: "https://placehold.co/48",
-    },
-  };
-}
-
-export function makeTestPollResponseForFailure(
-  session: BffSession,
-  paymentEntity: BffPaymentEntity,
-): BffPollResponse {
-  const paymentRequest =
-    paymentEntity.type === BffPaymentEntityType.PaymentRequest
-      ? paymentEntity.entity
-      : undefined;
-  const paymentToken =
-    paymentEntity.type === BffPaymentEntityType.PaymentToken
-      ? paymentEntity.entity
-      : undefined;
-
-  return {
-    session: {
-      ...session,
-      status: "ACTIVE",
-    },
-    payment_request: withPaymentEntityStatus(paymentRequest, "FAILED"),
-    payment_token: withPaymentEntityStatus(paymentToken, "FAILED"),
-  };
-}
-
-export function withPaymentEntityStatus<
-  T extends BffPaymentRequest | BffPaymentToken | undefined,
->(
-  prOrPt: T,
-  status: T extends BffPaymentRequest
-    ? BffPaymentRequestStatus
-    : T extends BffPaymentToken
-      ? BffPaymentTokenStatus
-      : undefined,
-): T {
-  if (!prOrPt) return prOrPt;
-  return {
-    ...prOrPt,
-    status: status,
-  };
-}
-
-export function makeTestPaymentRequest(
-  channelCode: string,
-  mockActionType: MockActionType | undefined,
-): BffPaymentRequest {
-  if (mockActionType) {
-    return {
-      payment_request_id: `pr-${randomUUID()}`,
-      status: "REQUIRES_ACTION",
-      channel_code: channelCode,
-      actions: makeMockActions(mockActionType),
-      session_token_request_id: randomUUID(),
-    };
-  } else {
-    return {
-      payment_request_id: `pr-${randomUUID()}`,
-      status: "SUCCEEDED",
-      channel_code: channelCode,
-      actions: [],
-      session_token_request_id: randomUUID(),
-    };
-  }
-}
-
-export function makeTestPaymentToken(
-  channelCode: string,
-  mockActionType: MockActionType | undefined,
-): BffPaymentToken {
-  if (mockActionType) {
-    return {
-      payment_token_id: `pt-${randomUUID()}`,
-      status: "REQUIRES_ACTION",
-      channel_code: channelCode,
-      actions: makeMockActions(mockActionType),
-      session_token_request_id: randomUUID(),
-    };
-  } else {
-    return {
-      payment_token_id: `pt-${randomUUID()}`,
-      status: "ACTIVE",
-      channel_code: channelCode,
-      actions: [],
-      session_token_request_id: randomUUID(),
-    };
-  }
-}
-
-export function makeMockActions(
-  mockActionType: MockActionType | undefined,
-): BffAction[] {
-  return mockActionType ? [makeOneMockAction(mockActionType)] : [];
-}
-
-export function makeOneMockAction(mockActionType: MockActionType): BffAction {
-  switch (mockActionType) {
-    case "IFRAME":
-      return {
-        type: "REDIRECT_CUSTOMER",
-        descriptor: "WEB_URL",
-        value: "https://example.com/iframe",
-        iframe_capable: true,
-      };
-    case "REDIRECT":
-      return {
-        type: "REDIRECT_CUSTOMER",
-        descriptor: "WEB_URL",
-        value: "https://example.com/redirect",
-        iframe_capable: false,
-      };
-    case "QR":
-      return {
-        type: "PRESENT_TO_CUSTOMER",
-        descriptor: "QR_STRING",
-        value: "https://example.com/qr-code-data",
-        action_title: "Pay with QR Code",
-        action_subtitle: "Scan the QR code below",
-        action_graphic: "",
-        instructions: null,
-      };
-    case "BARCODE":
-      return {
-        type: "PRESENT_TO_CUSTOMER",
-        descriptor: "PAYMENT_CODE",
-        value: "1234567890",
-        action_title: "Pay at a Store",
-        action_subtitle: "Show this barcode to the cashier",
-        action_graphic: "",
-        instructions: null,
-      };
-    case "VA":
-      return {
-        type: "PRESENT_TO_CUSTOMER",
-        descriptor: "VIRTUAL_ACCOUNT_NUMBER",
-        value: "1234567890",
-        action_title: "Pay with Virtual Account",
-        action_subtitle:
-          "Protect yourself from fraud - ensure all details are correct",
-        action_graphic: "",
-        instructions: null,
-      };
-  }
-  throw new Error(`Unknown mock action type: ${mockActionType}`);
 }
