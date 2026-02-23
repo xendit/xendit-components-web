@@ -90,7 +90,10 @@ import {
   ChannelValidBehavior,
 } from "./lifecycle/behaviors/channel";
 import { PeRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity";
-import { SubmissionBehavior } from "./lifecycle/behaviors/submission";
+import {
+  SubmissionBehavior,
+  SubmissionError,
+} from "./lifecycle/behaviors/submission";
 import {
   bffChannelsToPublic,
   bffCustomerToPublic,
@@ -238,6 +241,7 @@ export class XenditComponents extends EventTarget {
       digitalWalletCode: DigitalWalletCode;
       channelCode: string;
       channelProperties: ChannelProperties;
+      instantSubmissionError: SubmissionError | null;
     } | null;
 
     /**
@@ -293,6 +297,7 @@ export class XenditComponents extends EventTarget {
         channelProperties: null,
         channelData: null,
         channelIsDigitalWallet: false,
+        instantSubmissionError: null,
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
@@ -482,6 +487,8 @@ export class XenditComponents extends EventTarget {
         this[internal].currentDigitalWalletSubmission.channelProperties;
       bb.channelData = null;
       bb.channelIsDigitalWallet = true;
+      bb.instantSubmissionError =
+        this[internal].currentDigitalWalletSubmission.instantSubmissionError;
     } else {
       // populate data for normal channel component
       const component = this[internal].currentChannelCode
@@ -1182,6 +1189,7 @@ export class XenditComponents extends EventTarget {
     digitalWalletCode: DigitalWalletCode,
     channel: XenditPaymentChannel,
     channelProperties: ChannelProperties,
+    instantSubmissionError: SubmissionError | null = null,
   ) {
     this.assertInitialized();
 
@@ -1191,6 +1199,7 @@ export class XenditComponents extends EventTarget {
       digitalWalletCode,
       channelCode: channel[internal][0].channel_code,
       channelProperties,
+      instantSubmissionError,
     };
 
     this.addEventListener(

@@ -136,9 +136,13 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     return null;
   }
 
+  const digitalWalletSectionEnabled = false;
+
   return (
     <div ref={thisRef}>
-      <ChannelPickerDigitalWalletSection />
+      {digitalWalletSectionEnabled ? (
+        <ChannelPickerDigitalWalletSection />
+      ) : null}
       <Accordion>
         {channelUiGroups
           .filter((group) => {

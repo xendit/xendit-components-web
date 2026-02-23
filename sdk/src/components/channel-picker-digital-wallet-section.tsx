@@ -11,8 +11,6 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
 
   useLayoutEffect(() => {
     if (containerRef.current) {
-      console.log("render");
-      console.log(sdk, containerRef);
       containerRef.current.replaceChildren(
         sdk.createDigitalWalletComponent(testDigitalWalletCode),
       );

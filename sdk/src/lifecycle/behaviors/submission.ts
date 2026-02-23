@@ -42,6 +42,11 @@ import { NetworkError } from "../../networking";
 import { TFunction } from "i18next";
 import { discardPaymentEntity } from "./discard";
 
+export type SubmissionError = {
+  text: string[];
+  code: string;
+};
+
 export class SubmissionBehavior implements Behavior {
   private exited = false;
 
@@ -49,7 +54,7 @@ export class SubmissionBehavior implements Behavior {
     abortController: AbortController;
     promise: Promise<void>;
   } | null = null;
-  private submissionError: Error | NetworkError | null = null;
+  private submissionError: Error | SubmissionError | null = null;
 
   constructor(private bb: BlackboardType) {}
 
@@ -109,16 +114,12 @@ export class SubmissionBehavior implements Behavior {
     } else if (this.submissionError) {
       // there was an error during submission
       reason = "REQUEST_FAILED";
-      if (this.submissionError instanceof NetworkError) {
-        // error code from server
-        userErrorMessage = [
-          this.submissionError.errorResponse.error_content?.title,
-          this.submissionError.errorResponse.error_content?.message_1,
-          this.submissionError.errorResponse.error_content?.message_2,
-        ].filter((str) => str !== undefined);
+      if ("code" in this.submissionError) {
+        // explicit error message from the server
+        userErrorMessage = this.submissionError.text;
         developerErrorMessage = {
           type: "ERROR",
-          code: this.submissionError.errorResponse.error_code || "UNKNOWN",
+          code: this.submissionError.code,
         };
       } else {
         // unknown or network error
@@ -159,8 +160,20 @@ export class SubmissionBehavior implements Behavior {
   }
 
   private submit() {
-    if (!this.bb.world?.session || !this.bb.channel) {
+    if (!this.bb.world?.session) {
       throw new Error("Session object missing");
+    }
+
+    if (!this.bb.channel) {
+      throw new Error("Channel missing");
+    }
+
+    if (this.bb.instantSubmissionError) {
+      this.bb.submissionRequested = false;
+      this.submissionError = this.bb.instantSubmissionError;
+      this.bb.instantSubmissionError = null;
+      this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+      return;
     }
 
     const shouldSendSavePaymentMethod =
@@ -220,7 +233,20 @@ export class SubmissionBehavior implements Behavior {
         if (!this.exited) {
           // set the error flag and exit the submission
           this.bb.submissionRequested = false;
-          this.submissionError = error;
+
+          if (error instanceof NetworkError) {
+            this.submissionError = {
+              text: [
+                error.errorResponse.error_content?.title,
+                error.errorResponse.error_content?.message_1,
+                error.errorResponse.error_content?.message_2,
+              ].filter((str) => str !== undefined),
+              code: error.errorResponse.error_code,
+            };
+          } else {
+            this.submissionError = error;
+          }
+
           this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
         }
       });
