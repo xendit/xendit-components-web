@@ -232,26 +232,28 @@ function formValueToStringArray(subkeys: string[], value: string): string[] {
 }
 
 /**
- * Checks if two forms are equal by comparing each field's properties.
+ * Checks if two forms are equal by comparing each field's channel properties.
  */
 function formsAreEqual(a: ChannelFormField[], b: ChannelFormField[]) {
   if (a.length !== b.length) return false;
-
-  function fieldsAreEqual(
-    fieldA: { [key: string]: unknown },
-    fieldB: { [key: string]: unknown },
-  ) {
-    const keysA = Object.keys(fieldA);
-    const keysB = Object.keys(fieldB);
-
-    if (keysA.length !== keysB.length) return false;
-
-    return keysA.every((key) => fieldA[key] === fieldB[key]);
+  for (let i = 0; i < a.length; i++) {
+    const stringifyChannelProperties = (
+      channelProperties: ChannelFormField["channel_property"],
+    ) => {
+      if (typeof channelProperties === "string") {
+        return channelProperties;
+      } else {
+        return channelProperties.join(",");
+      }
+    };
+    if (
+      stringifyChannelProperties(a[i].channel_property) !==
+      stringifyChannelProperties(b[i].channel_property)
+    ) {
+      return false;
+    }
   }
-
-  return a.every((fieldA, index) => {
-    return fieldsAreEqual(fieldA, b[index]);
-  });
+  return true;
 }
 
 /**
