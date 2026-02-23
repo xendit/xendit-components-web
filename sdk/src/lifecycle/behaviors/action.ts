@@ -260,6 +260,7 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       onAffirm: this.affirmPayment.bind(this),
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
+      instructions: vaAction.instructions ?? [],
       t: this.bb.sdk.t.bind(this.bb.sdk),
       title: vaAction.action_subtitle,
     };

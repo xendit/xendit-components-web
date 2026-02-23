@@ -1,5 +1,7 @@
 import { TFunction } from "i18next";
 import { amountFormat } from "../amount-format";
+import { Instructions as InstructionsType } from "../backend-types/instructions";
+import { Instructions } from "./instructions";
 
 type Props = {
   amount: number;
@@ -9,6 +11,7 @@ type Props = {
   onAffirm: () => void;
   vaNumber: string;
   merchantName: string;
+  instructions: InstructionsType;
   t: TFunction<"session">;
   title: string;
 };
@@ -22,6 +25,7 @@ export function ActionVa(props: Props) {
     // onAffirm,
     vaNumber,
     merchantName,
+    instructions,
     t,
     // title,
   } = props;
@@ -29,23 +33,26 @@ export function ActionVa(props: Props) {
   return (
     <div className="xendit-action-va-content">
       <div className="xendit-action-va-details">
-        <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
-          {t("action_va.virtual_account_number")}
+        <div className="xendit-action-va-detail-item">
+          <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
+            {t("action_va.virtual_account_number")}
+          </div>
+          <div className="xendit-action-va-value">{vaNumber}</div>
+          <div className="xendit-action-va-tag xendit-text-12">
+            {merchantName}
+          </div>
         </div>
-        <div className="xendit-action-va-value">{vaNumber}</div>
-        <div className="xendit-action-va-tag xendit-text-12">
-          {merchantName}
+        <hr className="xendit-dotted-line" />
+        <div className="xendit-action-va-details">
+          <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
+            {t("action_va.amount_to_pay")}
+          </div>
+          <div className="xendit-action-va-value">
+            {amountFormat(amount, currency)}
+          </div>
         </div>
       </div>
-      <hr className="xendit-dotted-line" />
-      <div className="xendit-action-va-details">
-        <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
-          {t("action_va.amount_to_pay")}
-        </div>
-        <div className="xendit-action-va-value">
-          {amountFormat(amount, currency)}
-        </div>
-      </div>
+      <Instructions instructions={instructions} />
     </div>
   );
 }

@@ -820,6 +820,95 @@ xendit-payment-channel[inert] {
   margin: 16px 0;
 }
 
+/* Instructions */
+
+.xendit-instructions-active-tab {
+}
+.xendit-instructions-bold {
+  font-weight: 600;
+}
+.xendit-instructions-bullet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0;
+}
+.xendit-instructions-bullet-list::marker {
+  color: var(--xendit-color-text-secondary);
+}
+.xendit-instructions-form-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--xendit-color-border);
+  gap: 4px;
+  width: 321px;
+}
+.xendit-instructions-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--xendit-color-border);
+}
+.xendit-instructions-form-field-label {
+}
+.xendit-instructions-form-field-value {
+}
+.xendit-instructions-form-heading {
+}
+.xendit-instructions-italics {
+  font-style: italic;
+}
+.xendit-instructions-numbered-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  list-style-type: decimal;
+  padding-left: 40px;
+}
+.xendit-instructions-single-tab-heading {
+}
+.xendit-instructions-step-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.xendit-instructions-step-item {
+}
+.xendit-instructions-step-li {
+}
+.xendit-instructions-step-li p {
+  margin: 0;
+}
+.xendit-instructions-step-li::marker {
+  margin-left: 20px;
+}
+.xendit-instructions-tab-button {
+  padding: 8px 4px;
+  background-color: transparent;
+  border: none;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+}
+.xendit-instructions-tab-list {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--xendit-color-border);
+}
+.xendit-instructions-table {
+}
+.xendit-instructions-table-cell {
+  padding: 4px;
+  border: 1px solid black;
+}
+.xendit-instructions-table-header {
+}
+
+/* Instructions ends */
+
 .xendit-default-action-container {
   display: flex;
   flex-direction: column;
@@ -891,6 +980,9 @@ xendit-payment-channel[inert] {
   padding: 16px;
 }
 .xendit-action-va-details {
+  margin-bottom: 12px;
+}
+.xendit-action-va-detail-item {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
