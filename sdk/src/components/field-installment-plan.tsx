@@ -5,13 +5,14 @@ import { FunctionComponent } from "preact";
 import { Dropdown, DropdownOption } from "./dropdown";
 import { useChannelComponentData } from "./payment-channel";
 import { amountFormat } from "../amount-format";
-import { useSession } from "./session-provider";
+import { useSdk, useSession } from "./session-provider";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { BffInstallmentPlan } from "../backend-types/payment-options";
 
 export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
 
+  const { t } = useSdk();
   const session = useSession();
 
   const id = formFieldName(field);
@@ -26,13 +27,18 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
     const arr =
       paymentOptions?.options?.installment_plans?.map<DropdownOption>(
         (plan) => ({
-          title: plan.description,
+          title: t(`installment_plan.pay_in_installments`, {
+            installments: plan.terms,
+            amount: amountFormat(plan.installment_amount, session.currency),
+          }),
           subtitle: plan.interest_rate,
           value: planKey(plan),
         }),
       ) ?? [];
     arr.unshift({
-      title: `Pay in Full — ${amountFormat(session.amount, session.currency)}`,
+      title: t(`installment_plan.pay_in_full`, {
+        amount: amountFormat(session.amount, session.currency),
+      }),
       value: "",
     });
     return arr;
@@ -40,6 +46,7 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
     paymentOptions?.options?.installment_plans,
     session.amount,
     session.currency,
+    t,
   ]);
 
   let selectedItemIndex = dropdownItems?.findIndex((item) => {
