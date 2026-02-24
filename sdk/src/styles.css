@@ -835,52 +835,20 @@ xendit-payment-channel[inert] {
 .xendit-action-present-to-customer {
   display: flex;
   flex-direction: column;
-  background: var(--xendit-color-background);
-  border-radius: var(--xendit-radius-1);
-  border: 1px solid var(--xendit-color-border);
-}
-.xendit-action-present-to-customer-header {
-  padding: 12px 16px;
-  text-align: center;
-  border-bottom: 1px solid var(--xendit-color-border);
-}
-.xendit-action-present-to-customer-content {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
+  gap: 16px;
+  padding: 8px;
 }
 .xendit-action-qr-content {
   display: flex;
   flex-direction: column;
-}
-.xendit-action-qr-channel-logo-container {
-  display: flex;
-  justify-content: center;
-  margin: 0 4px;
-  padding-top: 2px;
-  padding-bottom: 4px;
-  border-top-left-radius: var(--xendit-radius-1);
-  border-top-right-radius: var(--xendit-radius-1);
-  border: 1px solid var(--xendit-color-border);
-  border-bottom: none;
+  align-items: center;
+  gap: 16px;
+  max-width: 384px;
 }
 .xendit-action-qr-channel-logo {
-  height: 40px;
+  height: 64px;
   object-fit: contain;
 }
 .xendit-action-qr-qrcode-container {
-  border: 1px solid var(--xendit-color-border);
-  border-radius: var(--xendit-radius-1);
-  padding: 12px;
-}
-.xendit-action-qr-amount-container {
-  display: flex;
-  justify-content: center;
-  margin: 0 4px;
-  padding-top: 4px;
-  padding-bottom: 2px;
-  border-bottom-left-radius: var(--xendit-radius-1);
-  border-bottom-right-radius: var(--xendit-radius-1);
-  border: 1px solid var(--xendit-color-border);
-  border-top: none;
+  width: 100%;
 }

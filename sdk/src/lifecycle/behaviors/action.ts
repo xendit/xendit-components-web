@@ -199,10 +199,9 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,
       t: this.bb.sdk.t.bind(this.bb.sdk),
-      title: qrAction.action_subtitle,
     };
 
-    this.title = qrAction.action_title;
+    this.title = qrAction.action_subtitle;
     this.cleanupFn = this.ensureHasActionContainer();
     this.populateActionContainer(() => createElement(ActionQr, actionQrProps));
   }
