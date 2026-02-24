@@ -322,7 +322,7 @@ describe("applyInputStyles", () => {
       inputStyles: "not-an-object" as unknown as object,
     });
     // should do nothing and not throw errors
-    expect(mockInput.style).toEqual({});
+    expect(mockInput.style.cssText).toBe("");
   });
 
   it("should reject unknown properties", () => {
