@@ -1,24 +1,46 @@
 import type { IframeAppearanceOptions } from "../../sdk/src";
 
-export type AllowedCssProperty =
-  | "fontFamily"
-  | "fontSize"
-  | "fontWeight"
-  | "lineHeight"
-  | "letterSpacing"
-  | "color"
-  | "backgroundColor";
+// map of allowed CSS properties to their corresponding CSS style names
+const allowedCssPropertyMap = {
+  fontFamily: "font-family",
+  fontSize: "font-size",
+  fontWeight: "font-weight",
+  lineHeight: "line-height",
+  letterSpacing: "letter-spacing",
+  color: "color",
+  backgroundColor: "background-color",
+} as const;
 
 /**
- * Validate CSS value using browser's native CSS parser
+ * Properties allowed to be set on input elements.
  */
-function isValidCssValue(value: string, property: string): boolean {
+export type AllowedCssProperty = keyof typeof allowedCssPropertyMap;
+
+const SUS_PATTERNS = [
+  /url\s*\(/i,
+  /javascript:/i,
+  /vbscript:/i,
+  /data:/i,
+  /expression\s*\(/i,
+  /behavior\s*:/i,
+  /@import/i,
+  /-moz-binding/i,
+  /<|>/,
+  /&#/i,
+  /\/\*|\*\//,
+  /[;{}]/,
+];
+
+/**
+ * Validate a CSS value for a given property.
+ */
+function validateStyle(property: string, value: string): boolean {
   const supportsTypedOM =
     typeof CSSStyleValue !== "undefined" &&
     typeof CSSStyleValue.parse === "function";
 
   if (!supportsTypedOM) {
-    // No Typed OM → skip validation
+    // only firefox doesn't support this
     return true;
   }
 
@@ -30,144 +52,31 @@ function isValidCssValue(value: string, property: string): boolean {
   }
 }
 
-function validateFontFamily(value: string): string {
-  const isValid = /^[a-zA-Z0-9\s"',\\-]+$/i.test(value);
-  if (!isValid) return "";
-
-  // Avoid empty names or double commas
-  if (/,\s*,/.test(value)) return "";
-
-  // Length limits
-  if (value.length > 200) return "";
-
-  // Validate using browser's CSS parser
-  if (!isValidCssValue(value, "font-family")) return "";
-
-  return value;
-}
-
-function validateFontSize(value: string): string {
-  const SIZE = /^(\d+(\.\d+)?(px|em|rem|%|pt|vw|vh|vmin|vmax))$/i;
-  if (!SIZE.test(value)) return "";
-
-  // Length limits to prevent overly large values
-  if (value.length > 20) return "";
-
-  // Validate using browser's CSS parser
-  if (!isValidCssValue(value, "font-size")) return "";
-
-  return value;
-}
-
-function validateFontWeight(value: string): string {
-  const WEIGHT = /^(normal|bold|bolder|lighter|[1-9]00)$/i;
-  if (!WEIGHT.test(value)) return "";
-
-  if (value.length > 10) return "";
-
-  if (!isValidCssValue(value, "font-weight")) return "";
-
-  return value;
-}
-
-function validateLineHeight(value: string): string {
-  const LINE_HEIGHT = /^(normal|\d+(\.\d+)?(px|em|rem|%)?|\d+(\.\d+))$/i;
-  if (!LINE_HEIGHT.test(value)) return "";
-
-  if (value.length > 15) return "";
-
-  if (!isValidCssValue(value, "line-height")) return "";
-
-  return value;
-}
-
-function validateLetterSpacing(value: string): string {
-  const LETTER_SPACING = /^(normal|-?\d+(\.\d+)?(px|em|rem))$/i;
-  if (!LETTER_SPACING.test(value)) return "";
-
-  if (value.length > 15) return "";
-
-  if (!isValidCssValue(value, "letter-spacing")) return "";
-
-  return value;
-}
-
-function validateColor(value: string): string {
-  // Support hex colors, rgb/rgba, hsl/hsla, and named colors
-  const COLOR =
-    /^(#[0-9a-f]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)|hsl\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*\)|hsla\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*,\s*[\d.]+\s*\)|transparent|currentcolor|inherit|initial|unset|[a-z]+)$/i;
-
-  if (!COLOR.test(value)) return "";
-
-  if (value.length > 50) return "";
-
-  if (!isValidCssValue(value, "color")) return "";
-
-  return value;
-}
-
-function validateBackgroundColor(value: string): string {
-  // Same validation as color since background-color accepts the same values
-  const COLOR =
-    /^(#[0-9a-f]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)|hsl\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*\)|hsla\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*,\s*[\d.]+\s*\)|transparent|currentcolor|inherit|initial|unset|[a-z]+)$/i;
-
-  if (!COLOR.test(value)) return "";
-
-  if (value.length > 50) return "";
-
-  if (!isValidCssValue(value, "background-color")) return "";
-
-  return value;
-}
-
 export function sanitizeCssValue(
   value: string,
   property: AllowedCssProperty,
 ): string {
   if (!value || typeof value !== "string") {
+    // not a valid value
     return "";
   }
 
-  const trimmed = value.trim();
-
-  // Global XSS patterns - check first for security
-  const GLOBAL_FORBIDDEN = [
-    /url\s*\(/i,
-    /javascript:/i,
-    /vbscript:/i,
-    /data:/i,
-    /expression\s*\(/i,
-    /behavior\s*:/i,
-    /@import/i,
-    /-moz-binding/i,
-    /<|>/,
-    /&#/i,
-    /\/\*|\*\//,
-    /[;{}]/,
-  ];
-
-  for (const pattern of GLOBAL_FORBIDDEN) {
-    if (pattern.test(trimmed)) return "";
+  const propertyName = allowedCssPropertyMap[property];
+  if (!propertyName) {
+    // not allowed
+    return "";
   }
 
-  switch (property) {
-    case "fontFamily":
-      return validateFontFamily(trimmed);
-    case "fontSize":
-      return validateFontSize(trimmed);
-    case "fontWeight":
-      return validateFontWeight(trimmed);
-    case "lineHeight":
-      return validateLineHeight(trimmed);
-    case "letterSpacing":
-      return validateLetterSpacing(trimmed);
-    case "color":
-      return validateColor(trimmed);
-    case "backgroundColor":
-      return validateBackgroundColor(trimmed);
-    default:
-      return "";
+  // These are defense-in-depth checks against css injections.
+  // It should not affect anything at all, any value that fails here would also fail to assign to the style property.
+  for (const pattern of SUS_PATTERNS) {
+    if (pattern.test(value)) return "";
   }
+  if (!validateStyle(propertyName, value)) {
+    return "";
+  }
+
+  return value;
 }
 
 const CUSTOM_FONT_NAME = "xendit-iframe-custom-font";
