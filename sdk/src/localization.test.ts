@@ -1,9 +1,31 @@
 import { describe, it, expect } from "vitest";
-import { getLocalizedErrorMessage, initI18n } from "./localization";
+import { createTFunction, getLocalizedErrorMessage } from "./localization";
 import { ChannelFormField } from "./backend-types/channel";
 
-const i18n = initI18n("en");
-const t = i18n.getFixedT("en", "session");
+const t = createTFunction("en");
+
+describe("t", () => {
+  it("returns localized string for a valid key", () => {
+    expect(t("validation.card_cvn_invalid")).toBe("CVN is not valid");
+  });
+  it("returns localized string for a valid key with interpolation", () => {
+    expect(t("validation.required", { field: "Email" })).toBe(
+      "Email is required",
+    );
+  });
+  it("returns localized string with fallback", () => {
+    // @ts-expect-error testing fallback behavior with invalid key
+    expect(t("nonexistant_key", "Fallback")).toBe("Fallback");
+  });
+  it("returns localized string with interpolation and fallback", () => {
+    expect(
+      // @ts-expect-error testing fallback behavior with invalid key
+      t("nonexistant_key", "Fallback with {{interpolation}}", {
+        interpolation: 1,
+      }),
+    ).toBe("Fallback with 1");
+  });
+});
 
 describe("getLocalizedErrorMessage", () => {
   const mockField: ChannelFormField = {

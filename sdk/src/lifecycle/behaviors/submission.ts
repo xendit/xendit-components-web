@@ -39,7 +39,7 @@ import {
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
-import { TFunction } from "i18next";
+import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./discard";
 
 export class SubmissionBehavior implements Behavior {
@@ -302,7 +302,7 @@ async function asyncSubmit(
   return toPaymentEntity(result);
 }
 
-function defaultUserErrorMessage(t: TFunction<"session">): string[] {
+function defaultUserErrorMessage(t: TFunction): string[] {
   return [
     t("default_error.title"),
     t("default_error.message_1"),
@@ -311,7 +311,7 @@ function defaultUserErrorMessage(t: TFunction<"session">): string[] {
 }
 
 function failureCodeUserErrorMessage(
-  t: TFunction<"session">,
+  t: TFunction,
   type: BffPaymentEntityType,
   status: "FAILED" | "EXPIRED" | "CANCELED",
   failureCode:
