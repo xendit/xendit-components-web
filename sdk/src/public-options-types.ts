@@ -93,6 +93,9 @@ export type SetCurrentChannelOptions = {
   digitalWalletSubmission: boolean;
 };
 
+/**
+ * @public
+ */
 export type DigitalWalletOptions<T extends XenditDigitalWalletCode> =
   T extends "GOOGLE_PAY"
     ? {
