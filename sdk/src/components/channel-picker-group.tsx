@@ -20,7 +20,7 @@ import {
   findChannelPairs,
   singleBffChannelToPublic,
 } from "../bff-marshal";
-import { TFunction } from "i18next";
+import { TFunction } from "../localization";
 import { FunctionComponent } from "preact";
 
 interface ChannelPickerGroupProps {
@@ -212,7 +212,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
 };
 
 export function getChannelDisabledReason(
-  t: TFunction<"session">,
+  t: TFunction,
   session: BffSession,
   channel: BffChannel,
 ): string | null {

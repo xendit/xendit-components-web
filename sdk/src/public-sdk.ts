@@ -99,8 +99,7 @@ import {
   findChannelPairs,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
-import { initI18n } from "./localization";
-import { TFunction } from "i18next";
+import { createTFunction, TFunction } from "./localization";
 import { amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 
@@ -176,9 +175,9 @@ export class XenditComponents extends EventTarget {
   /**
    * @internal
    */
-  public t: TFunction<"session"> = ((str: string): string => {
+  public t: TFunction = (str: string): string => {
     throw new Error("Localization used before initialization; this is a bug.");
-  }) as TFunction<"session">;
+  };
 
   /**
    * @internal
@@ -407,8 +406,7 @@ export class XenditComponents extends EventTarget {
 
     // update locale
     const locale = this[internal].worldState.session.locale;
-    const i18n = initI18n(locale);
-    this.t = i18n.getFixedT(locale, "session");
+    this.t = createTFunction(locale);
 
     // update everything
     this.behaviorTreeUpdate();

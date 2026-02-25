@@ -1,4 +1,4 @@
-import { TFunction } from "i18next";
+import { TFunction } from "../localization";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import qrcode from "qrcode";
 import qrSvgRenderer from "qrcode/lib/renderer/svg-tag";
@@ -14,7 +14,8 @@ type Props = {
   mock: boolean;
   onAffirm: () => void;
   qrString: string;
-  t: TFunction<"session">;
+  t: TFunction;
+  title: string;
 };
 
 export function ActionQr(props: Props) {

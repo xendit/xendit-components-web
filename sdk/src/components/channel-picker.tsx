@@ -22,7 +22,7 @@ import {
 import { assert, satisfiesMinMax } from "../utils";
 import { BffSession } from "../backend-types/session";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
-import { TFunction } from "i18next";
+import { TFunction } from "../localization";
 import {
   findChannelPairs,
   makeChannelsByGroupId,
@@ -186,7 +186,7 @@ function groupEnabledChannelStats(
   session: BffSession,
   group: BffChannelUiGroup,
   channels: BffChannel[],
-  t: TFunction<"session">,
+  t: TFunction,
 ): {
   enabledChannels: number;
   firstDisabledChannelReason: string | null;
