@@ -19,6 +19,7 @@ import {
   ActionIframeBehavior,
   ActionQrBehavior,
   ActionRedirectBehavior,
+  ActionVaBehavior,
 } from "./behaviors/action";
 import { CardInfoBehavior } from "./behaviors/card-info";
 import {
@@ -280,9 +281,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
           );
         }
         case "VIRTUAL_ACCOUNT_NUMBER": {
-          throw new Error(
-            `Unsupported action type ${action.type} ${action.descriptor}`,
-          );
+          return behaviorNode(ActionVaBehavior, String(actionIndex));
         }
       }
       break;
