@@ -85,11 +85,6 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
     );
   };
 
-  if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
-    // clear all contents if the sdk crashes or if the component is still mounted after completion or failure
-    return null;
-  }
-
   return (
     <ChannelContext.Provider value={resolvedChannel}>
       <ChannelComponentDataContext.Provider value={channelData}>

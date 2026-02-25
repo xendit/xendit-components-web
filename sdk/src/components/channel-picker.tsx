@@ -131,11 +131,6 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     }
   }, [currentChannel, previewGroupId]);
 
-  if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
-    // clear all contents if the sdk is not initialized or crashes, or if the component is still mounted after completion or failure
-    return null;
-  }
-
   const digitalWalletSectionEnabled = false;
 
   return (

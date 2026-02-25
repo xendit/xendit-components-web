@@ -3,29 +3,17 @@ import { useCallback, useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import {
   useBusiness,
   useChannels,
+  useDigitalWallets,
   useSdk,
   useSession,
 } from "./session-provider";
-import { BffChannel } from "../backend-types/channel";
+import { ChannelProperties } from "../backend-types/channel";
 import { XenditPaymentChannel } from "../public-data-types";
 import { assert } from "../utils";
+import { DigitalWalletOptions } from "../public-options-types";
 
 type Props = {
-  buttonOptions?: {
-    buttonColor?: "default" | "black" | "white";
-    buttonType?:
-      | "pay"
-      | "book"
-      | "buy"
-      | "checkout"
-      | "order"
-      | "plain"
-      | "long"
-      | "short";
-    buttonRadius?: number;
-    buttonSizeMode?: "fill" | "static";
-    buttonBorderType?: "no_border" | "default_border";
-  };
+  buttonOptions?: DigitalWalletOptions<"GOOGLE_PAY">;
 };
 
 export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
@@ -35,6 +23,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
   const session = useSession();
   const channels = useChannels();
   const business = useBusiness();
+  const digitalWallets = useDigitalWallets();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -42,16 +31,18 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     null,
   );
 
-  const googlePayChannels = useMemo(
-    () => mapChannelsToGooglePayMethods(channels),
-    [channels],
-  );
+  const googlePayChannels = useMemo(() => {
+    return digitalWallets.google_pay.allowed_payment_methods.map(
+      (obj) => obj.payment_method_specification,
+    );
+  }, [digitalWallets.google_pay.allowed_payment_methods]);
 
   const googlePayConfig: google.payments.api.PaymentDataRequest = useMemo(
     () => ({
       apiVersion: 2,
       apiVersionMinor: 0,
       allowedPaymentMethods: googlePayChannels,
+      emailRequired: true,
       merchantInfo: {
         merchantId: "12345678901234567890",
         merchantName: business.name ?? "",
@@ -106,63 +97,98 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       .then(function (paymentData) {
         // Handle the response
         const allChannels = sdk.getActiveChannels();
-        const targetChannel = findGooglePayChannel(allChannels, paymentData);
-        const channelProperties = {
-          google_pay_token:
-            paymentData.paymentMethodData.tokenizationData.token,
-        };
+
+        let targetChannel: XenditPaymentChannel | null = null;
+        for (const googlePayChannel of digitalWallets.google_pay
+          .allowed_payment_methods) {
+          if (
+            googlePayChannel.payment_method_specification.type ===
+            paymentData.paymentMethodData.type
+          ) {
+            targetChannel = findChannel(
+              allChannels,
+              googlePayChannel.channel_code,
+            );
+          }
+        }
+        assert(targetChannel);
+
+        let channelProperties: ChannelProperties = {};
+        if (targetChannel.channelCode === "CARDS") {
+          channelProperties = {
+            card_details: {
+              google_pay_token:
+                paymentData.paymentMethodData.tokenizationData.token,
+              cardholder_email: paymentData.email,
+            },
+            google_pay_token:
+              paymentData.paymentMethodData.tokenizationData.token,
+            billing_information: {
+              first_name:
+                paymentData.paymentMethodData.info?.billingAddress?.name,
+              last_name:
+                paymentData.paymentMethodData.info?.billingAddress?.name,
+              email: paymentData.email,
+              country:
+                paymentData.paymentMethodData.info?.billingAddress?.countryCode,
+              province_state:
+                paymentData.paymentMethodData.info?.billingAddress
+                  ?.administrativeArea,
+              city: paymentData.paymentMethodData.info?.billingAddress
+                ?.locality,
+              street_line1:
+                paymentData.paymentMethodData.info?.billingAddress?.address1,
+              street_line2:
+                paymentData.paymentMethodData.info?.billingAddress?.address2,
+              postal_code:
+                paymentData.paymentMethodData.info?.billingAddress?.postalCode,
+            },
+          };
+        }
+
         sdk.submitDigitalWallet("GOOGLE_PAY", targetChannel, channelProperties);
       })
       .catch(function (err) {
-        let errorText;
-        switch (err.statusCode) {
-          case "CANCELED": {
-            break;
-          }
-          case "DEVELOPER_ERROR": {
-            errorText = [
-              t("google_pay_errors.developer_error.title"),
-              t("google_pay_errors.developer_error.message"),
-            ];
-            break;
-          }
-          case "BUYER_ACCOUNT_ERROR": {
-            errorText = [
-              t("google_pay_errors.buyer_account_error.title"),
-              t("google_pay_errors.buyer_account_error.message"),
-            ];
-            break;
-          }
-          case "MERCHANT_ACCOUNT_ERROR": {
-            errorText = [
-              t("google_pay_errors.merchant_account_error.title"),
-              t("google_pay_errors.merchant_account_error.message"),
-            ];
-            break;
-          }
-          case "INTERNAL_ERROR":
-          default: {
-            errorText = [
-              t("google_pay_errors.internal_error.title"),
-              t("google_pay_errors.internal_error.message"),
-            ];
-            break;
-          }
+        type GooglePayErrorCode =
+          | "CANCELED"
+          | "DEVELOPER_ERROR"
+          | "BUYER_ACCOUNT_ERROR"
+          | "MERCHANT_ACCOUNT_ERROR"
+          | "INTERNAL_ERROR";
+        const statusCode = err.statusCode as string as GooglePayErrorCode;
+
+        if (statusCode === "CANCELED") {
+          return;
         }
 
-        if (errorText) {
-          sdk.submitDigitalWallet(
-            "GOOGLE_PAY",
-            sdk.getActiveChannels()[0],
-            {},
-            {
-              code: `GOOGLE_PAY_${err.statusCode}`,
-              text: errorText,
-            },
-          );
+        function localeKeyForGooglePayError<
+          T extends GooglePayErrorCode,
+          U extends "title" | "message",
+        >(errorCode: T, suffix: U) {
+          return `google_pay_errors.${errorCode.toLowerCase() as Lowercase<T>}.${suffix}` as const;
         }
+
+        const submissionError = {
+          code: `GOOGLE_PAY_${statusCode}` as const,
+          text: [
+            t(localeKeyForGooglePayError(statusCode, "title")),
+            t(localeKeyForGooglePayError(statusCode, "message")),
+          ],
+        };
+
+        sdk.submitDigitalWallet(
+          "GOOGLE_PAY",
+          sdk.getActiveChannels()[0],
+          {},
+          submissionError,
+        );
       });
-  }, [googlePayConfig, sdk, t]);
+  }, [
+    digitalWallets.google_pay.allowed_payment_methods,
+    googlePayConfig,
+    sdk,
+    t,
+  ]);
 
   useLayoutEffect(() => {
     if (!paymentsClient.current) {
@@ -188,7 +214,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           onClick,
         });
         if (containerRef.current) {
-          containerRef.current.appendChild(button);
+          containerRef.current.replaceChildren(button);
         }
       });
   }, [
@@ -203,84 +229,18 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
   return <div ref={containerRef}></div>;
 };
 
-function mapChannelsToGooglePayMethods(
-  channels: BffChannel[],
-): google.payments.api.PaymentMethodSpecification[] {
-  const allowedChannels = ["CARDS"];
-
-  const digitalWalletEnabledChannels = channels.filter((channel) =>
-    allowedChannels.includes(channel.channel_code),
-  );
-
-  return digitalWalletEnabledChannels
-    .map<google.payments.api.PaymentMethodSpecification | null>((channel) => {
-      if (channel.channel_code === "CARDS" && channel.card) {
-        return {
-          type: "CARD",
-          parameters: {
-            allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
-            allowedCardNetworks: channel.card.brands
-              .map((brand) => cardNetworkToGooglePayNetwork(brand.name))
-              .filter(
-                (network): network is google.payments.api.CardNetwork =>
-                  !!network,
-              ),
-          },
-          tokenizationSpecification: {
-            type: "PAYMENT_GATEWAY",
-            parameters: {
-              gateway: "example",
-              gatewayMerchantId: "exampleGatewayMerchantId",
-            },
-          },
-        };
-      }
-
-      // TODO: add support for any future channels googlepay may support
-
-      return null;
-    })
-    .filter((method) => method !== null);
-}
-
-function cardNetworkToGooglePayNetwork(
-  cardNetwork: string,
-): google.payments.api.CardNetwork | null {
-  switch (cardNetwork) {
-    case "VISA":
-      return "VISA";
-    case "MASTERCARD":
-      return "MASTERCARD";
-    case "AMEX":
-      return "AMEX";
-    case "DISCOVER":
-      return "DISCOVER";
-    case "JCB":
-      return "JCB";
-    default:
-      return null;
-  }
-}
-
-function findGooglePayChannel(
+function findChannel(
   allChannels: XenditPaymentChannel[],
-  paymentData: google.payments.api.PaymentData,
+  targetChannelCode: string,
 ): XenditPaymentChannel {
-  switch (paymentData.paymentMethodData.type) {
-    case "CARD": {
-      const cards = allChannels.find((channel) => {
-        if (Array.isArray(channel.channelCode)) {
-          return channel.channelCode.includes("CARDS");
-        }
-        return channel.channelCode === "CARDS";
-      });
-      if (!cards) {
-        throw new Error("Expected to find cards channel");
-      }
-      return cards;
+  const ch = allChannels.find((channel) => {
+    if (Array.isArray(channel.channelCode)) {
+      return channel.channelCode.includes(targetChannelCode);
     }
-    default: {
-      throw new Error("Unexpected response from googlepay");
-    }
+    return channel.channelCode === targetChannelCode;
+  });
+  if (!ch) {
+    throw new Error(`Channel not found for code: ${targetChannelCode}`);
   }
+  return ch;
 }

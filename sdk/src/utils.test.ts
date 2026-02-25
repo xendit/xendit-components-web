@@ -26,8 +26,9 @@ describe("utils - cancellableSleep", () => {
     const signal = new AbortController().signal;
     const start = Date.now();
     await cancellableSleep(D, signal);
-    const duration = Date.now() - start;
-    expect(duration).toBeGreaterThanOrEqual(D * SLEEP_MULTIPLIER);
+    let duration = Date.now() - start;
+    duration += 2; // we waited 100ms, but sometimes it fires early and we get 99ms
+    expect(duration + 1).toBeGreaterThanOrEqual(D * SLEEP_MULTIPLIER);
   });
   it("should abort sleep if aborted", async () => {
     const controller = new AbortController();

@@ -22,9 +22,12 @@ import {
   XenditSdkOptions as XenditComponentsOptions,
   XenditGetChannelsOptions,
   ActionContainerOptions,
+  DigitalWalletOptions,
 } from "./public-options-types";
 import {
   XenditCustomer,
+  XenditDigitalWallet,
+  XenditDigitalWalletCode,
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
@@ -97,6 +100,7 @@ import {
 import {
   bffChannelsToPublic,
   bffCustomerToPublic,
+  bffDigitalWalletsToPublic,
   bffSessionToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
@@ -107,6 +111,7 @@ import { TFunction } from "i18next";
 import { amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { DigitalWalletContainer } from "./components/digital-wallet-container";
+import { BffDigitalWallets } from "./backend-types/digital-wallets";
 
 /**
  * @internal
@@ -146,15 +151,11 @@ export type WorldState = {
   session: BffSession;
   channels: BffChannel[];
   channelUiGroups: BffChannelUiGroup[];
+  digitalWallets: BffDigitalWallets | null;
   paymentEntity: BffPaymentEntity | null;
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
 };
-
-/**
- * @public
- */
-export type DigitalWalletCode = "GOOGLE_PAY";
 
 /**
  * @internal
@@ -221,9 +222,10 @@ export class XenditComponents extends EventTarget {
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
       digitalWalletContainer: Map<
-        DigitalWalletCode,
+        XenditDigitalWalletCode,
         {
           element: HTMLElement;
+          options: DigitalWalletOptions<XenditDigitalWalletCode> | undefined;
         }
       >;
     };
@@ -238,7 +240,7 @@ export class XenditComponents extends EventTarget {
      * The ongoing digital wallet submission, if any.
      */
     currentDigitalWalletSubmission: {
-      digitalWalletCode: DigitalWalletCode;
+      digitalWalletCode: XenditDigitalWalletCode;
       channelCode: string;
       channelProperties: ChannelProperties;
       instantSubmissionError: SubmissionError | null;
@@ -384,6 +386,7 @@ export class XenditComponents extends EventTarget {
         session: bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
+        digitalWallets: bff.digital_wallets ?? null,
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
@@ -538,6 +541,11 @@ export class XenditComponents extends EventTarget {
       internal
     ].liveComponents.paymentChannels.keys()) {
       this.renderPaymentChannel(channelCode);
+    }
+    for (const digitalWalletCode of this[
+      internal
+    ].liveComponents.digitalWalletContainer.keys()) {
+      this.renderDigitalWalletComponent(digitalWalletCode);
     }
   }
 
@@ -813,11 +821,60 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @internal
+   * TODO: make this public
+   * Returns a list of digital wallets available for this session.
+   *
+   * For `GOOGLE_PAY`:
+   *
+   * A channel supported by Google Pay must be active for the session, and Google Pay must be available
+   * in the session's country, and you must have configured your merchant ID on the Xendit dashboard.
+   *
+   * (Note that our hosted checkout doesn't have the requirement to provide a merchant ID)
    */
-  createDigitalWalletComponent(
-    digitalWalletCode: DigitalWalletCode,
+  public getActiveDigitalWallets(): XenditDigitalWallet[] {
+    this.assertInitialized();
+    if (!this[internal].worldState.digitalWallets) {
+      return [];
+    }
+    return bffDigitalWalletsToPublic(
+      this[internal].worldState.digitalWallets,
+      this[internal].worldState.channels,
+      this[internal].worldState.channelUiGroups,
+      {
+        options: {
+          filterMinMax: false,
+        },
+        pairChannels: findChannelPairs(this[internal].worldState.channels),
+        session: this[internal].worldState.session,
+      },
+    );
+  }
+
+  /**
+   * @internal
+   * TODO: make this public
+   * Creates a UI component for making payments with a digital wallet. It will contain a button to trigger the digital
+   * wallet payment. If the digital wallet is not supported by the browser, it will have `display:none`.
+   *
+   * After the user pays using the digital wallet UI, a submission will automatically begin. Equavalent to setting
+   * the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired
+   * as a normal submission, see {@link submit}.
+   *
+   * This returns a HTML Element, which you should insert into the DOM.
+   */
+  public createDigitalWalletComponent<T extends XenditDigitalWalletCode>(
+    digitalWalletCode: T,
+    digitalWalletOptions?: DigitalWalletOptions<T>,
   ): HTMLElement {
     this.assertInitialized();
+
+    const prevComponent =
+      this[internal].liveComponents.digitalWalletContainer.get(
+        digitalWalletCode,
+      );
+    if (prevComponent) {
+      this.destroyComponent(prevComponent.element);
+    }
 
     const element = document.createElement("xendit-digital-wallet");
     element.setAttribute("translate", "no");
@@ -825,8 +882,28 @@ export class XenditComponents extends EventTarget {
       digitalWalletCode,
       {
         element,
+        options: digitalWalletOptions,
       },
     );
+
+    this.renderDigitalWalletComponent(digitalWalletCode);
+
+    return element;
+  }
+
+  /**
+   * @internal
+   * Renders an existing digital wallet component.
+   */
+  renderDigitalWalletComponent(
+    digitalWalletCode: XenditDigitalWalletCode,
+  ): void {
+    this.assertInitialized();
+    const component =
+      this[internal].liveComponents.digitalWalletContainer.get(
+        digitalWalletCode,
+      );
+    if (!component) return;
 
     render(
       createElement(XenditSessionProvider, {
@@ -834,12 +911,11 @@ export class XenditComponents extends EventTarget {
         sdk: this,
         children: createElement(DigitalWalletContainer, {
           digitalWalletCode,
+          digitalWalletOptions: component.options,
         }),
       }),
-      element,
+      component.element,
     );
-
-    return element;
   }
 
   /**
@@ -1087,9 +1163,9 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
-    for (const [channelCode, cachedComponent] of this[internal].liveComponents
+    for (const [channelCode, c] of this[internal].liveComponents
       .paymentChannels) {
-      if (cachedComponent.element === component) {
+      if (c.element === component) {
         this[internal].liveComponents.paymentChannels.delete(channelCode);
         if (this[internal].currentChannelCode === channelCode) {
           this.setCurrentChannel(null);
@@ -1105,6 +1181,18 @@ export class XenditComponents extends EventTarget {
       render(null, component);
       component.remove();
       return;
+    }
+
+    for (const [channelCode, c] of this[internal].liveComponents
+      .digitalWalletContainer) {
+      if (c.element === component) {
+        this[internal].liveComponents.digitalWalletContainer.delete(
+          channelCode,
+        );
+        render(null, component);
+        component.remove();
+        return;
+      }
     }
 
     throw new Error(
@@ -1185,8 +1273,12 @@ export class XenditComponents extends EventTarget {
     this.syncInertAttribute();
   }
 
+  /**
+   * @internal
+   * Submits a digital wallet payment.
+   */
   submitDigitalWallet(
-    digitalWalletCode: DigitalWalletCode,
+    digitalWalletCode: XenditDigitalWalletCode,
     channel: XenditPaymentChannel,
     channelProperties: ChannelProperties,
     instantSubmissionError: SubmissionError | null = null,
@@ -1658,6 +1750,7 @@ export class XenditComponentsTest extends XenditComponents {
         session: bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
+        digitalWallets: bff.digital_wallets ?? null,
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
