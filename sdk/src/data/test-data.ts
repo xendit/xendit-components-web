@@ -1215,7 +1215,7 @@ export function makeTestBffData(): BffResponse {
               tokenizationSpecification: {
                 type: "PAYMENT_GATEWAY",
                 parameters: {
-                  gateway: "example",
+                  gateway: "xendit",
                   gatewayMerchantId: "exampleGatewayMerchantId",
                 },
               },

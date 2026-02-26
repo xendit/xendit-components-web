@@ -374,7 +374,7 @@ Google Pay is available to Sessions that meet the following requirements:
 - Your Session country is a country where Google Pay is supported.
 - You have at least one Google Pay compatible payment method available in your session. (e.g. cards)
 - You've provided your Google MerchantID to Xendit on the Xendit Dashboard. (If you don't have a Google MerchantID, complete registration with the [Google Pay & Wallet Console](https://pay.google.com/business/console/?utm_source=devsite&utm_medium=devsite&utm_campaign=devsite) to provision one)
-- The [Google Pay SDK](https://pay.google.com/gp/p/js/pay.js) is loaded. (You need to include the SDK yourself, we don't bundle it. There's no need to wait for it to finish loading, if it's still loading when you create the component, it'll have `display:none` until it finishes loading)
+- The Google Pay SDK is loaded using `<script async src="https://pay.google.com/gp/p/js/pay.js"></script>`. (You need to include the SDK yourself, we don't bundle it. There's no need to wait for it to finish loading, if it's still loading when you create the component, it'll have `display:none` until it finishes loading)
 - The user is using a compatible browser. (The component will have `display:none` if the user is using an incompatible browser)
 
 We configure Google Pay for you, providing your MerchantID, merchant name, and the allowed payment methods, including allowed card networks and authentication methods.

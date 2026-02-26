@@ -262,6 +262,7 @@ xendit-payment-channel select::placeholder {
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
 /* Channel picker group */

@@ -1,8 +1,9 @@
-import { ComponentChildren, FunctionComponent, JSX } from "preact";
+import { FunctionComponent, JSX } from "preact";
 import { DigitalWalletGooglepay } from "./digital-wallet-googlepay";
 import { DigitalWalletOptions } from "../public-options-types";
 import { XenditDigitalWalletCode } from "../public-data-types";
-import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useRef } from "preact/hooks";
+import { DigitalWalletWaitForLoad } from "./digital-wallet-wait-for-load";
 
 type Props<T extends XenditDigitalWalletCode> = {
   digitalWalletCode: T;
@@ -24,7 +25,7 @@ export const DigitalWalletContainer: FunctionComponent<
   switch (digitalWalletCode) {
     case "GOOGLE_PAY": {
       el = (
-        <ScriptTagWaiter
+        <DigitalWalletWaitForLoad
           scriptTagRegex={sdkStatusCheckers.GOOGLE_PAY.scriptTagRegex}
           checkLoaded={sdkStatusCheckers.GOOGLE_PAY.checkLoaded}
         >
@@ -32,7 +33,7 @@ export const DigitalWalletContainer: FunctionComponent<
             onReady={onReady}
             options={digitalWalletOptions}
           />
-        </ScriptTagWaiter>
+        </DigitalWalletWaitForLoad>
       );
       break;
     }
@@ -47,29 +48,4 @@ const sdkStatusCheckers = {
     checkLoaded: () =>
       typeof google !== "undefined" && typeof google.payments !== "undefined",
   },
-};
-
-const ScriptTagWaiter: FunctionComponent<{
-  scriptTagRegex: RegExp;
-  checkLoaded: () => boolean;
-  children: ComponentChildren;
-}> = (props) => {
-  const { scriptTagRegex, checkLoaded, children } = props;
-
-  const forceRender = useState({})[1];
-  const ok = checkLoaded();
-
-  useLayoutEffect(() => {
-    if (ok) return;
-
-    const targetScript = Array.from(document.scripts).find((script) =>
-      scriptTagRegex.test(script.src),
-    );
-
-    targetScript?.addEventListener("load", () => {
-      forceRender(1);
-    });
-  }, [forceRender, ok, scriptTagRegex]);
-
-  return ok ? children : null;
 };
