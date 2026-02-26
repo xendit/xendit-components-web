@@ -131,7 +131,7 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     }
   }, [currentChannel, previewGroupId]);
 
-  const digitalWalletSectionEnabled = false;
+  const digitalWalletSectionEnabled = true;
 
   return (
     <div ref={thisRef}>

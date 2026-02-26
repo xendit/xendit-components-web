@@ -15,6 +15,14 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
     }
   }, [sdk]);
 
+  useLayoutEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.appendChild(
+        sdk.createDigitalWalletComponent("APPLE_PAY"),
+      );
+    }
+  }, [sdk]);
+
   return (
     <div
       ref={containerRef}

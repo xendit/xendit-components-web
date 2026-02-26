@@ -899,3 +899,18 @@ xendit-payment-channel[inert] {
 .gpay-card-info-container-fill {
   display: flex;
 }
+
+/* applepay */
+
+.xendit-apple-pay-button {
+  --apple-pay-button-height: 42px;
+  --apple-pay-button-border-radius: 999px;
+  display: block;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  margin: -1px 0;
+  overflow: hidden;
+}

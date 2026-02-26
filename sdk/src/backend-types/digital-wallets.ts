@@ -7,4 +7,8 @@ export type BffDigitalWallets = {
       payment_method_specification: google.payments.api.PaymentMethodSpecification;
     }[];
   };
+  apple_pay?: {
+    merchant_id: "mock-applepay-merchant-id";
+    apple_pay_payment_request: ApplePayJS.ApplePayPaymentRequest;
+  };
 };

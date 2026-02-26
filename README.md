@@ -383,3 +383,15 @@ You can customize the appearance of the button using the options parameter of `c
 
 To use Google Pay, you must adhere to the Google Pay and Wallet API's [Acceptable Use Policy](https://payments.developers.google.com/terms/aup) and accept the terms defined in the [Google Pay API Terms of Service](https://payments.developers.google.com/terms/sellertos). Additionally, please ensure you follow the [Google Pay brand guidelines](https://developers.google.com/pay/api/web/guides/brand-guidelines).
 -->
+
+<!--
+### Apple Pay™
+
+Apple Pay is available to Sessions that meet the following requirements:
+
+- Your Session country is a country where Apple Pay is supported.
+- You have cards available as a payment method and your available cards include at least one card network supported by Apple Pay.
+- You've provided your Apple MerchantID to Xendit on the Xendit Dashboard.
+- The [Apple Pay SDK](https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js) is loaded. (You need to include the SDK yourself, we don't bundle it. There's no need to wait for it to finish loading, if it's still loading when you create the component, it'll have `display:none` until it finishes loading)
+- The user is using a compatible browser. (The component will have `display:none` if the user is using an incompatible browser)
+ -->

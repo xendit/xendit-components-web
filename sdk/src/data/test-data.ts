@@ -1223,6 +1223,19 @@ export function makeTestBffData(): BffResponse {
           },
         ],
       },
+      apple_pay: {
+        merchant_id: "mock-applepay-merchant-id",
+        apple_pay_payment_request: {
+          merchantCapabilities: ["supports3DS"],
+          supportedNetworks: ["VISA", "MASTERCARD", "AMEX"],
+          countryCode: "ID",
+          currencyCode: "IDR",
+          total: {
+            label: "Total",
+            amount: "10000",
+          },
+        } satisfies ApplePayJS.ApplePayPaymentRequest,
+      },
     },
   };
 }
