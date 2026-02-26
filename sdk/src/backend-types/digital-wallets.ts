@@ -1,5 +1,5 @@
 export type BffDigitalWallets = {
-  google_pay: {
+  google_pay?: {
     merchant_id: string;
     allowed_payment_methods: {
       channel_code: string;

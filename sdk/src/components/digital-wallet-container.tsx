@@ -1,7 +1,8 @@
-import { FunctionComponent } from "preact";
+import { ComponentChildren, FunctionComponent, JSX } from "preact";
 import { DigitalWalletGooglepay } from "./digital-wallet-googlepay";
 import { DigitalWalletOptions } from "../public-options-types";
 import { XenditDigitalWalletCode } from "../public-data-types";
+import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 type Props<T extends XenditDigitalWalletCode> = {
   digitalWalletCode: T;
@@ -13,10 +14,62 @@ export const DigitalWalletContainer: FunctionComponent<
 > = (props) => {
   const { digitalWalletCode, digitalWalletOptions } = props;
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onReady = useCallback(() => {
+    containerRef.current?.parentElement?.style.setProperty("display", "block");
+  }, []);
+
+  let el: JSX.Element | null = null;
   switch (digitalWalletCode) {
-    case "GOOGLE_PAY":
-      return <DigitalWalletGooglepay buttonOptions={digitalWalletOptions} />;
-    default:
-      return null;
+    case "GOOGLE_PAY": {
+      el = (
+        <ScriptTagWaiter
+          scriptTagRegex={sdkStatusCheckers.GOOGLE_PAY.scriptTagRegex}
+          checkLoaded={sdkStatusCheckers.GOOGLE_PAY.checkLoaded}
+        >
+          <DigitalWalletGooglepay
+            onReady={onReady}
+            options={digitalWalletOptions}
+          />
+        </ScriptTagWaiter>
+      );
+      break;
+    }
   }
+
+  return <div ref={containerRef}>{el}</div>;
+};
+
+const sdkStatusCheckers = {
+  GOOGLE_PAY: {
+    scriptTagRegex: /https:\/\/pay.google.com\/.*\/js\/pay.js/,
+    checkLoaded: () =>
+      typeof google !== "undefined" && typeof google.payments !== "undefined",
+  },
+};
+
+const ScriptTagWaiter: FunctionComponent<{
+  scriptTagRegex: RegExp;
+  checkLoaded: () => boolean;
+  children: ComponentChildren;
+}> = (props) => {
+  const { scriptTagRegex, checkLoaded, children } = props;
+
+  const forceRender = useState({})[1];
+  const ok = checkLoaded();
+
+  useLayoutEffect(() => {
+    if (ok) return;
+
+    const targetScript = Array.from(document.scripts).find((script) =>
+      scriptTagRegex.test(script.src),
+    );
+
+    targetScript?.addEventListener("load", () => {
+      forceRender(1);
+    });
+  }, [forceRender, ok, scriptTagRegex]);
+
+  return ok ? children : null;
 };

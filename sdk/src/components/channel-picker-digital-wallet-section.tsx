@@ -7,15 +7,18 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const testDigitalWalletCode = "GOOGLE_PAY";
-
   useLayoutEffect(() => {
     if (containerRef.current) {
-      containerRef.current.replaceChildren(
-        sdk.createDigitalWalletComponent(testDigitalWalletCode),
+      containerRef.current.appendChild(
+        sdk.createDigitalWalletComponent("GOOGLE_PAY"),
       );
     }
   }, [sdk]);
 
-  return <div ref={containerRef}></div>;
+  return (
+    <div
+      ref={containerRef}
+      className="xendit-channel-picker-digital-wallet-section"
+    ></div>
+  );
 };

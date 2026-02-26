@@ -2,7 +2,6 @@ import { FunctionComponent } from "preact";
 import { useCallback, useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import {
   useBusiness,
-  useChannels,
   useDigitalWallets,
   useSdk,
   useSession,
@@ -13,18 +12,23 @@ import { assert } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
 
 type Props = {
-  buttonOptions?: DigitalWalletOptions<"GOOGLE_PAY">;
+  options?: DigitalWalletOptions<"GOOGLE_PAY">;
+  onReady: () => void;
 };
 
 export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
+  const { onReady, options } = props;
+
   const sdk = useSdk();
   const t = sdk.t;
 
   const session = useSession();
-  const channels = useChannels();
   const business = useBusiness();
   const digitalWallets = useDigitalWallets();
+  const digitalWalletsGooglePay = digitalWallets.google_pay;
+  assert(digitalWalletsGooglePay);
 
+  const didCallReady = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const paymentsClient = useRef<google.payments.api.PaymentsClient | null>(
@@ -32,10 +36,10 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
   );
 
   const googlePayChannels = useMemo(() => {
-    return digitalWallets.google_pay.allowed_payment_methods.map(
+    return digitalWalletsGooglePay.allowed_payment_methods.map(
       (obj) => obj.payment_method_specification,
     );
-  }, [digitalWallets.google_pay.allowed_payment_methods]);
+  }, [digitalWalletsGooglePay.allowed_payment_methods]);
 
   const googlePayConfig: google.payments.api.PaymentDataRequest = useMemo(
     () => ({
@@ -69,13 +73,13 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
   > = useMemo(
     () => ({
       buttonColor: "default",
-      buttonType: "pay",
+      buttonType: "plain",
       buttonRadius: 999,
       buttonSizeMode: "fill",
       buttonBorderType: "no_border",
-      ...props.buttonOptions,
+      ...options,
     }),
-    [props.buttonOptions],
+    [options],
   );
 
   useLayoutEffect(() => {
@@ -99,8 +103,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         const allChannels = sdk.getActiveChannels();
 
         let targetChannel: XenditPaymentChannel | null = null;
-        for (const googlePayChannel of digitalWallets.google_pay
-          .allowed_payment_methods) {
+        for (const googlePayChannel of digitalWalletsGooglePay.allowed_payment_methods) {
           if (
             googlePayChannel.payment_method_specification.type ===
             paymentData.paymentMethodData.type
@@ -116,11 +119,6 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         let channelProperties: ChannelProperties = {};
         if (targetChannel.channelCode === "CARDS") {
           channelProperties = {
-            card_details: {
-              google_pay_token:
-                paymentData.paymentMethodData.tokenizationData.token,
-              cardholder_email: paymentData.email,
-            },
             google_pay_token:
               paymentData.paymentMethodData.tokenizationData.token,
             billing_information: {
@@ -184,14 +182,18 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         );
       });
   }, [
-    digitalWallets.google_pay.allowed_payment_methods,
+    digitalWalletsGooglePay.allowed_payment_methods,
     googlePayConfig,
     sdk,
     t,
   ]);
 
+  // call onready if the googlepay sdk is ready
   useLayoutEffect(() => {
     if (!paymentsClient.current) {
+      return;
+    }
+    if (didCallReady.current) {
       return;
     }
 
@@ -205,26 +207,29 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         if (!response.result) {
           return;
         }
-        assert(paymentsClient.current);
 
-        const button = paymentsClient.current.createButton({
-          ...buttonConfigWithDefaults,
-          buttonLocale: session.locale,
-          allowedPaymentMethods: googlePayChannels,
-          onClick,
-        });
-        if (containerRef.current) {
-          containerRef.current.replaceChildren(button);
-        }
+        if (didCallReady.current) return;
+        didCallReady.current = true;
+        onReady();
       });
-  }, [
-    buttonConfigWithDefaults,
-    channels,
-    googlePayChannels,
-    onClick,
-    sdk,
-    session.locale,
-  ]);
+  }, [googlePayChannels, onReady]);
+
+  // create the button
+  useLayoutEffect(() => {
+    if (!paymentsClient.current) {
+      return;
+    }
+
+    const button = paymentsClient.current.createButton({
+      ...buttonConfigWithDefaults,
+      buttonLocale: session.locale,
+      allowedPaymentMethods: googlePayChannels,
+      onClick,
+    });
+    if (containerRef.current) {
+      containerRef.current.replaceChildren(button);
+    }
+  }, [buttonConfigWithDefaults, googlePayChannels, onClick, session.locale]);
 
   return <div ref={containerRef}></div>;
 };

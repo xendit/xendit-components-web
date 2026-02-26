@@ -255,6 +255,15 @@ xendit-payment-channel select::placeholder {
   padding: 16px;
 }
 
+/* Channel picker digital wallet section */
+
+.xendit-channel-picker-digital-wallet-section {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
+}
+
 /* Channel picker group */
 
 .xendit-channel-picker-group {
@@ -883,4 +892,10 @@ xendit-payment-channel[inert] {
   border-bottom-right-radius: var(--xendit-radius-1);
   border: 1px solid var(--xendit-color-border);
   border-top: none;
+}
+
+/* googlepay */
+
+.gpay-card-info-container-fill {
+  display: flex;
 }

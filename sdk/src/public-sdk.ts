@@ -878,6 +878,7 @@ export class XenditComponents extends EventTarget {
 
     const element = document.createElement("xendit-digital-wallet");
     element.setAttribute("translate", "no");
+    element.style.setProperty("display", "none"); // initially hide the component until we know whether the digital wallet is available
     this[internal].liveComponents.digitalWalletContainer.set(
       digitalWalletCode,
       {
