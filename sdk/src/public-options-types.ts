@@ -113,4 +113,6 @@ export type DigitalWalletOptions<T extends XenditDigitalWalletCode> =
         buttonSizeMode?: "fill" | "static";
         buttonBorderType?: "no_border" | "default_border";
       }
-    : never;
+    : T extends "APPLE_PAY"
+      ? object
+      : never;
