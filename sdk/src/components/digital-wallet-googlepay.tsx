@@ -25,7 +25,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
   const session = useSession();
   const business = useBusiness();
   const digitalWallets = useDigitalWallets();
-  const digitalWalletsGooglePay = digitalWallets.google_pay;
+  const digitalWalletsGooglePay = digitalWallets?.google_pay;
   assert(digitalWalletsGooglePay);
 
   const didCallReady = useRef(false);
