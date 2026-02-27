@@ -79,7 +79,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   function handleBlur(event: TargetedFocusEvent<HTMLInputElement>): void {
     formatForUser();
     if (event.currentTarget?.value) {
-      inputRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
+      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     }
   }
 
