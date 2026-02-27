@@ -114,7 +114,7 @@ export class SubmissionBehavior implements Behavior {
     } else if (this.submissionError) {
       // there was an error during submission
       reason = "REQUEST_FAILED";
-      if ("code" in this.submissionError) {
+      if (isSubmissionError(this.submissionError)) {
         // explicit error message from the server
         userErrorMessage = this.submissionError.text;
         developerErrorMessage = {
@@ -353,4 +353,10 @@ function failureCodeUserErrorMessage(
       )
     : t(getPaymentEntityStatusCopyKey(type, status, "subtext"));
   return [title, subtext];
+}
+
+function isSubmissionError(
+  error: Error | SubmissionError,
+): error is SubmissionError {
+  return !("message" in error) && "text" in error && "code" in error;
 }

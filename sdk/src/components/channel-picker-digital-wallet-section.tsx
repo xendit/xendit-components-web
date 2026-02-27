@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { useSdk } from "./session-provider";
+import { useDigitalWallets, useSdk } from "./session-provider";
 import { useLayoutEffect, useRef } from "preact/hooks";
 
 export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
@@ -7,13 +7,15 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const digitalWallets = useDigitalWallets();
+
   useLayoutEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && digitalWallets.google_pay) {
       containerRef.current.appendChild(
         sdk.createDigitalWalletComponent("GOOGLE_PAY"),
       );
     }
-  }, [sdk]);
+  }, [digitalWallets.google_pay, sdk]);
 
   return (
     <div

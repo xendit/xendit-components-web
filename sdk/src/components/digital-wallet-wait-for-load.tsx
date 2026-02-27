@@ -2,7 +2,7 @@ import { ComponentChildren, FunctionComponent } from "preact";
 import { useLayoutEffect, useState } from "preact/hooks";
 
 /**
- * Renders the children only if the condition passes. Re-checks the condition when the given scripe tag is loaded, or every second.
+ * Renders the children only if the condition passes. Re-checks the condition when the given script tag is loaded, or every second.
  */
 export const DigitalWalletWaitForLoad: FunctionComponent<{
   scriptTagRegex: RegExp;
@@ -21,9 +21,15 @@ export const DigitalWalletWaitForLoad: FunctionComponent<{
       scriptTagRegex.test(script.src),
     );
 
-    targetScript?.addEventListener("load", () => {
-      forceRender({});
-    });
+    if (targetScript) {
+      const fn = () => {
+        forceRender({});
+      };
+      targetScript.addEventListener("load", fn);
+      return () => {
+        targetScript.removeEventListener("load", fn);
+      };
+    }
   }, [forceRender, ok, scriptTagRegex]);
 
   useLayoutEffect(() => {

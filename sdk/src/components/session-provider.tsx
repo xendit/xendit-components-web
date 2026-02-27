@@ -84,7 +84,7 @@ export const useDigitalWallets = () => {
   const context = useContext(DigitalWalletsContext);
   if (context === null) {
     throw new Error(
-      "useChannelUiGroups must be used within a XenditSessionProvider",
+      "useDigitalWallets must be used within a XenditSessionProvider",
     );
   }
   return context;
