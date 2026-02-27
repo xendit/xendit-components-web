@@ -7,6 +7,7 @@ import { Button, ButtonLoadingSpinner, ButtonVariant } from "./button";
 
 type Props = {
   amount: number;
+  businessName: string;
   channelLogo: string;
   currency: string;
   hideUi: boolean;
@@ -58,12 +59,15 @@ export function ActionQr(props: Props) {
 
   return (
     <div className="xendit-action-present-to-customer">
+      <img
+        src={channelLogo}
+        alt="Channel Logo"
+        className="xendit-action-qr-channel-logo"
+      />
       <div className="xendit-action-qr-content">
-        <img
-          src={channelLogo}
-          alt="Channel Logo"
-          className="xendit-action-qr-channel-logo"
-        />
+        <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
+          {amountFormat(amount, currency)}
+        </div>
         <div
           data-testid="qr-code"
           className="xendit-action-qr-qrcode-container"

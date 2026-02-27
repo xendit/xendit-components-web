@@ -844,6 +844,10 @@ xendit-payment-channel[inert] {
   align-items: center;
   gap: 16px;
   max-width: 384px;
+  border: 1px solid var(--xendit-color-border);
+  border-radius: var(--xendit-radius-1);
+  padding: 16px;
+  padding-bottom: 24px;
 }
 .xendit-action-qr-channel-logo {
   height: 64px;

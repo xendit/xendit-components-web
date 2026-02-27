@@ -192,6 +192,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
 
     const actionQrProps = {
       amount: this.bb.world.session.amount,
+      businessName: this.bb.world.business.name ?? "",
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
