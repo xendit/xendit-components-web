@@ -22,9 +22,12 @@ import {
   XenditSdkOptions as XenditComponentsOptions,
   XenditGetChannelsOptions,
   ActionContainerOptions,
+  DigitalWalletOptions,
 } from "./public-options-types";
 import {
   XenditCustomer,
+  XenditDigitalWallet,
+  XenditDigitalWalletCode,
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
@@ -90,10 +93,14 @@ import {
   ChannelValidBehavior,
 } from "./lifecycle/behaviors/channel";
 import { PeRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity";
-import { SubmissionBehavior } from "./lifecycle/behaviors/submission";
+import {
+  SubmissionBehavior,
+  SubmissionError,
+} from "./lifecycle/behaviors/submission";
 import {
   bffChannelsToPublic,
   bffCustomerToPublic,
+  bffDigitalWalletsToPublic,
   bffSessionToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
@@ -103,6 +110,8 @@ import { initI18n } from "./localization";
 import { TFunction } from "i18next";
 import { amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
+import { DigitalWalletContainer } from "./components/digital-wallet-container";
+import { BffDigitalWallets } from "./backend-types/digital-wallets";
 
 /**
  * @internal
@@ -142,6 +151,7 @@ export type WorldState = {
   session: BffSession;
   channels: BffChannel[];
   channelUiGroups: BffChannelUiGroup[];
+  digitalWallets: BffDigitalWallets | null;
   paymentEntity: BffPaymentEntity | null;
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
@@ -211,6 +221,13 @@ export class XenditComponents extends EventTarget {
       channelPicker: HTMLElement | null;
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
+      digitalWalletContainer: Map<
+        XenditDigitalWalletCode,
+        {
+          element: HTMLElement;
+          options: DigitalWalletOptions<XenditDigitalWalletCode> | undefined;
+        }
+      >;
     };
 
     /**
@@ -218,6 +235,16 @@ export class XenditComponents extends EventTarget {
      * This is used as a key into `paymentChannelComponents`.
      */
     currentChannelCode: string | null;
+
+    /**
+     * The ongoing digital wallet submission, if any.
+     */
+    currentDigitalWalletSubmission: {
+      digitalWalletCode: XenditDigitalWalletCode;
+      channelCode: string;
+      channelProperties: ChannelProperties;
+      instantSubmissionError: SubmissionError | null;
+    } | null;
 
     /**
      * Tracks which event listeners are present on the SDK instance.
@@ -260,6 +287,7 @@ export class XenditComponents extends EventTarget {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
+        digitalWalletContainer: new Map(),
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
         sdk: this,
@@ -270,6 +298,8 @@ export class XenditComponents extends EventTarget {
         channel: null,
         channelProperties: null,
         channelData: null,
+        channelIsDigitalWallet: false,
+        instantSubmissionError: null,
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
@@ -278,6 +308,7 @@ export class XenditComponents extends EventTarget {
         pollImmediatelyRequested: false,
       }),
       currentChannelCode: null,
+      currentDigitalWalletSubmission: null,
       eventListenersPresent: new Map(),
     };
     lockDownInteralProperty(this as unknown as { [internal]: unknown });
@@ -355,6 +386,7 @@ export class XenditComponents extends EventTarget {
         session: bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
+        digitalWallets: bff.digital_wallets ?? null,
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
@@ -449,19 +481,34 @@ export class XenditComponents extends EventTarget {
 
     bb.world = this[internal].worldState;
 
-    const component = this[internal].currentChannelCode
-      ? this[internal].liveComponents.paymentChannels.get(
-          this[internal].currentChannelCode,
-        )
-      : null;
-    bb.channel = component
-      ? resolvePairedChannel(
-          component.channel[internal],
-          component.data.savePaymentMethod,
-        )
-      : null;
-    bb.channelProperties = component ? component.channelProperties : null;
-    bb.channelData = component ? component.data : null;
+    if (this[internal].currentDigitalWalletSubmission) {
+      // populate data for digital wallet submission
+      bb.channel = this.findChannel(
+        this[internal].currentDigitalWalletSubmission.channelCode,
+      );
+      bb.channelProperties =
+        this[internal].currentDigitalWalletSubmission.channelProperties;
+      bb.channelData = null;
+      bb.channelIsDigitalWallet = true;
+      bb.instantSubmissionError =
+        this[internal].currentDigitalWalletSubmission.instantSubmissionError;
+    } else {
+      // populate data for normal channel component
+      const component = this[internal].currentChannelCode
+        ? this[internal].liveComponents.paymentChannels.get(
+            this[internal].currentChannelCode,
+          )
+        : null;
+      bb.channel = component
+        ? resolvePairedChannel(
+            component.channel[internal],
+            component.data.savePaymentMethod,
+          )
+        : null;
+      bb.channelProperties = component ? component.channelProperties : null;
+      bb.channelData = component ? component.data : null;
+      bb.channelIsDigitalWallet = false;
+    }
 
     try {
       this[internal].behaviorTree.update();
@@ -494,6 +541,11 @@ export class XenditComponents extends EventTarget {
       internal
     ].liveComponents.paymentChannels.keys()) {
       this.renderPaymentChannel(channelCode);
+    }
+    for (const digitalWalletCode of this[
+      internal
+    ].liveComponents.digitalWalletContainer.keys()) {
+      this.renderDigitalWalletComponent(digitalWalletCode);
     }
   }
 
@@ -768,6 +820,106 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
+   * @internal
+   * TODO: make this public
+   * Returns a list of digital wallets available for this session.
+   *
+   * For `GOOGLE_PAY`:
+   *
+   * A channel supported by Google Pay must be active for the session, and Google Pay must be available
+   * in the session's country, and you must have configured your merchant ID on the Xendit dashboard.
+   *
+   * (Note that our hosted checkout doesn't have the requirement to provide a merchant ID)
+   */
+  public getActiveDigitalWallets(): XenditDigitalWallet[] {
+    this.assertInitialized();
+    if (!this[internal].worldState.digitalWallets) {
+      return [];
+    }
+    return bffDigitalWalletsToPublic(
+      this[internal].worldState.digitalWallets,
+      this[internal].worldState.channels,
+      this[internal].worldState.channelUiGroups,
+      {
+        options: {
+          filterMinMax: false,
+        },
+        pairChannels: findChannelPairs(this[internal].worldState.channels),
+        session: this[internal].worldState.session,
+      },
+    );
+  }
+
+  /**
+   * @internal
+   * TODO: make this public
+   * Creates a UI component for making payments with a digital wallet. It will contain a button to trigger the digital
+   * wallet payment. If the digital wallet is not supported by the browser, it will have `display:none`.
+   *
+   * After the user pays using the digital wallet UI, a submission will automatically begin. Equivalent to setting
+   * the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired
+   * as a normal submission, see {@link submit}.
+   *
+   * This returns a HTML Element, which you should insert into the DOM.
+   */
+  public createDigitalWalletComponent<T extends XenditDigitalWalletCode>(
+    digitalWalletCode: T,
+    digitalWalletOptions?: DigitalWalletOptions<T>,
+  ): HTMLElement {
+    this.assertInitialized();
+
+    const prevComponent =
+      this[internal].liveComponents.digitalWalletContainer.get(
+        digitalWalletCode,
+      );
+    if (prevComponent) {
+      this.destroyComponent(prevComponent.element);
+    }
+
+    const element = document.createElement("xendit-digital-wallet");
+    element.setAttribute("translate", "no");
+    element.style.setProperty("display", "none"); // initially hide the component until we know whether the digital wallet is available
+    this[internal].liveComponents.digitalWalletContainer.set(
+      digitalWalletCode,
+      {
+        element,
+        options: digitalWalletOptions,
+      },
+    );
+
+    this.renderDigitalWalletComponent(digitalWalletCode);
+
+    return element;
+  }
+
+  /**
+   * @internal
+   * Renders an existing digital wallet component.
+   */
+  renderDigitalWalletComponent(
+    digitalWalletCode: XenditDigitalWalletCode,
+  ): void {
+    this.assertInitialized();
+    const component =
+      this[internal].liveComponents.digitalWalletContainer.get(
+        digitalWalletCode,
+      );
+    if (!component) return;
+
+    render(
+      createElement(XenditSessionProvider, {
+        data: this[internal].worldState,
+        sdk: this,
+        children: createElement(DigitalWalletContainer, {
+          digitalWalletCode,
+          digitalWalletOptions: component.options,
+        }),
+      }),
+      component.element,
+    );
+  }
+
+  /**
    * @public
    * Returns the current payment channel.
    */
@@ -1012,9 +1164,9 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
-    for (const [channelCode, cachedComponent] of this[internal].liveComponents
+    for (const [channelCode, c] of this[internal].liveComponents
       .paymentChannels) {
-      if (cachedComponent.element === component) {
+      if (c.element === component) {
         this[internal].liveComponents.paymentChannels.delete(channelCode);
         if (this[internal].currentChannelCode === channelCode) {
           this.setCurrentChannel(null);
@@ -1030,6 +1182,18 @@ export class XenditComponents extends EventTarget {
       render(null, component);
       component.remove();
       return;
+    }
+
+    for (const [channelCode, c] of this[internal].liveComponents
+      .digitalWalletContainer) {
+      if (c.element === component) {
+        this[internal].liveComponents.digitalWalletContainer.delete(
+          channelCode,
+        );
+        render(null, component);
+        component.remove();
+        return;
+      }
     }
 
     throw new Error(
@@ -1103,6 +1267,41 @@ export class XenditComponents extends EventTarget {
         "Unable to submit; the SDK is not in a valid state for submission. Listen to the `submission-ready` and `submission-not-ready` events, do not allow submission while in the not-ready state.",
       );
     }
+
+    this[internal].behaviorTree.bb.submissionRequested = true;
+    this.behaviorTreeUpdate();
+
+    this.syncInertAttribute();
+  }
+
+  /**
+   * @internal
+   * Submits a digital wallet payment.
+   */
+  submitDigitalWallet(
+    digitalWalletCode: XenditDigitalWalletCode,
+    channel: XenditPaymentChannel,
+    channelProperties: ChannelProperties,
+    instantSubmissionError: SubmissionError | null = null,
+  ) {
+    this.assertInitialized();
+
+    this.setCurrentChannel(null);
+
+    this[internal].currentDigitalWalletSubmission = {
+      digitalWalletCode,
+      channelCode: channel[internal][0].channel_code,
+      channelProperties,
+      instantSubmissionError,
+    };
+
+    this.addEventListener(
+      XenditSubmissionEndEvent.type,
+      () => {
+        this[internal].currentDigitalWalletSubmission = null;
+      },
+      { once: true },
+    );
 
     this[internal].behaviorTree.bb.submissionRequested = true;
     this.behaviorTreeUpdate();
@@ -1552,6 +1751,7 @@ export class XenditComponentsTest extends XenditComponents {
         session: bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
+        digitalWallets: bff.digital_wallets ?? null,
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,

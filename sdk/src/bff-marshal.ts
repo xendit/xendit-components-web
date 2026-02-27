@@ -1,9 +1,11 @@
 import { BffChannel, BffChannelUiGroup } from "./backend-types/channel";
 import { BffCustomer } from "./backend-types/customer";
+import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { BffSession } from "./backend-types/session";
 import { internal } from "./internal";
 import {
   XenditCustomer,
+  XenditDigitalWallet,
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
@@ -340,4 +342,48 @@ export function findChannelPairs(bffChannels: BffChannel[]): PairChannelData {
     pairs,
     paired,
   };
+}
+
+export function bffDigitalWalletsToPublic(
+  bffDigitalWallets: BffDigitalWallets,
+  bffChannels: BffChannel[],
+  bffChannelGroups: BffChannelUiGroup[],
+  marshalConfig: ChannelMarshalConfig,
+): XenditDigitalWallet[] {
+  const out: XenditDigitalWallet[] = [];
+
+  const groupsByGroupId = makeGroupsByGroupId(bffChannelGroups);
+
+  if (bffDigitalWallets.google_pay) {
+    const googlePayChannels =
+      bffDigitalWallets.google_pay.allowed_payment_methods.map((method) => {
+        const ch = bffChannels.find(
+          (c) => c.channel_code === method.channel_code,
+        );
+        assert(ch);
+        return ch;
+      });
+
+    const channelsByGroupId = makeChannelsByGroupId(
+      googlePayChannels,
+      marshalConfig,
+    );
+
+    out.push({
+      digitalWalletCode: "GOOGLE_PAY",
+      get channels() {
+        return googlePayChannels.map((channel) => {
+          return bffChannelToPublic(
+            channel,
+            channelsByGroupId,
+            groupsByGroupId,
+            marshalConfig,
+          );
+        });
+      },
+      [internal]: true,
+    });
+  }
+
+  return out;
 }

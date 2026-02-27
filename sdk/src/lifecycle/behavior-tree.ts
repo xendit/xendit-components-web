@@ -43,7 +43,7 @@ import {
   SessionPendingBehavior,
 } from "./behaviors/session";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
-import { SubmissionBehavior } from "./behaviors/submission";
+import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
@@ -64,6 +64,8 @@ export type BlackboardType = {
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;
+  channelIsDigitalWallet: boolean;
+  instantSubmissionError: SubmissionError | null;
 
   // dispatch event on the SDK instance
   dispatchEvent(event: Event): boolean;
@@ -141,6 +143,10 @@ export function behaviorTreeForSession(bb: BlackboardType) {
 
 export function behaviorTreeForForm(bb: BlackboardType) {
   if (!bb.channel || !bb.world?.session) {
+    return undefined;
+  }
+
+  if (bb.channelIsDigitalWallet) {
     return undefined;
   }
 

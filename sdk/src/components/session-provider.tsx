@@ -6,6 +6,7 @@ import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { internal } from "../internal";
 import { ComponentChildren, createContext, FunctionComponent } from "preact";
 import { useContext } from "preact/hooks";
+import { BffDigitalWallets } from "../backend-types/digital-wallets";
 
 // Create contexts
 export const SessionContext = createContext<BffSession | null>(null);
@@ -24,6 +25,11 @@ export const ChannelUiGroupsContext = createContext<BffChannelUiGroup[] | null>(
   null,
 );
 ChannelUiGroupsContext.displayName = "ChannelUiGroupsContext";
+
+export const DigitalWalletsContext = createContext<BffDigitalWallets | null>(
+  null,
+);
+DigitalWalletsContext.displayName = "DigitalWalletsContext";
 
 export const SdkContext = createContext<XenditComponents | null>(null);
 SdkContext.displayName = "SdkContext";
@@ -74,6 +80,11 @@ export const useChannelUiGroups = () => {
   return context;
 };
 
+export const useDigitalWallets = () => {
+  const context = useContext(DigitalWalletsContext);
+  return context;
+};
+
 export const useSdk = () => {
   const context = useContext(SdkContext);
   if (context === null) {
@@ -95,9 +106,21 @@ interface XenditSessionProviderProps {
 export const XenditSessionProvider: FunctionComponent<
   XenditSessionProviderProps
 > = ({ children, data, sdk }) => {
-  const { session, business, customer, channels, channelUiGroups } = data;
+  const {
+    session,
+    business,
+    customer,
+    channels,
+    digitalWallets,
+    channelUiGroups,
+  } = data;
 
   const channel = sdk.getCurrentChannel()?.[internal]?.[0] ?? null;
+
+  if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
+    // clear all contents if the sdk is not initialized or crashes, or if the component is still mounted after completion or failure
+    return null;
+  }
 
   return (
     <SdkContext.Provider value={sdk}>
@@ -106,9 +129,11 @@ export const XenditSessionProvider: FunctionComponent<
           <BusinessContext.Provider value={business}>
             <CustomerContext.Provider value={customer}>
               <ChannelsContext.Provider value={channels}>
-                <ChannelUiGroupsContext.Provider value={channelUiGroups}>
-                  {children}
-                </ChannelUiGroupsContext.Provider>
+                <DigitalWalletsContext.Provider value={digitalWallets}>
+                  <ChannelUiGroupsContext.Provider value={channelUiGroups}>
+                    {children}
+                  </ChannelUiGroupsContext.Provider>
+                </DigitalWalletsContext.Provider>
               </ChannelsContext.Provider>
             </CustomerContext.Provider>
           </BusinessContext.Provider>

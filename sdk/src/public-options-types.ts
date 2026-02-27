@@ -1,3 +1,5 @@
+import { XenditDigitalWalletCode } from "./public-data-types";
+
 /**
  * @public
  */
@@ -9,6 +11,11 @@ export interface XenditSdkOptions {
    */
   componentsSdkKey: string;
   iframeFieldAppearance?: IframeAppearanceOptions;
+
+  /**
+   * @internal
+   */
+  enableDigitalWallets?: boolean;
 }
 
 /**
@@ -83,3 +90,25 @@ export type IframeAppearanceOptions = {
     descriptors?: Pick<FontFaceDescriptors, "display" | "style" | "stretch">;
   };
 };
+
+/**
+ * @public
+ */
+export type DigitalWalletOptions<T extends XenditDigitalWalletCode> =
+  T extends "GOOGLE_PAY"
+    ? {
+        buttonColor?: "default" | "black" | "white";
+        buttonType?:
+          | "pay"
+          | "book"
+          | "buy"
+          | "checkout"
+          | "order"
+          | "plain"
+          | "long"
+          | "short";
+        buttonRadius?: number;
+        buttonSizeMode?: "fill" | "static";
+        buttonBorderType?: "no_border" | "default_border";
+      }
+    : never;

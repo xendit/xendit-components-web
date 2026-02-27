@@ -109,6 +109,16 @@ const groups = components.getActiveChannelGroups();
 Returns a list of channel groups. This can be used to categorize channels by type, if you want to build
 your own channel selection UI. Each channel has a `uiGroup` property which matches one group's `id` property.
 
+<!--
+### `getActiveDigitalWallets`
+
+```typescript
+const digitalWallets = components.getActiveDigitalWallets();
+```
+
+Returns a list of digital wallets available in this session.
+-->
+
 ### `createChannelComponent`
 
 ```typescript
@@ -126,6 +136,20 @@ This returns a `HTMLElement`, which you need to insert into your document.
 
 This method uses caching, it will always return the same element for the same channel, to preserve the
 values the user enters into any form fields. If you don't want that, use `destroyComponent`.
+
+<!--
+### `createDigitalWalletComponent`
+
+```typescript
+const htmlElement = components.createDigitalWalletComponent("GOOGLE_PAY");
+```
+
+Creates a digital wallet CTA button for the specified digital wallet.
+
+After a user clicks the button and completes the digital wallet flow, a submission will automatically begin. This is equivalent to setting the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired as a normal submission.
+
+This returns a `HTMLElement`, which you need to insert into your document.
+-->
 
 ### `createActionContainerComponent`
 
@@ -333,3 +357,29 @@ const sdk = new XenditComponents({
   },
 });
 ```
+
+<!--
+## Digital Wallet Support
+
+Any available Digital Wallet integration is automatically added at the top of the channel picker component. You may also create a Digital Wallet button manually by calling `createDigitalWalletComponent("GOOGLE_PAY")`.
+
+When the user pays using the digital wallet, the submission flow will automatically begin, the same as if you had called `submit()`.
+
+Google Pay is currently the only supported digital wallet.
+
+### Google Pay™
+
+Google Pay is available to Sessions that meet the following requirements:
+
+- Your Session country is a country where Google Pay is supported.
+- You have at least one Google Pay compatible payment method available in your session. (e.g. cards)
+- You've provided your Google MerchantID to Xendit on the Xendit Dashboard. (If you don't have a Google MerchantID, complete registration with the [Google Pay & Wallet Console](https://pay.google.com/business/console/?utm_source=devsite&utm_medium=devsite&utm_campaign=devsite) to provision one)
+- The Google Pay SDK is loaded using `<script async src="https://pay.google.com/gp/p/js/pay.js"></script>`. (You need to include the SDK yourself, we don't bundle it. There's no need to wait for it to finish loading, if it's still loading when you create the component, it'll have `display:none` until it finishes loading)
+- The user is using a compatible browser. (The component will have `display:none` if the user is using an incompatible browser)
+
+We configure Google Pay for you, providing your MerchantID, merchant name, and the allowed payment methods, including allowed card networks and authentication methods.
+
+You can customize the appearance of the button using the options parameter of `createDigitalWalletComponent`, it accepts the same options as the [Google Pay API](https://developers.google.com/pay/api/web/reference/request-objects#ButtonOptions).
+
+To use Google Pay, you must adhere to the Google Pay and Wallet API's [Acceptable Use Policy](https://payments.developers.google.com/terms/aup) and accept the terms defined in the [Google Pay API Terms of Service](https://payments.developers.google.com/terms/sellertos). Additionally, please ensure you follow the [Google Pay brand guidelines](https://developers.google.com/pay/api/web/guides/brand-guidelines).
+-->

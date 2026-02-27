@@ -112,7 +112,6 @@ export async function* retryLoop(mult: number, tries: number, base = 2) {
 }
 
 export function redirectCanBeHandledInIframe(action: BffAction): boolean {
-  // TODO: return a flag for this from the backend
   if (action.type !== "REDIRECT_CUSTOMER") {
     return false;
   }
@@ -511,6 +510,28 @@ export function lockDownInteralProperty(obj: { [internal]: unknown }) {
 
 const RELEASED_CHANNELS: Record<string, boolean> = {
   CARDS: true,
+  ALIPAY: true,
+  APPOTA: true,
+  ASTRAPAY: true,
+  DANA: true,
+  GCASH: true,
+  GOPAY_RECURRING: true,
+  GOPAY: true,
+  GRABPAY: true,
+  JENIUSPAY: true,
+  LINEPAY: true,
+  LINKAJA: true,
+  MOMO: true,
+  NEXCASH: true,
+  OVO: true,
+  PAYMAYA: true,
+  SHOPEEPAY: true,
+  TOUCHNGO: true,
+  TRUEMONEY: true,
+  VIETTELPAY: true,
+  VNPTWALLET: true,
+  WECHATPAY: true,
+  ZALOPAY: true,
 };
 
 // filter out channels not supported by this SDK version

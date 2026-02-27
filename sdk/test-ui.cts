@@ -112,10 +112,12 @@ if (savedKey) {
   components = new XenditComponents({
     componentsSdkKey: savedKey,
     iframeFieldAppearance,
+    enableDigitalWallets: true,
   });
 } else {
   components = new XenditComponentsTest({
     iframeFieldAppearance,
+    enableDigitalWallets: true,
   });
 }
 

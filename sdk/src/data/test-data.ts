@@ -1195,5 +1195,34 @@ export function makeTestBffData(): BffResponse {
         icon_url: "https://placehold.co/48x48.png?text=Logo",
       },
     ],
+    digital_wallets: {
+      google_pay: {
+        merchant_id: "mock-googlepay-merchant-id",
+        allowed_payment_methods: [
+          {
+            channel_code: "CARDS",
+            payment_request_id: `pr-${randomHexString(32)}`,
+            payment_method_specification: {
+              type: "CARD",
+              parameters: {
+                billingAddressRequired: true,
+                billingAddressParameters: {
+                  format: "FULL",
+                },
+                allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+                allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"],
+              } satisfies google.payments.api.CardParameters,
+              tokenizationSpecification: {
+                type: "PAYMENT_GATEWAY",
+                parameters: {
+                  gateway: "xendit",
+                  gatewayMerchantId: "exampleGatewayMerchantId",
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
   };
 }
