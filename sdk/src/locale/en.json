@@ -28,6 +28,8 @@
     "google_pay_errors.merchant_account_error.message": "Something went wrong with Google Pay. Please try again or use a different payment method.",
     "google_pay_errors.internal_error.title": "Google Pay Error",
     "google_pay_errors.internal_error.message": "Something went wrong with Google Pay. Please try again or use a different payment method.",
+    "google_pay_errors.unknown_error.title": "Google Pay Error",
+    "google_pay_errors.unknown_error.message": "An unknown error occurred with Google Pay. The error code is {{statusCode}}.",
     "failure_code.account_access_blocked": "Your payment was declined. Please try again or use a different payment method.",
     "failure_code.account_already_linked": "Your account has already been linked. Please use a different payment method.",
     "failure_code.account_not_activated": "Your payment couldn’t be processed because your account hasn’t been activated. Please activate your account and try again.",

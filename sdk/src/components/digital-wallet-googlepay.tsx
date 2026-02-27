@@ -148,8 +148,14 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         const submissionError = {
           code: `GOOGLE_PAY_${statusCode}` as const,
           text: [
-            t(localeKeyForGooglePayError(statusCode, "title")),
-            t(localeKeyForGooglePayError(statusCode, "message")),
+            t(
+              localeKeyForGooglePayError(statusCode, "title"),
+              t("google_pay_errors.unknown_error.title"),
+            ),
+            t(
+              localeKeyForGooglePayError(statusCode, "message"),
+              t("google_pay_errors.unknown_error.message", { statusCode }),
+            ),
           ],
         };
 
