@@ -119,28 +119,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         let channelProperties: ChannelProperties = {};
         if (targetChannel.channelCode === "CARDS") {
           channelProperties = {
-            google_pay_token:
-              paymentData.paymentMethodData.tokenizationData.token,
-            billing_information: {
-              first_name:
-                paymentData.paymentMethodData.info?.billingAddress?.name,
-              last_name:
-                paymentData.paymentMethodData.info?.billingAddress?.name,
-              email: paymentData.email,
-              country:
-                paymentData.paymentMethodData.info?.billingAddress?.countryCode,
-              province_state:
-                paymentData.paymentMethodData.info?.billingAddress
-                  ?.administrativeArea,
-              city: paymentData.paymentMethodData.info?.billingAddress
-                ?.locality,
-              street_line1:
-                paymentData.paymentMethodData.info?.billingAddress?.address1,
-              street_line2:
-                paymentData.paymentMethodData.info?.billingAddress?.address2,
-              postal_code:
-                paymentData.paymentMethodData.info?.billingAddress?.postalCode,
-            },
+            google_pay: JSON.stringify(paymentData),
           };
         }
 

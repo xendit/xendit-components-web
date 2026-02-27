@@ -11,6 +11,11 @@ export interface XenditSdkOptions {
    */
   componentsSdkKey: string;
   iframeFieldAppearance?: IframeAppearanceOptions;
+
+  /**
+   * @internal
+   */
+  enableDigitalWallets?: boolean;
 }
 
 /**

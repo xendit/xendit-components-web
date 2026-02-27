@@ -29,6 +29,7 @@ import {
   singleBffChannelToPublic,
 } from "../bff-marshal";
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
+import { internal } from "../internal";
 
 type Props = object;
 
@@ -131,7 +132,9 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     }
   }, [currentChannel, previewGroupId]);
 
-  const digitalWalletSectionEnabled = false;
+  // TODO: enable by default when released
+  const digitalWalletSectionEnabled =
+    sdk[internal].options.enableDigitalWallets ?? false;
 
   return (
     <div ref={thisRef}>
