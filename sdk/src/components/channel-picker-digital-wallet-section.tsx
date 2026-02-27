@@ -12,9 +12,11 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
 
   useLayoutEffect(() => {
     if (containerRef.current && digitalWalletsGooglePay) {
-      containerRef.current.appendChild(
-        sdk.createDigitalWalletComponent("GOOGLE_PAY"),
-      );
+      const el = sdk.createDigitalWalletComponent("GOOGLE_PAY");
+      containerRef.current.appendChild(el);
+      return () => {
+        el.remove();
+      };
     }
   }, [digitalWalletsGooglePay, sdk]);
 

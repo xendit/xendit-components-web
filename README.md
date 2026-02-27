@@ -146,7 +146,7 @@ const htmlElement = components.createDigitalWalletComponent("GOOGLE_PAY");
 
 Creates a digital wallet CTA button for the specified digital wallet.
 
-After a user clicks the button and completes the digital wallet flow, a submission will automatically begin. This is equavalent to setting the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired as a normal submission.
+After a user clicks the button and completes the digital wallet flow, a submission will automatically begin. This is equivalent to setting the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired as a normal submission.
 
 This returns a `HTMLElement`, which you need to insert into your document.
 -->

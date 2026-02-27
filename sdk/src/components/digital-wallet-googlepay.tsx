@@ -91,8 +91,10 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       );
       return;
     }
-    paymentsClient.current = new PaymentsClient({ environment: "TEST" });
-  }, []);
+    paymentsClient.current = new PaymentsClient({
+      environment: sdk.isMock() ? "TEST" : "PRODUCTION",
+    });
+  }, [sdk]);
 
   const onClick = useCallback(() => {
     assert(paymentsClient.current);
@@ -169,6 +171,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         // there is no target channel on errors, pick the channel used for the first allowed payment method
         const firstGooglePayChannel =
           digitalWalletsGooglePay.allowed_payment_methods[0];
+        assert(firstGooglePayChannel);
         const targetChannel = findChannel(
           sdk.getActiveChannels(),
           firstGooglePayChannel.channel_code,
@@ -207,6 +210,12 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         if (didCallReady.current) return;
         didCallReady.current = true;
         onReady();
+      })
+      .catch(function (err) {
+        console.error(
+          "XenditComponents: Error when checking if Google Pay is ready",
+          err,
+        );
       });
   }, [googlePayChannels, onReady]);
 

@@ -856,7 +856,7 @@ export class XenditComponents extends EventTarget {
    * Creates a UI component for making payments with a digital wallet. It will contain a button to trigger the digital
    * wallet payment. If the digital wallet is not supported by the browser, it will have `display:none`.
    *
-   * After the user pays using the digital wallet UI, a submission will automatically begin. Equavalent to setting
+   * After the user pays using the digital wallet UI, a submission will automatically begin. Equivalent to setting
    * the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired
    * as a normal submission, see {@link submit}.
    *
