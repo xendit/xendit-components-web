@@ -18,7 +18,16 @@ type Props = {
 };
 
 export function ActionQr(props: Props) {
-  const { amount, channelLogo, currency, mock, onAffirm, qrString, t } = props;
+  const {
+    amount,
+    businessName,
+    channelLogo,
+    currency,
+    mock,
+    onAffirm,
+    qrString,
+    t,
+  } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -66,7 +75,7 @@ export function ActionQr(props: Props) {
       />
       <div className="xendit-action-qr-content">
         <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
-          {amountFormat(amount, currency)}
+          {businessName}
         </div>
         <div
           data-testid="qr-code"
