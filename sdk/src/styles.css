@@ -916,6 +916,7 @@ xendit-payment-channel[inert] {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
+  border-top: 1px solid var(--xendit-color-border);
   border-bottom: 1px solid var(--xendit-color-border);
 }
 .xendit-instructions-table {
