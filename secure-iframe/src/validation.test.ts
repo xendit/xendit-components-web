@@ -12,19 +12,21 @@ const cards = [
   { brand: "UNIONPAY", number: "6240 0086 3140 1148" }, // UnionPay test number, may not pass Luhn
 ];
 
-describe("validateCreditCardNumber - card brand detection", () => {
-  cards.forEach(({ brand, number }) => {
-    it(`detects ${brand} for number ${number}`, () => {
-      const result = validate("credit_card_number", number);
-      expect(result.cardBrand).toBe(brand);
-      // For most brands, the test number is valid and should pass Luhn
-      if (brand !== "UNIONPAY") {
-        expect(result.valid).toBe(true);
-        expect(result.errorCodes.length).toBe(0);
-      } else {
-        // UnionPay may not always pass Luhn, so just check brand detection
-        expect(result.cardBrand).toBe("UNIONPAY");
-      }
+describe("validate - credit_card_number", () => {
+  describe("card brand detection", () => {
+    cards.forEach(({ brand, number }) => {
+      it(`detects ${brand} for number ${number}`, () => {
+        const result = validate("credit_card_number", number);
+        expect(result.cardBrand).toBe(brand);
+        // For most brands, the test number is valid and should pass Luhn
+        if (brand !== "UNIONPAY") {
+          expect(result.valid).toBe(true);
+          expect(result.errorCodes.length).toBe(0);
+        } else {
+          // UnionPay may not always pass Luhn, so just check brand detection
+          expect(result.cardBrand).toBe("UNIONPAY");
+        }
+      });
     });
   });
 
@@ -69,7 +71,7 @@ describe("validateCreditCardNumber - card brand detection", () => {
   });
 });
 
-describe("validateCreditCardExpiry", () => {
+describe("validate - credit_card_expiry", () => {
   it("returns valid=true for valid input", () => {
     const result = validate(
       "credit_card_expiry",
@@ -129,7 +131,7 @@ describe("validateCreditCardExpiry", () => {
   });
 });
 
-describe("validateCreditCardCVN", () => {
+describe("validate - credit_card_cvn", () => {
   it("returns valid=true for 3-digit CVN", () => {
     const result = validate("credit_card_cvn", "123");
     expect(result.valid).toBe(true);
@@ -196,5 +198,12 @@ describe("validateCreditCardCVN", () => {
       "validation.card_cvn_invalid",
     );
     expect(result.empty).toBe(false);
+  });
+});
+
+describe("validate - invalid type", () => {
+  it("should throw on unknown validation type", () => {
+    // @ts-expect-error testing unknown validation type
+    expect(() => validate("unknown", "123")).toThrow();
   });
 });

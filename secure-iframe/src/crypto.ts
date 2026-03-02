@@ -101,8 +101,9 @@ export async function deriveSharedKey(
       name: "AES-GCM",
       length: 256,
     },
-    process.env.NODE_ENV === "test", // allow key export in tests
-    ["encrypt"],
+    // in production we use the derived key only for encryption, but in tests we also need it for decryption
+    process.env.NODE_ENV === "test",
+    process.env.NODE_ENV === "test" ? ["encrypt", "decrypt"] : ["encrypt"],
   );
 }
 
