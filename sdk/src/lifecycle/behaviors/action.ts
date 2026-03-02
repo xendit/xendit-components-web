@@ -261,7 +261,6 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
       t: this.bb.sdk.t.bind(this.bb.sdk),
-      title: vaAction.action_subtitle,
     };
 
     this.title = vaAction.action_title;

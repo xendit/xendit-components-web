@@ -1,7 +1,13 @@
-import { TFunction } from "i18next";
 import { useCallback, useState } from "preact/hooks";
 import { amountFormat } from "../amount-format";
-import { Button, ButtonLoadingSpinner, ButtonVariant } from "./button";
+import { TFunction } from "../localization";
+import {
+  Button,
+  ButtonLoadingSpinner,
+  ButtonSize,
+  ButtonVariant,
+} from "./button";
+import Icon from "./icon";
 
 type Props = {
   amount: number;
@@ -11,8 +17,7 @@ type Props = {
   onAffirm: () => void;
   vaNumber: string;
   merchantName: string;
-  t: TFunction<"session">;
-  title: string;
+  t: TFunction;
 };
 
 export function ActionVa(props: Props) {
@@ -25,7 +30,6 @@ export function ActionVa(props: Props) {
     vaNumber,
     merchantName,
     t,
-    // title,
   } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
@@ -39,6 +43,23 @@ export function ActionVa(props: Props) {
     }
   }, [mock, onAffirm]);
 
+  const vaDetails = [
+    {
+      heading: t("action_va.merchant_name"),
+      value: merchantName,
+    },
+    {
+      heading: t("action_va.virtual_account_number"),
+      value: vaNumber,
+      enableCopy: true,
+    },
+    {
+      heading: t("action_va.amount_to_pay"),
+      value: amountFormat(amount, currency),
+      enableCopy: true,
+    },
+  ];
+
   return (
     <div className="xendit-action-present-to-customer">
       <img
@@ -48,30 +69,32 @@ export function ActionVa(props: Props) {
       />
       <div className="xendit-action-va-content">
         <div className="xendit-action-va-details">
-          <div className="xendit-action-va-detail-item">
-            <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
-              {t("action_va.merchant_name")}
+          {vaDetails.map((detail, index) => (
+            <div key={index} className="xendit-action-va-detail-item">
+              <div className="xendit-action-va-detail-content">
+                <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
+                  {detail.heading}
+                </div>
+                <div className="xendit-action-va-value xendit-text-semibold">
+                  {detail.value}
+                </div>
+              </div>
+              {detail.enableCopy ? (
+                <Button
+                  variant={ButtonVariant.WHITE_ROUNDED}
+                  size={ButtonSize.SM}
+                  onClick={() => {
+                    if (detail.enableCopy) {
+                      navigator.clipboard.writeText(detail.value);
+                    }
+                  }}
+                >
+                  {t("action_va.copy")}
+                  <Icon name="copy" size={16} />
+                </Button>
+              ) : null}
             </div>
-            <div className="xendit-action-va-value xendit-text-semibold">
-              {merchantName}
-            </div>
-          </div>
-          <div className="xendit-action-va-detail-item">
-            <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
-              {t("action_va.virtual_account_number")}
-            </div>
-            <div className="xendit-action-va-value xendit-text-semibold">
-              {vaNumber}
-            </div>
-          </div>
-          <div className="xendit-action-va-detail-item">
-            <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
-              {t("action_va.amount_to_pay")}
-            </div>
-            <div className="xendit-action-va-value xendit-text-semibold">
-              {amountFormat(amount, currency)}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
       <div>

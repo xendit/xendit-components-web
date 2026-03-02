@@ -732,8 +732,16 @@ xendit-payment-channel[inert] {
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
 }
+.xendit-button-white-rounded:hover {
+  background-color: var(--xendit-color-border);
+}
 .xendit-button-block {
   width: 100%;
+}
+.xendit-button-sm {
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 @keyframes xendit-button-loading-spinner-spin {
@@ -812,18 +820,21 @@ xendit-payment-channel[inert] {
 .xendit-action-va-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 .xendit-action-va-detail-item {
   display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.xendit-action-va-detail-content {
+  flex: 1;
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 4px;
 }
 .xendit-action-va-heading {
   color: var(--xendit-color-text-placeholder);
-}
-.xendit-action-va-value {
 }
 .xendit-action-va-tag {
   color: var(--xendit-color-text-placeholder);
