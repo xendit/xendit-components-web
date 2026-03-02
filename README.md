@@ -283,11 +283,15 @@ Optionally, you can create an action container in the action-begin event. A defa
 
 ## Appearance
 
+### CSS
+
+The Xendit Components SDK is designed to be customized with CSS. You can override any styles with your own CSS. The SDK's base is inserted above other stylesheets at the time of loading to allow it to be easily overridden.
+
+Refer to [styles.css](https://github.com/xendit/xendit-components-web/blob/main/sdk/src/styles.css) for all the overidable selectors.
+
 ### CSS Variables
 
-The Xendit Components SDK is customizable by overriding its CSS. The SDK inserts its CSS above any other CSS at the time of loading to allow it to be easily overridden.
-
-CSS variables can be overridden to change styles across all components.
+Some CSS variables are provided to allow for easy customization. These are defined on `:root` and can be overridden by your own CSS.
 
 The following variables are available:
 | Variable | Description |
@@ -307,7 +311,7 @@ The following variables are available:
 | --xendit-radius-1 | Border radius applied to some components |
 | --xendit-z-index-focus | Z-index applied to focused fields |
 
-### Appearance of Iframe fields
+### CSS In Iframe Fields
 
 Some form fields (credit card inputs) are implemented inside iframes to protect the user's information.
 
@@ -325,6 +329,20 @@ const sdk = new XenditComponents({
       // apply styles to input placeholders in iframe fields
       color: "#ccc",
     },
+  },
+});
+```
+
+### Fonts In Iframe Fields
+
+Iframes can't inherit fonts you define on your page, so we allow you to load the font separately inside the iframe, by passing the font source to the constructor.
+
+```typescript
+const sdk = new XenditComponents({
+  iframeFieldAppearance: {
+    inputStyles: {
+      // fontFamily: "serif", // this is ignored if a fontFace is provided
+    }
     fontFace: {
       // insert a @font-face rule inside iframe fields
       source: "url(https://example.com/my-font-file) format(woff2)",

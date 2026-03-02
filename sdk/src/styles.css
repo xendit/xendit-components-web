@@ -1,62 +1,6 @@
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src:
-    local("Proxima Nova Light"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_light.otf")
-      format("opentype");
-}
-
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src:
-    local("Proximanova Regular"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf")
-      format("truetype");
-}
-
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src:
-    local("Proxima Nova Bold"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_bold.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_boldit.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_extrabold.otf")
-      format("opentype");
-}
-
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src:
-    local("Proxima Nova Black"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_black.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_blackit.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_black.ttf")
-      format("truetype");
-}
-
 /* variables */
-html {
-  --xendit-font-family: "Proxima Nova", sans-serif;
+:root {
+  --xendit-font-family: sans-serif;
   --xendit-color-primary: #1762ee;
   --xendit-color-text: #252525;
   --xendit-color-text-secondary: #585858;
@@ -87,12 +31,12 @@ xendit-action-container,
 xendit-payment-channel {
   display: block;
   unicode-bidi: isolate;
-  font-family: var(--xendit-font-family, sans-serif);
+  font-family: var(--xendit-font-family);
   color: var(--xendit-color-text);
 }
 
 .xendit-default-action-container {
-  font-family: var(--xendit-font-family, sans-serif);
+  font-family: var(--xendit-font-family);
 }
 
 xendit-action-container {
