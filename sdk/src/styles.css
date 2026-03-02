@@ -1,62 +1,6 @@
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src:
-    local("Proxima Nova Light"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_light.otf")
-      format("opentype");
-}
-
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src:
-    local("Proximanova Regular"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_regular.ttf")
-      format("truetype");
-}
-
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src:
-    local("Proxima Nova Bold"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_bold.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_boldit.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_extrabold.otf")
-      format("opentype");
-}
-
-@font-face {
-  font-family: "Proxima Nova";
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src:
-    local("Proxima Nova Black"),
-    local("Proxima Nova"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_black.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_blackit.otf")
-      format("opentype"),
-    url("https://assets.xendit.co/payment-session/fonts/proxima-nova/proximanova_black.ttf")
-      format("truetype");
-}
-
 /* variables */
-html {
-  --xendit-font-family: "Proxima Nova", sans-serif;
+:root {
+  --xendit-font-family: sans-serif;
   --xendit-color-primary: #1762ee;
   --xendit-color-text: #252525;
   --xendit-color-text-secondary: #585858;
@@ -87,12 +31,12 @@ xendit-action-container,
 xendit-payment-channel {
   display: block;
   unicode-bidi: isolate;
-  font-family: var(--xendit-font-family, sans-serif);
+  font-family: var(--xendit-font-family);
   color: var(--xendit-color-text);
 }
 
 .xendit-default-action-container {
-  font-family: var(--xendit-font-family, sans-serif);
+  font-family: var(--xendit-font-family);
 }
 
 xendit-action-container {
@@ -788,8 +732,16 @@ xendit-payment-channel[inert] {
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
 }
+.xendit-button-white-rounded:hover {
+  background-color: var(--xendit-color-border);
+}
 .xendit-button-block {
   width: 100%;
+}
+.xendit-button-sm {
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 @keyframes xendit-button-loading-spinner-spin {
@@ -916,7 +868,6 @@ xendit-payment-channel[inert] {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
-  border-top: 1px solid var(--xendit-color-border);
   border-bottom: 1px solid var(--xendit-color-border);
 }
 .xendit-instructions-table {
@@ -987,23 +938,21 @@ xendit-payment-channel[inert] {
 .xendit-action-va-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 .xendit-action-va-detail-item {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 12px;
 }
-.xendit-action-va-detail-item {
+.xendit-action-va-detail-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 4px;
 }
 .xendit-action-va-heading {
   color: var(--xendit-color-text-placeholder);
-}
-.xendit-action-va-value {
 }
 .xendit-action-va-tag {
   color: var(--xendit-color-text-placeholder);
