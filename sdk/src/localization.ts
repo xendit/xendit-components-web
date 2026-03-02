@@ -91,7 +91,7 @@ export type LocaleKey = {
   localeKey: keyof typeof en.session;
 };
 
-// And encapsulated already-localized string
+// An encapsulated already-localized string
 export type LocalizedString = {
   value: string;
 };

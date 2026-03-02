@@ -15,7 +15,6 @@ type Props = {
   onAffirm: () => void;
   qrString: string;
   t: TFunction;
-  title: string;
 };
 
 export function ActionQr(props: Props) {
