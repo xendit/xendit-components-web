@@ -984,7 +984,9 @@ xendit-payment-channel[inert] {
   padding-bottom: 24px;
 }
 .xendit-action-va-details {
-  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .xendit-action-va-detail-item {
   display: flex;
