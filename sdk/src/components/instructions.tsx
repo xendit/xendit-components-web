@@ -120,10 +120,11 @@ function renderFormattedStringChildren(nodes: NodeListOf<ChildNode>) {
   return renderedNodes;
 }
 
-const domParser = new DOMParser();
+const domParser = typeof DOMParser !== "undefined" ? new DOMParser() : null;
 
 function renderFormattedString(text: FormattedString): ComponentChildren {
   try {
+    if (!domParser) return text;
     const doc = domParser.parseFromString(text, "text/html");
     return renderFormattedStringChildren(doc.body.childNodes);
   } catch (_) {
