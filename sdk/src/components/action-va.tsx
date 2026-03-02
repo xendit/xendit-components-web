@@ -45,48 +45,53 @@ export function ActionVa(props: Props) {
 
   return (
     <div className="xendit-action-present-to-customer">
+      <img
+        src={channelLogo}
+        alt="Channel Logo"
+        className="xendit-action-qr-channel-logo"
+      />
       <div className="xendit-action-va-content">
-        <img
-          src={channelLogo}
-          alt="Channel Logo"
-          className="xendit-action-qr-channel-logo"
-        />
-        <hr className="xendit-dotted-line" />
         <div className="xendit-action-va-details">
+          <div className="xendit-action-va-detail-item">
+            <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
+              {t("action_va.merchant_name")}
+            </div>
+            <div className="xendit-action-va-value xendit-text-semibold">
+              {merchantName}
+            </div>
+          </div>
           <div className="xendit-action-va-detail-item">
             <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
               {t("action_va.virtual_account_number")}
             </div>
-            <div className="xendit-action-va-value">{vaNumber}</div>
-            <div className="xendit-action-va-tag xendit-text-12">
-              {merchantName}
+            <div className="xendit-action-va-value xendit-text-semibold">
+              {vaNumber}
             </div>
           </div>
           <div className="xendit-action-va-detail-item">
             <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
               {t("action_va.amount_to_pay")}
             </div>
-            <div className="xendit-action-va-value">
+            <div className="xendit-action-va-value xendit-text-semibold">
               {amountFormat(amount, currency)}
             </div>
           </div>
         </div>
-        <hr className="xendit-dotted-line" />
-        <div>
-          <Button
-            variant={ButtonVariant.WHITE_ROUNDED}
-            disabled={showSpinner}
-            onClick={onMadePaymentClicked}
-            className="xendit-button-block"
-          >
-            {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
-          </Button>
-          <p className="xendit-text-12 xendit-text-secondary xendit-text-center">
-            {t("action.payment_confirmation_instructions")}
-          </p>
-        </div>
-        <Instructions instructions={instructions} />
       </div>
+      <div>
+        <Button
+          variant={ButtonVariant.WHITE_ROUNDED}
+          disabled={showSpinner}
+          onClick={onMadePaymentClicked}
+          className="xendit-button-block"
+        >
+          {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
+        </Button>
+        <p className="xendit-text-12 xendit-text-secondary xendit-text-center">
+          {t("action.payment_confirmation_instructions")}
+        </p>
+      </div>
+      <Instructions instructions={instructions} />
     </div>
   );
 }

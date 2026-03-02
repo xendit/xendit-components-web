@@ -2,8 +2,6 @@
 This must be a single file with no imports.
 */
 
-import { IframeEvent } from "../shared/types";
-
 const sessionId = "ps-12345678901234567890";
 
 let pinningKeys: CryptoKey[] = [];
@@ -196,7 +194,7 @@ async function createTestCase(testCaseName: string, inputType: string) {
         return;
       }
 
-      const data = event.data as IframeEvent;
+      const data = event.data as import("../shared/types").IframeEvent;
       console.log("Received message:", data);
       switch (data.type) {
         case "xendit-iframe-ready": {
