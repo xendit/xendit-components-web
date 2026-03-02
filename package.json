@@ -54,7 +54,6 @@
   "dependencies": {
     "card-validator": "^10.0.3",
     "classnames": "^2.5.1",
-    "i18next": "^25.8.0",
     "libphonenumber-js": "^1.12.35",
     "preact": "^10.28.2",
     "qrcode": "^1.5.4",
