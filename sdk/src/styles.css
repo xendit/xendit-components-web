@@ -860,7 +860,10 @@ xendit-payment-channel[inert] {
 .xendit-action-va-content {
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--xendit-color-border);
+  border-radius: var(--xendit-radius-1);
   padding: 16px;
+  padding-bottom: 24px;
 }
 .xendit-action-va-details {
   display: flex;
