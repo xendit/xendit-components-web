@@ -772,6 +772,34 @@ xendit-payment-channel[inert] {
   margin: 16px 0;
 }
 
+.xendit-tooltip {
+  position: absolute;
+  top: 100%;
+  right: 50%;
+  transform: translateX(50%);
+  background-color: black;
+  color: white;
+  padding: 8px 12px;
+  border-radius: var(--xendit-radius-1);
+  white-space: nowrap;
+  z-index: 1000;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 16px;
+  animation: xendit-tooltip-fade-in var(--xendit-animation-duration)
+    var(--xendit-animation-ease);
+  opacity: 1;
+}
+
+@keyframes xendit-tooltip-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Instructions */
 
 .xendit-instructions-bold {

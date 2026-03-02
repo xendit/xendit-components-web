@@ -1,4 +1,5 @@
-import { useCallback, useState } from "preact/hooks";
+import { FunctionComponent } from "preact";
+import { useCallback, useContext, useState } from "preact/hooks";
 import { amountFormat } from "../amount-format";
 import { Instructions as InstructionsType } from "../backend-types/instructions";
 import { TFunction } from "../localization";
@@ -10,6 +11,7 @@ import {
 } from "./button";
 import Icon from "./icon";
 import { Instructions } from "./instructions";
+import { Tooltip, TooltipContext, TooltipProvider } from "./tooltip";
 
 type Props = {
   amount: number;
@@ -84,18 +86,10 @@ export function ActionVa(props: Props) {
                 </div>
               </div>
               {detail.enableCopy ? (
-                <Button
-                  variant={ButtonVariant.WHITE_ROUNDED}
-                  size={ButtonSize.SM}
-                  onClick={() => {
-                    if (detail.enableCopy) {
-                      navigator.clipboard.writeText(detail.value);
-                    }
-                  }}
-                >
-                  {t("action_va.copy")}
-                  <Icon name="copy" size={16} />
-                </Button>
+                <TooltipProvider>
+                  <CopyButton value={detail.value} t={t} />
+                  <Tooltip />
+                </TooltipProvider>
               ) : null}
             </div>
           ))}
@@ -118,3 +112,24 @@ export function ActionVa(props: Props) {
     </div>
   );
 }
+
+const CopyButton: FunctionComponent<{ value: string; t: TFunction }> = ({
+  value,
+  t,
+}) => {
+  const { fire } = useContext(TooltipContext);
+
+  return (
+    <Button
+      variant={ButtonVariant.WHITE_ROUNDED}
+      size={ButtonSize.SM}
+      onClick={() => {
+        navigator.clipboard.writeText(value);
+        fire(t("action_va.copied_to_clipboard"));
+      }}
+    >
+      {t("action_va.copy")}
+      <Icon name="copy" size={16} />
+    </Button>
+  );
+};

@@ -72,6 +72,7 @@
     "action_va.amount_to_pay": "Amount to Pay",
     "action_va.virtual_account_number": "Virtual Account Number",
     "action_va.copy": "Copy",
+    "action_va.copied_to_clipboard": "Copied to clipboard",
     "action_qr.unable_to_generate": "Unable to generate QR code"
   }
 }
