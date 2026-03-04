@@ -2,6 +2,18 @@
 
 No unreleased changes.
 
+# 0.0.13
+
+### Notable
+
+Added support for QR channels (QRIS, QR_PH, PROMPTPAY, SGQR)
+
+Added support for the installment selection UI in the Cards channel (only affects merchants with that feature enabled)
+
+### Bug fixes
+
+- Fixed bug where phone number field is not marked as touched on blur
+
 # 0.0.12
 
 ### Bug fixes
