@@ -155,11 +155,11 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     ? behaviorNode(ChannelValidBehavior)
     : behaviorNode(ChannelInvalidBehavior);
 
-  if (formHasFieldOfType(bb.channel, "credit_card_number")) {
+  if (formHasFieldOfType(bb.channel.form, "credit_card_number")) {
     result = behaviorNode(CardInfoBehavior, bb.channel.channel_code, result);
   }
 
-  if (formHasFieldOfType(bb.channel, "installment_plan")) {
+  if (formHasFieldOfType(bb.channel.form, "installment_plan")) {
     result = behaviorNode(
       PaymentOptionsBehavior,
       bb.channel.channel_code,

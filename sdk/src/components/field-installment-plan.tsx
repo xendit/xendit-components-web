@@ -1,9 +1,21 @@
 import { FieldProps } from "./field";
-import { formFieldName } from "../utils";
-import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import {
+  assert,
+  formFieldId,
+  formFieldName,
+  formHasFieldOfType,
+  usePrevious,
+} from "../utils";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { FunctionComponent } from "preact";
-import { Dropdown, DropdownOption } from "./dropdown";
-import { useChannelComponentData } from "./payment-channel";
+import { Dropdown, DropdownOption, DropdownSkeleton } from "./dropdown";
+import { useChannel, useChannelComponentData } from "./payment-channel";
 import { amountFormat } from "../amount-format";
 import { useSdk, useSession } from "./session-provider";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
@@ -15,8 +27,15 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   const { t } = useSdk();
   const session = useSession();
 
-  const id = formFieldName(field);
+  const id = formFieldId(field);
+  const name = formFieldName(field);
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
+
+  const channel = useChannel();
+  assert(channel);
+  const hasCardsField = useMemo(() => {
+    return formHasFieldOfType(channel.form, "credit_card_number");
+  }, [channel.form]);
 
   const paymentOptions = useChannelComponentData()?.paymentOptions;
   const installmentPlans = paymentOptions?.options?.installment_plans;
@@ -25,29 +44,27 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
 
   const dropdownItems = useMemo(() => {
     const arr =
-      paymentOptions?.options?.installment_plans?.map<DropdownOption>(
-        (plan) => ({
-          title: t(`installment_plan.pay_in_installments`, {
-            installments: plan.terms,
-            amount: amountFormat(plan.installment_amount, session.currency),
-          }),
-          subtitle: plan.interest_rate,
-          value: planKey(plan),
+      installmentPlans?.map<DropdownOption>((plan) => ({
+        title: t(`installment_plan.pay_in_installments`, {
+          installments: plan.terms,
+          amount: amountFormat(plan.installment_amount, session.currency),
         }),
-      ) ?? [];
-    arr.unshift({
-      title: t(`installment_plan.pay_in_full`, {
-        amount: amountFormat(session.amount, session.currency),
-      }),
-      value: "",
-    });
+        subtitle: plan.interest_rate,
+        value: planKey(plan),
+      })) ?? [];
+
+    if (hasCardsField) {
+      // the option to pay in full is shown if there is a card number field, because card payments need a way to opt out of installments.
+      arr.unshift({
+        title: t(`installment_plan.pay_in_full`, {
+          amount: amountFormat(session.amount, session.currency),
+        }),
+        value: "",
+      });
+    }
+
     return arr;
-  }, [
-    paymentOptions?.options?.installment_plans,
-    session.amount,
-    session.currency,
-    t,
-  ]);
+  }, [hasCardsField, installmentPlans, session.amount, session.currency, t]);
 
   let selectedItemIndex = dropdownItems?.findIndex((item) => {
     return item.value === selectedItemKey;
@@ -56,63 +73,90 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
     selectedItemIndex = 0;
   }
 
-  function handleChange(option: DropdownOption): void {
+  const clearSelectedItem = useCallback(() => {
+    setSelectedItemKey(null);
     if (hiddenFieldRef.current) {
-      const newPlan = installmentPlans?.find(
-        (plan) => planKey(plan) === option.value,
-      );
-      if (newPlan) {
-        if (newPlan.code) {
-          // with plan code
-          hiddenFieldRef.current.value = JSON.stringify([
-            newPlan.terms,
-            newPlan.interval,
-            newPlan.code,
-          ]);
-        } else {
-          // without plan code
-          hiddenFieldRef.current.value = JSON.stringify([
-            newPlan.terms,
-            newPlan.interval,
-          ]);
-        }
-      } else {
-        hiddenFieldRef.current.value = "";
-      }
-      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
+      hiddenFieldRef.current.value = "";
     }
-    setSelectedItemKey(option.value);
-    onChange();
-  }
+  }, []);
 
+  const handleChange = useCallback(
+    (option: DropdownOption) => {
+      if (hiddenFieldRef.current) {
+        const newPlan = installmentPlans?.find(
+          (plan) => planKey(plan) === option.value,
+        );
+        if (newPlan) {
+          if (newPlan.code) {
+            // with plan code
+            hiddenFieldRef.current.value = JSON.stringify([
+              newPlan.terms,
+              newPlan.interval,
+              newPlan.code,
+            ]);
+          } else {
+            // without plan code
+            hiddenFieldRef.current.value = JSON.stringify([
+              newPlan.terms,
+              newPlan.interval,
+            ]);
+          }
+        } else {
+          hiddenFieldRef.current.value = "";
+        }
+        hiddenFieldRef.current?.dispatchEvent(
+          new InternalSetFieldTouchedEvent(),
+        );
+      }
+      setSelectedItemKey(option.value);
+      onChange();
+    },
+    [installmentPlans, onChange],
+  );
+
+  useLayoutEffect(() => {
+    // first render only, force select first option
+    if (dropdownItems.length) handleChange(dropdownItems[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const prevItems = usePrevious(dropdownItems);
   useLayoutEffect(() => {
     // if options change, and the selected code no longer exists, clear the field
     if (
-      selectedItemKey &&
+      dropdownItems !== prevItems &&
       !installmentPlans?.some((plan) => planKey(plan) === selectedItemKey)
     ) {
-      setSelectedItemKey(null);
-      if (hiddenFieldRef.current) {
-        hiddenFieldRef.current.value = "";
+      if (dropdownItems.length) {
+        handleChange(dropdownItems[0]);
+      } else {
+        clearSelectedItem();
       }
     }
-  }, [installmentPlans, selectedItemKey]);
-
-  if (!installmentPlans || installmentPlans.length === 0) {
-    return null;
-  }
+  }, [
+    clearSelectedItem,
+    dropdownItems,
+    handleChange,
+    installmentPlans,
+    prevItems,
+    selectedItemKey,
+  ]);
 
   return (
     <>
-      <Dropdown
-        id={id}
-        placeholder={field.placeholder}
-        className={`xendit-text-14`}
-        onChange={handleChange}
-        options={dropdownItems}
-        selectedIndex={selectedItemIndex}
-      />
-      <input type="hidden" name={id} ref={hiddenFieldRef} />
+      {paymentOptions ? (
+        <Dropdown
+          id={id}
+          placeholder={field.placeholder}
+          className={`xendit-text-14`}
+          onChange={handleChange}
+          options={dropdownItems}
+          selectedIndex={selectedItemIndex}
+        />
+      ) : (
+        <DropdownSkeleton id={id} />
+      )}
+      <input type="hidden" name={name} ref={hiddenFieldRef} />
     </>
   );
 };
