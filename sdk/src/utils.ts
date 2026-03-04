@@ -511,6 +511,10 @@ export function lockDownInteralProperty(obj: { [internal]: unknown }) {
 
 const RELEASED_CHANNELS: Record<string, boolean> = {
   CARDS: true,
+  QRIS: true,
+  QR_PH: true,
+  PROMPTPAY: true,
+  SGQR: true,
 };
 
 // filter out channels not supported by this SDK version
