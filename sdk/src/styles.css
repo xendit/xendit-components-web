@@ -23,6 +23,10 @@
   /* QR code colors */
   --xendit-qr-foreground-color: #000000;
   --xendit-qr-background-color: #ffffff;
+
+  /* icon colors */
+  --xendit-color-icon-primary: #7c7c7c;
+  --xendit-color-icon-secondary: #f1f1f1;
 }
 
 /* Set default font for root components */
