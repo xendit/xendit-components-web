@@ -2,6 +2,16 @@
 
 No unreleased changes.
 
+# 0.0.13
+
+### Notable
+
+Added support for QR channels
+
+### Bug fixes
+
+- Fixed bug where phone number field is not marked as touched on blur
+
 # 0.0.12
 
 ### Bug fixes
