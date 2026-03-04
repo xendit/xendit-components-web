@@ -1,5 +1,6 @@
 import { ComponentChildren, FunctionComponent } from "preact";
 import { useLayoutEffect, useState } from "preact/hooks";
+import { SLEEP_MULTIPLIER } from "../utils";
 
 /**
  * Renders the children only if the condition passes. Re-checks the condition when the given script tag is loaded, or every second.
@@ -36,10 +37,10 @@ export const DigitalWalletWaitForLoad: FunctionComponent<{
     if (!ok) {
       const timeout = setTimeout(() => {
         forceRender({});
-      }, 1000);
+      }, 1000 * SLEEP_MULTIPLIER);
       return () => clearTimeout(timeout);
     }
-  }, [ok]);
+  }); // <- intentionally no dependencies, this timer should run in a loop until the check passes
 
   return ok ? children : null;
 };

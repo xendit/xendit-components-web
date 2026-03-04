@@ -140,8 +140,10 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           | "DEVELOPER_ERROR"
           | "BUYER_ACCOUNT_ERROR"
           | "MERCHANT_ACCOUNT_ERROR"
-          | "INTERNAL_ERROR";
-        const statusCode = err.statusCode as GooglePayErrorCode;
+          | "INTERNAL_ERROR"
+          | "UNKNOWN_ERROR";
+        const statusCode =
+          (err.statusCode as GooglePayErrorCode) ?? "UNKNOWN_ERROR";
 
         if (statusCode === "CANCELED") {
           return;
