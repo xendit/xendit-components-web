@@ -22,7 +22,7 @@ describe("channel component installment plan", () => {
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 
-    // the installment plan field should not appear while it's requesting the payment options
+    // the installment plan field should be disabled
     const nothing = screen.queryByText("Installment plan");
     expect(nothing).not.toBeInTheDocument();
 
@@ -32,16 +32,18 @@ describe("channel component installment plan", () => {
     const installmentPlanLabel = screen.queryByText("Installment plan");
     expect(installmentPlanLabel).toBeInTheDocument();
 
-    // by default, should have "pay in full" selected
-    const noneSelected = screen.queryByText("Pay in Full — Rp10.000");
-    expect(noneSelected).toBeInTheDocument();
+    // by default, the first option should be selected
+    const dropdown = screen.getByRole("button", {
+      name: "3x Installments — Rp3.333",
+    });
+    expect(dropdown).toBeInTheDocument();
 
     // open the dropdown and choose 3 installments
-    assert(noneSelected);
-    await userEvent.click(noneSelected);
-    const option3 = await screen.findByText("3x Installments — Rp3.333");
-    expect(option3).toBeInTheDocument();
-    await userEvent.click(option3);
+    assert(dropdown);
+    await userEvent.click(dropdown);
+    const option6 = await screen.findByText("6x Installments — Rp1.666");
+    expect(option6).toBeInTheDocument();
+    await userEvent.click(option6);
 
     // the sdk internal channel properties should have the selected installment plan
     const channelProperties =

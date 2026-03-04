@@ -1,4 +1,9 @@
-import { ComponentChildren, TargetedEvent, TargetedMouseEvent } from "preact";
+import {
+  ComponentChildren,
+  FunctionComponent,
+  TargetedEvent,
+  TargetedMouseEvent,
+} from "preact";
 import {
   useCallback,
   useLayoutEffect,
@@ -9,6 +14,7 @@ import {
 import Icon from "./icon";
 import { useIdSafe } from "../utils";
 import { useSdk } from "./session-provider";
+import { ButtonLoadingSpinner } from "./button";
 
 export type DropdownOption = {
   leadingAsset?: ComponentChildren; // e.g. flag/icon URL
@@ -352,6 +358,16 @@ export const Dropdown = (props: DropdownProps) => {
           </ul>
         </div>
       ) : null}
+    </div>
+  );
+};
+
+export const DropdownSkeleton: FunctionComponent = () => {
+  return (
+    <div className="xendit-dropdown xendit-skeleton-field">
+      <button inert>
+        <ButtonLoadingSpinner />
+      </button>
     </div>
   );
 };

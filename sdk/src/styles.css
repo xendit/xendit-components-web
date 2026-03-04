@@ -755,6 +755,15 @@ xendit-payment-channel[inert] {
   animation: xendit-button-loading-spinner-spin 1s linear infinite;
 }
 
+.xendit-skeleton-field button {
+  height: 42px;
+  background-color: var(--xendit-color-disabled);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--xendit-color-text-secondary);
+}
+
 /* Button ends */
 
 .xendit-dotted-line {
