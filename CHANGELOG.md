@@ -6,7 +6,9 @@ No unreleased changes.
 
 ### Notable
 
-Added support for QR channels
+Added support for QR channels (QRIS, QR_PH, PROMPTPAY, SGQR)
+
+Added support for the installment selection UI in the Cards channel (only affects merchants with that feature enabled)
 
 ### Bug fixes
 
