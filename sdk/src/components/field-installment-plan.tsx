@@ -1,6 +1,7 @@
 import { FieldProps } from "./field";
 import {
   assert,
+  formFieldId,
   formFieldName,
   formHasFieldOfType,
   usePrevious,
@@ -26,7 +27,8 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
   const { t } = useSdk();
   const session = useSession();
 
-  const id = formFieldName(field);
+  const id = formFieldId(field);
+  const name = formFieldName(field);
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
   const channel = useChannel();
@@ -152,9 +154,9 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
           selectedIndex={selectedItemIndex}
         />
       ) : (
-        <DropdownSkeleton />
+        <DropdownSkeleton id={id} />
       )}
-      <input type="hidden" name={id} ref={hiddenFieldRef} />
+      <input type="hidden" name={name} ref={hiddenFieldRef} />
     </>
   );
 };

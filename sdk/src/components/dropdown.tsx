@@ -362,10 +362,10 @@ export const Dropdown = (props: DropdownProps) => {
   );
 };
 
-export const DropdownSkeleton: FunctionComponent = () => {
+export const DropdownSkeleton: FunctionComponent<{ id: string }> = (props) => {
   return (
     <div className="xendit-dropdown xendit-skeleton-field">
-      <button inert>
+      <button inert id={props.id} disabled type="button">
         <ButtonLoadingSpinner />
       </button>
     </div>
