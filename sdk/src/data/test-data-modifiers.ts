@@ -1,4 +1,3 @@
-import { amountFormat } from "../amount-format";
 import { BffChannel, MockActionType } from "../backend-types/channel";
 import { BffPollResponse } from "../backend-types/common";
 import {
@@ -259,7 +258,7 @@ export function makeMockPaymentOptions(
         terms: 3,
         installment_amount: Math.floor(session.amount / 3),
         total_amount: session.amount,
-        description: `3x Installment — ${amountFormat(Math.floor(session.amount / 3), session.currency)}`,
+        description: `Unused`,
         code: "3M",
         interest_rate: 1,
       },
@@ -269,18 +268,19 @@ export function makeMockPaymentOptions(
         terms: 6,
         installment_amount: Math.floor(session.amount / 6),
         total_amount: session.amount,
-        description: `6x Installment — ${amountFormat(Math.floor(session.amount / 6), session.currency)}`,
+        description: `Unused`,
         code: "6M",
         interest_rate: 1,
       },
       {
         interval: "MONTH",
         interval_count: 1,
-        terms: 6,
-        installment_amount: Math.floor(session.amount / 6),
+        terms: 9,
+        installment_amount: Math.floor(session.amount / 9),
         total_amount: session.amount,
-        description: `6x Installment — ${amountFormat(Math.floor(session.amount / 6), session.currency)} (without plan code)`,
+        description: `Unused`,
         interest_rate: 1,
+        code: undefined, // this item has no code (like TH installment channels)
       },
     ],
   };

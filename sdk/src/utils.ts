@@ -522,8 +522,14 @@ export function removeUnreleasedChannels(channels: BffChannel[]): BffChannel[] {
   return channels.filter((channel) => RELEASED_CHANNELS[channel.channel_code]);
 }
 
-export function formHasFieldOfType(channel: BffChannel, type: string): boolean {
-  for (const field of channel.form) {
+/**
+ * Returns true if the form has a field of the given type, *before filtering*.
+ */
+export function formHasFieldOfType(
+  form: ChannelFormField[],
+  type: string,
+): boolean {
+  for (const field of form) {
     if (field.type.name === type) {
       return true;
     }
