@@ -9,15 +9,16 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { useSession } from "./session-provider";
-import FieldGroup from "./field-group";
+import { useSdk, useSession } from "./session-provider";
+import FieldGroup, { SimulationHelper } from "./field-group";
 import { formHasFieldOfType, usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
-import { useChannelComponentData } from "./payment-channel";
+import { useChannel, useChannelComponentData } from "./payment-channel";
 import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
+import { internal } from "../internal";
 
 interface Props {
   form: ChannelFormField[];
@@ -30,6 +31,8 @@ export interface ChannelFormHandle {
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
+    const channel = useChannel();
+    const sdk = useSdk();
     const channelComponentData = useChannelComponentData();
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -89,6 +92,27 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       }
     }, [filteredForm, handleFieldChanged, previousFilteredForm]);
 
+    const getSimulationHelper = useCallback(
+      (fieldGroup: ChannelFormField[]): SimulationHelper | null => {
+        if (sdk[internal].sdkKey.hostId !== "pd") {
+          return null;
+        }
+
+        if (
+          channel?.channel_code === "CARDS" &&
+          fieldGroup.some((field) => field.type.name === "credit_card_number")
+        ) {
+          return {
+            scenarios: [],
+            docsLink: "https://docs.xendit.co/docs/testing-card-payments",
+          };
+        }
+
+        return null;
+      },
+      [channel, sdk],
+    );
+
     const filteredFieldGroups = groupFields(filteredForm).filter(
       (group) => group.length,
     );
@@ -108,6 +132,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
                 groupIndex={index}
                 handleFieldChanged={handleFieldChanged}
                 channelProperties={channelProperties}
+                simulationHelper={getSimulationHelper(fieldGroup)}
               />
             ))}
           </ChannelPropertiesContext.Provider>

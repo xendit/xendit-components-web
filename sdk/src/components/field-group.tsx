@@ -19,11 +19,21 @@ const CSS_CLASSES = {
   COLLAPSE_BOTTOM: "field-collapse-b",
 } as const;
 
+export type SimulationHelper = {
+  scenarios: {
+    imageUrl?: string;
+    description: string;
+    values: { [key: string]: string };
+  }[];
+  docsLink?: string;
+};
+
 interface Props {
   fieldGroup: ChannelFormField[];
   groupIndex: number;
   handleFieldChanged: () => void;
   channelProperties: ChannelProperties | null;
+  simulationHelper?: SimulationHelper | null;
 }
 
 const FieldGroup = ({
