@@ -14,6 +14,7 @@ type Props = {
   mock: boolean;
   onAffirm: () => void;
   qrString: string;
+  title: string;
   t: TFunction;
 };
 
@@ -26,6 +27,7 @@ export function ActionQr(props: Props) {
     mock,
     onAffirm,
     qrString,
+    title,
     t,
   } = props;
 
@@ -73,6 +75,7 @@ export function ActionQr(props: Props) {
         alt="Channel Logo"
         className="xendit-action-qr-channel-logo"
       />
+      <div className="xendit-action-title">{title}</div>
       <div className="xendit-action-qr-content">
         <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
           {businessName}

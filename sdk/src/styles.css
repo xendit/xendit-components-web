@@ -520,6 +520,7 @@ xendit-payment-channel[inert] {
 .xendit-dialog {
   background-color: var(--xendit-color-background);
   border-radius: 8px;
+  position: relative;
 }
 
 .xendit-dialog-header {
@@ -541,9 +542,20 @@ xendit-payment-channel[inert] {
   padding: 0;
 }
 
+.xendit-dialog-floating-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: var(--xendit-color-text);
+  cursor: pointer;
+  padding: 0;
+}
+
 .xendit-dialog-body {
   display: flex;
-  padding: 8px;
+  padding: 24px;
 }
 
 .xendit-error-message {
@@ -781,6 +793,13 @@ xendit-payment-channel[inert] {
   display: flex;
   flex-direction: column;
   border: none;
+}
+
+.xendit-action-title {
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
 }
 
 .xendit-action-iframe {
