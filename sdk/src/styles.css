@@ -534,6 +534,7 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dialog-header button {
+  display: flex;
   background: none;
   border: none;
   color: var(--xendit-color-text);
