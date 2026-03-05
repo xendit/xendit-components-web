@@ -986,6 +986,7 @@ xendit-payment-channel[inert] {
   width: 100%;
 }
 
+/* va actions */
 .xendit-action-va-content {
   display: flex;
   flex-direction: column;
@@ -1018,4 +1019,51 @@ xendit-payment-channel[inert] {
   background-color: #fafafa;
   padding: 2px 4px;
   border-radius: 4px;
+}
+
+/* redirect, deeplink, and push notification actions */
+.xendit-redirect-instructions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+}
+
+.xendit-redirect-instructions-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 112px;
+  height: 112px;
+  border: 2px solid var(--xendit-color-border);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.xendit-redirect-instructions-logo img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.xendit-redirect-instructions-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.xendit-redirect-instructions-button {
+  display: inline-block;
+  border-radius: 99px;
+  color: white;
+  padding: 12px 16px;
+  background-color: var(--xendit-channel-brand-color, #000);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.xendit-redirect-instructions-button:hover,
+.xendit-redirect-instructions-button:active {
+  filter: brightness(1.1);
 }

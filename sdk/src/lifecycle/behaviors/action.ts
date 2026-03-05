@@ -14,6 +14,8 @@ import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
 import { ActionVa } from "../../components/action-va";
 import { makeTestPollResponse } from "../../data/test-data-modifiers";
+import { ActionEmptyListPushNotification } from "../../components/action-empty-list-push-notification";
+import { ActionDeepLink } from "../../components/action-deep-link";
 
 abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
@@ -93,6 +95,18 @@ abstract class ContainerActionBehavior implements Behavior {
     }
   }
 
+  updateActionContainerBrandColor() {
+    assert(this.bb.channel);
+
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+    if (container) {
+      container.style.setProperty(
+        "--xendit-channel-brand-color",
+        this.bb.channel.brand_color,
+      );
+    }
+  }
+
   /**
    * Populates the action container with the provided component.
    * This method handles the common logic of getting the container and rendering the component.
@@ -104,6 +118,8 @@ abstract class ContainerActionBehavior implements Behavior {
         "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
       );
     }
+
+    this.updateActionContainerBrandColor();
 
     render(createComponent(), container);
   }
@@ -171,6 +187,10 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
       );
     }
   }
+
+  exit() {
+    super.exit();
+  }
 }
 
 export class ActionQrBehavior extends ContainerActionBehavior {
@@ -216,7 +236,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.updateMocksOnSimulatePaymentCompletion();
     } else {
-      if (this.bb.sdkKey.hostId === "pl") {
+      if (this.bb.sdk.isProdLive()) {
         // live mode
         this.bb.pollImmediatelyRequested = true;
       } else {
@@ -234,6 +254,83 @@ export class ActionQrBehavior extends ContainerActionBehavior {
         ),
       );
     }
+  }
+
+  exit() {
+    super.exit();
+  }
+}
+
+/**
+ * An empty list of actions means the user has to take some action on their own, like tapping a push notification.
+ */
+export class ActionDeepLinkBehavior extends ContainerActionBehavior {
+  constructor(
+    protected bb: BlackboardType,
+    private actionIndex: string,
+  ) {
+    super(bb);
+  }
+
+  enter() {
+    assert(this.bb.world);
+
+    const deepLinkAction =
+      this.bb.world?.paymentEntity?.entity.actions[Number(this.actionIndex)];
+    assertEquals(deepLinkAction?.type, "REDIRECT_CUSTOMER");
+    assertEquals(deepLinkAction?.descriptor, "DEEPLINK_URL");
+
+    const t = this.bb.sdk.t.bind(this.bb.sdk);
+    const channel = this.bb.channel;
+    assert(channel);
+
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => {
+      return createElement(ActionDeepLink, {
+        t,
+        channel,
+        redirectUrl: deepLinkAction.value,
+      });
+    });
+  }
+
+  exit() {
+    super.exit();
+  }
+}
+
+/**
+ * An empty list of actions means the user has to take some action on their own, like tapping a push notification.
+ */
+export class ActionEmptyListPushNotificationBehavior extends ContainerActionBehavior {
+  constructor(protected bb: BlackboardType) {
+    super(bb);
+  }
+
+  enter() {
+    assert(this.bb.world);
+
+    // Keep this behavior alive even if the payment entity status changes to pending.
+    // Normally, the status would change to pending almost immediently and the action would be closed.
+    // This helps keep it open until the user pays.
+    this.bb.hackyOvoActionLatch = true;
+
+    const t = this.bb.sdk.t.bind(this.bb.sdk);
+    const channel = this.bb.channel;
+    assert(channel);
+
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => {
+      return createElement(ActionEmptyListPushNotification, {
+        t,
+        channel,
+      });
+    });
+  }
+
+  exit() {
+    this.bb.hackyOvoActionLatch = undefined;
+    super.exit();
   }
 }
 export class ActionVaBehavior extends ContainerActionBehavior {

@@ -383,6 +383,13 @@ export class XenditComponents extends EventTarget {
   /**
    * @internal
    */
+  public isProdLive() {
+    return this[internal].sdkKey.hostId === "pl";
+  }
+
+  /**
+   * @internal
+   */
   private findChannel(channelCode: string) {
     this.assertInitialized();
 
@@ -709,6 +716,10 @@ export class XenditComponents extends EventTarget {
       container.setAttribute("data-channel-code", channelCode);
       container.setAttribute("inert", "");
       container.setAttribute("translate", "no");
+      container.style.setProperty(
+        "--xendit-channel-brand-color",
+        channel[internal][0].brand_color,
+      );
 
       this.setupUiEventsForPaymentChannel(container);
 
