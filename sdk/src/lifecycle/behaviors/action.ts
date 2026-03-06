@@ -261,10 +261,10 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
       instructions: vaAction.instructions ?? [],
+      title: vaAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
 
-    this.title = vaAction.action_title;
     this.cleanupFn = this.ensureHasActionContainer();
     this.populateActionContainer(() => createElement(ActionVa, actionVaProps));
   }

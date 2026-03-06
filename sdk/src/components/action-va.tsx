@@ -22,6 +22,7 @@ type Props = {
   vaNumber: string;
   merchantName: string;
   instructions: InstructionsType;
+  title: string;
   t: TFunction;
 };
 
@@ -35,6 +36,7 @@ export function ActionVa(props: Props) {
     vaNumber,
     merchantName,
     instructions,
+    title,
     t,
   } = props;
 
@@ -73,6 +75,7 @@ export function ActionVa(props: Props) {
         alt="Channel Logo"
         className="xendit-action-qr-channel-logo"
       />
+      <div className="xendit-action-title">{title}</div>
       <div className="xendit-action-va-content">
         <div className="xendit-action-va-details">
           {vaDetails.map((detail, index) => (
