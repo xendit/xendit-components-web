@@ -52,6 +52,9 @@ export type DropdownProps = {
 
   /** Extra class on the root container. */
   className?: string;
+
+  /** Makes the dropdown disabled */
+  disabled?: boolean;
 };
 
 export const Dropdown = (props: DropdownProps) => {
@@ -63,6 +66,7 @@ export const Dropdown = (props: DropdownProps) => {
     selectedIndex,
     className,
     placeholder,
+    disabled,
   } = props;
 
   const t = useSdk().t;
@@ -79,7 +83,9 @@ export const Dropdown = (props: DropdownProps) => {
   const [activeIndex, setActiveIndex] = useState(
     currentIndex >= 0 ? currentIndex : 0,
   );
-  const [open, setOpen] = useState(false);
+  const [_open, setOpen] = useState(false);
+  const open = _open && !disabled && options.length > 0; // force closed when disabled or no options
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -278,6 +284,7 @@ export const Dropdown = (props: DropdownProps) => {
         aria-expanded={open ? "true" : "false"}
         onClick={onButtonClick}
         onKeyDown={onButtonKeyDown}
+        disabled={disabled}
       >
         {selected?.leadingAsset ? selected.leadingAsset : null}
 
@@ -286,7 +293,7 @@ export const Dropdown = (props: DropdownProps) => {
             {selected.shortTitle ?? selected.title}
           </span>
         ) : (
-          <span className="xendit-dropdown-button-title xendit-text-14 xendit-text-secondary">
+          <span className="xendit-dropdown-button-title xendit-text-14">
             {placeholder}
           </span>
         )}

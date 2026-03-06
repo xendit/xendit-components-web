@@ -1103,8 +1103,9 @@ export function makeTestBffData(): BffResponse {
         max_amount: 100000000,
         requires_customer_details: false,
         banner: {
-          image_url: "https://placehold.co/256x32.png?text=Banner",
+          image_url: "https://placehold.co/512x32.svg?text=Banner",
           alt_text: "",
+          aspect_ratio: 16,
         },
         form: [],
         instructions: [
