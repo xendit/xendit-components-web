@@ -143,7 +143,16 @@ const FieldGroup = ({
         {simulationScenarios ? (
           <FormSimulationHelper
             scenarios={simulationScenarios}
-            onSelect={() => {}}
+            onSelect={(values) => {
+              // when a scenario is selected, set all fields in the group to the scenario values
+              for (const field of fieldGroup) {
+                const fieldName = formFieldName(field);
+                const value = values[fieldName];
+                if (value) {
+                  // TODO
+                }
+              }
+            }}
           >
             <FormSimulationTrigger>
               <div className="xendit-text-12 xendit-text-semibold xendit-text-link">

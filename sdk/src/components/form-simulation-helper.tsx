@@ -49,7 +49,8 @@ export const FormSimulationTrigger: FunctionComponent<{
 };
 
 export const FormSimulationHelperPopover: FunctionComponent = () => {
-  const { open, scenarios } = useContext(FormSimulationHelperContext) || {};
+  const { open, scenarios, onSelect } =
+    useContext(FormSimulationHelperContext) || {};
 
   if (!open || !scenarios) {
     return null;
@@ -61,7 +62,14 @@ export const FormSimulationHelperPopover: FunctionComponent = () => {
         Simulate a test scenario
       </div>
       <Dropdown
-        onChange={() => {}}
+        onChange={(option) => {
+          const selectedScenario = scenarios.scenarios.find(
+            (scenario) => scenario.description === option.value,
+          );
+          if (selectedScenario) {
+            onSelect?.(selectedScenario.values);
+          }
+        }}
         placeholder="Select a scenario"
         options={scenarios.scenarios.map((scenario) => ({
           title: scenario.description,
