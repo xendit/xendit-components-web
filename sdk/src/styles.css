@@ -23,6 +23,10 @@
   /* QR code colors */
   --xendit-qr-foreground-color: #000000;
   --xendit-qr-background-color: #ffffff;
+
+  /* icon colors */
+  --xendit-color-icon-primary: #7c7c7c;
+  --xendit-color-icon-secondary: #f1f1f1;
 }
 
 /* Set default font for root components */
@@ -516,6 +520,7 @@ xendit-payment-channel[inert] {
 .xendit-dialog {
   background-color: var(--xendit-color-background);
   border-radius: 8px;
+  position: relative;
 }
 
 .xendit-dialog-header {
@@ -537,9 +542,20 @@ xendit-payment-channel[inert] {
   padding: 0;
 }
 
+.xendit-dialog-floating-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: var(--xendit-color-text);
+  cursor: pointer;
+  padding: 0;
+}
+
 .xendit-dialog-body {
   display: flex;
-  padding: 8px;
+  padding: 24px;
 }
 
 .xendit-error-message {
@@ -759,6 +775,15 @@ xendit-payment-channel[inert] {
   animation: xendit-button-loading-spinner-spin 1s linear infinite;
 }
 
+.xendit-skeleton-field button {
+  height: 42px;
+  background-color: var(--xendit-color-disabled);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--xendit-color-text-secondary);
+}
+
 /* Button ends */
 
 .xendit-dotted-line {
@@ -924,6 +949,13 @@ xendit-payment-channel[inert] {
   border: none;
 }
 
+.xendit-action-title {
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+}
+
 .xendit-action-iframe {
   border: none;
   width: 100%;
@@ -934,7 +966,6 @@ xendit-payment-channel[inert] {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 8px;
 }
 .xendit-action-qr-content {
   display: flex;

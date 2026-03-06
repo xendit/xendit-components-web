@@ -53,7 +53,7 @@ export class PaymentOptionsBehavior implements Behavior {
     assert(this.bb.channel);
 
     let cardNumber: string | undefined;
-    if (formHasFieldOfType(this.bb.channel, "credit_card_number")) {
+    if (formHasFieldOfType(this.bb.channel.form, "credit_card_number")) {
       cardNumber =
         getCardNumberFromChannelProperties(this.bb.channelProperties) ??
         undefined;

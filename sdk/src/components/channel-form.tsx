@@ -11,7 +11,7 @@ import {
 } from "preact/hooks";
 import { useSession } from "./session-provider";
 import FieldGroup from "./field-group";
-import { usePrevious } from "../utils";
+import { formHasFieldOfType, usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
@@ -269,6 +269,7 @@ export function filterFormFields(
   channelProperties: ChannelProperties,
   channelComponentData: ChannelComponentData | null,
 ) {
+  const hasCardsField = formHasFieldOfType(form, "credit_card_number");
   const showBillingDetailsFields =
     channelComponentData?.cardDetails?.details?.require_billing_information;
   const hasInstallmentPlans =
@@ -276,16 +277,17 @@ export function filterFormFields(
 
   return form.filter((field) => {
     if (field.flags?.require_billing_information) {
-      // these fields should only be shown if billing details are required
+      // filter out billing info fields if the flag is disabled or the session type is not PAY
       if (sessionType !== "PAY") return false;
       if (!showBillingDetailsFields) return false;
     }
     if (field.type.name === "installment_plan") {
-      // only show installment plan field if there are installment plans
-      if (!hasInstallmentPlans) return false;
+      // filter out installment plan fields if there are no installment plans AND there is a card number field
+      // (if there's no card number, then the installments field would be mandatory so we can't hide it)
+      if (!hasInstallmentPlans && hasCardsField) return false;
     }
-    // if any condition is not met, hide the field
     for (const condition of field.display_if || []) {
+      // filter out fields if any of their display_if conditions fail
       const [property, operator, value] = condition;
       const channelValue = getChannelPropertyValue(channelProperties, property);
       switch (operator) {
