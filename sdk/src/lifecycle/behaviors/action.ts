@@ -403,7 +403,7 @@ export class ActionVaBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.bb.dispatchEvent(
         new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, true),
+          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
         ),
       );
     }
