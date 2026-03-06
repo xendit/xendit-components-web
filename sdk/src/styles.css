@@ -748,8 +748,16 @@ xendit-payment-channel[inert] {
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
 }
+.xendit-button-white-rounded:hover {
+  background-color: var(--xendit-color-border);
+}
 .xendit-button-block {
   width: 100%;
+}
+.xendit-button-sm {
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 @keyframes xendit-button-loading-spinner-spin {
@@ -788,6 +796,152 @@ xendit-payment-channel[inert] {
   );
   margin: 16px 0;
 }
+
+.xendit-tooltip {
+  position: absolute;
+  top: 100%;
+  right: 50%;
+  transform: translateX(50%);
+  background-color: black;
+  color: white;
+  padding: 8px 12px;
+  border-radius: var(--xendit-radius-1);
+  white-space: nowrap;
+  z-index: 1000;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 16px;
+  animation: xendit-tooltip-fade-in var(--xendit-animation-duration)
+    var(--xendit-animation-ease);
+  opacity: 1;
+}
+
+@keyframes xendit-tooltip-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Instructions */
+
+.xendit-instructions-bold {
+  font-weight: 600;
+}
+.xendit-instructions-bullet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0;
+}
+.xendit-instructions-bullet-list::marker {
+  color: var(--xendit-color-text-secondary);
+}
+.xendit-instructions-form-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--xendit-color-border);
+  gap: 4px;
+  width: 321px;
+}
+.xendit-instructions-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--xendit-color-border);
+}
+.xendit-instructions-form-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--xendit-color-text-secondary);
+}
+.xendit-instructions-form-field-value {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--xendit-color-text);
+}
+.xendit-instructions-form-heading {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  margin: 4px 0;
+}
+.xendit-instructions-italics {
+  font-style: italic;
+}
+.xendit-instructions-numbered-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  list-style-type: decimal;
+  padding-left: 40px;
+}
+.xendit-instructions-single-tab-heading {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  margin-bottom: 16px;
+}
+.xendit-instructions-step-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.xendit-instructions-step-li {
+  font-size: 14px;
+  line-height: 20px;
+}
+.xendit-instructions-step-li p {
+  margin: 0;
+}
+.xendit-instructions-step-li::marker {
+  margin-left: 20px;
+}
+.xendit-instructions-tab-button {
+  font-family: var(--xendit-font-family);
+  font-size: 14px;
+  padding: 8px 4px;
+  background-color: transparent;
+  border: none;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+}
+.xendit-instructions-active-tab {
+  border-bottom-color: var(--xendit-color-primary);
+  color: var(--xendit-color-primary);
+  font-weight: 600;
+}
+.xendit-instructions-tab-list {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--xendit-color-border);
+}
+.xendit-instructions-table {
+  font-size: 14px;
+  line-height: 16px;
+  width: 100%;
+  border-collapse: collapse;
+}
+.xendit-instructions-table-cell {
+  padding: 4px;
+  border: 1px solid black;
+}
+.xendit-instructions-table-header {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  padding: 4px;
+  border: 1px solid black;
+}
+
+/* Instructions ends */
 
 .xendit-default-action-container {
   display: flex;
@@ -830,4 +984,38 @@ xendit-payment-channel[inert] {
 }
 .xendit-action-qr-qrcode-container {
   width: 100%;
+}
+
+.xendit-action-va-content {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--xendit-color-border);
+  border-radius: var(--xendit-radius-1);
+  padding: 16px;
+  padding-bottom: 24px;
+}
+.xendit-action-va-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.xendit-action-va-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.xendit-action-va-detail-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.xendit-action-va-heading {
+  color: var(--xendit-color-text-placeholder);
+}
+.xendit-action-va-tag {
+  color: var(--xendit-color-text-placeholder);
+  background-color: #fafafa;
+  padding: 2px 4px;
+  border-radius: 4px;
 }

@@ -236,7 +236,95 @@ export function makeOneMockAction(mockActionType: MockActionType): BffAction {
         action_subtitle:
           "Protect yourself from fraud - ensure all details are correct",
         action_graphic: "",
-        instructions: null,
+        instructions: [
+          {
+            title: "Mobile Banking",
+            content: [
+              {
+                type: "text",
+                text: "Open Mobile App",
+              },
+              {
+                type: "text",
+                text: "Select <b>Mock VA</b>, then select <b>Transfer</b>",
+              },
+              {
+                type: "text",
+                text: "Enter your Virtual Account Number, for example 3816523906568, then press <b>OK</b>",
+              },
+              {
+                type: "text",
+                text: "Click on <b>Send</b> button at the top right corner to proceed",
+              },
+              {
+                type: "text",
+                text: "Click <b>OK</b> to proceed",
+              },
+              {
+                type: "text",
+                text: "Enter your PIN to authorize the transaction",
+              },
+            ],
+          },
+          {
+            title: "Internet Banking",
+            content: [
+              {
+                type: "text",
+                text: "Login to the website",
+              },
+              {
+                type: "text",
+                text: "Select <b>Transfer</b>, then select <b>Transfer to Mock VA Virtual Account</b>",
+              },
+              {
+                type: "text",
+                text: "Enter the Virtual Account Number, for example 3816523906568",
+              },
+              {
+                type: "text",
+                text: "Select <b>Continue</b> to proceed your payment",
+              },
+            ],
+          },
+          {
+            title: "ATM",
+            content: [
+              {
+                type: "text",
+                text: "Insert your ATM card and PIN",
+              },
+              {
+                type: "text",
+                text: "Enter your ATM PIN",
+              },
+              {
+                type: "text",
+                text: "Select <b>Transfer</b>",
+              },
+              {
+                type: "text",
+                text: "Select <b>To Mock VA Virtual Account</b>",
+              },
+              {
+                type: "text",
+                text: "Enter Virtual Account Number, for example 3816523906568. Press <b>Correct</b> to proceed",
+              },
+              {
+                type: "text",
+                text: "Verify Virtual Account details and then enter amount to be transferred and select <b>Correct</b> to confirm",
+              },
+              {
+                type: "text",
+                text: "Confirm your transaction details displayed",
+              },
+              {
+                type: "text",
+                text: "Select <b>Yes</b> if the details are correct or <b>No</b> if the details are not correct",
+              },
+            ],
+          },
+        ],
       };
   }
   throw new Error(`Unknown mock action type: ${mockActionType}`);
