@@ -38,7 +38,7 @@ export class PePendingBehavior implements Behavior {
         case "PENDING":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponse(this.bb.world, this.bb.channel, true),
+              makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
             ),
           );
           break;
@@ -47,7 +47,7 @@ export class PePendingBehavior implements Behavior {
         case "EXPIRED":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponse(this.bb.world, this.bb.channel, false),
+              makeTestPollResponse(this.bb.world, this.bb.channel, "FAILURE"),
             ),
           );
           break;

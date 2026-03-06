@@ -164,7 +164,10 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
         mock: this.bb.mock,
         onIframeComplete: (event: IframeActionCompleteEvent) => {
           this.cleanupActionContainer(false);
-          this.updateMocksOnIframeCompletion(event.mockStatus === "success");
+
+          const mockResult =
+            event.mockStatus === "success" ? "SUCCESS" : "FAILURE";
+          this.updateMocksOnIframeCompletion(mockResult);
 
           // setting actionCompleted will ensure the action UI isn't shown again
           this.bb.actionCompleted = true;
@@ -177,12 +180,12 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
     );
   }
 
-  updateMocksOnIframeCompletion(success: boolean) {
+  updateMocksOnIframeCompletion(result: "SUCCESS" | "FAILURE") {
     assert(this.bb.world?.paymentEntity);
     if (this.bb.mock) {
       this.bb.dispatchEvent(
         new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, success),
+          makeTestPollResponse(this.bb.world, this.bb.channel, result),
         ),
       );
     }
@@ -250,7 +253,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.bb.dispatchEvent(
         new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, true),
+          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
         ),
       );
     }
@@ -326,6 +329,18 @@ export class ActionEmptyListPushNotificationBehavior extends ContainerActionBeha
         channel,
       });
     });
+
+    if (this.bb.mock) {
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponse(
+            this.bb.world,
+            this.bb.channel,
+            "PENDING_PAYMENT_ENTITY_ONLY",
+          ),
+        ),
+      );
+    }
   }
 
   exit() {
