@@ -1,6 +1,7 @@
 import { BffBusiness } from "./business";
 import { BffChannel, BffChannelUiGroup } from "./channel";
 import { BffCustomer } from "./customer";
+import { BffDigitalWallets } from "./digital-wallets";
 import { BffPaymentRequest, BffPaymentToken } from "./payment-entity";
 import { BffSession } from "./session";
 
@@ -21,6 +22,7 @@ export type BffResponse = {
   channels: BffChannel[];
   channel_ui_groups: BffChannelUiGroup[];
   session: BffSession;
+  digital_wallets?: BffDigitalWallets;
 };
 
 export type BffPollResponse = {

@@ -27,7 +27,7 @@ describe("utils - cancellableSleep", () => {
     const start = Date.now();
     await cancellableSleep(D, signal);
     let duration = Date.now() - start;
-    duration += 3; // sometimes the timer fires early
+    duration += 3; // we waited 100ms, but sometimes it fires early so add some slack
     expect(duration).toBeGreaterThanOrEqual(D * SLEEP_MULTIPLIER);
   });
   it("should abort sleep if aborted", async () => {

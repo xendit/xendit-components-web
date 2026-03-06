@@ -112,7 +112,6 @@ export async function* retryLoop(mult: number, tries: number, base = 2) {
 }
 
 export function redirectCanBeHandledInIframe(action: BffAction): boolean {
-  // TODO: return a flag for this from the backend
   if (action.type !== "REDIRECT_CUSTOMER") {
     return false;
   }

@@ -1,0 +1,46 @@
+import { ComponentChildren, FunctionComponent } from "preact";
+import { useLayoutEffect, useState } from "preact/hooks";
+import { SLEEP_MULTIPLIER } from "../utils";
+
+/**
+ * Renders the children only if the condition passes. Re-checks the condition when the given script tag is loaded, or every second.
+ */
+export const DigitalWalletWaitForLoad: FunctionComponent<{
+  scriptTagRegex: RegExp;
+  checkLoaded: () => boolean;
+  children: ComponentChildren;
+}> = (props) => {
+  const { scriptTagRegex, checkLoaded, children } = props;
+
+  const [, forceRender] = useState<object>({});
+  const ok = checkLoaded();
+
+  useLayoutEffect(() => {
+    if (ok) return;
+
+    const targetScript = Array.from(document.scripts).find((script) =>
+      scriptTagRegex.test(script.src),
+    );
+
+    if (targetScript) {
+      const fn = () => {
+        forceRender({});
+      };
+      targetScript.addEventListener("load", fn);
+      return () => {
+        targetScript.removeEventListener("load", fn);
+      };
+    }
+  }, [forceRender, ok, scriptTagRegex]);
+
+  useLayoutEffect(() => {
+    if (!ok) {
+      const timeout = setTimeout(() => {
+        forceRender({});
+      }, 1000 * SLEEP_MULTIPLIER);
+      return () => clearTimeout(timeout);
+    }
+  }); // <- intentionally no dependencies, this timer should run in a loop until the check passes
+
+  return ok ? children : null;
+};
