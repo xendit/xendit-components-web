@@ -7,6 +7,12 @@ import { useSdk } from "./session-provider";
 import { getLocalizedErrorMessage } from "../localization";
 import { channelPropertyFieldValidate } from "../validation";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { Scenarios } from "../data/simulation-scenarios";
+import {
+  FormSimulationHelper,
+  FormSimulationHelperPopover,
+  FormSimulationTrigger,
+} from "./form-simulation-helper";
 
 const CSS_CLASSES = {
   BOTTOM_LEFT_0: "field-radius-bl-0",
@@ -19,21 +25,12 @@ const CSS_CLASSES = {
   COLLAPSE_BOTTOM: "field-collapse-b",
 } as const;
 
-export type SimulationHelper = {
-  scenarios: {
-    imageUrl?: string;
-    description: string;
-    values: { [key: string]: string };
-  }[];
-  docsLink?: string;
-};
-
 interface Props {
   fieldGroup: ChannelFormField[];
   groupIndex: number;
   handleFieldChanged: () => void;
   channelProperties: ChannelProperties | null;
-  simulationHelper?: SimulationHelper | null;
+  simulationScenarios?: Scenarios | null;
 }
 
 const FieldGroup = ({
@@ -41,6 +38,7 @@ const FieldGroup = ({
   groupIndex,
   handleFieldChanged,
   channelProperties,
+  simulationScenarios,
 }: Props) => {
   const { t } = useSdk();
 
@@ -138,9 +136,24 @@ const FieldGroup = ({
 
   return (
     <div className="xendit-channel-form-field-group">
-      <label htmlFor={formFieldId(fieldGroup[0])} className="xendit-text-14">
-        {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
-      </label>
+      <div className="xendit-channel-form-field-group-label-container">
+        <label htmlFor={formFieldId(fieldGroup[0])} className="xendit-text-14">
+          {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
+        </label>
+        {simulationScenarios ? (
+          <FormSimulationHelper
+            scenarios={simulationScenarios}
+            onSelect={() => {}}
+          >
+            <FormSimulationTrigger>
+              <div className="xendit-text-12 xendit-text-semibold xendit-text-link">
+                Simulate scenario
+              </div>
+            </FormSimulationTrigger>
+            <FormSimulationHelperPopover />
+          </FormSimulationHelper>
+        ) : null}
+      </div>
       <div
         ref={groupContainerRef}
         key={groupIndex}

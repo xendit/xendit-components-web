@@ -107,6 +107,9 @@ xendit-payment-channel select::placeholder {
   font-weight: 700;
 }
 
+.xendit-text-link {
+  color: var(--xendit-color-primary);
+}
 .xendit-text-secondary {
   color: var(--xendit-color-text-secondary);
 }
@@ -303,6 +306,12 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field-group {
   display: grid;
   gap: 8px;
+}
+
+.xendit-channel-form-field-group-label-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .xendit-channel-form-field-group label {
@@ -788,6 +797,48 @@ xendit-payment-channel[inert] {
   );
   margin: 16px 0;
 }
+
+/* Form Simulation Helper */
+.xendit-form-simulation-trigger {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  anchor-name: --xendit-form-simulation-trigger-anchor;
+}
+.xendit-form-simulation-popover {
+  position: absolute;
+  position-anchor: --xendit-form-simulation-trigger-anchor;
+  top: anchor(bottom);
+  right: anchor(right);
+  margin-top: 8px;
+
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 4px;
+  padding: 12px;
+  border: 1px solid var(--xendit-color-border);
+  background: #ffffff80;
+  backdrop-filter: blur(4px);
+}
+.xendit-form-simulation-popover .xendit-dropdown {
+  position: relative;
+}
+.xendit-form-simulation-popover .xendit-dropdown-menu {
+  width: auto;
+}
+.xendit-form-simulation-scenario-icon {
+  height: 28px;
+  width: 40px;
+  border-radius: 4px;
+  border: 1px solid var(--xendit-color-border);
+  object-fit: contain;
+  background-color: white;
+}
+
+/* Form Simulation Helper ends */
 
 .xendit-default-action-container {
   display: flex;

@@ -10,7 +10,7 @@ import {
   useState,
 } from "preact/hooks";
 import { useSdk, useSession } from "./session-provider";
-import FieldGroup, { SimulationHelper } from "./field-group";
+import FieldGroup from "./field-group";
 import { formHasFieldOfType, usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "react";
@@ -19,6 +19,7 @@ import { useChannel, useChannelComponentData } from "./payment-channel";
 import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
 import { internal } from "../internal";
+import { CREDIT_CARD_SCENARIOS, Scenarios } from "../data/simulation-scenarios";
 
 interface Props {
   form: ChannelFormField[];
@@ -92,8 +93,8 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       }
     }, [filteredForm, handleFieldChanged, previousFilteredForm]);
 
-    const getSimulationHelper = useCallback(
-      (fieldGroup: ChannelFormField[]): SimulationHelper | null => {
+    const getSimulationScenarios = useCallback(
+      (fieldGroup: ChannelFormField[]): Scenarios | null => {
         if (sdk[internal].sdkKey.hostId !== "pd") {
           return null;
         }
@@ -102,10 +103,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
           channel?.channel_code === "CARDS" &&
           fieldGroup.some((field) => field.type.name === "credit_card_number")
         ) {
-          return {
-            scenarios: [],
-            docsLink: "https://docs.xendit.co/docs/testing-card-payments",
-          };
+          return CREDIT_CARD_SCENARIOS;
         }
 
         return null;
@@ -132,7 +130,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
                 groupIndex={index}
                 handleFieldChanged={handleFieldChanged}
                 channelProperties={channelProperties}
-                simulationHelper={getSimulationHelper(fieldGroup)}
+                simulationScenarios={getSimulationScenarios(fieldGroup)}
               />
             ))}
           </ChannelPropertiesContext.Provider>
