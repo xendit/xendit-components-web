@@ -295,7 +295,7 @@ Some CSS variables are provided to allow for easy customization. These are defin
 
 The following variables are available:
 | Variable | Description |
-| :- | -: |
+| :- | :- |
 | --xendit-font-family | Font applied to all xendit components |
 | --xendit-color-primary | Accent color |
 | --xendit-color-text | Base text color |
@@ -310,6 +310,13 @@ The following variables are available:
 | --xendit-animation-ease | Ease function of animations |
 | --xendit-radius-1 | Border radius applied to some components |
 | --xendit-z-index-focus | Z-index applied to focused fields |
+| --xendit-qr-foreground-color | The color used for QR codes (the black pixels). |
+| --xendit-qr-background-color | The color used as the background of QR codes (the white pixels). |
+
+Additionally, the following variables are set at component scope, where applicable:
+| Variable | Description |
+| :- | :- |
+| --xendit-channel-brand-color | A brand color. Varies depending on the channel or action component where it's used. Will always be a dark color appropriate for use as a background behind white text. |
 
 ### CSS In Iframe Fields
 

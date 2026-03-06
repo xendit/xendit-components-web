@@ -73,6 +73,12 @@
     "action_va.virtual_account_number": "Virtual Account Number",
     "action_va.copy": "Copy",
     "action_va.copied_to_clipboard": "Copied to clipboard",
-    "action_qr.unable_to_generate": "Unable to generate QR code"
+    "action_qr.unable_to_generate": "Unable to generate QR code",
+    "action_deeplink.button": "Open App",
+    "action_deeplink.instructions": "Please complete your payment on {{channelName}} app.",
+    "action_deeplink.title": "Awaiting payment...",
+    "action_empty_list_push_notification.subtext": "Check the notification in your {{channelName}} app to complete your payment.",
+    "action_empty_list_push_notification.title": "Awaiting payment...",
+    "image_alt.channel_logo": "{{channelName}} logo"
   }
 }

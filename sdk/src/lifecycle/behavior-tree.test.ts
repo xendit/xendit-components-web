@@ -256,6 +256,29 @@ describe("Behavior Tree - Payment Entity", () => {
       PeFailedBehavior,
     ]);
   });
+  it("should give paymentEntity pending behavior", () => {
+    const node = behaviorTreeForSdk({
+      ...mockBlackboard,
+      channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
+      submissionRequested: true,
+      world: {
+        ...mockBlackboard.world,
+        paymentEntity: toPaymentEntity(
+          withPaymentEntityStatus(
+            makeTestPaymentRequest("MOCK_QR", undefined),
+            "PENDING",
+          ),
+        ),
+        sessionTokenRequestId: randomUUID(),
+      },
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      SubmissionBehavior,
+      PePendingBehavior,
+    ]);
+  });
 });
 
 describe("Behavior Tree - Actions (edge cases)", () => {

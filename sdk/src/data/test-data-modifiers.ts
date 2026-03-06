@@ -26,20 +26,33 @@ export function makeTestSdkKey() {
 export function makeTestPollResponse(
   world: WorldState,
   channel: BffChannel | null,
-  success: boolean,
+  result: "SUCCESS" | "FAILURE" | "PENDING" | "PENDING_PAYMENT_ENTITY_ONLY",
 ) {
   const { session, paymentEntity } = world;
   assert(session);
   assert(paymentEntity);
   assert(channel);
 
-  if (channel._mock_action_type === "PENDING") {
-    // channels requesting mock pending state
-    return makeTestPollResponseForPending(session);
-  } else if (success) {
-    return makeTestPollResponseForSuccess(session, paymentEntity);
-  } else {
-    return makeTestPollResponseForFailure(session, paymentEntity);
+  switch (result) {
+    case "PENDING":
+      // make the session pending
+      return makeTestPollResponseForPending(session);
+    case "PENDING_PAYMENT_ENTITY_ONLY":
+      // make the payment entity pending, but keep the session active
+      return makeTestPollResponseForPendingPaymentEntityOnly(
+        session,
+        paymentEntity,
+      );
+    case "SUCCESS": {
+      if (channel._mock_action_type === "PENDING") {
+        // channels with mock pending state (like FPX) always go to pending state when success is requested
+        return makeTestPollResponseForPending(session);
+      } else {
+        return makeTestPollResponseForSuccess(session, paymentEntity);
+      }
+    }
+    case "FAILURE":
+      return makeTestPollResponseForFailure(session, paymentEntity);
   }
 }
 
@@ -51,6 +64,26 @@ export function makeTestPollResponseForPending(
       ...session,
       status: "PENDING",
     },
+  };
+}
+
+export function makeTestPollResponseForPendingPaymentEntityOnly(
+  session: BffSession,
+  paymentEntity: BffPaymentEntity,
+): BffPollResponse {
+  const paymentRequest =
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
+  const paymentToken =
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
+
+  return {
+    session,
+    payment_request: withPaymentEntityStatus(paymentRequest, "PENDING"),
+    payment_token: withPaymentEntityStatus(paymentToken, "PENDING"),
   };
 }
 
@@ -188,10 +221,19 @@ export function makeTestPaymentToken(
 export function makeMockActions(
   mockActionType: MockActionType | undefined,
 ): BffAction[] {
-  return mockActionType ? [makeOneMockAction(mockActionType)] : [];
+  if (!mockActionType) return [];
+  const mockAction = makeOneMockAction(mockActionType);
+  if (mockAction === null) return [];
+  return [mockAction];
 }
 
-export function makeOneMockAction(mockActionType: MockActionType): BffAction {
+export function makeOneMockAction(
+  mockActionType: MockActionType,
+): BffAction | null {
+  if (mockActionType === "PENDING") {
+    throw new Error("PENDING mock action type should not generate an action");
+  }
+
   switch (mockActionType) {
     case "IFRAME":
       return {
@@ -207,6 +249,16 @@ export function makeOneMockAction(mockActionType: MockActionType): BffAction {
         value: "https://example.com/redirect",
         iframe_capable: false,
       };
+    case "DEEP_LINK":
+      return {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "DEEPLINK_URL",
+        value: "mockapp://mock-deep-link",
+      };
+    case "PUSH_NOTIFICATION": {
+      // push notification actions are represented by setting `{ status: "REQUIRES_ACTION", actions: [] }`
+      return null;
+    }
     case "QR":
       return {
         type: "PRESENT_TO_CUSTOMER",
@@ -327,6 +379,8 @@ export function makeOneMockAction(mockActionType: MockActionType): BffAction {
         ],
       };
   }
+
+  mockActionType satisfies never;
   throw new Error(`Unknown mock action type: ${mockActionType}`);
 }
 
