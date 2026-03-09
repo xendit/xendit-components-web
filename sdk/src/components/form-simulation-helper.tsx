@@ -1,5 +1,5 @@
 import { ComponentChildren, createContext, FunctionComponent } from "preact";
-import { useContext, useState } from "preact/hooks";
+import { useContext, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { Scenarios } from "../data/simulation-scenarios";
 import { Dropdown } from "./dropdown";
 
@@ -22,13 +22,27 @@ export const FormSimulationHelper: FunctionComponent<Props> = ({
   children,
 }) => {
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const onMouseDown = (e: MouseEvent) => {
+      const root = rootRef.current;
+      if (!root) return;
+      if (!root.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [open]);
 
   return (
-    <FormSimulationHelperContext.Provider
-      value={{ open, setOpen, scenarios, onSelect }}
-    >
-      {children}
-    </FormSimulationHelperContext.Provider>
+    <div ref={rootRef}>
+      <FormSimulationHelperContext.Provider
+        value={{ open, setOpen, scenarios, onSelect }}
+      >
+        {children}
+      </FormSimulationHelperContext.Provider>
+    </div>
   );
 };
 
