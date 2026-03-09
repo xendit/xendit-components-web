@@ -84,7 +84,7 @@ export class SimulatePaymentBehavior implements Behavior {
           // in mock mode, trigger transition to success state
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponse(this.bb.world, this.bb.channel, true),
+              makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
             ),
           );
         }

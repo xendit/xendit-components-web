@@ -344,7 +344,7 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
-        brand_name: "Mock E-Wallet Channel",
+        brand_name: "Mock E-Wallet Channel (Redirect action)",
         channel_code: "MOCK_EWALLET",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
         ui_group: "other",
@@ -377,6 +377,42 @@ export function makeTestBffData(): BffResponse {
         instructions: [
           "Mock E-Wallet channel",
           "This mock channel has as iframe action.",
+        ],
+      },
+      {
+        brand_name: "Mock E-Wallet Channel (Deeplink action)",
+        channel_code: "MOCK_EWALLET_DEEP_LINK",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: "DEEP_LINK",
+        form: [],
+        instructions: [
+          "Mock E-Wallet channel",
+          "This mock channel has a deeplink action.",
+        ],
+      },
+      {
+        brand_name: "Mock E-Wallet Channel (Push notification action)",
+        channel_code: "MOCK_EWALLET_PUSH_NOTIFICATION",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: "PUSH_NOTIFICATION",
+        form: [],
+        instructions: [
+          "Mock E-Wallet channel",
+          "This mock channel has a deeplink action.",
         ],
       },
       {
@@ -496,6 +532,24 @@ export function makeTestBffData(): BffResponse {
         instructions: [
           "Mock OTC channel",
           "This mock channel behaves similarly to production OTC channels.",
+        ],
+      },
+      {
+        brand_name: "Mock VA Channel",
+        channel_code: "MOCK_VA",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: "VA",
+        form: [],
+        instructions: [
+          "Mock VA channel",
+          "This mock channel behaves similarly to production VA channels.",
         ],
       },
       {
@@ -1085,8 +1139,9 @@ export function makeTestBffData(): BffResponse {
         max_amount: 100000000,
         requires_customer_details: false,
         banner: {
-          image_url: "https://placehold.co/256x32.png?text=Banner",
+          image_url: "https://placehold.co/512x32.svg?text=Banner",
           alt_text: "",
+          aspect_ratio: 16,
         },
         form: [],
         instructions: [
@@ -1195,5 +1250,31 @@ export function makeTestBffData(): BffResponse {
         icon_url: "https://placehold.co/48x48.png?text=Logo",
       },
     ],
+    digital_wallets: {
+      google_pay: {
+        merchant_id: "mock-googlepay-merchant-id",
+        allowed_payment_methods: [
+          {
+            channel_code: "CARDS",
+            payment_request_id: `pr-${randomHexString(32)}`,
+            payment_method_specification: {
+              type: "CARD",
+              parameters: {
+                billingAddressRequired: true,
+                allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+                allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"],
+              } satisfies google.payments.api.CardParameters,
+              tokenizationSpecification: {
+                type: "PAYMENT_GATEWAY",
+                parameters: {
+                  gateway: "xendit",
+                  gatewayMerchantId: "exampleGatewayMerchantId",
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
   };
 }

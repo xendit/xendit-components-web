@@ -26,20 +26,33 @@ export function makeTestSdkKey() {
 export function makeTestPollResponse(
   world: WorldState,
   channel: BffChannel | null,
-  success: boolean,
+  result: "SUCCESS" | "FAILURE" | "PENDING" | "PENDING_PAYMENT_ENTITY_ONLY",
 ) {
   const { session, paymentEntity } = world;
   assert(session);
   assert(paymentEntity);
   assert(channel);
 
-  if (channel._mock_action_type === "PENDING") {
-    // channels requesting mock pending state
-    return makeTestPollResponseForPending(session);
-  } else if (success) {
-    return makeTestPollResponseForSuccess(session, paymentEntity);
-  } else {
-    return makeTestPollResponseForFailure(session, paymentEntity);
+  switch (result) {
+    case "PENDING":
+      // make the session pending
+      return makeTestPollResponseForPending(session);
+    case "PENDING_PAYMENT_ENTITY_ONLY":
+      // make the payment entity pending, but keep the session active
+      return makeTestPollResponseForPendingPaymentEntityOnly(
+        session,
+        paymentEntity,
+      );
+    case "SUCCESS": {
+      if (channel._mock_action_type === "PENDING") {
+        // channels with mock pending state (like FPX) always go to pending state when success is requested
+        return makeTestPollResponseForPending(session);
+      } else {
+        return makeTestPollResponseForSuccess(session, paymentEntity);
+      }
+    }
+    case "FAILURE":
+      return makeTestPollResponseForFailure(session, paymentEntity);
   }
 }
 
@@ -51,6 +64,26 @@ export function makeTestPollResponseForPending(
       ...session,
       status: "PENDING",
     },
+  };
+}
+
+export function makeTestPollResponseForPendingPaymentEntityOnly(
+  session: BffSession,
+  paymentEntity: BffPaymentEntity,
+): BffPollResponse {
+  const paymentRequest =
+    paymentEntity.type === BffPaymentEntityType.PaymentRequest
+      ? paymentEntity.entity
+      : undefined;
+  const paymentToken =
+    paymentEntity.type === BffPaymentEntityType.PaymentToken
+      ? paymentEntity.entity
+      : undefined;
+
+  return {
+    session,
+    payment_request: withPaymentEntityStatus(paymentRequest, "PENDING"),
+    payment_token: withPaymentEntityStatus(paymentToken, "PENDING"),
   };
 }
 
@@ -188,10 +221,19 @@ export function makeTestPaymentToken(
 export function makeMockActions(
   mockActionType: MockActionType | undefined,
 ): BffAction[] {
-  return mockActionType ? [makeOneMockAction(mockActionType)] : [];
+  if (!mockActionType) return [];
+  const mockAction = makeOneMockAction(mockActionType);
+  if (mockAction === null) return [];
+  return [mockAction];
 }
 
-export function makeOneMockAction(mockActionType: MockActionType): BffAction {
+export function makeOneMockAction(
+  mockActionType: MockActionType,
+): BffAction | null {
+  if (mockActionType === "PENDING") {
+    throw new Error("PENDING mock action type should not generate an action");
+  }
+
   switch (mockActionType) {
     case "IFRAME":
       return {
@@ -207,6 +249,16 @@ export function makeOneMockAction(mockActionType: MockActionType): BffAction {
         value: "https://example.com/redirect",
         iframe_capable: false,
       };
+    case "DEEP_LINK":
+      return {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "DEEPLINK_URL",
+        value: "mockapp://mock-deep-link",
+      };
+    case "PUSH_NOTIFICATION": {
+      // push notification actions are represented by setting `{ status: "REQUIRES_ACTION", actions: [] }`
+      return null;
+    }
     case "QR":
       return {
         type: "PRESENT_TO_CUSTOMER",
@@ -236,9 +288,99 @@ export function makeOneMockAction(mockActionType: MockActionType): BffAction {
         action_subtitle:
           "Protect yourself from fraud - ensure all details are correct",
         action_graphic: "",
-        instructions: null,
+        instructions: [
+          {
+            title: "Mobile Banking",
+            content: [
+              {
+                type: "text",
+                text: "Open Mobile App",
+              },
+              {
+                type: "text",
+                text: "Select <b>Mock VA</b>, then select <b>Transfer</b>",
+              },
+              {
+                type: "text",
+                text: "Enter your Virtual Account Number, for example 3816523906568, then press <b>OK</b>",
+              },
+              {
+                type: "text",
+                text: "Click on <b>Send</b> button at the top right corner to proceed",
+              },
+              {
+                type: "text",
+                text: "Click <b>OK</b> to proceed",
+              },
+              {
+                type: "text",
+                text: "Enter your PIN to authorize the transaction",
+              },
+            ],
+          },
+          {
+            title: "Internet Banking",
+            content: [
+              {
+                type: "text",
+                text: "Login to the website",
+              },
+              {
+                type: "text",
+                text: "Select <b>Transfer</b>, then select <b>Transfer to Mock VA Virtual Account</b>",
+              },
+              {
+                type: "text",
+                text: "Enter the Virtual Account Number, for example 3816523906568",
+              },
+              {
+                type: "text",
+                text: "Select <b>Continue</b> to proceed your payment",
+              },
+            ],
+          },
+          {
+            title: "ATM",
+            content: [
+              {
+                type: "text",
+                text: "Insert your ATM card and PIN",
+              },
+              {
+                type: "text",
+                text: "Enter your ATM PIN",
+              },
+              {
+                type: "text",
+                text: "Select <b>Transfer</b>",
+              },
+              {
+                type: "text",
+                text: "Select <b>To Mock VA Virtual Account</b>",
+              },
+              {
+                type: "text",
+                text: "Enter Virtual Account Number, for example 3816523906568. Press <b>Correct</b> to proceed",
+              },
+              {
+                type: "text",
+                text: "Verify Virtual Account details and then enter amount to be transferred and select <b>Correct</b> to confirm",
+              },
+              {
+                type: "text",
+                text: "Confirm your transaction details displayed",
+              },
+              {
+                type: "text",
+                text: "Select <b>Yes</b> if the details are correct or <b>No</b> if the details are not correct",
+              },
+            ],
+          },
+        ],
       };
   }
+
+  mockActionType satisfies never;
   throw new Error(`Unknown mock action type: ${mockActionType}`);
 }
 

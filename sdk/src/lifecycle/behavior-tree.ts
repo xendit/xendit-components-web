@@ -16,9 +16,12 @@ import { channelPropertiesAreValid } from "../validation";
 import { behaviorNode } from "./behavior-tree-runner";
 import {
   ActionCompletedBehavior,
+  ActionDeepLinkBehavior,
+  ActionEmptyListPushNotificationBehavior,
   ActionIframeBehavior,
   ActionQrBehavior,
   ActionRedirectBehavior,
+  ActionVaBehavior,
 } from "./behaviors/action";
 import { CardInfoBehavior } from "./behaviors/card-info";
 import {
@@ -43,7 +46,7 @@ import {
   SessionPendingBehavior,
 } from "./behaviors/session";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
-import { SubmissionBehavior } from "./behaviors/submission";
+import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
@@ -64,6 +67,8 @@ export type BlackboardType = {
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;
+  channelIsDigitalWallet: boolean;
+  instantSubmissionError: SubmissionError | null;
 
   // dispatch event on the SDK instance
   dispatchEvent(event: Event): boolean;
@@ -77,6 +82,8 @@ export type BlackboardType = {
   actionCompleted: boolean;
   // if true, poll the payment entity immediately on the next update
   pollImmediatelyRequested: boolean;
+  // if true, don't exit ovo's and jeniuspay's ActionEmptyListPushNotificationBehavior when the payment request status changes to pending
+  hackyOvoActionLatch?: boolean;
 };
 
 export function behaviorTreeForSdk(bb: BlackboardType) {
@@ -144,6 +151,10 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     return undefined;
   }
 
+  if (bb.channelIsDigitalWallet) {
+    return undefined;
+  }
+
   const channelPropertiesValid = channelPropertiesAreValid(
     bb.world.session.session_type,
     bb.channel,
@@ -191,6 +202,19 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
     );
   }
 
+  if (
+    bb.hackyOvoActionLatch &&
+    bb.world.paymentEntity.entity.status === "PENDING"
+  ) {
+    // In ovo and jeniuspay, the REQUIRES_ACTION status changes to PENDING almost immediately, causing the instructions to the user to close.
+    // We need to keep this behavior alive until the status changes to something other than PENDING.
+    return behaviorNode(
+      PeRequiresActionBehavior,
+      bb.world.paymentEntity.id,
+      behaviorNode(ActionEmptyListPushNotificationBehavior, ""),
+    );
+  }
+
   switch (bb.world.paymentEntity.entity.status) {
     case "PENDING": {
       return behaviorNode(PePendingBehavior);
@@ -230,9 +254,6 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   if (!bb.world?.paymentEntity) {
     throw new Error("Payment entity is missing");
   }
-  if (!bb.world.paymentEntity.entity.actions.length) {
-    throw new Error("No actions available while in ACTION_REQUIRED state");
-  }
 
   if (bb.actionCompleted) {
     // action completed is for when we want to close the action UI and go back to polling
@@ -244,6 +265,12 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   }
 
   const action = findBestAction(bb.world.paymentEntity.entity.actions);
+
+  if (!action) {
+    // an empty list of actions means we prompt the user to tap a push notification
+    return behaviorNode(ActionEmptyListPushNotificationBehavior, "");
+  }
+
   const actionIndex = bb.world.paymentEntity.entity.actions.indexOf(action);
 
   switch (action.type) {
@@ -257,9 +284,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
           }
         }
         case "DEEPLINK_URL": {
-          throw new Error(
-            `Unsupported action type ${action.type} ${action.descriptor}`,
-          );
+          return behaviorNode(ActionDeepLinkBehavior, String(actionIndex));
         }
         case "WEB_GOOGLE_PAYLINK": {
           throw new Error(
@@ -280,9 +305,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
           );
         }
         case "VIRTUAL_ACCOUNT_NUMBER": {
-          throw new Error(
-            `Unsupported action type ${action.type} ${action.descriptor}`,
-          );
+          return behaviorNode(ActionVaBehavior, String(actionIndex));
         }
       }
       break;

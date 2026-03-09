@@ -67,6 +67,8 @@ export type BffChannel = {
 export type MockActionType =
   | "IFRAME"
   | "REDIRECT"
+  | "DEEP_LINK"
+  | "PUSH_NOTIFICATION"
   | "QR"
   | "BARCODE"
   | "VA"

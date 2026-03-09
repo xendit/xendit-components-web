@@ -12,7 +12,10 @@ import { ActionIframe } from "../../components/action-iframe";
 import { ActionQr } from "../../components/action-qr";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
+import { ActionVa } from "../../components/action-va";
 import { makeTestPollResponse } from "../../data/test-data-modifiers";
+import { ActionEmptyListPushNotification } from "../../components/action-empty-list-push-notification";
+import { ActionDeepLink } from "../../components/action-deep-link";
 
 abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
@@ -92,6 +95,18 @@ abstract class ContainerActionBehavior implements Behavior {
     }
   }
 
+  updateActionContainerBrandColor() {
+    assert(this.bb.channel);
+
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+    if (container) {
+      container.style.setProperty(
+        "--xendit-channel-brand-color",
+        this.bb.channel.brand_color,
+      );
+    }
+  }
+
   /**
    * Populates the action container with the provided component.
    * This method handles the common logic of getting the container and rendering the component.
@@ -103,6 +118,8 @@ abstract class ContainerActionBehavior implements Behavior {
         "Trying to populate action container, but it is missing; A default action container should have been created. This is a bug, please contact support.",
       );
     }
+
+    this.updateActionContainerBrandColor();
 
     render(createComponent(), container);
   }
@@ -147,7 +164,10 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
         mock: this.bb.mock,
         onIframeComplete: (event: IframeActionCompleteEvent) => {
           this.cleanupActionContainer(false);
-          this.updateMocksOnIframeCompletion(event.mockStatus === "success");
+
+          const mockResult =
+            event.mockStatus === "success" ? "SUCCESS" : "FAILURE";
+          this.updateMocksOnIframeCompletion(mockResult);
 
           // setting actionCompleted will ensure the action UI isn't shown again
           this.bb.actionCompleted = true;
@@ -160,15 +180,19 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
     );
   }
 
-  updateMocksOnIframeCompletion(success: boolean) {
+  updateMocksOnIframeCompletion(result: "SUCCESS" | "FAILURE") {
     assert(this.bb.world?.paymentEntity);
     if (this.bb.mock) {
       this.bb.dispatchEvent(
         new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, success),
+          makeTestPollResponse(this.bb.world, this.bb.channel, result),
         ),
       );
     }
+  }
+
+  exit() {
+    super.exit();
   }
 }
 
@@ -215,6 +239,156 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.updateMocksOnSimulatePaymentCompletion();
     } else {
+      if (this.bb.sdk.isProdLive()) {
+        // live mode
+        this.bb.pollImmediatelyRequested = true;
+      } else {
+        this.bb.simulatePaymentRequested = true;
+      }
+    }
+  }
+
+  updateMocksOnSimulatePaymentCompletion() {
+    assert(this.bb.world?.paymentEntity);
+    if (this.bb.mock) {
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
+        ),
+      );
+    }
+  }
+
+  exit() {
+    super.exit();
+  }
+}
+
+/**
+ * An empty list of actions means the user has to take some action on their own, like tapping a push notification.
+ */
+export class ActionDeepLinkBehavior extends ContainerActionBehavior {
+  constructor(
+    protected bb: BlackboardType,
+    private actionIndex: string,
+  ) {
+    super(bb);
+  }
+
+  enter() {
+    assert(this.bb.world);
+
+    const deepLinkAction =
+      this.bb.world?.paymentEntity?.entity.actions[Number(this.actionIndex)];
+    assertEquals(deepLinkAction?.type, "REDIRECT_CUSTOMER");
+    assertEquals(deepLinkAction?.descriptor, "DEEPLINK_URL");
+
+    const t = this.bb.sdk.t.bind(this.bb.sdk);
+    const channel = this.bb.channel;
+    assert(channel);
+
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => {
+      return createElement(ActionDeepLink, {
+        t,
+        channel,
+        redirectUrl: deepLinkAction.value,
+      });
+    });
+  }
+
+  exit() {
+    super.exit();
+  }
+}
+
+/**
+ * An empty list of actions means the user has to take some action on their own, like tapping a push notification.
+ */
+export class ActionEmptyListPushNotificationBehavior extends ContainerActionBehavior {
+  constructor(protected bb: BlackboardType) {
+    super(bb);
+  }
+
+  enter() {
+    assert(this.bb.world);
+
+    // Keep this behavior alive even if the payment entity status changes to pending.
+    // Normally, the status would change to pending almost immediently and the action would be closed.
+    // This helps keep it open until the user pays.
+    this.bb.hackyOvoActionLatch = true;
+
+    const t = this.bb.sdk.t.bind(this.bb.sdk);
+    const channel = this.bb.channel;
+    assert(channel);
+
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => {
+      return createElement(ActionEmptyListPushNotification, {
+        t,
+        channel,
+      });
+    });
+
+    if (this.bb.mock) {
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponse(
+            this.bb.world,
+            this.bb.channel,
+            "PENDING_PAYMENT_ENTITY_ONLY",
+          ),
+        ),
+      );
+    }
+  }
+
+  exit() {
+    this.bb.hackyOvoActionLatch = undefined;
+    super.exit();
+  }
+}
+export class ActionVaBehavior extends ContainerActionBehavior {
+  constructor(
+    protected bb: BlackboardType,
+    private actionIndex: string,
+  ) {
+    super(bb);
+  }
+
+  enter() {
+    const vaAction =
+      this.bb.world?.paymentEntity?.entity.actions[Number(this.actionIndex)];
+
+    assertEquals(vaAction?.type, "PRESENT_TO_CUSTOMER");
+    assert(this.bb.world);
+    assert(this.bb.channel);
+
+    const actionVaProps = {
+      amount: this.bb.world.session.amount,
+      channelLogo: this.bb.channel.brand_logo_url,
+      currency: this.bb.world.session.currency,
+      mock: this.bb.mock,
+      onAffirm: this.affirmPayment.bind(this),
+      vaNumber: vaAction.value,
+      merchantName: this.bb.world.business.name ?? "",
+      instructions: vaAction.instructions ?? [],
+      title: vaAction.action_title,
+      t: this.bb.sdk.t.bind(this.bb.sdk),
+    };
+
+    this.cleanupFn = this.ensureHasActionContainer();
+    this.populateActionContainer(() => createElement(ActionVa, actionVaProps));
+  }
+
+  /**
+   * Fired when user affirms they have made the payment by clicking
+   * the affirm button.
+   */
+  affirmPayment() {
+    if (this.bb.mock) {
+      this.updateMocksOnSimulatePaymentCompletion();
+    } else {
       if (this.bb.sdkKey.hostId === "pl") {
         // live mode
         this.bb.pollImmediatelyRequested = true;
@@ -229,7 +403,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.bb.dispatchEvent(
         new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, true),
+          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
         ),
       );
     }

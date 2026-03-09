@@ -195,6 +195,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
             id={dropdownId}
             selectedIndex={dropdownSelectedIndex()}
             options={channelOptions}
+            disabled={channelOptions.length <= 1}
             onChange={onSelectedChannelChange}
             placeholder={t("payment_methods.select_channel_placeholder", {
               groupName: group.label,

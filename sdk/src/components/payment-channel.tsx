@@ -86,11 +86,6 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
     );
   };
 
-  if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
-    // clear all contents if the sdk crashes or if the component is still mounted after completion or failure
-    return null;
-  }
-
   return (
     <ChannelContext.Provider value={resolvedChannel}>
       <ChannelComponentDataContext.Provider value={channelData}>
@@ -136,6 +131,11 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
 };
 
 const Banner: FunctionComponent<{ banner: BffChannelBanner }> = (props) => {
+  const aspectRatio =
+    typeof props.banner.aspect_ratio === "number"
+      ? String(props.banner.aspect_ratio) // passing aspectRatio as a number does not work
+      : undefined;
+
   if (props.banner?.link_url) {
     return (
       <a href={props.banner.link_url} target="_blank" rel="noopener noreferrer">
@@ -144,7 +144,7 @@ const Banner: FunctionComponent<{ banner: BffChannelBanner }> = (props) => {
           alt={props.banner.alt_text}
           className="xendit-payment-channel-banner"
           style={{
-            aspectRatio: String(props.banner.aspect_ratio),
+            aspectRatio,
           }}
         />
       </a>
@@ -157,7 +157,7 @@ const Banner: FunctionComponent<{ banner: BffChannelBanner }> = (props) => {
       alt={props.banner.alt_text}
       className="xendit-payment-channel-banner"
       style={{
-        aspectRatio: String(props.banner.aspect_ratio),
+        aspectRatio,
       }}
     />
   );

@@ -112,7 +112,6 @@ export async function* retryLoop(mult: number, tries: number, base = 2) {
 }
 
 export function redirectCanBeHandledInIframe(action: BffAction): boolean {
-  // TODO: return a flag for this from the backend
   if (action.type !== "REDIRECT_CUSTOMER") {
     return false;
   }
@@ -126,10 +125,7 @@ export function redirectCanBeHandledInIframe(action: BffAction): boolean {
 /**
  * Return the first action in the list that we understand.
  */
-export function findBestAction(actions: BffAction[]): BffAction {
-  if (!actions.length) {
-    throw new Error("Cannot search the actions list because it's empty.");
-  }
+export function findBestAction(actions: BffAction[]): BffAction | undefined {
   const best = actions.find((a) => {
     switch (a.type) {
       case "REDIRECT_CUSTOMER": {
@@ -515,6 +511,26 @@ const RELEASED_CHANNELS: Record<string, boolean> = {
   QR_PH: true,
   PROMPTPAY: true,
   SGQR: true,
+  // ALIPAY: true,
+  // APPOTA: true,
+  // ASTRAPAY: true,
+  // DANA: true,
+  // GCASH: true,
+  // GRABPAY: true,
+  // JENIUSPAY: true,
+  // LINEPAY: true,
+  // LINKAJA: true,
+  // NEXCASH: true,
+  // OVO: true,
+  // PAYMAYA: true,
+  // SHOPEEPAY: true,
+  // TOUCHNGO: true,
+  // TRUEMONEY: true,
+  // VNPTWALLET: true,
+  // WECHATPAY: true,
+  // ZALOPAY: true,
+  // GOPAY: true,
+  // GOPAY_RECURRING: true,
 };
 
 // filter out channels not supported by this SDK version

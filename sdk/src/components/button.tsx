@@ -7,6 +7,11 @@ export enum ButtonVariant {
   WHITE_ROUNDED = "white-rounded",
 }
 
+export enum ButtonSize {
+  SM = "sm",
+  MD = "md",
+}
+
 type Props = {
   children: ComponentChildren;
   className?: string;
@@ -14,16 +19,22 @@ type Props = {
   onClick?: (event: MouseEvent) => void;
   type?: "button" | "submit" | "reset";
   variant: ButtonVariant;
+  size?: ButtonSize;
 };
 
 export const Button: FunctionComponent<Props> = (props) => {
-  const { children, variant, type = "button", ...rest } = props;
+  const { children, variant, size, type = "button", ...rest } = props;
 
   const buttonVariantClass = {
     [ButtonVariant.BARE]: undefined,
     [ButtonVariant.PRIMARY_ROUNDED]: "xendit-button-primary-rounded",
     [ButtonVariant.WHITE_ROUNDED]: "xendit-button-white-rounded",
   }[variant];
+
+  const buttonSizeClass = {
+    [ButtonSize.SM]: "xendit-button-sm",
+    [ButtonSize.MD]: undefined,
+  }[size ?? ButtonSize.MD];
 
   return (
     <button
@@ -32,6 +43,7 @@ export const Button: FunctionComponent<Props> = (props) => {
         props.className,
         "xendit-button",
         buttonVariantClass,
+        buttonSizeClass,
       )}
       type={type}
     >

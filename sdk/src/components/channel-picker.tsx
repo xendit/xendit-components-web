@@ -28,6 +28,8 @@ import {
   makeChannelsByGroupId,
   singleBffChannelToPublic,
 } from "../bff-marshal";
+import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
+import { internal } from "../internal";
 
 type Props = object;
 
@@ -130,14 +132,15 @@ export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
     }
   }, [currentChannel, previewGroupId]);
 
-  if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
-    // clear all contents if the sdk is not initialized or crashes, or if the component is still mounted after completion or failure
-    return null;
-  }
+  // TODO: enable by default when released
+  const digitalWalletSectionEnabled =
+    sdk[internal].options.enableDigitalWallets ?? false;
 
   return (
-    // FIXME: make it work without this extra div
     <div ref={thisRef}>
+      {digitalWalletSectionEnabled ? (
+        <ChannelPickerDigitalWalletSection />
+      ) : null}
       <Accordion>
         {channelUiGroups
           .filter((group) => {

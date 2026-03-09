@@ -53,6 +53,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
     session: testData.session,
     channels: testData.channels,
     channelUiGroups: testData.channel_ui_groups,
+    digitalWallets: testData.digital_wallets ?? null,
     paymentEntity: null,
     sessionTokenRequestId: null,
     succeededChannel: null,
@@ -66,6 +67,8 @@ const mockBlackboard: BlackboardType & { world: object } = {
     cardDetails: null,
     paymentOptions: null,
   },
+  channelIsDigitalWallet: false,
+  instantSubmissionError: null,
   dispatchEvent: () => {
     throw new Error("Should not be called in this test");
   },
@@ -254,6 +257,29 @@ describe("Behavior Tree - Payment Entity", () => {
       SessionActiveBehavior,
       SubmissionBehavior,
       PeFailedBehavior,
+    ]);
+  });
+  it("should give paymentEntity pending behavior", () => {
+    const node = behaviorTreeForSdk({
+      ...mockBlackboard,
+      channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
+      submissionRequested: true,
+      world: {
+        ...mockBlackboard.world,
+        paymentEntity: toPaymentEntity(
+          withPaymentEntityStatus(
+            makeTestPaymentRequest("MOCK_QR", undefined),
+            "PENDING",
+          ),
+        ),
+        sessionTokenRequestId: randomUUID(),
+      },
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      SubmissionBehavior,
+      PePendingBehavior,
     ]);
   });
 });

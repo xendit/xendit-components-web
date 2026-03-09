@@ -65,6 +65,8 @@
     "payment_token_status.failed.title": "Không thể thêm phương thức thanh toán",
     "action.payment_confirmation_instructions": "Sau khi bạn đã thanh toán, hãy nhấp nút phía trên để nhận xác nhận thanh toán.",
     "action.payment_made": "Tôi đã thực hiện thanh toán này",
+    "action_va.amount_to_pay": "Số tiền cần thanh toán",
+    "action_va.virtual_account_number": "Số tài khoản định danh (Virtual Account)",
     "action_qr.unable_to_generate": "Không thể tạo mã QR"
   }
 }
