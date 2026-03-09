@@ -43,6 +43,7 @@ jobs:
           # modify README.md
           sed -i.bak "s/VERSION_NUMBER_HERE/$XENDIT_COMPONENTS_VERSION/g" README.md
           rm README.md.bak
+          rm sdk/dist/index-private.d.ts
 
           # publish to npm
           npm publish --no-git-checks

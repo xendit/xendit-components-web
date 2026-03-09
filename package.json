@@ -19,10 +19,7 @@
     "components"
   ],
   "files": [
-    "./sdk/dist/esm/",
-    "./sdk/dist/index.d.ts",
-    "./sdk/dist/index.umd.js",
-    "./sdk/dist/index.umd.js.map",
+    "./sdk/dist/",
     "./README.md",
     "./CHANGELOG.md"
   ],
