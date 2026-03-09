@@ -19,11 +19,7 @@
     "components"
   ],
   "files": [
-    "./sdk/dist/index.umd.js",
-    "./sdk/dist/index.umd.js.map",
-    "./sdk/dist/index.esm.js",
-    "./sdk/dist/index.esm.js.map",
-    "./sdk/dist/index.d.ts",
+    "./sdk/dist/",
     "./README.md",
     "./CHANGELOG.md"
   ],
@@ -31,7 +27,7 @@
   "exports": {
     "import": {
       "types": "./sdk/dist/index.d.ts",
-      "default": "./sdk/dist/index.esm.js"
+      "default": "./sdk/dist/esm/index.js"
     },
     "require": {
       "types": "./sdk/dist/index.d.ts",
