@@ -66,9 +66,35 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
   const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
   const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
+    let cleanedProperties = channelProperties;
+    if (
+      firstMemberChannel.channel_code === "CARDS" &&
+      channelProperties.installment_configuration
+    ) {
+      // for cards installment configuration, we need to remove any properties that have empty string values,
+      // because the presence of those properties causes validation errors, even if the value is an empty string
+      const cleanedInstallmentConfiguration = Object.fromEntries(
+        Object.entries(channelProperties.installment_configuration).filter(
+          ([_, value]) => value !== "",
+        ),
+      );
+      if (Object.keys(cleanedInstallmentConfiguration).length === 0) {
+        // if there are no valid properties left, set installment_configuration to undefined to avoid validation errors
+        cleanedProperties = {
+          ...channelProperties,
+          installment_configuration: undefined,
+        };
+      } else {
+        cleanedProperties = {
+          ...channelProperties,
+          installment_configuration: cleanedInstallmentConfiguration,
+        };
+      }
+    }
+
     const event = new XenditChannelPropertiesChangedEvent(
       firstMemberChannel.channel_code,
-      channelProperties,
+      cleanedProperties,
     );
     divRef.current?.dispatchEvent(event);
   };
