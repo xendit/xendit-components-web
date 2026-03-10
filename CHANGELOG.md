@@ -2,6 +2,12 @@
 
 No unreleased changes.
 
+# 0.0.15
+
+### Bug Fixes
+
+- Fixed a bug where cards eligible for installments fails to pass validation due to empty string as channel property value
+
 # 0.0.14
 
 ### Bug Fixes
