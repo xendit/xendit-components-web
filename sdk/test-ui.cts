@@ -4,7 +4,7 @@ This must be a single file with no imports.
 
 const Xendit =
   // @ts-expect-error (not a real file, this points to the build output)
-  (await import("./esm/index.js")) as typeof import("./src/public-sdk");
+  (await import("./esm-bundled/index.mjs")) as typeof import("./src/public-sdk");
 const { XenditComponents, XenditComponentsTest } = Xendit;
 
 const LOCALSTORAGE_KEY = "test_ui_components_sdk_key";

@@ -25,13 +25,25 @@
   ],
   "types": "./sdk/dist/index.d.ts",
   "exports": {
-    "import": {
-      "types": "./sdk/dist/index.d.ts",
-      "default": "./sdk/dist/esm/index.js"
+    "node": {
+      "import": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/esm-external/index.mjs"
+      },
+      "require": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/cjs/index.cjs"
+      }
     },
-    "require": {
-      "types": "./sdk/dist/index.d.ts",
-      "default": "./sdk/dist/index.umd.js"
+    "browser": {
+      "import": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/esm-bundled/index.mjs"
+      },
+      "require": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/index.umd.js"
+      }
     }
   },
   "scripts": {
