@@ -978,6 +978,11 @@ xendit-payment-channel[inert] {
   flex-direction: column;
   gap: 16px;
 }
+.xendit-action-present-to-customer-affirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .xendit-action-qr-content {
   display: flex;
   flex-direction: column;

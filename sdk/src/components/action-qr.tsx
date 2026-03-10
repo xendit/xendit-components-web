@@ -94,7 +94,7 @@ export function ActionQr(props: Props) {
           {amountFormat(amount, currency)}
         </div>
       </div>
-      <div>
+      <div className="xendit-action-present-to-customer-affirm">
         <Button
           variant={ButtonVariant.WHITE_ROUNDED}
           disabled={showSpinner}
@@ -103,9 +103,9 @@ export function ActionQr(props: Props) {
         >
           {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
         </Button>
-        <p className="xendit-text-12 xendit-text-secondary xendit-text-center">
+        <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
           {t("action.payment_confirmation_instructions")}
-        </p>
+        </div>
       </div>
     </div>
   );
