@@ -208,8 +208,18 @@ function formKvToChannelProperties(
         }
       }
 
+      const getDefaultValue = () => {
+        // for installment fields, the default value is undefined
+        if (subkey.startsWith("installment_configuration")) {
+          return undefined;
+        }
+        return "";
+      };
+
       // assign next value to channel properties
-      const nextValue = valueAsArray.length ? valueAsArray.shift() : "";
+      const nextValue = valueAsArray.length
+        ? valueAsArray.shift()
+        : getDefaultValue();
       cursor[parts[0]] = nextValue;
     }
   }
