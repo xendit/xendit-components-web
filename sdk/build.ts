@@ -77,7 +77,7 @@ function rollupConfig(
 ): rollup.RollupOptions {
   return {
     input: path.join(import.meta.dirname, "./src/index.ts"),
-    preserveEntrySignatures: "strict",
+    preserveEntrySignatures: "allow-extension",
     external: function (id: string) {
       return !browser && id.startsWith(absoluteNodeModulesPath);
     },

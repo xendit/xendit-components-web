@@ -9,7 +9,7 @@ export default tseslint.config(
   tseslint.configs.recommended,
   reactHooks.configs.flat["recommended-latest"],
   {
-    ignores: ["**/dist", "temp-dts", "node_modules"],
+    ignores: ["**/dist", "temp-dts", "node_modules", "build-test"],
   },
   {
     rules: {
