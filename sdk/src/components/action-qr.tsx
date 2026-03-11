@@ -11,7 +11,6 @@ type Props = {
   channelLogo: string;
   currency: string;
   hideUi: boolean;
-  mock: boolean;
   onAffirm: () => void;
   qrString: string;
   title: string;
@@ -24,7 +23,6 @@ export function ActionQr(props: Props) {
     businessName,
     channelLogo,
     currency,
-    mock,
     onAffirm,
     qrString,
     title,
@@ -35,12 +33,8 @@ export function ActionQr(props: Props) {
 
   const onMadePaymentClicked = useCallback(() => {
     setShowSpinner(true);
-
-    if (mock) {
-      onAffirm();
-      return;
-    }
-  }, [mock, onAffirm]);
+    onAffirm();
+  }, [onAffirm]);
 
   const svgNode = useMemo(() => {
     try {

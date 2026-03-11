@@ -220,7 +220,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
-      mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,
       title: qrAction.action_subtitle,
@@ -245,6 +244,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       } else {
         this.bb.simulatePaymentRequested = true;
       }
+      this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
     }
   }
 
@@ -389,12 +389,13 @@ export class ActionVaBehavior extends ContainerActionBehavior {
     if (this.bb.mock) {
       this.updateMocksOnSimulatePaymentCompletion();
     } else {
-      if (this.bb.sdkKey.hostId === "pl") {
+      if (this.bb.sdk.isProdLive()) {
         // live mode
         this.bb.pollImmediatelyRequested = true;
       } else {
         this.bb.simulatePaymentRequested = true;
       }
+      this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
     }
   }
 
