@@ -17,7 +17,6 @@ type Props = {
   amount: number;
   channelLogo: string;
   currency: string;
-  mock: boolean;
   onAffirm: () => void;
   vaNumber: string;
   merchantName: string;
@@ -31,7 +30,6 @@ export function ActionVa(props: Props) {
     amount,
     channelLogo,
     currency,
-    mock,
     onAffirm,
     vaNumber,
     merchantName,
@@ -44,12 +42,8 @@ export function ActionVa(props: Props) {
 
   const onMadePaymentClicked = useCallback(() => {
     setShowSpinner(true);
-
-    if (mock) {
-      onAffirm();
-      return;
-    }
-  }, [mock, onAffirm]);
+    onAffirm();
+  }, [onAffirm]);
 
   const vaDetails = [
     {
@@ -98,7 +92,7 @@ export function ActionVa(props: Props) {
           ))}
         </div>
       </div>
-      <div>
+      <div className="xendit-action-present-to-customer-affirm">
         <Button
           variant={ButtonVariant.WHITE_ROUNDED}
           disabled={showSpinner}
@@ -107,9 +101,9 @@ export function ActionVa(props: Props) {
         >
           {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
         </Button>
-        <p className="xendit-text-12 xendit-text-secondary xendit-text-center">
+        <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
           {t("action.payment_confirmation_instructions")}
-        </p>
+        </div>
       </div>
       <Instructions instructions={instructions} />
     </div>

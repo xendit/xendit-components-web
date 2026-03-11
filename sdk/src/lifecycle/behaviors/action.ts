@@ -368,7 +368,6 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
-      mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
