@@ -235,28 +235,13 @@ export class ActionQrBehavior extends ContainerActionBehavior {
    * the affirm button.
    */
   affirmPayment() {
-    if (this.bb.mock) {
-      this.updateMocksOnSimulatePaymentCompletion();
+    if (this.bb.sdk.isProdLive()) {
+      // live mode
+      this.bb.pollImmediatelyRequested = true;
     } else {
-      if (this.bb.sdk.isProdLive()) {
-        // live mode
-        this.bb.pollImmediatelyRequested = true;
-      } else {
-        this.bb.simulatePaymentRequested = true;
-      }
-      this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+      this.bb.simulatePaymentRequested = true;
     }
-  }
-
-  updateMocksOnSimulatePaymentCompletion() {
-    assert(this.bb.world?.paymentEntity);
-    if (this.bb.mock) {
-      this.bb.dispatchEvent(
-        new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
-        ),
-      );
-    }
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 
   exit() {
@@ -385,27 +370,12 @@ export class ActionVaBehavior extends ContainerActionBehavior {
    * the affirm button.
    */
   affirmPayment() {
-    if (this.bb.mock) {
-      this.updateMocksOnSimulatePaymentCompletion();
+    if (this.bb.sdk.isProdLive()) {
+      // live mode
+      this.bb.pollImmediatelyRequested = true;
     } else {
-      if (this.bb.sdk.isProdLive()) {
-        // live mode
-        this.bb.pollImmediatelyRequested = true;
-      } else {
-        this.bb.simulatePaymentRequested = true;
-      }
-      this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+      this.bb.simulatePaymentRequested = true;
     }
-  }
-
-  updateMocksOnSimulatePaymentCompletion() {
-    assert(this.bb.world?.paymentEntity);
-    if (this.bb.mock) {
-      this.bb.dispatchEvent(
-        new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
-        ),
-      );
-    }
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 }

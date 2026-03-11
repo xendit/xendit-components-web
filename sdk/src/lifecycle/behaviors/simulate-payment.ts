@@ -77,9 +77,6 @@ export class SimulatePaymentBehavior implements Behavior {
       abortController.signal,
     )
       .then(() => {
-        // close the action while we wait for the payment entity to update
-        this.bb.actionCompleted = true;
-
         if (this.bb.mock && this.bb.world) {
           // in mock mode, trigger transition to success state
           this.bb.dispatchEvent(

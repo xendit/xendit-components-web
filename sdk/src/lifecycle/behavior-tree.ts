@@ -260,10 +260,6 @@ export function behaviorTreeForAction(bb: BlackboardType) {
     return behaviorNode(ActionCompletedBehavior);
   }
 
-  if (bb.simulatePaymentRequested) {
-    return behaviorNode(SimulatePaymentBehavior); // TODO: simulate action should be run in parallel with action behavior
-  }
-
   const action = findBestAction(bb.world.paymentEntity.entity.actions);
 
   if (!action) {
@@ -295,9 +291,18 @@ export function behaviorTreeForAction(bb: BlackboardType) {
       break;
     }
     case "PRESENT_TO_CUSTOMER": {
+      // adds simulate payment behavior as a child of the action behavior so that when simulate payment is requested, it will run the simulate payment behavior while keeping the action UI open until the payment entity updates
+      let simulateBehavior = undefined;
+      if (bb.simulatePaymentRequested) {
+        simulateBehavior = behaviorNode(SimulatePaymentBehavior);
+      }
       switch (action.descriptor) {
         case "QR_STRING": {
-          return behaviorNode(ActionQrBehavior, String(actionIndex));
+          return behaviorNode(
+            ActionQrBehavior,
+            String(actionIndex),
+            simulateBehavior,
+          );
         }
         case "PAYMENT_CODE": {
           throw new Error(
@@ -305,7 +310,11 @@ export function behaviorTreeForAction(bb: BlackboardType) {
           );
         }
         case "VIRTUAL_ACCOUNT_NUMBER": {
-          return behaviorNode(ActionVaBehavior, String(actionIndex));
+          return behaviorNode(
+            ActionVaBehavior,
+            String(actionIndex),
+            simulateBehavior,
+          );
         }
       }
       break;
