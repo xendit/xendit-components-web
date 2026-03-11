@@ -64,15 +64,18 @@ export type BffChannel = {
   _mock_action_type?: MockActionType;
 };
 
-export type MockActionType =
+export type MockActionTypeSingle =
   | "IFRAME"
   | "REDIRECT"
+  | "PAYLINK"
   | "DEEP_LINK"
   | "PUSH_NOTIFICATION"
   | "QR"
   | "BARCODE"
   | "VA"
   | "PENDING";
+
+export type MockActionType = MockActionTypeSingle | MockActionTypeSingle[];
 
 export type BffChannelBanner = {
   /** Banner image URL */

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { behaviorNode, BehaviorTree } from "./behavior-tree-runner";
+import {
+  behaviorNode,
+  BehaviorNodeSingle,
+  BehaviorTree,
+} from "./behavior-tree-runner";
 import { assert } from "../utils";
 
 type BB = {
@@ -73,7 +77,7 @@ function testBehaviorTree(bb: BB) {
     case "INFINITE_RECURSION": {
       // case with a different single node
       const node = behaviorNode(TestBehavior);
-      node.child = node;
+      (node as BehaviorNodeSingle<BB>).child = node;
       return node;
     }
     default:

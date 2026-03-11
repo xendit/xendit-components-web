@@ -1,4 +1,8 @@
-import { BffChannel, MockActionType } from "../backend-types/channel";
+import {
+  BffChannel,
+  MockActionType,
+  MockActionTypeSingle,
+} from "../backend-types/channel";
 import { BffPollResponse } from "../backend-types/common";
 import {
   BffAction,
@@ -222,13 +226,17 @@ export function makeMockActions(
   mockActionType: MockActionType | undefined,
 ): BffAction[] {
   if (!mockActionType) return [];
-  const mockAction = makeOneMockAction(mockActionType);
-  if (mockAction === null) return [];
-  return [mockAction];
+  const mockActionArray = Array.isArray(mockActionType)
+    ? mockActionType
+    : [mockActionType];
+  const mockActions = mockActionArray
+    .map((actionType) => makeOneMockAction(actionType))
+    .filter((action) => action !== null);
+  return mockActions;
 }
 
 export function makeOneMockAction(
-  mockActionType: MockActionType,
+  mockActionType: MockActionTypeSingle,
 ): BffAction | null {
   if (mockActionType === "PENDING") {
     throw new Error("PENDING mock action type should not generate an action");
@@ -248,6 +256,12 @@ export function makeOneMockAction(
         descriptor: "WEB_URL",
         value: "https://example.com/redirect",
         iframe_capable: false,
+      };
+    case "PAYLINK":
+      return {
+        type: "REDIRECT_CUSTOMER",
+        descriptor: "WEB_GOOGLE_PAYLINK",
+        value: "https://example.com/paylink",
       };
     case "DEEP_LINK":
       return {

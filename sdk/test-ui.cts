@@ -113,11 +113,13 @@ if (savedKey) {
     componentsSdkKey: savedKey,
     iframeFieldAppearance,
     enableDigitalWallets: true,
+    enablePaylinks: true,
   });
 } else {
   components = new XenditComponentsTest({
     iframeFieldAppearance,
     enableDigitalWallets: true,
+    enablePaylinks: true,
   });
 }
 
@@ -190,10 +192,16 @@ setInterval(() => {
   );
 }, 50);
 
-type TreeNode = { impl: { name: string }; child: TreeNode } | null | undefined;
+type TreeNodeSingle = { impl: { name: string }; child: TreeNode };
+type TreeNode = TreeNodeSingle | (TreeNodeSingle | undefined)[] | undefined;
 function stringifyBehaviorTree(tree: TreeNode, depth: number): string {
   if (!tree) {
     return "";
+  }
+  if (Array.isArray(tree)) {
+    return tree
+      .map((child) => stringifyBehaviorTree(child, depth + 1))
+      .join("");
   }
   return (
     "-".repeat(depth) +

@@ -13,7 +13,7 @@ import {
   SessionFailedBehavior,
 } from "./behaviors/session";
 import { BffSessionStatus } from "../backend-types/session";
-import { BehaviorNode } from "./behavior-tree-runner";
+import { BehaviorNode, flattenBehaviors } from "./behavior-tree-runner";
 import { BffChannel } from "../backend-types/channel";
 import {
   ChannelInvalidBehavior,
@@ -40,12 +40,17 @@ import {
   withPaymentEntityStatus,
 } from "../data/test-data-modifiers";
 import { PaymentOptionsBehavior } from "./behaviors/payment-options";
+import { internal } from "../internal";
 
 const testData = makeTestBffData();
 
 const mockBlackboard: BlackboardType & { world: object } = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sdk: {} as any,
+  sdk: {
+    [internal]: {
+      options: {},
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
   mock: true,
   sdkKey: parseSdkKey(makeTestSdkKey()),
   world: {
@@ -104,19 +109,11 @@ function findChannel(channels: BffChannel[], channelCode: string) {
 }
 
 function assertHasNodes(node: BehaviorNode<BlackboardType>, nodes: unknown[]) {
-  let cursor = node;
-  let i = 0;
-  while (true) {
-    expect(i).toBeLessThan(nodes.length);
-    expect(cursor.impl).toBe(nodes[i]);
-    i += 1;
-    if (cursor.child) {
-      cursor = cursor.child;
-    } else {
-      break;
-    }
+  const flattened = flattenBehaviors(node);
+  expect(flattened.length).toBe(nodes.length);
+  for (let i = 0; i < nodes.length; i++) {
+    expect(flattened[i].impl).toBe(nodes[i]);
   }
-  expect(i).toBe(nodes.length);
 }
 
 describe("Behavior Tree - SDK states", () => {
@@ -191,9 +188,9 @@ describe("Behavior Tree - Form validity and card info", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
-      PaymentOptionsBehavior,
-      CardInfoBehavior,
       ChannelInvalidBehavior,
+      CardInfoBehavior,
+      PaymentOptionsBehavior,
     ]);
   });
 });

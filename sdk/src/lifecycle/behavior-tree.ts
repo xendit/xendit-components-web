@@ -9,6 +9,7 @@ import {
 import {
   canBeSimulated,
   findBestAction,
+  findPaylinkAction,
   formHasFieldOfType,
   ParsedSdkKey,
   redirectCanBeHandledInIframe,
@@ -24,6 +25,7 @@ import {
   ActionRedirectBehavior,
   ActionVaBehavior,
 } from "./behaviors/action";
+import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
 import { CardInfoBehavior } from "./behaviors/card-info";
 import {
   ChannelInvalidBehavior,
@@ -163,23 +165,25 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     bb.channelData,
   );
 
-  let result = channelPropertiesValid
+  const validityBehavior = channelPropertiesValid
     ? behaviorNode(ChannelValidBehavior)
     : behaviorNode(ChannelInvalidBehavior);
 
-  if (formHasFieldOfType(bb.channel.form, "credit_card_number")) {
-    result = behaviorNode(CardInfoBehavior, bb.channel.channel_code, result);
-  }
+  const cardInfoBehavior = formHasFieldOfType(
+    bb.channel.form,
+    "credit_card_number",
+  )
+    ? behaviorNode(CardInfoBehavior, bb.channel.channel_code)
+    : undefined;
 
-  if (formHasFieldOfType(bb.channel.form, "installment_plan")) {
-    result = behaviorNode(
-      PaymentOptionsBehavior,
-      bb.channel.channel_code,
-      result,
-    );
-  }
+  const paymentOptionsBehavior = formHasFieldOfType(
+    bb.channel.form,
+    "installment_plan",
+  )
+    ? behaviorNode(PaymentOptionsBehavior, bb.channel.channel_code)
+    : undefined;
 
-  return result;
+  return [validityBehavior, cardInfoBehavior, paymentOptionsBehavior];
 }
 
 export function behaviorTreeForSubmission(bb: BlackboardType) {
@@ -203,17 +207,23 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
     );
   }
 
+  const paylinkAction = findPaylinkAction(
+    bb.sdk,
+    bb.world.paymentEntity.entity.actions,
+  )
+    ? behaviorTreeForPaylink(bb)
+    : undefined;
+
   if (
     bb.hackyOvoActionLatch &&
     bb.world.paymentEntity.entity.status === "PENDING"
   ) {
     // In ovo and jeniuspay, the REQUIRES_ACTION status changes to PENDING almost immediately, causing the instructions to the user to close.
     // We need to keep this behavior alive until the status changes to something other than PENDING.
-    return behaviorNode(
-      PeRequiresActionBehavior,
-      bb.world.paymentEntity.id,
+    return behaviorNode(PeRequiresActionBehavior, bb.world.paymentEntity.id, [
       behaviorNode(ActionEmptyListPushNotificationBehavior, ""),
-    );
+      paylinkAction,
+    ]);
   }
 
   switch (bb.world.paymentEntity.entity.status) {
@@ -221,11 +231,10 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
       return behaviorNode(PePendingBehavior);
     }
     case "REQUIRES_ACTION": {
-      return behaviorNode(
-        PeRequiresActionBehavior,
-        bb.world.paymentEntity.id,
+      return behaviorNode(PeRequiresActionBehavior, bb.world.paymentEntity.id, [
         behaviorTreeForAction(bb),
-      );
+        paylinkAction,
+      ]);
     }
     case "FAILED":
     case "EXPIRED":
@@ -269,6 +278,10 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   }
 
   const actionIndex = bb.world.paymentEntity.entity.actions.indexOf(action);
+  const hasPaylink = !!findPaylinkAction(
+    bb.sdk,
+    bb.world.paymentEntity.entity.actions,
+  );
 
   // adds simulate payment behavior as a child of the action behavior so that when
   // simulate payment is requested, it will run the simulate payment behavior while
@@ -284,6 +297,8 @@ export function behaviorTreeForAction(bb: BlackboardType) {
         case "WEB_URL": {
           if (redirectCanBeHandledInIframe(action)) {
             return behaviorNode(ActionIframeBehavior, action.value);
+          } else if (hasPaylink) {
+            return behaviorNode(ActionDeepLinkBehavior, String(actionIndex));
           } else {
             return behaviorNode(ActionRedirectBehavior, action.value);
           }
@@ -348,4 +363,22 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   throw new Error(
     `Unknown action type: ${(action as BffAction).type} ${(action as BffAction).descriptor}`,
   );
+}
+
+function behaviorTreeForPaylink(bb: BlackboardType) {
+  if (!bb.world?.paymentEntity) {
+    throw new Error("Payment entity is missing");
+  }
+
+  const paylinkAction = findPaylinkAction(
+    bb.sdk,
+    bb.world.paymentEntity.entity.actions,
+  );
+  if (!paylinkAction) {
+    throw new Error("Paylink action is missing");
+  }
+
+  const actionIndex =
+    bb.world.paymentEntity.entity.actions.indexOf(paylinkAction);
+  return behaviorNode(ActionPaylinkBehavior, String(actionIndex));
 }
