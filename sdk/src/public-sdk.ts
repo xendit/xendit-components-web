@@ -77,6 +77,7 @@ import {
 import {
   canBeSimulated,
   errorToString,
+  findBestAction,
   lockDownInteralProperty,
   mergeIgnoringUndefined,
   MOCK_NETWORK_DELAY_MS,
@@ -1387,9 +1388,10 @@ export class XenditComponents extends EventTarget {
       );
     }
 
-    if (!canBeSimulated(channel)) {
+    const action = findBestAction(paymentEntity.entity.actions);
+    if (!action || !canBeSimulated(action)) {
       throw new Error(
-        "Unable to simulate payment; the payment channel does not support simulation.",
+        "Unable to simulate payment; the action does not support simulation.",
       );
     }
 

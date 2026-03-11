@@ -7,6 +7,7 @@ import {
   XenditComponents,
 } from "../public-sdk";
 import {
+  canBeSimulated,
   findBestAction,
   formHasFieldOfType,
   ParsedSdkKey,
@@ -269,6 +270,14 @@ export function behaviorTreeForAction(bb: BlackboardType) {
 
   const actionIndex = bb.world.paymentEntity.entity.actions.indexOf(action);
 
+  // adds simulate payment behavior as a child of the action behavior so that when
+  // simulate payment is requested, it will run the simulate payment behavior while
+  // keeping the action UI open until the payment entity updates
+  let simulateBehavior = undefined;
+  if (bb.simulatePaymentRequested && canBeSimulated(action)) {
+    simulateBehavior = behaviorNode(SimulatePaymentBehavior);
+  }
+
   switch (action.type) {
     case "REDIRECT_CUSTOMER": {
       switch (action.descriptor) {
@@ -291,11 +300,6 @@ export function behaviorTreeForAction(bb: BlackboardType) {
       break;
     }
     case "PRESENT_TO_CUSTOMER": {
-      // adds simulate payment behavior as a child of the action behavior so that when simulate payment is requested, it will run the simulate payment behavior while keeping the action UI open until the payment entity updates
-      let simulateBehavior = undefined;
-      if (bb.simulatePaymentRequested) {
-        simulateBehavior = behaviorNode(SimulatePaymentBehavior);
-      }
       switch (action.descriptor) {
         case "QR_STRING": {
           return behaviorNode(
