@@ -1,7 +1,7 @@
 import { TFunction } from "../localization";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import qrcode from "qrcode";
-import qrSvgRenderer from "qrcode/lib/renderer/svg-tag";
+import qrSvgRenderer from "qrcode/lib/renderer/svg-tag.js";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./button";
 
