@@ -311,11 +311,9 @@ export function useIdSafe(): string {
   return `xendit-id-${id.current}`;
 }
 
-export function canBeSimulated(channel: BffChannel): boolean {
-  switch (channel.pm_type) {
-    case "QR_CODE":
-    case "VIRTUAL_ACCOUNT":
-    case "OVER_THE_COUNTER":
+export function canBeSimulated(action: BffAction): boolean {
+  switch (action.type) {
+    case "PRESENT_TO_CUSTOMER":
       return true;
     default:
       return false;

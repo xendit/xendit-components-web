@@ -31,6 +31,7 @@ import {
 import {
   ActionCompletedBehavior,
   ActionIframeBehavior,
+  ActionQrBehavior,
 } from "./behaviors/action";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import {
@@ -315,9 +316,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       simulatePaymentRequested: true,
       world: {
         ...mockBlackboard.world,
-        paymentEntity: toPaymentEntity(
-          makeTestPaymentRequest("MOCK_QR", "IFRAME"),
-        ),
+        paymentEntity: toPaymentEntity(makeTestPaymentRequest("MOCK_QR", "QR")),
         sessionTokenRequestId: randomUUID(),
       },
     });
@@ -326,6 +325,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       SessionActiveBehavior,
       SubmissionBehavior,
       PeRequiresActionBehavior,
+      ActionQrBehavior,
       SimulatePaymentBehavior,
     ]);
   });
