@@ -95,10 +95,12 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
 
     const getSimulationScenarios = useCallback(
       (fieldGroup: ChannelFormField[]): Scenarios | null => {
+        // only show simulation scenarios for prod-dev (test mode)
         if (sdk[internal].sdkKey.hostId !== "pd") {
           return null;
         }
 
+        // only show simulation scenarios for cards channel and if the field group has a credit card number field
         if (
           channel?.channel_code === "CARDS" &&
           fieldGroup.some((field) => field.type.name === "credit_card_number")

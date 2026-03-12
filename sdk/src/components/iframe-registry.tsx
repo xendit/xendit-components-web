@@ -17,6 +17,10 @@ interface IframeRegistry {
   postMessageToIframe: (fieldName: string, message: IframeEvent) => void;
 }
 
+/**
+ * Context to keep track of iframes rendered in the form, allowing other components
+ * to post messages to these iframes without needing direct access to their refs.
+ */
 export const IframeRegistryContext = createContext<IframeRegistry | null>(null);
 
 // read iframe data from environment variable
