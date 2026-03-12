@@ -220,5 +220,5 @@ export const CARDS_SCENARIOS: Scenarios = {
       },
     },
   ],
-  docsLink: "https://docs.xendit.co/docs/testing-card-payments",
+  docsLink: "https://docs.xendit.co/docs/cards-simulate-card-scenarios",
 };
