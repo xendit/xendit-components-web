@@ -19,7 +19,7 @@ import { useChannel, useChannelComponentData } from "./payment-channel";
 import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
 import { internal } from "../internal";
-import { CREDIT_CARD_SCENARIOS, Scenarios } from "../data/simulation-scenarios";
+import { CARDS_SCENARIOS, Scenarios } from "../data/simulation-scenarios";
 
 interface Props {
   form: ChannelFormField[];
@@ -103,7 +103,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
           channel?.channel_code === "CARDS" &&
           fieldGroup.some((field) => field.type.name === "credit_card_number")
         ) {
-          return CREDIT_CARD_SCENARIOS;
+          return CARDS_SCENARIOS;
         }
 
         return null;

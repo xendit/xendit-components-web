@@ -46,13 +46,19 @@ type IframeActionCompleteEvent = {
   mockStatus?: "success" | "fail";
 };
 
+type IframePopulateForSimulationEvent = {
+  type: "xendit-iframe-populate-for-simulation";
+  scenario: string;
+};
+
 export type IframeEvent =
   | IframeChangeEvent
   | IframeReadyEvent
   | IframeFocusEvent
   | IframeBlurEvent
   | IframeFailedInitEvent
-  | IframeActionCompleteEvent;
+  | IframeActionCompleteEvent
+  | IframePopulateForSimulationEvent;
 
 export type IframeFieldType =
   | "credit_card_number"

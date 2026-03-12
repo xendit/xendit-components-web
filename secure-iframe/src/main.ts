@@ -13,6 +13,7 @@ import {
   applyPlaceholderStyles,
 } from "./css-sanitizer";
 import { assertIsSecureInputEvent } from "./events";
+import { simulationScenarios } from "./simulation";
 import {
   createFatalErrorComponent,
   createInputElement,
@@ -221,6 +222,14 @@ export async function main() {
     const data = event.data as IframeEvent;
     if (data.type === "xendit-iframe-focus") {
       input.focus();
+    }
+    if (data.type === "xendit-iframe-populate-for-simulation") {
+      const value =
+        simulationScenarios.find((scenario) => scenario.name === data.scenario)
+          ?.values?.[queryInputs.inputType] ?? "";
+      console.log(value);
+      input.value = value;
+      handleChangeEvent(input.value).catch(fatalError);
     }
   });
 }

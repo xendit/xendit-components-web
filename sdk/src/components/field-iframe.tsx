@@ -1,4 +1,10 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
 import { CardBrand, IframeEvent } from "../../../shared/types";
@@ -8,6 +14,7 @@ import { internal } from "../internal";
 import { assert, formFieldId, formFieldName } from "../utils";
 import { FunctionComponent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { IframeRegistryContext } from "./iframe-registry";
 
 // read iframe data from environment variable
 assert(process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL);
@@ -141,6 +148,12 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
       window.removeEventListener("message", handleEventFromIframe);
     };
   }, [handleEventFromIframe]);
+
+  const registry = useContext(IframeRegistryContext);
+  useLayoutEffect(() => {
+    registry?.registerIframe(name, iframeRef);
+    return () => registry?.unregisterIframe(name);
+  }, [name, registry]);
 
   const iframeUrl = new URL(IFRAME_SRC);
   iframeUrl.searchParams.set("input_type", field.type.name);

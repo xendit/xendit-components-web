@@ -5,7 +5,7 @@ import { Dropdown } from "./dropdown";
 
 interface Props {
   scenarios: Scenarios;
-  onSelect: (values: { [key: string]: string }) => void;
+  onSelect: (scenarioName: string) => void;
   children: ComponentChildren;
 }
 
@@ -13,7 +13,7 @@ const FormSimulationHelperContext = createContext<{
   open: boolean;
   setOpen: (open: boolean) => void;
   scenarios: Scenarios;
-  onSelect: (values: { [key: string]: string }) => void;
+  onSelect: (scenarioName: string) => void;
 } | null>(null);
 
 export const FormSimulationHelper: FunctionComponent<Props> = ({
@@ -81,7 +81,7 @@ export const FormSimulationHelperPopover: FunctionComponent = () => {
             (scenario) => scenario.description === option.value,
           );
           if (selectedScenario) {
-            onSelect?.(selectedScenario.values);
+            onSelect?.(selectedScenario.name);
           }
         }}
         placeholder="Select a scenario"
