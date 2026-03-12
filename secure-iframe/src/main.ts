@@ -227,7 +227,6 @@ export async function main() {
       const value =
         simulationScenarios.find((scenario) => scenario.name === data.scenario)
           ?.values?.[queryInputs.inputType] ?? "";
-      console.log(value);
       input.value = value;
       handleChangeEvent(input.value).catch(fatalError);
     }
