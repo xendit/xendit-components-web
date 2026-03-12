@@ -5,7 +5,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_visa",
   },
   {
     values: {
@@ -13,7 +13,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_frictionless_authentication_is_successful",
+    name: "3_ds_frictionless_authentication_is_successful_visa",
   },
   {
     values: {
@@ -21,7 +21,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_mastercard",
   },
   {
     values: {
@@ -29,7 +29,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_frictionless_authentication_is_successful",
+    name: "3_ds_frictionless_authentication_is_successful_mastercard",
   },
   {
     values: {
@@ -37,7 +37,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+    name: "3_ds_challenge_with_list_of_simulated_options_visa",
   },
   {
     values: {
@@ -45,7 +45,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_frictionless_authentication_is_successful",
+    name: "3_ds_frictionless_authentication_is_successful_visa2",
   },
   {
     values: {
@@ -53,7 +53,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+    name: "3_ds_challenge_with_list_of_simulated_options_mastercard",
   },
   {
     values: {
@@ -61,7 +61,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_frictionless_authentication_is_successful",
+    name: "3_ds_frictionless_authentication_is_successful_mastercard2",
   },
   {
     values: {
@@ -69,7 +69,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_visa",
   },
   {
     values: {
@@ -77,7 +77,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+    name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_mastercard",
   },
   {
     values: {
@@ -85,7 +85,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "failing_transaction",
+    name: "failing_transaction_visa",
   },
   {
     values: {
@@ -93,7 +93,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "123",
     },
-    name: "failing_transaction",
+    name: "failing_transaction_mastercard",
   },
   {
     values: {
@@ -117,7 +117,7 @@ export const simulationScenarios = [
       credit_card_expiry: "12/99",
       credit_card_cvn: "1234",
     },
-    name: "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn",
+    name: "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn2",
   },
   {
     values: {

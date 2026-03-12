@@ -18,154 +18,156 @@ export const CARDS_SCENARIOS: Scenarios = {
       imageUrl: "https://assets.xendit.co/payment-session/logos/VISA.svg",
       description:
         "3DS Challenge, authentication is successful if OTP is correct.",
-      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_visa",
       values: {
         "card_details.card_number":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_visa",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_visa",
         "card_details.cvn":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_visa",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/VISA.svg",
       description: "3DS Frictionless, authentication is successful.",
-      name: "3_ds_frictionless_authentication_is_successful",
+      name: "3_ds_frictionless_authentication_is_successful_visa",
       values: {
         "card_details.card_number":
-          "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_visa",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_frictionless_authentication_is_successful",
-        "card_details.cvn": "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_visa",
+        "card_details.cvn":
+          "3_ds_frictionless_authentication_is_successful_visa",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
       description:
         "3DS Challenge, authentication is successful if OTP is correct.",
-      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_mastercard",
       values: {
         "card_details.card_number":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_mastercard",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_mastercard",
         "card_details.cvn":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_mastercard",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
       description: "3DS Frictionless, authentication is successful.",
-      name: "3_ds_frictionless_authentication_is_successful",
+      name: "3_ds_frictionless_authentication_is_successful_mastercard",
       values: {
         "card_details.card_number":
-          "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_mastercard",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_frictionless_authentication_is_successful",
-        "card_details.cvn": "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_mastercard",
+        "card_details.cvn":
+          "3_ds_frictionless_authentication_is_successful_mastercard",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/VISA.svg",
-      description:
-        "3DS Challenge, see list of simulated options on the next table.",
-      name: "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+      description: "3DS Challenge, with list of simulated options.",
+      name: "3_ds_challenge_with_list_of_simulated_options_visa",
       values: {
         "card_details.card_number":
-          "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+          "3_ds_challenge_with_list_of_simulated_options_visa",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+          "3_ds_challenge_with_list_of_simulated_options_visa",
         "card_details.cvn":
-          "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+          "3_ds_challenge_with_list_of_simulated_options_visa",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/VISA.svg",
       description: "3DS Frictionless, authentication is successful.",
-      name: "3_ds_frictionless_authentication_is_successful",
+      name: "3_ds_frictionless_authentication_is_successful_visa2",
       values: {
         "card_details.card_number":
-          "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_visa2",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_frictionless_authentication_is_successful",
-        "card_details.cvn": "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_visa2",
+        "card_details.cvn":
+          "3_ds_frictionless_authentication_is_successful_visa2",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
-      description:
-        "3DS Challenge, see list of simulated options on the next table.",
-      name: "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+      description: "3DS Challenge, with list of simulated options.",
+      name: "3_ds_challenge_with_list_of_simulated_options_mastercard",
       values: {
         "card_details.card_number":
-          "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+          "3_ds_challenge_with_list_of_simulated_options_mastercard",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+          "3_ds_challenge_with_list_of_simulated_options_mastercard",
         "card_details.cvn":
-          "3_ds_challenge_see_list_of_simulated_options_on_the_next_table",
+          "3_ds_challenge_with_list_of_simulated_options_mastercard",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
       description: "3DS Frictionless, authentication is successful.",
-      name: "3_ds_frictionless_authentication_is_successful",
+      name: "3_ds_frictionless_authentication_is_successful_mastercard2",
       values: {
         "card_details.card_number":
-          "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_mastercard2",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_frictionless_authentication_is_successful",
-        "card_details.cvn": "3_ds_frictionless_authentication_is_successful",
+          "3_ds_frictionless_authentication_is_successful_mastercard2",
+        "card_details.cvn":
+          "3_ds_frictionless_authentication_is_successful_mastercard2",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/VISA.svg",
       description:
         "3DS Challenge, authentication is successful if OTP is correct. For frictionless flow, use amount < THB 20.",
-      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_visa",
       values: {
         "card_details.card_number":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_visa",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_visa",
         "card_details.cvn":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_visa",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
       description:
         "3DS Challenge, authentication is successful if OTP is correct. For frictionless flow, use amount < THB 20.",
-      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+      name: "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_mastercard",
       values: {
         "card_details.card_number":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_mastercard",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_mastercard",
         "card_details.cvn":
-          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20",
+          "3_ds_challenge_authentication_is_successful_if_otp_is_correct_for_frictionless_flow_use_amount_thb_20_mastercard",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/VISA.svg",
       description: "Failing transaction",
-      name: "failing_transaction",
+      name: "failing_transaction_visa",
       values: {
-        "card_details.card_number": "failing_transaction",
+        "card_details.card_number": "failing_transaction_visa",
         "card_details.expiry_month__card_details.expiry_year":
-          "failing_transaction",
-        "card_details.cvn": "failing_transaction",
+          "failing_transaction_visa",
+        "card_details.cvn": "failing_transaction_visa",
       },
     },
     {
       imageUrl: "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
       description: "Failing transaction",
-      name: "failing_transaction",
+      name: "failing_transaction_mastercard",
       values: {
-        "card_details.card_number": "failing_transaction",
+        "card_details.card_number": "failing_transaction_mastercard",
         "card_details.expiry_month__card_details.expiry_year":
-          "failing_transaction",
-        "card_details.cvn": "failing_transaction",
+          "failing_transaction_mastercard",
+        "card_details.cvn": "failing_transaction_mastercard",
       },
     },
     {
@@ -196,14 +198,14 @@ export const CARDS_SCENARIOS: Scenarios = {
       imageUrl: "https://assets.xendit.co/payment-session/logos/AMEX.svg",
       description:
         "3DS Frictionless, authentication successful (use a 4 digit CVN)",
-      name: "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn",
+      name: "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn2",
       values: {
         "card_details.card_number":
-          "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn",
+          "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn2",
         "card_details.expiry_month__card_details.expiry_year":
-          "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn",
+          "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn2",
         "card_details.cvn":
-          "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn",
+          "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn2",
       },
     },
     {
