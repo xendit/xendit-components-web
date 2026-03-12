@@ -96,9 +96,6 @@ export function behaviorTreeForSdk(bb: BlackboardType) {
       return behaviorNode(SdkLoadingBehavior);
     }
     case "ACTIVE": {
-      if (!bb.world?.session) {
-        throw new Error("Session is required when SDK is active");
-      }
       return behaviorNode(
         SdkActiveBehavior,
         "active",
@@ -299,9 +296,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
           return behaviorNode(ActionDeepLinkBehavior, String(actionIndex));
         }
         case "WEB_GOOGLE_PAYLINK": {
-          throw new Error(
-            `Unsupported action type ${action.type} ${action.descriptor}`,
-          );
+          throw new Error(`Paylink actions should not be the primary action`);
         }
       }
       break;

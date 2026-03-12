@@ -1,3 +1,5 @@
+import { assertIsArray, assertIsNotArray } from "../utils";
+
 /**
  * A node in a behavior tree.
  */
@@ -139,10 +141,9 @@ function isChanged<BB extends object>(
     return false;
   }
 
-  if (Array.isArray(prev) || Array.isArray(next)) {
-    // unreachable, but typescript can't narrow based on the !== check above
-    throw new Error("If one of the nodes is an array, both should be");
-  }
+  // they must both be non-arrays here
+  assertIsNotArray(prev);
+  assertIsNotArray(next);
 
   return prev.impl !== next.impl || prev.key !== next.key;
 }
@@ -168,9 +169,9 @@ function updateTree<BB extends object>(
     // the nodes are equal
     if (Array.isArray(prev) || Array.isArray(next)) {
       // if the nodes are arrays, just update their children
-      if (!Array.isArray(prev) || !Array.isArray(next)) {
-        throw new Error("If one of the nodes is an array, both should be");
-      }
+      // (assert they are both arrays to keep typescript happy (we already checked that))
+      assertIsArray(prev);
+      assertIsArray(next);
       const maxLength = Math.max(prev.length, next.length);
       for (let i = 0; i < maxLength; i++) {
         updateTree(prev[i], next[i], bb, depth + 1);

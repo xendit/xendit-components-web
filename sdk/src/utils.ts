@@ -19,6 +19,24 @@ export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   }
 }
 
+export function assertIsArray<T = unknown>(arg: unknown): asserts arg is T[] {
+  if (!Array.isArray(arg)) {
+    throw new Error(
+      "Assertion failed: expected array; this is a bug, please contact support.",
+    );
+  }
+}
+
+export function assertIsNotArray<T = unknown>(
+  arg: T,
+): asserts arg is Exclude<T, unknown[]> {
+  if (Array.isArray(arg)) {
+    throw new Error(
+      "Assertion failed: expected array; this is a bug, please contact support.",
+    );
+  }
+}
+
 export function assertEquals<T>(a: unknown, b: T): asserts a is T {
   if (a !== b) {
     throw new Error(`Assertion failed; this is a bug, please contact support.`);
