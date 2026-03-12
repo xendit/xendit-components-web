@@ -3,7 +3,7 @@ declare module "*.css" {
   export default content;
 }
 
-declare module "qrcode/lib/renderer/svg-tag" {
+declare module "qrcode/lib/renderer/svg-tag.js" {
   import qrcode from "qrcode";
   export function render(
     qr: qrcode.QRCode,

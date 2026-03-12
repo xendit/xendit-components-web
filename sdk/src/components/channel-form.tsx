@@ -13,7 +13,7 @@ import { useSdk, useSession } from "./session-provider";
 import FieldGroup from "./field-group";
 import { formHasFieldOfType, usePrevious } from "../utils";
 import { createContext } from "preact";
-import { forwardRef } from "react";
+import { forwardRef } from "preact/compat";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { useChannel, useChannelComponentData } from "./payment-channel";
 import { getChannelPropertyValue } from "../validation";
@@ -243,7 +243,10 @@ function formKvToChannelProperties(
 /**
  * Parse a json string[] with error handling.
  */
-function formValueToStringArray(subkeys: string[], value: string): string[] {
+function formValueToStringArray(
+  subkeys: string[],
+  value: string,
+): (string | number)[] {
   if (subkeys.length === 0) return [];
   if (subkeys.length === 1) return [value];
   if (value === "") return [];

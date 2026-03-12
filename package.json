@@ -1,6 +1,6 @@
 {
   "name": "xendit-components-web",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "description": "Xendit frontend payment components SDK",
   "type": "module",
   "author": "Xendit",
@@ -19,23 +19,31 @@
     "components"
   ],
   "files": [
-    "./sdk/dist/index.umd.js",
-    "./sdk/dist/index.umd.js.map",
-    "./sdk/dist/index.esm.js",
-    "./sdk/dist/index.esm.js.map",
-    "./sdk/dist/index.d.ts",
+    "./sdk/dist/",
     "./README.md",
     "./CHANGELOG.md"
   ],
   "types": "./sdk/dist/index.d.ts",
   "exports": {
-    "import": {
-      "types": "./sdk/dist/index.d.ts",
-      "default": "./sdk/dist/index.esm.js"
+    "node": {
+      "import": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/esm-external/index.mjs"
+      },
+      "require": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/cjs/index.cjs"
+      }
     },
-    "require": {
-      "types": "./sdk/dist/index.d.ts",
-      "default": "./sdk/dist/index.umd.js"
+    "browser": {
+      "import": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/esm-bundled/index.mjs"
+      },
+      "require": {
+        "types": "./sdk/dist/index.d.ts",
+        "default": "./sdk/dist/index.umd.js"
+      }
     }
   },
   "scripts": {

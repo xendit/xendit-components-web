@@ -1,7 +1,7 @@
 import { TFunction } from "../localization";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import qrcode from "qrcode";
-import qrSvgRenderer from "qrcode/lib/renderer/svg-tag";
+import qrSvgRenderer from "qrcode/lib/renderer/svg-tag.js";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./button";
 
@@ -11,7 +11,6 @@ type Props = {
   channelLogo: string;
   currency: string;
   hideUi: boolean;
-  mock: boolean;
   onAffirm: () => void;
   qrString: string;
   title: string;
@@ -24,7 +23,6 @@ export function ActionQr(props: Props) {
     businessName,
     channelLogo,
     currency,
-    mock,
     onAffirm,
     qrString,
     title,
@@ -35,12 +33,8 @@ export function ActionQr(props: Props) {
 
   const onMadePaymentClicked = useCallback(() => {
     setShowSpinner(true);
-
-    if (mock) {
-      onAffirm();
-      return;
-    }
-  }, [mock, onAffirm]);
+    onAffirm();
+  }, [onAffirm]);
 
   const svgNode = useMemo(() => {
     try {
@@ -94,7 +88,7 @@ export function ActionQr(props: Props) {
           {amountFormat(amount, currency)}
         </div>
       </div>
-      <div>
+      <div className="xendit-action-present-to-customer-affirm">
         <Button
           variant={ButtonVariant.WHITE_ROUNDED}
           disabled={showSpinner}
@@ -103,9 +97,9 @@ export function ActionQr(props: Props) {
         >
           {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
         </Button>
-        <p className="xendit-text-12 xendit-text-secondary xendit-text-center">
+        <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
           {t("action.payment_confirmation_instructions")}
-        </p>
+        </div>
       </div>
     </div>
   );

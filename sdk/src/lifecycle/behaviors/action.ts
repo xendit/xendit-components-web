@@ -220,7 +220,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
-      mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,
       title: qrAction.action_subtitle,
@@ -236,27 +235,13 @@ export class ActionQrBehavior extends ContainerActionBehavior {
    * the affirm button.
    */
   affirmPayment() {
-    if (this.bb.mock) {
-      this.updateMocksOnSimulatePaymentCompletion();
+    if (this.bb.sdk.isProdLive()) {
+      // live mode
+      this.bb.pollImmediatelyRequested = true;
     } else {
-      if (this.bb.sdk.isProdLive()) {
-        // live mode
-        this.bb.pollImmediatelyRequested = true;
-      } else {
-        this.bb.simulatePaymentRequested = true;
-      }
+      this.bb.simulatePaymentRequested = true;
     }
-  }
-
-  updateMocksOnSimulatePaymentCompletion() {
-    assert(this.bb.world?.paymentEntity);
-    if (this.bb.mock) {
-      this.bb.dispatchEvent(
-        new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
-        ),
-      );
-    }
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 
   exit() {
@@ -368,7 +353,6 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
-      mock: this.bb.mock,
       onAffirm: this.affirmPayment.bind(this),
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
@@ -386,26 +370,12 @@ export class ActionVaBehavior extends ContainerActionBehavior {
    * the affirm button.
    */
   affirmPayment() {
-    if (this.bb.mock) {
-      this.updateMocksOnSimulatePaymentCompletion();
+    if (this.bb.sdk.isProdLive()) {
+      // live mode
+      this.bb.pollImmediatelyRequested = true;
     } else {
-      if (this.bb.sdkKey.hostId === "pl") {
-        // live mode
-        this.bb.pollImmediatelyRequested = true;
-      } else {
-        this.bb.simulatePaymentRequested = true;
-      }
+      this.bb.simulatePaymentRequested = true;
     }
-  }
-
-  updateMocksOnSimulatePaymentCompletion() {
-    assert(this.bb.world?.paymentEntity);
-    if (this.bb.mock) {
-      this.bb.dispatchEvent(
-        new InternalScheduleMockUpdateEvent(
-          makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
-        ),
-      );
-    }
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 }

@@ -24,6 +24,12 @@ const SDK_PORT = 4443;
 
 let lastSeenBuildOutput: Map<string, Buffer> | null = null;
 
+const absoluteNodeModulesPath = path.join(
+  import.meta.dirname,
+  "..",
+  "node_modules",
+);
+
 const packageJson = JSON.parse(
   readFileSync(path.join(import.meta.dirname, "../package.json"), "utf-8"),
 ) as typeof import("../package.json");
@@ -65,33 +71,63 @@ const envs = {
 const year = new Date().getFullYear();
 const bannerComment = `/*! Copyright (c) ${year} Xendit Inc. Licensed under the MIT License (MIT). */`;
 
-function resolveModule(moduleName: string): string {
-  return path.join(import.meta.dirname, "..", "node_modules", moduleName);
-}
-
-function rollupConfig(production: boolean): rollup.RollupOptions {
+function rollupConfig(
+  production: boolean,
+  browser: boolean,
+): rollup.RollupOptions {
   return {
     input: path.join(import.meta.dirname, "./src/index.ts"),
     preserveEntrySignatures: "allow-extension",
-    output: [
-      {
-        dir: path.join(import.meta.dirname, "dist", "esm"),
-        format: "esm",
-        sourcemap: true,
-        inlineDynamicImports: false,
-        banner: bannerComment,
-        chunkFileNames: "[name].js",
-      },
-      {
-        file: path.join(import.meta.dirname, "dist", "index.umd.js"),
-        name: "Xendit",
-        format: "umd",
-        exports: "named",
-        sourcemap: true,
-        inlineDynamicImports: true,
-        banner: bannerComment,
-      },
-    ],
+    external: function (id: string) {
+      return !browser && id.startsWith(absoluteNodeModulesPath);
+    },
+    output: browser
+      ? [
+          {
+            // for browser <script> tag
+            file: path.join(import.meta.dirname, "dist", "index.umd.js"),
+            name: "Xendit",
+            format: "umd",
+            exports: "named",
+            sourcemap: true,
+            inlineDynamicImports: true,
+            banner: bannerComment,
+          },
+          {
+            // for browser import()
+            dir: path.join(import.meta.dirname, "dist", "esm-bundled"),
+            format: "esm",
+            exports: "named",
+            sourcemap: true,
+            inlineDynamicImports: false,
+            banner: bannerComment,
+            entryFileNames: "[name].mjs",
+            chunkFileNames: "[name].mjs",
+          },
+        ]
+      : [
+          {
+            // for node and bundlers expecting esm
+            dir: path.join(import.meta.dirname, "dist", "esm-external"),
+            format: "esm",
+            sourcemap: true,
+            inlineDynamicImports: false,
+            banner: bannerComment,
+            entryFileNames: "[name].mjs",
+            chunkFileNames: "[name].mjs",
+          },
+          {
+            // for node and bundlers expecting cjs
+            dir: path.join(import.meta.dirname, "dist", "cjs"),
+            format: "commonjs",
+            exports: "named",
+            sourcemap: true,
+            inlineDynamicImports: false,
+            banner: bannerComment,
+            entryFileNames: "[name].cjs",
+            chunkFileNames: "[name].cjs",
+          },
+        ],
     plugins: [
       resolve({
         browser: true,
@@ -119,19 +155,9 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       }),
       alias({
         entries: [
-          // TODO: read from tsconfig.json
-          { find: "react", replacement: resolveModule("preact/compat") },
-          {
-            find: "react-dom/test-utils",
-            replacement: resolveModule("preact/test-utils"),
-          },
-          {
-            find: "react-dom",
-            replacement: resolveModule("preact/compat"),
-          },
           {
             find: "react/jsx-runtime",
-            replacement: resolveModule("preact/jsx-runtime"),
+            replacement: "preact/jsx-runtime",
           },
         ],
       }),
@@ -156,8 +182,8 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
   };
 }
 
-async function rollupProductionBuild() {
-  const options = rollupConfig(true);
+async function rollupProductionBuild(browser: boolean) {
+  const options = rollupConfig(true, browser);
   const build = await rollup.rollup(options);
   for (const o of options.output as rollup.OutputOptions[]) {
     await build.write(o);
@@ -165,7 +191,7 @@ async function rollupProductionBuild() {
 }
 
 async function rollupWatch() {
-  const options = rollupConfig(false);
+  const options = rollupConfig(false, true);
   const watcher = rollup.watch(options);
 
   watcher.on("event", async (event) => {
@@ -235,6 +261,12 @@ async function handleDevServerRequest(
       return;
     }
     const file = lastSeenBuildOutput.get(filename);
+    if (file === undefined) {
+      res
+        .writeHead(404, { "Content-Type": "text/plain" })
+        .end("File not found");
+      return;
+    }
     res.writeHead(200, { "Content-Type": mime }).end(file);
   }
 
@@ -246,8 +278,8 @@ async function handleDevServerRequest(
     return;
   }
 
-  if (pathname.startsWith("/esm/")) {
-    const filename = pathname.slice("/esm/".length);
+  if (pathname.startsWith("/esm-bundled/")) {
+    const filename = pathname.slice("/esm-bundled/".length);
     return await serveFileFromBundle(filename, "application/javascript");
   }
 
@@ -301,7 +333,10 @@ switch (process.argv[2]) {
     break;
   }
   case "prod": {
-    await rollupProductionBuild().catch((err) => {
+    await Promise.all([
+      rollupProductionBuild(true),
+      rollupProductionBuild(false),
+    ]).catch((err) => {
       console.error("Error in production build:", err);
       process.exit(1);
     });

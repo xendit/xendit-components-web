@@ -2,6 +2,19 @@
 
 No unreleased changes.
 
+# 0.0.15
+
+### Bug Fixes
+
+- Fixed a bug where cards eligible for installments fails to pass validation due to empty string as channel property value
+
+# 0.0.14
+
+### Bug Fixes
+
+- Fixed a bug in the publish workflow
+- Fixed a bug where the channel picker dropdown was not disabled when there was only one channel
+
 # 0.0.13
 
 ### Notable
