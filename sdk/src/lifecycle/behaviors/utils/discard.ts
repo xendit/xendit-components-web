@@ -1,13 +1,13 @@
 import {
   BffPaymentEntity,
   BffPaymentEntityType,
-} from "../../backend-types/payment-entity";
-import { InternalUpdateWorldState } from "../../private-event-types";
+} from "../../../backend-types/payment-entity";
+import { InternalUpdateWorldState } from "../../../private-event-types";
 import {
   XenditPaymentRequestDiscardedEvent,
   XenditPaymentTokenDiscardedEvent,
-} from "../../public-event-types";
-import { BlackboardType } from "../behavior-tree";
+} from "../../../public-event-types";
+import { BlackboardType } from "../../behavior-tree";
 
 export function discardPaymentEntity(
   paymentEntity: BffPaymentEntity,

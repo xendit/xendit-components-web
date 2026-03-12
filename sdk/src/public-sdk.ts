@@ -61,7 +61,6 @@ import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
-import { SessionActiveBehavior } from "./lifecycle/behaviors/session";
 import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
@@ -89,11 +88,7 @@ import {
   sleep,
 } from "./utils";
 import { makeTestSdkKey } from "./data/test-data-modifiers";
-import {
-  ChannelInvalidBehavior,
-  ChannelValidBehavior,
-} from "./lifecycle/behaviors/channel";
-import { PeRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity";
+import { PaymentEntityRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity-requires-action";
 import {
   SubmissionBehavior,
   SubmissionError,
@@ -112,6 +107,9 @@ import { amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { DigitalWalletContainer } from "./components/digital-wallet-container";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
+import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
+import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
+import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 
 /**
  * @internal
@@ -1125,7 +1123,7 @@ export class XenditComponents extends EventTarget {
       : (optionsOrInternal as ActionContainerOptions | undefined);
 
     const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
-      PeRequiresActionBehavior,
+      PaymentEntityRequiresActionBehavior,
     );
     if (
       !isInternal &&
@@ -1365,7 +1363,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
-      PeRequiresActionBehavior,
+      PaymentEntityRequiresActionBehavior,
     );
     if (!requiresActionBehavior) {
       throw new Error(

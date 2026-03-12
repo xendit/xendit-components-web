@@ -17,38 +17,28 @@ import {
 } from "../utils";
 import { channelPropertiesAreValid } from "../validation";
 import { behaviorNode } from "./behavior-tree-runner";
-import {
-  ActionCompletedBehavior,
-  ActionDeepLinkBehavior,
-  ActionEmptyListPushNotificationBehavior,
-  ActionIframeBehavior,
-  ActionQrBehavior,
-  ActionRedirectBehavior,
-  ActionVaBehavior,
-} from "./behaviors/action";
+import { ActionCompletedBehavior } from "./behaviors/action-completed";
+import { ActionDeepLinkBehavior } from "./behaviors/action-deep-link";
+import { ActionEmptyListPushNotificationBehavior } from "./behaviors/action-empty-list-push-notification";
+import { ActionIframeBehavior } from "./behaviors/action-iframe";
 import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
+import { ActionQrBehavior } from "./behaviors/action-qr";
+import { ActionRedirectBehavior } from "./behaviors/action-redirect";
+import { ActionVaBehavior } from "./behaviors/action-va";
 import { CardInfoBehavior } from "./behaviors/card-info";
-import {
-  ChannelInvalidBehavior,
-  ChannelValidBehavior,
-} from "./behaviors/channel";
-import {
-  PeFailedBehavior,
-  PePendingBehavior,
-  PeRequiresActionBehavior,
-} from "./behaviors/payment-entity";
+import { ChannelInvalidBehavior } from "./behaviors/channel-invalid";
+import { ChannelValidBehavior } from "./behaviors/channel-valid";
+import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
+import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
+import { PaymentEntityRequiresActionBehavior } from "./behaviors/payment-entity-requires-action";
 import { PaymentOptionsBehavior } from "./behaviors/payment-options";
-import {
-  SdkActiveBehavior,
-  SdkFatalErrorBehavior,
-  SdkLoadingBehavior,
-} from "./behaviors/sdk";
-import {
-  SessionActiveBehavior,
-  SessionCompletedBehavior,
-  SessionFailedBehavior,
-  SessionPendingBehavior,
-} from "./behaviors/session";
+import { SdkActiveBehavior } from "./behaviors/sdk-active";
+import { SdkFatalErrorBehavior } from "./behaviors/sdk-fatal-error";
+import { SdkLoadingBehavior } from "./behaviors/sdk-loading";
+import { SessionActiveBehavior } from "./behaviors/session-active";
+import { SessionCompletedBehavior } from "./behaviors/session-completed";
+import { SessionFailedBehavior } from "./behaviors/session-failed";
+import { SessionPendingBehavior } from "./behaviors/session-pending";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
 
@@ -211,26 +201,31 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
   ) {
     // In ovo and jeniuspay, the REQUIRES_ACTION status changes to PENDING almost immediately, causing the instructions to the user to close.
     // We need to keep this behavior alive until the status changes to something other than PENDING.
-    return behaviorNode(PeRequiresActionBehavior, bb.world.paymentEntity.id, [
-      behaviorNode(ActionEmptyListPushNotificationBehavior, ""),
-      maybePaylinkAction(),
-    ]);
+    return behaviorNode(
+      PaymentEntityRequiresActionBehavior,
+      bb.world.paymentEntity.id,
+      [
+        behaviorNode(ActionEmptyListPushNotificationBehavior, ""),
+        maybePaylinkAction(),
+      ],
+    );
   }
 
   switch (bb.world.paymentEntity.entity.status) {
     case "PENDING": {
-      return behaviorNode(PePendingBehavior);
+      return behaviorNode(PaymentEntityPendingBehavior);
     }
     case "REQUIRES_ACTION": {
-      return behaviorNode(PeRequiresActionBehavior, bb.world.paymentEntity.id, [
-        behaviorTreeForAction(bb),
-        maybePaylinkAction(),
-      ]);
+      return behaviorNode(
+        PaymentEntityRequiresActionBehavior,
+        bb.world.paymentEntity.id,
+        [behaviorTreeForAction(bb), maybePaylinkAction()],
+      );
     }
     case "FAILED":
     case "EXPIRED":
     case "CANCELED": {
-      return behaviorNode(PeFailedBehavior);
+      return behaviorNode(PaymentEntityFailedBehavior);
     }
     case "ACCEPTING_PAYMENTS": {
       // Never happens because sessions don't set the PR type to REUSABLE_PAYMENT_CODE
@@ -240,7 +235,10 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
     case "ACTIVE":
     case "SUCCEEDED": {
       // The payemnt entity is completed but the session is still active, it should automatically switch to completed soon
-      return behaviorNode(PePendingBehavior, bb.world.paymentEntity.id);
+      return behaviorNode(
+        PaymentEntityPendingBehavior,
+        bb.world.paymentEntity.id,
+      );
     }
     default: {
       bb.world.paymentEntity.entity satisfies never;

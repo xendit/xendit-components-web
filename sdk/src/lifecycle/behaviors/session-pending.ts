@@ -1,49 +1,15 @@
 import { BffPollResponse } from "../../backend-types/common";
 import { BffPaymentEntity } from "../../backend-types/payment-entity";
+import { InternalUpdateWorldState } from "../../private-event-types";
 import {
-  InternalNeedsRerenderEvent,
-  InternalUpdateWorldState,
-} from "../../private-event-types";
-import {
-  XenditSessionCompleteEvent,
-  XenditSessionExpiredOrCanceledEvent,
   XenditSessionNotPendingEvent,
   XenditSessionPendingEvent,
 } from "../../public-event-types";
 import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
-import { discardPaymentEntity } from "./discard";
-import { PollWorker } from "./poll-worker";
-
-export class SessionActiveBehavior implements Behavior {
-  constructor(private bb: BlackboardType) {}
-
-  enter() {
-    // Schedule rerender (components don't render anything if the session state is not active)
-    this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
-  }
-
-  exit() {
-    this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
-  }
-}
-
-export class SessionCompletedBehavior implements Behavior {
-  constructor(private bb: BlackboardType) {}
-
-  enter() {
-    this.bb.dispatchEvent(new XenditSessionCompleteEvent());
-  }
-}
-
-export class SessionFailedBehavior implements Behavior {
-  constructor(private bb: BlackboardType) {}
-
-  enter() {
-    this.bb.dispatchEvent(new XenditSessionExpiredOrCanceledEvent());
-  }
-}
+import { discardPaymentEntity } from "./utils/discard";
+import { PollWorker } from "./utils/poll-worker";
 
 export class SessionPendingBehavior implements Behavior {
   private pollWorker: PollWorker;

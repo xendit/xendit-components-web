@@ -2,38 +2,13 @@ import { describe, expect, it } from "vitest";
 import { behaviorTreeForSdk, BlackboardType } from "./behavior-tree";
 import { parseSdkKey } from "../utils";
 import { makeTestBffData } from "../data/test-data";
-import {
-  SdkActiveBehavior,
-  SdkFatalErrorBehavior,
-  SdkLoadingBehavior,
-} from "./behaviors/sdk";
-import {
-  SessionActiveBehavior,
-  SessionCompletedBehavior,
-  SessionFailedBehavior,
-} from "./behaviors/session";
 import { BffSessionStatus } from "../backend-types/session";
 import { BehaviorNode, flattenBehaviors } from "./behavior-tree-runner";
 import { BffChannel } from "../backend-types/channel";
-import {
-  ChannelInvalidBehavior,
-  ChannelValidBehavior,
-} from "./behaviors/channel";
 import { CardInfoBehavior } from "./behaviors/card-info";
 import { SubmissionBehavior } from "./behaviors/submission";
 import { toPaymentEntity } from "../backend-types/payment-entity";
 import { randomUUID } from "node:crypto";
-import {
-  PeFailedBehavior,
-  PePendingBehavior,
-  PeRequiresActionBehavior,
-} from "./behaviors/payment-entity";
-import {
-  ActionCompletedBehavior,
-  ActionDeepLinkBehavior,
-  ActionIframeBehavior,
-  ActionQrBehavior,
-} from "./behaviors/action";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import {
   makeTestPaymentRequest,
@@ -44,6 +19,21 @@ import { PaymentOptionsBehavior } from "./behaviors/payment-options";
 import { internal } from "../internal";
 import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
 import { XenditSdkOptions } from "../public-options-types";
+import { SdkActiveBehavior } from "./behaviors/sdk-active";
+import { SessionCompletedBehavior } from "./behaviors/session-completed";
+import { SdkFatalErrorBehavior } from "./behaviors/sdk-fatal-error";
+import { SdkLoadingBehavior } from "./behaviors/sdk-loading";
+import { SessionFailedBehavior } from "./behaviors/session-failed";
+import { SessionActiveBehavior } from "./behaviors/session-active";
+import { ChannelValidBehavior } from "./behaviors/channel-valid";
+import { ChannelInvalidBehavior } from "./behaviors/channel-invalid";
+import { PaymentEntityRequiresActionBehavior } from "./behaviors/payment-entity-requires-action";
+import { ActionCompletedBehavior } from "./behaviors/action-completed";
+import { ActionQrBehavior } from "./behaviors/action-qr";
+import { ActionIframeBehavior } from "./behaviors/action-iframe";
+import { ActionDeepLinkBehavior } from "./behaviors/action-deep-link";
+import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
+import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
 
 const testData = makeTestBffData();
 
@@ -237,7 +227,7 @@ describe("Behavior Tree - Payment Entity", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      PePendingBehavior,
+      PaymentEntityPendingBehavior,
     ]);
   });
   it("should give paymentEntity failed behavior", () => {
@@ -260,7 +250,7 @@ describe("Behavior Tree - Payment Entity", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      PeFailedBehavior,
+      PaymentEntityFailedBehavior,
     ]);
   });
   it("should give paymentEntity pending behavior", () => {
@@ -283,7 +273,7 @@ describe("Behavior Tree - Payment Entity", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      PePendingBehavior,
+      PaymentEntityPendingBehavior,
     ]);
   });
 });
@@ -307,7 +297,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      PeRequiresActionBehavior,
+      PaymentEntityRequiresActionBehavior,
       ActionCompletedBehavior,
     ]);
   });
@@ -327,7 +317,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      PeRequiresActionBehavior,
+      PaymentEntityRequiresActionBehavior,
       ActionQrBehavior,
       SimulatePaymentBehavior,
     ]);
@@ -352,7 +342,7 @@ describe("Behavior Tree - Actions", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      PeRequiresActionBehavior,
+      PaymentEntityRequiresActionBehavior,
       ActionIframeBehavior,
     ]);
   });
@@ -380,7 +370,7 @@ describe("Behavior Tree - Actions", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      PeRequiresActionBehavior,
+      PaymentEntityRequiresActionBehavior,
       ActionDeepLinkBehavior,
       ActionPaylinkBehavior,
     ]);
