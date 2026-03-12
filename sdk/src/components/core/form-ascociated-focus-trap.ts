@@ -1,4 +1,4 @@
-import { registerElement } from "../dom-utils";
+import { registerElement } from "../../dom-utils";
 
 // prevent crash if running in node
 const HTMLElement: (typeof window)["HTMLElement"] =

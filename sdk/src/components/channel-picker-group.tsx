@@ -5,7 +5,7 @@ import {
   useSession,
 } from "./session-provider";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
-import { Dropdown, DropdownOption } from "./dropdown";
+import { Dropdown, DropdownOption } from "./core/dropdown";
 import { BffSession } from "../backend-types/session";
 import { satisfiesMinMax, useIdSafe, usePrevious } from "../utils";
 import {

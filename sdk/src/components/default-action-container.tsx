@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { XenditComponents } from "../public-sdk";
-import { Dialog } from "./dialog";
+import { Dialog } from "./core/dialog";
 import { internal } from "../internal";
 
 type Props = {

@@ -1,5 +1,5 @@
-import { Accordion } from "./accordion";
-import { AccordionItem } from "./accordion-item";
+import { Accordion } from "./core/accordion";
+import { AccordionItem } from "./core/accordion-item";
 import {
   useCurrentChannel,
   useChannelUiGroups,
@@ -33,7 +33,7 @@ import { internal } from "../internal";
 
 type Props = object;
 
-export const XenditChannelPicker: FunctionComponent<Props> = (props) => {
+export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   const sdk = useSdk();
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();

@@ -1,5 +1,5 @@
 import { FunctionComponent, TargetedEvent } from "preact";
-import { useIdSafe } from "../utils";
+import { useIdSafe } from "../../utils";
 
 interface Props {
   id?: string;

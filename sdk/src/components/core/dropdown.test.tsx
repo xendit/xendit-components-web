@@ -3,8 +3,8 @@ import { screen } from "@testing-library/dom";
 import { render } from "preact";
 import { Dropdown, DropdownOption } from "./dropdown";
 import userEvent from "@testing-library/user-event";
-import { SdkContext } from "./session-provider";
-import { XenditComponents } from "../public-sdk";
+import { SdkContext } from "../session-provider";
+import { XenditComponents } from "../../public-sdk";
 
 afterEach(() => {
   render(null, document.body);

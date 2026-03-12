@@ -14,8 +14,8 @@ import {
   useState,
 } from "preact/hooks";
 import { FunctionComponent } from "preact";
-import { Dropdown, DropdownOption, DropdownSkeleton } from "./dropdown";
-import { useChannel, useChannelComponentData } from "./payment-channel";
+import { Dropdown, DropdownOption, DropdownSkeleton } from "./core/dropdown";
+import { useChannel, useChannelComponentData } from "./channel-root";
 import { amountFormat } from "../amount-format";
 import { useSdk, useSession } from "./session-provider";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";

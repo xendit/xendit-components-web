@@ -11,10 +11,10 @@ import {
   BffChannelBanner,
   ChannelProperties,
 } from "../backend-types/channel";
-import { InstructionsIcon } from "./instructions-icon";
-import { QrScanIcon } from "./qr-scan-icon";
+import { GraphicRedirectInstructions } from "./graphic-redirect-instructions";
+import { GraphicQrScan } from "./graphic-qr-scan";
 import { useSdk, useSession } from "./session-provider";
-import { Checkbox } from "./checkbox";
+import { Checkbox } from "./core/checkbox";
 import { resolvePairedChannel } from "../utils";
 import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
@@ -47,7 +47,7 @@ interface Props {
   formRef: RefObject<ChannelFormHandle>;
 }
 
-export const PaymentChannel: FunctionComponent<Props> = (props) => {
+export const ChannelRoot: FunctionComponent<Props> = (props) => {
   const { channelOrPair, channelData, savePaymentMethod, formRef } = props;
   const divRef = useRef<HTMLDivElement>(null);
   const sdk = useSdk();
@@ -134,9 +134,9 @@ export const PaymentChannel: FunctionComponent<Props> = (props) => {
           {instructions ? (
             <div className="xendit-payment-channel-instructions">
               {resolvedChannel.pm_type === "QR_CODE" ? (
-                <QrScanIcon />
+                <GraphicQrScan />
               ) : (
-                <InstructionsIcon />
+                <GraphicRedirectInstructions />
               )}
               <div className="xendit-payment-channel-instructions-text xendit-text-12">
                 {instructions.map((instr, i) => (

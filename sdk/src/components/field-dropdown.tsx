@@ -1,7 +1,7 @@
 import { FunctionComponent } from "preact";
 import { ChannelFormField, FieldType } from "../backend-types/channel";
 import { formFieldId, formFieldName } from "../utils";
-import { Dropdown, DropdownOption } from "./dropdown";
+import { Dropdown, DropdownOption } from "./core/dropdown";
 import { FieldProps } from "./field";
 import { useCallback, useRef } from "preact/hooks";
 

@@ -1,7 +1,7 @@
 import { useRef, useCallback, useLayoutEffect } from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode } from "libphonenumber-js";
-import { Dropdown, DropdownOption } from "./dropdown";
+import { Dropdown, DropdownOption } from "./core/dropdown";
 import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
 import {
@@ -11,7 +11,7 @@ import {
   objectId,
   usePrevious,
 } from "../utils";
-import { useChannel } from "./payment-channel";
+import { useChannel } from "./channel-root";
 import { useChannelProperties } from "./channel-form";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import { BffSession } from "../backend-types/session";

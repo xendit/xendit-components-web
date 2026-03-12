@@ -2,7 +2,6 @@
 import "preact/debug";
 import "preact/devtools";
 
-import { createIconSet } from "./components/icon";
 import { createStyles } from "./styles";
 import { setupPreactBatch } from "./preact-batch";
 
@@ -11,7 +10,6 @@ if (typeof window === "undefined" || typeof document === "undefined") {
 } else {
   setupPreactBatch();
   createStyles();
-  createIconSet();
 }
 
 export * from "./public-sdk";

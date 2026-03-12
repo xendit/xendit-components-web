@@ -8,10 +8,10 @@ import {
   ButtonLoadingSpinner,
   ButtonSize,
   ButtonVariant,
-} from "./button";
+} from "./core/button";
 import Icon from "./icon";
 import { Instructions } from "./instructions";
-import { Tooltip, TooltipContext, TooltipProvider } from "./tooltip";
+import { Tooltip, TooltipContext, TooltipProvider } from "./core/tooltip";
 
 type Props = {
   amount: number;

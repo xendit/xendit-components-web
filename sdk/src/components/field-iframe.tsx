@@ -8,8 +8,8 @@ import {
 import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
 import { CardBrand, IframeEvent } from "../../../shared/types";
-import { useChannel } from "./payment-channel";
-import { XenditFormAssociatedFocusTrap } from "./form-ascociated-focus-trap";
+import { useChannel } from "./channel-root";
+import { XenditFormAssociatedFocusTrap } from "./core/form-ascociated-focus-trap";
 import { internal } from "../internal";
 import { assert, formFieldId, formFieldName } from "../utils";
 import { FunctionComponent } from "preact";

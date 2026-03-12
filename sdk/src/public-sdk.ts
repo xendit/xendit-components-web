@@ -35,9 +35,9 @@ import {
 import { internal } from "./internal";
 import { createElement, createRef, RefObject, render } from "preact";
 import {
-  XenditChannelPicker,
+  ChannelPickerRoot,
   XenditClearCurrentChannelEvent,
-} from "./components/channel-picker";
+} from "./components/channel-picker-root";
 import { XenditSessionProvider } from "./components/session-provider";
 import {
   BffChannel,
@@ -46,9 +46,9 @@ import {
   ChannelPropertyPrimative,
 } from "./backend-types/channel";
 import {
-  PaymentChannel,
+  ChannelRoot,
   XenditChannelPropertiesChangedEvent,
-} from "./components/payment-channel";
+} from "./components/channel-root";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
@@ -679,7 +679,7 @@ export class XenditComponents extends EventTarget {
       createElement(XenditSessionProvider, {
         data: this[internal].worldState,
         sdk: this,
-        children: createElement(XenditChannelPicker, {}),
+        children: createElement(ChannelPickerRoot, {}),
       }),
       container,
     );
@@ -816,7 +816,7 @@ export class XenditComponents extends EventTarget {
       createElement(XenditSessionProvider, {
         data: this[internal].worldState,
         sdk: this,
-        children: createElement(PaymentChannel, {
+        children: createElement(ChannelRoot, {
           channelOrPair: channelObject[internal],
           channelData: component.data,
           savePaymentMethod: component.data.savePaymentMethod,

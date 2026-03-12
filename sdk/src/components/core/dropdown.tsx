@@ -11,9 +11,9 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import Icon from "./icon";
-import { useIdSafe } from "../utils";
-import { useSdk } from "./session-provider";
+import Icon from "../icon";
+import { useIdSafe } from "../../utils";
+import { useSdk } from "../session-provider";
 import { ButtonLoadingSpinner } from "./button";
 
 export type DropdownOption = {
