@@ -7,6 +7,7 @@ import {
   XenditComponents,
 } from "../public-sdk";
 import {
+  assert,
   canBeSimulated,
   findBestAction,
   findPaylinkAction,
@@ -115,9 +116,8 @@ export function behaviorTreeForSdk(bb: BlackboardType) {
 }
 
 export function behaviorTreeForSession(bb: BlackboardType) {
-  if (!bb.world?.session) {
-    throw new Error("Session is required to create behavior tree for session");
-  }
+  assert(bb.world?.session);
+
   switch (bb.world.session.status) {
     case "ACTIVE": {
       return behaviorNode(
@@ -187,9 +187,7 @@ export function behaviorTreeForForm(bb: BlackboardType) {
 }
 
 export function behaviorTreeForSubmission(bb: BlackboardType) {
-  if (!bb.world) {
-    throw new Error("SDK not initialized in behaviorTreeForSubmission");
-  }
+  assert(bb.world);
 
   return behaviorNode(
     SubmissionBehavior,
@@ -201,18 +199,14 @@ export function behaviorTreeForSubmission(bb: BlackboardType) {
 }
 
 export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
-  if (!bb.world?.paymentEntity) {
-    throw new Error(
-      "Payment entity is required to create behavior tree for payment entity",
-    );
-  }
+  assert(bb.world?.paymentEntity);
 
-  const paylinkAction = findPaylinkAction(
-    bb.sdk,
-    bb.world.paymentEntity.entity.actions,
-  )
-    ? behaviorTreeForPaylink(bb)
-    : undefined;
+  function maybePaylinkAction() {
+    assert(bb.world?.paymentEntity);
+    return findPaylinkAction(bb.sdk, bb.world.paymentEntity.entity.actions)
+      ? behaviorTreeForPaylink(bb)
+      : undefined;
+  }
 
   if (
     bb.hackyOvoActionLatch &&
@@ -222,7 +216,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
     // We need to keep this behavior alive until the status changes to something other than PENDING.
     return behaviorNode(PeRequiresActionBehavior, bb.world.paymentEntity.id, [
       behaviorNode(ActionEmptyListPushNotificationBehavior, ""),
-      paylinkAction,
+      maybePaylinkAction(),
     ]);
   }
 
@@ -233,7 +227,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
     case "REQUIRES_ACTION": {
       return behaviorNode(PeRequiresActionBehavior, bb.world.paymentEntity.id, [
         behaviorTreeForAction(bb),
-        paylinkAction,
+        maybePaylinkAction(),
       ]);
     }
     case "FAILED":
@@ -261,9 +255,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
 }
 
 export function behaviorTreeForAction(bb: BlackboardType) {
-  if (!bb.world?.paymentEntity) {
-    throw new Error("Payment entity is missing");
-  }
+  assert(bb.world?.paymentEntity);
 
   if (bb.actionCompleted) {
     // action completed is for when we want to close the action UI and go back to polling
@@ -366,17 +358,13 @@ export function behaviorTreeForAction(bb: BlackboardType) {
 }
 
 function behaviorTreeForPaylink(bb: BlackboardType) {
-  if (!bb.world?.paymentEntity) {
-    throw new Error("Payment entity is missing");
-  }
+  assert(bb.world?.paymentEntity);
 
   const paylinkAction = findPaylinkAction(
     bb.sdk,
     bb.world.paymentEntity.entity.actions,
   );
-  if (!paylinkAction) {
-    throw new Error("Paylink action is missing");
-  }
+  assert(paylinkAction);
 
   const actionIndex =
     bb.world.paymentEntity.entity.actions.indexOf(paylinkAction);

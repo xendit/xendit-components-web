@@ -30,6 +30,7 @@ import {
 } from "./behaviors/payment-entity";
 import {
   ActionCompletedBehavior,
+  ActionDeepLinkBehavior,
   ActionIframeBehavior,
   ActionQrBehavior,
 } from "./behaviors/action";
@@ -41,13 +42,18 @@ import {
 } from "../data/test-data-modifiers";
 import { PaymentOptionsBehavior } from "./behaviors/payment-options";
 import { internal } from "../internal";
+import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
+import { XenditSdkOptions } from "../public-options-types";
 
 const testData = makeTestBffData();
 
 const mockBlackboard: BlackboardType & { world: object } = {
   sdk: {
     [internal]: {
-      options: {},
+      options: {
+        componentsSdkKey: makeTestSdkKey(),
+        enablePaylinks: true,
+      } satisfies XenditSdkOptions,
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
@@ -348,6 +354,35 @@ describe("Behavior Tree - Actions", () => {
       SubmissionBehavior,
       PeRequiresActionBehavior,
       ActionIframeBehavior,
+    ]);
+  });
+
+  it("should give redirect and paylink actions", () => {
+    const node = behaviorTreeForSdk({
+      ...mockBlackboard,
+      channel: findChannel(
+        mockBlackboard.world.channels,
+        "MOCK_EWALLET_PAYLINK",
+      ),
+      submissionRequested: true,
+      world: {
+        ...mockBlackboard.world,
+        paymentEntity: toPaymentEntity(
+          makeTestPaymentRequest("MOCK_EWALLET_PAYLINK", [
+            "REDIRECT",
+            "PAYLINK",
+          ]),
+        ),
+        sessionTokenRequestId: randomUUID(),
+      },
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      SubmissionBehavior,
+      PeRequiresActionBehavior,
+      ActionDeepLinkBehavior,
+      ActionPaylinkBehavior,
     ]);
   });
 });

@@ -24,10 +24,10 @@ export class ActionPaylinkBehavior implements Behavior {
     assertEquals(action.descriptor, "WEB_GOOGLE_PAYLINK");
 
     const link = document.createElement("link");
-    this.el = link;
-
     link.rel = "facilitated-payment";
     link.href = action.value;
+
+    this.el = link;
     document.head.appendChild(link);
   }
 
