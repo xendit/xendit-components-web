@@ -2,6 +2,14 @@
 
 No unreleased changes.
 
+# 0.0.16
+
+### Bug Fixes
+
+- Fixed a bug where affirming payment in test mode does not trigger simulation request
+- Fixed CJS/ESM import issues
+- Fixed issues with phone number input
+
 # 0.0.15
 
 ### Bug Fixes
