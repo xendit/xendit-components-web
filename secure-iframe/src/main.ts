@@ -211,7 +211,6 @@ export async function main() {
     }
   });
 
-  // handle focus request from parent
   window.addEventListener("message", (event) => {
     if (
       event.origin !== queryInputs.embedderOrigin ||
@@ -220,9 +219,11 @@ export async function main() {
       return;
     }
     const data = event.data as IframeEvent;
+    // handle focus request from parent
     if (data.type === "xendit-iframe-focus") {
       input.focus();
     }
+    // handle populate field value for simulation request from parent
     if (data.type === "xendit-iframe-populate-for-simulation") {
       const value =
         simulationScenarios.find((scenario) => scenario.name === data.scenario)
