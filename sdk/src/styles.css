@@ -574,21 +574,13 @@ xendit-payment-channel[inert] {
 }
 
 /* Phone input Dropdown */
-.xendit-input-phone .xendit-combobox {
+.xendit-input-phone {
   display: flex;
   gap: 8px;
 }
 
 .xendit-phone-number-input {
   width: 100%;
-}
-
-.xendit-input-phone .xendit-dropdown button {
-  width: 64px;
-}
-
-.xendit-input-phone .xendit-dropdown button .xendit-dropdown-button-title {
-  display: none;
 }
 
 .xendit-dropdown .xendit-dropdown-search input {
