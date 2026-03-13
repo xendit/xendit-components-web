@@ -11,7 +11,7 @@ npm pack --pack-destination build-test
 cd build-test
 
 # install build tools, then unpack the package, then install dependencies of the package (order is important)
-npm i rollup@4.59.0 @rollup/plugin-node-resolve@16.0.3 @rollup/plugin-commonjs@29.0.2 webpack@5.105.4 webpack-cli@6.0.1
+npm i rollup@4.59.0 @rollup/plugin-node-resolve@16.0.3 @rollup/plugin-commonjs@29.0.2 webpack@5.105.4 webpack-cli@6.0.1 typescript@5.7.3
 tar -xzf ./xendit-components-*.tgz -C node_modules
 (cd node_modules/package && npm i --omit=dev)
 
@@ -33,6 +33,28 @@ console.log(Object.keys(p));
 assert.ok(p.XenditComponents);
 EOF
 )"
+
+# check typescript can resolve it
+cat <<'EOF' > tsconfig.json
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"skipLibCheck": false,
+		"noEmit": true
+	}
+}
+EOF
+cat <<'EOF' > typescript-test.ts
+import { XenditComponents } from "package";
+const components: typeof XenditComponents = XenditComponents;
+if (!components) {
+	throw new Error("failed to import XenditComponents");
+}
+EOF
+./node_modules/.bin/tsc --noEmit typescript-test.ts
 
 # check it works with rollup
 cat <<'EOF' > rollup.config.mjs
