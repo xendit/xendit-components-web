@@ -358,7 +358,25 @@ export function makeTestBffData(): BffResponse {
         form: [],
         instructions: [
           "Mock E-Wallet channel",
-          "This mock channel behaves similarly to production E-Wallets channels with no user input.",
+          "This mock channel has a redirect action.",
+        ],
+      },
+      {
+        brand_name: "Mock E-Wallet Channel (Redirect and Paylink actions)",
+        channel_code: "MOCK_EWALLET_PAYLINK",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: ["REDIRECT", "PAYLINK"],
+        form: [],
+        instructions: [
+          "Mock E-Wallet channel",
+          "This mock channel has a redirect and a paylink action.",
         ],
       },
       {

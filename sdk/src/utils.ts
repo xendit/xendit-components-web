@@ -7,6 +7,7 @@ import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 import { BffSession } from "./backend-types/session";
 import { internal } from "./internal";
+import { XenditComponents } from "./public-sdk";
 
 export const MOCK_NETWORK_DELAY_MS = 300;
 
@@ -14,6 +15,24 @@ export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
   if (arg === null || arg === undefined) {
     throw new Error(
       "Assertion failed: argument is null or undefined; this is a bug, please contact support.",
+    );
+  }
+}
+
+export function assertIsArray<T = unknown>(arg: unknown): asserts arg is T[] {
+  if (!Array.isArray(arg)) {
+    throw new Error(
+      "Assertion failed: expected array; this is a bug, please contact support.",
+    );
+  }
+}
+
+export function assertIsNotArray<T = unknown>(
+  arg: T,
+): asserts arg is Exclude<T, unknown[]> {
+  if (Array.isArray(arg)) {
+    throw new Error(
+      "Assertion failed: expected array; this is a bug, please contact support.",
     );
   }
 }
@@ -153,6 +172,21 @@ export function findBestAction(actions: BffAction[]): BffAction | undefined {
   // if we don't understand any action, just return the first one, it will fire the fatal-error event later
   // (an empty action list has a special meaning, we should return an unsupported action rather than undefined if we support none of the actions)
   return actions[0];
+}
+
+/**
+ * Find the paylink action, if it exists and the feature is enabled.
+ */
+export function findPaylinkAction(
+  sdk: XenditComponents,
+  actions: BffAction[],
+): BffAction | undefined {
+  if (sdk[internal].options.enablePaylinks) {
+    return actions.find(
+      (a) =>
+        a.type === "REDIRECT_CUSTOMER" && a.descriptor === "WEB_GOOGLE_PAYLINK",
+    );
+  }
 }
 
 function isAndroidOrIos() {

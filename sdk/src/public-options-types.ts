@@ -16,6 +16,11 @@ export interface XenditSdkOptions {
    * @internal
    */
   enableDigitalWallets?: boolean;
+
+  /**
+   * @internal
+   */
+  enablePaylinks?: boolean;
 }
 
 /**
