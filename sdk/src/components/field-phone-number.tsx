@@ -119,26 +119,24 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   }
 
   return (
-    <div className={`xendit-input-phone`}>
-      <div className="xendit-combobox">
-        <Dropdown
-          options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
-          selectedIndex={countryCodeIndex}
-          onChange={handleCountryChange}
-        />
-        <input
-          id={id}
-          ref={inputRef}
-          type="tel"
-          inputMode="tel"
-          placeholder={getExampleLocalNumber()}
-          className="xendit-text-14 xendit-phone-number-input"
-          onBlur={handleBlur}
-          onChange={handleLocalChange}
-          value={localNumber}
-          autoComplete="tel"
-        />
-      </div>
+    <div className="xendit-input-phone">
+      <Dropdown
+        options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
+        selectedIndex={countryCodeIndex}
+        onChange={handleCountryChange}
+      />
+      <input
+        id={id}
+        ref={inputRef}
+        type="tel"
+        inputMode="tel"
+        placeholder={getExampleLocalNumber()}
+        className="xendit-text-14 xendit-phone-number-input"
+        onBlur={handleBlur}
+        onChange={handleLocalChange}
+        value={localNumber}
+        autoComplete="tel"
+      />
       <input type="hidden" name={name} ref={hiddenFieldRef} />
     </div>
   );
