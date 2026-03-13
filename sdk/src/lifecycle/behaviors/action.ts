@@ -266,7 +266,14 @@ export class ActionDeepLinkBehavior extends ContainerActionBehavior {
     const deepLinkAction =
       this.bb.world?.paymentEntity?.entity.actions[Number(this.actionIndex)];
     assertEquals(deepLinkAction?.type, "REDIRECT_CUSTOMER");
-    assertEquals(deepLinkAction?.descriptor, "DEEPLINK_URL");
+
+    if (
+      deepLinkAction.descriptor !== "DEEPLINK_URL" &&
+      deepLinkAction.descriptor !== "WEB_URL"
+    ) {
+      // The deeplink popup can also handle regular web urls (if paylinks are enabled, that's useful to prevent auto-redirects)
+      throw new Error("Unexpected action type in ActionDeepLinkBehavior");
+    }
 
     const t = this.bb.sdk.t.bind(this.bb.sdk);
     const channel = this.bb.channel;

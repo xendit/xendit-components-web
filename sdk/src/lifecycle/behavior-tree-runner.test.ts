@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { behaviorNode, BehaviorTree } from "./behavior-tree-runner";
+import {
+  behaviorNode,
+  BehaviorNodeSingle,
+  BehaviorTree,
+} from "./behavior-tree-runner";
 import { assert } from "../utils";
 
 type BB = {
@@ -56,6 +60,12 @@ function testBehaviorTree(bb: BB) {
     case "SINGLE2":
       // case with a different single node
       return behaviorNode(TestBehavior2);
+    case "ARRAY":
+      // case with multiple nodes in an array
+      return [behaviorNode(TestBehavior), behaviorNode(TestBehavior2)];
+    case "ARRAY2":
+      // case with different array nodes
+      return [behaviorNode(TestBehavior2), behaviorNode(TestBehavior3)];
     case "NESTED":
       // case with nested nodes
       return behaviorNode(
@@ -73,7 +83,7 @@ function testBehaviorTree(bb: BB) {
     case "INFINITE_RECURSION": {
       // case with a different single node
       const node = behaviorNode(TestBehavior);
-      node.child = node;
+      (node as BehaviorNodeSingle<BB>).child = node;
       return node;
     }
     default:
@@ -114,7 +124,6 @@ describe("Behavior Tree Runner", () => {
 
     tree.bb.testCase = "SINGLE2";
     tree.update(); // change TestBehavior to TestBehavior2
-    expect(node).toBeDefined();
     expect(node.enterCalled).toBeTruthy();
     expect(node.updateCalled).toBeNull();
     expect(node.exitCalled).toBeTruthy();
@@ -168,6 +177,62 @@ describe("Behavior Tree Runner", () => {
     // parent node update should be called after child node update
     expect(node.updateCalled).toBeGreaterThan(node2.updateCalled ?? 0);
     expect(node2.updateCalled).toBeGreaterThan(node3.updateCalled ?? 0);
+  });
+
+  it("should update nodes in an array", () => {
+    const tree = new BehaviorTree<BB>(testBehaviorTree, {});
+
+    tree.bb.testCase = "ARRAY";
+    tree.update(); // create TestBehavior and TestBehavior2
+    const node = tree.findBehavior(TestBehavior);
+    const node2 = tree.findBehavior(TestBehavior2);
+    assert(node);
+    assert(node2);
+
+    tree.bb.testCase = "ARRAY2";
+    tree.update(); // change to TestBehavior2 and TestBehavior3
+    const node2After = tree.findBehavior(TestBehavior2);
+    const node3After = tree.findBehavior(TestBehavior3);
+    assert(node2After);
+    assert(node3After);
+
+    // both nodes should have been exited and replaced
+    expect(node.exitCalled).toBeTruthy();
+    expect(node2.exitCalled).toBeTruthy();
+    expect(node2After.enterCalled).toBeTruthy();
+    expect(node3After.enterCalled).toBeTruthy();
+  });
+
+  it("should change single node to array", () => {
+    const tree = new BehaviorTree<BB>(testBehaviorTree, {});
+
+    tree.bb.testCase = "SINGLE";
+    tree.update(); // create TestBehavior
+    const node = tree.findBehavior(TestBehavior);
+    assert(node);
+
+    tree.bb.testCase = "ARRAY2";
+    tree.update(); // change to TestBehavior2 and TestBehavior3
+    const node2After = tree.findBehavior(TestBehavior2);
+    const node3After = tree.findBehavior(TestBehavior3);
+    assert(node2After);
+    assert(node3After);
+  });
+
+  it("should change array node to single node", () => {
+    const tree = new BehaviorTree<BB>(testBehaviorTree, {});
+
+    tree.bb.testCase = "ARRAY";
+    tree.update(); // create TestBehavior and TestBehavior2
+    const node = tree.findBehavior(TestBehavior);
+    const node2 = tree.findBehavior(TestBehavior2);
+    assert(node);
+    assert(node2);
+
+    tree.bb.testCase = "SINGLE2";
+    tree.update(); // change to TestBehavior2 single node
+    const node2After = tree.findBehavior(TestBehavior2);
+    assert(node2After);
   });
 
   it("should schedule recursive updates", () => {

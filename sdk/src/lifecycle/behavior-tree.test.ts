@@ -13,7 +13,7 @@ import {
   SessionFailedBehavior,
 } from "./behaviors/session";
 import { BffSessionStatus } from "../backend-types/session";
-import { BehaviorNode } from "./behavior-tree-runner";
+import { BehaviorNode, flattenBehaviors } from "./behavior-tree-runner";
 import { BffChannel } from "../backend-types/channel";
 import {
   ChannelInvalidBehavior,
@@ -30,6 +30,7 @@ import {
 } from "./behaviors/payment-entity";
 import {
   ActionCompletedBehavior,
+  ActionDeepLinkBehavior,
   ActionIframeBehavior,
   ActionQrBehavior,
 } from "./behaviors/action";
@@ -40,12 +41,22 @@ import {
   withPaymentEntityStatus,
 } from "../data/test-data-modifiers";
 import { PaymentOptionsBehavior } from "./behaviors/payment-options";
+import { internal } from "../internal";
+import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
+import { XenditSdkOptions } from "../public-options-types";
 
 const testData = makeTestBffData();
 
 const mockBlackboard: BlackboardType & { world: object } = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sdk: {} as any,
+  sdk: {
+    [internal]: {
+      options: {
+        componentsSdkKey: makeTestSdkKey(),
+        enablePaylinks: true,
+      } satisfies XenditSdkOptions,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
   mock: true,
   sdkKey: parseSdkKey(makeTestSdkKey()),
   world: {
@@ -104,19 +115,11 @@ function findChannel(channels: BffChannel[], channelCode: string) {
 }
 
 function assertHasNodes(node: BehaviorNode<BlackboardType>, nodes: unknown[]) {
-  let cursor = node;
-  let i = 0;
-  while (true) {
-    expect(i).toBeLessThan(nodes.length);
-    expect(cursor.impl).toBe(nodes[i]);
-    i += 1;
-    if (cursor.child) {
-      cursor = cursor.child;
-    } else {
-      break;
-    }
+  const flattened = flattenBehaviors(node);
+  expect(flattened.length).toBe(nodes.length);
+  for (let i = 0; i < nodes.length; i++) {
+    expect(flattened[i].impl).toBe(nodes[i]);
   }
-  expect(i).toBe(nodes.length);
 }
 
 describe("Behavior Tree - SDK states", () => {
@@ -191,9 +194,9 @@ describe("Behavior Tree - Form validity and card info", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
-      PaymentOptionsBehavior,
-      CardInfoBehavior,
       ChannelInvalidBehavior,
+      CardInfoBehavior,
+      PaymentOptionsBehavior,
     ]);
   });
 });
@@ -351,6 +354,35 @@ describe("Behavior Tree - Actions", () => {
       SubmissionBehavior,
       PeRequiresActionBehavior,
       ActionIframeBehavior,
+    ]);
+  });
+
+  it("should give redirect and paylink actions", () => {
+    const node = behaviorTreeForSdk({
+      ...mockBlackboard,
+      channel: findChannel(
+        mockBlackboard.world.channels,
+        "MOCK_EWALLET_PAYLINK",
+      ),
+      submissionRequested: true,
+      world: {
+        ...mockBlackboard.world,
+        paymentEntity: toPaymentEntity(
+          makeTestPaymentRequest("MOCK_EWALLET_PAYLINK", [
+            "REDIRECT",
+            "PAYLINK",
+          ]),
+        ),
+        sessionTokenRequestId: randomUUID(),
+      },
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      SubmissionBehavior,
+      PeRequiresActionBehavior,
+      ActionDeepLinkBehavior,
+      ActionPaylinkBehavior,
     ]);
   });
 });
