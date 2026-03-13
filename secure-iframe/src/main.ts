@@ -228,6 +228,8 @@ export async function main() {
         simulationScenarios.find((scenario) => scenario.name === data.scenario)
           ?.values?.[queryInputs.inputType] ?? "";
       input.value = value;
+      // manually trigger change event since we're programmatically changing the input value
+      input.dispatchEvent(new Event("change", { bubbles: true }));
       handleChangeEvent(input.value).catch(fatalError);
     }
   });

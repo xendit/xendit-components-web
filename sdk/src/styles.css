@@ -818,28 +818,28 @@ xendit-payment-channel[inert] {
 }
 
 /* Form Simulation Helper */
+.xendit-form-simulation-root {
+  position: relative;
+}
 .xendit-form-simulation-trigger {
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
-  anchor-name: --xendit-form-simulation-trigger-anchor;
 }
 .xendit-form-simulation-popover {
   position: absolute;
-  position-anchor: --xendit-form-simulation-trigger-anchor;
-  top: anchor(bottom);
-  right: anchor(right);
-  margin-top: 8px;
+  top: 100%;
+  right: 0;
 
-  max-width: 350px;
+  width: 350px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   border-radius: 4px;
   padding: 12px;
   border: 1px solid var(--xendit-color-border);
-  background: #ffffff80;
+  background: color-mix(in srgb, var(--xendit-color-background), transparent);
   backdrop-filter: blur(4px);
 }
 .xendit-form-simulation-popover .xendit-dropdown {

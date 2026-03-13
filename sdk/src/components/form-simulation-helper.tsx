@@ -2,6 +2,7 @@ import { ComponentChildren, createContext, FunctionComponent } from "preact";
 import { useContext, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { Scenarios } from "../data/simulation-scenarios";
 import { Dropdown } from "./dropdown";
+import { useSdk } from "./session-provider";
 
 interface Props {
   scenarios: Scenarios;
@@ -46,6 +47,12 @@ export const FormSimulationHelper: FunctionComponent<Props> = ({
   );
 };
 
+export const FormSimulationRoot: FunctionComponent<{
+  children: ComponentChildren;
+}> = ({ children }) => {
+  return <div className="xendit-form-simulation-root">{children}</div>;
+};
+
 export const FormSimulationTrigger: FunctionComponent<{
   children: ComponentChildren;
 }> = ({ children }) => {
@@ -63,8 +70,9 @@ export const FormSimulationTrigger: FunctionComponent<{
 };
 
 export const FormSimulationHelperPopover: FunctionComponent = () => {
-  const { open, scenarios, onSelect } =
+  const { open, setOpen, scenarios, onSelect } =
     useContext(FormSimulationHelperContext) || {};
+  const { t } = useSdk();
 
   if (!open || !scenarios) {
     return null;
@@ -73,7 +81,7 @@ export const FormSimulationHelperPopover: FunctionComponent = () => {
   return (
     <div className="xendit-form-simulation-popover">
       <div className="xendit-text-12 xendit-text-semibold">
-        Simulate a test scenario
+        {t("simulation.simulate_test_scenario")}
       </div>
       <Dropdown
         onChange={(option) => {
@@ -82,9 +90,10 @@ export const FormSimulationHelperPopover: FunctionComponent = () => {
           );
           if (selectedScenario) {
             onSelect?.(selectedScenario.name);
+            setOpen?.(false);
           }
         }}
-        placeholder="Select a scenario"
+        placeholder={t("simulation.select_scenario")}
         options={scenarios.scenarios.map((scenario) => ({
           title: scenario.description,
           value: scenario.description,
@@ -98,16 +107,15 @@ export const FormSimulationHelperPopover: FunctionComponent = () => {
       />
       {scenarios?.docsLink ? (
         <div className="xendit-text-14">
-          Want to test different scenarios? See the full list{" "}
+          {t("simulation.want_to_test_all_scenarios")}{" "}
           <a
             href={scenarios.docsLink}
             target="_blank"
             rel="noopener noreferrer"
             className="xendit-text-link"
           >
-            here
+            {t("simulation.see_all_scenarios")}
           </a>
-          .
         </div>
       ) : null}
     </div>

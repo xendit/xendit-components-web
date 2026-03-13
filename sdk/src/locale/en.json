@@ -89,6 +89,11 @@
     "action_deeplink.title": "Awaiting payment...",
     "action_empty_list_push_notification.subtext": "Check the notification in your {{channelName}} app to complete your payment.",
     "action_empty_list_push_notification.title": "Awaiting payment...",
-    "image_alt.channel_logo": "{{channelName}} logo"
+    "image_alt.channel_logo": "{{channelName}} logo",
+    "simulation.simulate_scenario": "Simulate scenario",
+    "simulation.simulate_test_scenario": "Simulate a test scenario",
+    "simulation.select_scenario": "Select a scenario",
+    "simulation.want_to_test_all_scenarios": "Want to test different scenarios?",
+    "simulation.see_all_scenarios": "See the full list here."
   }
 }

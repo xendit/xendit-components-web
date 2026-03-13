@@ -11,6 +11,7 @@ import { Scenarios } from "../data/simulation-scenarios";
 import {
   FormSimulationHelper,
   FormSimulationHelperPopover,
+  FormSimulationRoot,
   FormSimulationTrigger,
 } from "./form-simulation-helper";
 import {
@@ -186,6 +187,7 @@ const FormSimulationHelperWrapper: FunctionComponent<{
   fieldGroup: ChannelFormField[];
 }> = ({ simulationScenarios, fieldGroup }) => {
   const iframeRegistry = useContext(IframeRegistryContext);
+  const { t } = useSdk();
 
   return (
     <FormSimulationHelper
@@ -216,12 +218,14 @@ const FormSimulationHelperWrapper: FunctionComponent<{
         }
       }}
     >
-      <FormSimulationTrigger>
-        <div className="xendit-text-12 xendit-text-semibold xendit-text-link">
-          Simulate scenario
-        </div>
-      </FormSimulationTrigger>
-      <FormSimulationHelperPopover />
+      <FormSimulationRoot>
+        <FormSimulationTrigger>
+          <div className="xendit-text-12 xendit-text-semibold xendit-text-link">
+            {t("simulation.simulate_scenario")}
+          </div>
+        </FormSimulationTrigger>
+        <FormSimulationHelperPopover />
+      </FormSimulationRoot>
     </FormSimulationHelper>
   );
 };
