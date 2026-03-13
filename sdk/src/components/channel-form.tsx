@@ -9,15 +9,17 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { useSession } from "./session-provider";
+import { useSdk, useSession } from "./session-provider";
 import FieldGroup from "./field-group";
 import { formHasFieldOfType, usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "preact/compat";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
-import { useChannelComponentData } from "./payment-channel";
+import { useChannel, useChannelComponentData } from "./payment-channel";
 import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
+import { internal } from "../internal";
+import { CARDS_SCENARIOS, Scenarios } from "../data/simulation-scenarios";
 
 interface Props {
   form: ChannelFormField[];
@@ -30,6 +32,8 @@ export interface ChannelFormHandle {
 const ChannelForm = forwardRef<ChannelFormHandle, Props>(
   ({ form, onChannelPropertiesChanged }, ref) => {
     const session = useSession();
+    const channel = useChannel();
+    const sdk = useSdk();
     const channelComponentData = useChannelComponentData();
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -89,6 +93,26 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       }
     }, [filteredForm, handleFieldChanged, previousFilteredForm]);
 
+    const getSimulationScenarios = useCallback(
+      (fieldGroup: ChannelFormField[]): Scenarios | null => {
+        // only show simulation scenarios for prod-dev (test mode)
+        if (sdk[internal].sdkKey.hostId !== "pd") {
+          return null;
+        }
+
+        // only show simulation scenarios for cards channel and if the field group has a credit card number field
+        if (
+          channel?.channel_code === "CARDS" &&
+          fieldGroup.some((field) => field.type.name === "credit_card_number")
+        ) {
+          return CARDS_SCENARIOS;
+        }
+
+        return null;
+      },
+      [channel, sdk],
+    );
+
     const filteredFieldGroups = groupFields(filteredForm).filter(
       (group) => group.length,
     );
@@ -108,6 +132,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
                 groupIndex={index}
                 handleFieldChanged={handleFieldChanged}
                 channelProperties={channelProperties}
+                simulationScenarios={getSimulationScenarios(fieldGroup)}
               />
             ))}
           </ChannelPropertiesContext.Provider>

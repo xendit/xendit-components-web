@@ -13,6 +13,7 @@ import {
   applyPlaceholderStyles,
 } from "./css-sanitizer";
 import { assertIsSecureInputEvent } from "./events";
+import { simulationScenarios } from "./simulation";
 import {
   createFatalErrorComponent,
   createInputElement,
@@ -210,7 +211,6 @@ export async function main() {
     }
   });
 
-  // handle focus request from parent
   window.addEventListener("message", (event) => {
     if (
       event.origin !== queryInputs.embedderOrigin ||
@@ -219,8 +219,18 @@ export async function main() {
       return;
     }
     const data = event.data as IframeEvent;
+    // handle focus request from parent
     if (data.type === "xendit-iframe-focus") {
       input.focus();
+    }
+    // handle populate field value for simulation request from parent
+    if (data.type === "xendit-iframe-populate-for-simulation") {
+      const value =
+        simulationScenarios.find((scenario) => scenario.name === data.scenario)
+          ?.values?.[queryInputs.inputType] ?? "";
+      input.value = value;
+      // manually trigger change event since we're programmatically changing the input value
+      input.dispatchEvent(new Event("change", { bubbles: true }));
     }
   });
 }

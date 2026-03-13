@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useRef } from "preact/hooks";
+import { useState, useLayoutEffect, useRef, useContext } from "preact/hooks";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import Field from "./field";
 import classNames from "classnames";
@@ -7,6 +7,18 @@ import { useSdk } from "./session-provider";
 import { getLocalizedErrorMessage } from "../localization";
 import { channelPropertyFieldValidate } from "../validation";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { Scenarios } from "../data/simulation-scenarios";
+import {
+  FormSimulationHelper,
+  FormSimulationHelperPopover,
+  FormSimulationRoot,
+  FormSimulationTrigger,
+} from "./form-simulation-helper";
+import {
+  IframeRegistryContext,
+  IframeRegistryProvider,
+} from "./iframe-registry";
+import { FunctionComponent } from "preact";
 
 const CSS_CLASSES = {
   BOTTOM_LEFT_0: "field-radius-bl-0",
@@ -24,6 +36,7 @@ interface Props {
   groupIndex: number;
   handleFieldChanged: () => void;
   channelProperties: ChannelProperties | null;
+  simulationScenarios?: Scenarios | null;
 }
 
 const FieldGroup = ({
@@ -31,6 +44,7 @@ const FieldGroup = ({
   groupIndex,
   handleFieldChanged,
   channelProperties,
+  simulationScenarios,
 }: Props) => {
   const { t } = useSdk();
 
@@ -127,31 +141,92 @@ const FieldGroup = ({
   const error = renderError();
 
   return (
-    <div className="xendit-channel-form-field-group">
-      <label htmlFor={formFieldId(fieldGroup[0])} className="xendit-text-14">
-        {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
-      </label>
-      <div
-        ref={groupContainerRef}
-        key={groupIndex}
-        className={`xendit-form-field-group ${error ? "invalid" : ""}`}
-      >
-        {fieldGroup.map((field, index) => {
-          const position = calculateFieldPosition(index);
-          const className = getFieldClassNames(field, index, position);
-
-          return (
-            <Field
-              className={className}
-              key={index}
-              field={field}
-              onChange={handleFieldChanged}
+    <IframeRegistryProvider>
+      <div className="xendit-channel-form-field-group">
+        <div className="xendit-channel-form-field-group-label-container">
+          <label
+            htmlFor={formFieldId(fieldGroup[0])}
+            className="xendit-text-14"
+          >
+            {fieldGroup[0].group_label ?? fieldGroup[0].label ?? ""}
+          </label>
+          {simulationScenarios ? (
+            <FormSimulationHelperWrapper
+              simulationScenarios={simulationScenarios}
+              fieldGroup={fieldGroup}
             />
-          );
-        })}
+          ) : null}
+        </div>
+        <div
+          ref={groupContainerRef}
+          key={groupIndex}
+          className={`xendit-form-field-group ${error ? "invalid" : ""}`}
+        >
+          {fieldGroup.map((field, index) => {
+            const position = calculateFieldPosition(index);
+            const className = getFieldClassNames(field, index, position);
+
+            return (
+              <Field
+                className={className}
+                key={index}
+                field={field}
+                onChange={handleFieldChanged}
+              />
+            );
+          })}
+        </div>
+        {error}
       </div>
-      {error}
-    </div>
+    </IframeRegistryProvider>
+  );
+};
+
+const FormSimulationHelperWrapper: FunctionComponent<{
+  simulationScenarios: Scenarios;
+  fieldGroup: ChannelFormField[];
+}> = ({ simulationScenarios, fieldGroup }) => {
+  const iframeRegistry = useContext(IframeRegistryContext);
+  const { t } = useSdk();
+
+  return (
+    <FormSimulationHelper
+      scenarios={simulationScenarios}
+      onSelect={(scenarioName) => {
+        const scenario = simulationScenarios.scenarios.find(
+          (s) => s.name === scenarioName,
+        );
+        if (!scenario?.values) return;
+
+        // when a scenario is selected, set the values of the scenario to the fields
+        for (const [fieldName, value] of Object.entries(scenario.values)) {
+          const field = fieldGroup.find((f) => formFieldName(f) === fieldName);
+          if (field) {
+            if (
+              field.type.name === "credit_card_number" ||
+              field.type.name === "credit_card_expiry" ||
+              field.type.name === "credit_card_cvn"
+            ) {
+              iframeRegistry?.postMessageToIframe(fieldName, {
+                type: "xendit-iframe-populate-for-simulation",
+                scenario: value,
+              });
+            }
+
+            // TODO handle non-iframe fields if needed
+          }
+        }
+      }}
+    >
+      <FormSimulationRoot>
+        <FormSimulationTrigger>
+          <div className="xendit-text-12 xendit-text-semibold xendit-text-link">
+            {t("simulation.simulate_scenario")}
+          </div>
+        </FormSimulationTrigger>
+        <FormSimulationHelperPopover />
+      </FormSimulationRoot>
+    </FormSimulationHelper>
   );
 };
 
