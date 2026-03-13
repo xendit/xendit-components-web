@@ -2,6 +2,12 @@
 
 No unreleased changes.
 
+# 0.0.17
+
+### Bug Fixes
+
+- Fixed typescript import resolution
+
 # 0.0.16
 
 ### Bug Fixes
