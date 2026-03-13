@@ -171,16 +171,6 @@ export const CARDS_SCENARIOS: Scenarios = {
       },
     },
     {
-      imageUrl: "https://assets.xendit.co/payment-session/logos/JCB.svg",
-      description: "3DS Challenge",
-      name: "3_ds_challenge",
-      values: {
-        "card_details.card_number": "3_ds_challenge",
-        "card_details.expiry_month__card_details.expiry_year": "3_ds_challenge",
-        "card_details.cvn": "3_ds_challenge",
-      },
-    },
-    {
       imageUrl: "https://assets.xendit.co/payment-session/logos/AMEX.svg",
       description:
         "3DS Frictionless, authentication successful (use a 4 digit CVN)",

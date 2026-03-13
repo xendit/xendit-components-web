@@ -97,14 +97,6 @@ export const simulationScenarios = [
   },
   {
     values: {
-      credit_card_number: "3337000000000008",
-      credit_card_expiry: "12/99",
-      credit_card_cvn: "123",
-    },
-    name: "3_ds_challenge",
-  },
-  {
-    values: {
       credit_card_number: "378282246310005",
       credit_card_expiry: "12/99",
       credit_card_cvn: "1234",
