@@ -25,25 +25,19 @@
   ],
   "types": "./sdk/dist/index.d.ts",
   "exports": {
-    "node": {
-      "import": {
-        "types": "./sdk/dist/index.d.ts",
-        "default": "./sdk/dist/esm-external/index.mjs"
+    ".": {
+      "types": "./sdk/dist/index.d.ts",
+      "node": {
+        "import": "./sdk/dist/esm-external/index.mjs",
+        "require": "./sdk/dist/cjs/index.cjs"
       },
-      "require": {
-        "types": "./sdk/dist/index.d.ts",
-        "default": "./sdk/dist/cjs/index.cjs"
-      }
-    },
-    "browser": {
-      "import": {
-        "types": "./sdk/dist/index.d.ts",
-        "default": "./sdk/dist/esm-bundled/index.mjs"
+      "browser": {
+        "import": "./sdk/dist/esm-bundled/index.mjs",
+        "require": "./sdk/dist/index.umd.js"
       },
-      "require": {
-        "types": "./sdk/dist/index.d.ts",
-        "default": "./sdk/dist/index.umd.js"
-      }
+      "import": "./sdk/dist/esm-bundled/index.mjs",
+      "require": "./sdk/dist/index.umd.js",
+      "default": "./sdk/dist/esm-bundled/index.mjs"
     }
   },
   "scripts": {
