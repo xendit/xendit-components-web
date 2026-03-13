@@ -18,7 +18,7 @@ import {
   IframeRegistryContext,
   IframeRegistryProvider,
 } from "./iframe-registry";
-import { FunctionComponent } from "react-dom/src";
+import { FunctionComponent } from "preact";
 
 const CSS_CLASSES = {
   BOTTOM_LEFT_0: "field-radius-bl-0",
