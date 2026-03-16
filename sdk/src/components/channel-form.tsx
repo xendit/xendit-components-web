@@ -15,11 +15,11 @@ import { formHasFieldOfType, usePrevious } from "../utils";
 import { createContext } from "preact";
 import { forwardRef } from "preact/compat";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
-import { useChannel, useChannelComponentData } from "./payment-channel";
 import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
 import { internal } from "../internal";
 import { CARDS_SCENARIOS, Scenarios } from "../data/simulation-scenarios";
+import { useChannel, useChannelComponentData } from "./channel-root";
 
 interface Props {
   form: ChannelFormField[];

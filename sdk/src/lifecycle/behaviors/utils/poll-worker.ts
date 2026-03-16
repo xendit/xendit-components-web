@@ -1,16 +1,16 @@
-import { pollSession } from "../../api";
-import { BffPollResponse } from "../../backend-types/common";
+import { pollSession } from "../../../api";
+import { BffPollResponse } from "../../../backend-types/common";
 import {
   BffPaymentEntity,
   toPaymentEntity,
-} from "../../backend-types/payment-entity";
-import { XenditComponents, XenditComponentsTest } from "../../public-sdk";
+} from "../../../backend-types/payment-entity";
+import { XenditComponents, XenditComponentsTest } from "../../../public-sdk";
 import {
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
   retryLoop,
   sleep,
-} from "../../utils";
+} from "../../../utils";
 
 /**
  * Polls the session status forever until stop() is called.

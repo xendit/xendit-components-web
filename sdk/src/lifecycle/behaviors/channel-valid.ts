@@ -30,15 +30,3 @@ export class ChannelValidBehavior implements Behavior {
     this.bb.dispatchEvent(new XenditNotReadyEvent());
   }
 }
-
-/**
- * If this exists, submission is blocked.
- */
-export class ChannelInvalidBehavior implements Behavior {
-  constructor(
-    private bb: BlackboardType,
-    private channelCode: string | null,
-  ) {}
-
-  enter() {}
-}

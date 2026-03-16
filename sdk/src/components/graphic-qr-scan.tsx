@@ -2,7 +2,7 @@ import { FunctionComponent, SVGAttributes } from "preact";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { useIdSafe } from "../utils";
 
-export const QrScanIcon: FunctionComponent<SVGAttributes<SVGSVGElement>> = (
+export const GraphicQrScan: FunctionComponent<SVGAttributes<SVGSVGElement>> = (
   props,
 ) => {
   const scannerRef = useRef<SVGRectElement>(null);

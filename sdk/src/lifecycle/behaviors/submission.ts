@@ -40,7 +40,7 @@ import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
-import { discardPaymentEntity } from "./discard";
+import { discardPaymentEntity } from "./utils/discard";
 
 export type SubmissionError = {
   text: string[];

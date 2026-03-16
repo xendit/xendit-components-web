@@ -1,7 +1,7 @@
 import { FunctionComponent, SVGAttributes } from "preact";
 import { useLayoutEffect, useRef } from "preact/hooks";
 
-export const InstructionsIcon: FunctionComponent<
+export const GraphicRedirectInstructions: FunctionComponent<
   SVGAttributes<SVGSVGElement>
 > = (props) => {
   const arrowRef = useRef<SVGGElement>(null);

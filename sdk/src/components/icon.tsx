@@ -1,11 +1,8 @@
-import {
-  ComponentChildren,
-  FunctionComponent,
-  render,
-  SVGAttributes,
-} from "preact";
+import { ComponentChildren, FunctionComponent, SVGAttributes } from "preact";
 
 type Direction = "up" | "down" | "left" | "right";
+
+type IconName = "chevron" | "check" | "x" | "card" | "copy" | "dummy";
 
 type Props = {
   name: IconName;
@@ -21,9 +18,6 @@ const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
 
   let svgTransform = undefined;
   switch (direction) {
-    case "left":
-      svgTransform = "rotate(0 12 12)";
-      break;
     case "right":
       svgTransform = "rotate(180 12 12)";
       break;
@@ -33,6 +27,116 @@ const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
     case "down":
       svgTransform = "rotate(-90 12 12)";
       break;
+    case "left":
+    default:
+      svgTransform = "rotate(0 12 12)";
+      break;
+  }
+
+  let iconNode: ComponentChildren = null;
+  switch (name) {
+    case "chevron": {
+      iconNode = (
+        <path
+          d="M15 19.5L7.5 12L15 4.5"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      );
+      break;
+    }
+    case "check": {
+      iconNode = scaleIcon(
+        <path
+          d="M13.5 4.5L6.5 11.5L3 8"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />,
+        16 / 24,
+      );
+      break;
+    }
+    case "x": {
+      iconNode = (
+        <>
+          <path
+            d="M18.75 5.25L5.25 18.75"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M18.75 18.75L5.25 5.25"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </>
+      );
+      break;
+    }
+    case "card": {
+      iconNode = scaleIcon(
+        <path
+          fill="currentColor"
+          d="M17.5 3.75H2.5C2.16848 3.75 1.85054 3.8817 1.61612 4.11612C1.3817 4.35054 1.25 4.66848 1.25 5V15C1.25 15.3315 1.3817 15.6495 1.61612 15.8839C1.85054 16.1183 2.16848 16.25 2.5 16.25H17.5C17.8315 16.25 18.1495 16.1183 18.3839 15.8839C18.6183 15.6495 18.75 15.3315 18.75 15V5C18.75 4.66848 18.6183 4.35054 18.3839 4.11612C18.1495 3.8817 17.8315 3.75 17.5 3.75ZM10.625 13.75H9.375C9.20924 13.75 9.05027 13.6842 8.93306 13.5669C8.81585 13.4497 8.75 13.2908 8.75 13.125C8.75 12.9592 8.81585 12.8003 8.93306 12.6831C9.05027 12.5658 9.20924 12.5 9.375 12.5H10.625C10.7908 12.5 10.9497 12.5658 11.0669 12.6831C11.1842 12.8003 11.25 12.9592 11.25 13.125C11.25 13.2908 11.1842 13.4497 11.0669 13.5669C10.9497 13.6842 10.7908 13.75 10.625 13.75ZM15.625 13.75H13.125C12.9592 13.75 12.8003 13.6842 12.6831 13.5669C12.5658 13.4497 12.5 13.2908 12.5 13.125C12.5 12.9592 12.5658 12.8003 12.6831 12.6831C12.8003 12.5658 12.9592 12.5 13.125 12.5H15.625C15.7908 12.5 15.9497 12.5658 16.0669 12.6831C16.1842 12.8003 16.25 12.9592 16.25 13.125C16.25 13.2908 16.1842 13.4497 16.0669 13.5669C15.9497 13.6842 15.7908 13.75 15.625 13.75ZM2.5 6.875V5H17.5V6.875H2.5Z"
+        />,
+        20 / 24,
+      );
+      break;
+    }
+    case "copy": {
+      iconNode = scaleIcon(
+        <>
+          <path
+            d="M6 9.5H10"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 7.5H10"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M10 2.5H12.5C12.6326 2.5 12.7598 2.55268 12.8536 2.64645C12.9473 2.74021 13 2.86739 13 3V13.5C13 13.6326 12.9473 13.7598 12.8536 13.8536C12.7598 13.9473 12.6326 14 12.5 14H3.5C3.36739 14 3.24021 13.9473 3.14645 13.8536C3.05268 13.7598 3 13.6326 3 13.5V3C3 2.86739 3.05268 2.74021 3.14645 2.64645C3.24021 2.55268 3.36739 2.5 3.5 2.5H6"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M5.5 4.5V4C5.5 3.33696 5.76339 2.70107 6.23223 2.23223C6.70107 1.76339 7.33696 1.5 8 1.5C8.66304 1.5 9.29893 1.76339 9.76777 2.23223C10.2366 2.70107 10.5 3.33696 10.5 4V4.5H5.5Z"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>,
+        16 / 24,
+      );
+      break;
+    }
+    case "dummy": {
+      iconNode = scaleIcon(
+        <path
+          fill="currentColor"
+          d="M17.5 11.875V15C17.5 15.3315 17.3683 15.6495 17.1339 15.8839C16.8995 16.1183 16.5815 16.25 16.25 16.25H3.75C3.41848 16.25 3.10054 16.1183 2.86612 15.8839C2.6317 15.6495 2.5 15.3315 2.5 15V11.875C2.5 11.5435 2.6317 11.2255 2.86612 10.9911C3.10054 10.7567 3.41848 10.625 3.75 10.625H16.25C16.5815 10.625 16.8995 10.7567 17.1339 10.9911C17.3683 11.2255 17.5 11.5435 17.5 11.875ZM16.25 3.75H3.75C3.41848 3.75 3.10054 3.8817 2.86612 4.11612C2.6317 4.35054 2.5 4.66848 2.5 5V8.125C2.5 8.45652 2.6317 8.77446 2.86612 9.00888C3.10054 9.2433 3.41848 9.375 3.75 9.375H16.25C16.5815 9.375 16.8995 9.2433 17.1339 9.00888C17.3683 8.77446 17.5 8.45652 17.5 8.125V5C17.5 4.66848 17.3683 4.35054 17.1339 4.11612C16.8995 3.8817 16.5815 3.75 16.25 3.75Z"
+        />,
+        20 / 24,
+      );
+      break;
+    }
+    default: {
+      name satisfies never;
+      throw new Error(`Icon with name ${name} does not exist`);
+    }
   }
 
   return (
@@ -44,132 +148,18 @@ const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
       fill="none"
       stroke="none"
     >
-      {/* TODO: figure out why this doens't work. Maybe because of the self signed cert? */}
-      {/* <use href={`#xendit-icon-${name}`} transform={svgTransform} /> */}
-      <g transform={svgTransform}>
-        {iconData.find((icon) => icon.name === name)?.node ?? null}
-      </g>
+      <g transform={svgTransform}>{iconNode}</g>
     </svg>
   );
 };
 
-function makeIcon<T extends string>(
-  id: T,
+// wrap an SVG path in a group that will scale it to fit within a 24x24 viewbox
+// e.g. if the original path is designed for a 16x16 viewbox, do `scaleIcon(<path d="..." />, 16 / 24)`.
+function scaleIcon(
   children: ComponentChildren,
   scale: number,
-): { name: T; node: ComponentChildren } {
-  return {
-    name: id,
-    node: (
-      <g
-        id={`xendit-icon-${id}`}
-        transform={`scale(${1 / scale} ${1 / scale})`}
-      >
-        {children}
-      </g>
-    ),
-  };
-}
-
-const iconData = [
-  makeIcon(
-    "chevron",
-    <path
-      d="M15 19.5L7.5 12L15 4.5"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />,
-    24 / 24,
-  ),
-  makeIcon(
-    "check",
-    <path
-      d="M13.5 4.5L6.5 11.5L3 8"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />,
-    16 / 24,
-  ),
-  makeIcon(
-    "x",
-    <>
-      <path
-        d="M18.75 5.25L5.25 18.75"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-      <path
-        d="M18.75 18.75L5.25 5.25"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </>,
-    24 / 24,
-  ),
-  makeIcon(
-    "card",
-    <path
-      fill="currentColor"
-      d="M17.5 3.75H2.5C2.16848 3.75 1.85054 3.8817 1.61612 4.11612C1.3817 4.35054 1.25 4.66848 1.25 5V15C1.25 15.3315 1.3817 15.6495 1.61612 15.8839C1.85054 16.1183 2.16848 16.25 2.5 16.25H17.5C17.8315 16.25 18.1495 16.1183 18.3839 15.8839C18.6183 15.6495 18.75 15.3315 18.75 15V5C18.75 4.66848 18.6183 4.35054 18.3839 4.11612C18.1495 3.8817 17.8315 3.75 17.5 3.75ZM10.625 13.75H9.375C9.20924 13.75 9.05027 13.6842 8.93306 13.5669C8.81585 13.4497 8.75 13.2908 8.75 13.125C8.75 12.9592 8.81585 12.8003 8.93306 12.6831C9.05027 12.5658 9.20924 12.5 9.375 12.5H10.625C10.7908 12.5 10.9497 12.5658 11.0669 12.6831C11.1842 12.8003 11.25 12.9592 11.25 13.125C11.25 13.2908 11.1842 13.4497 11.0669 13.5669C10.9497 13.6842 10.7908 13.75 10.625 13.75ZM15.625 13.75H13.125C12.9592 13.75 12.8003 13.6842 12.6831 13.5669C12.5658 13.4497 12.5 13.2908 12.5 13.125C12.5 12.9592 12.5658 12.8003 12.6831 12.6831C12.8003 12.5658 12.9592 12.5 13.125 12.5H15.625C15.7908 12.5 15.9497 12.5658 16.0669 12.6831C16.1842 12.8003 16.25 12.9592 16.25 13.125C16.25 13.2908 16.1842 13.4497 16.0669 13.5669C15.9497 13.6842 15.7908 13.75 15.625 13.75ZM2.5 6.875V5H17.5V6.875H2.5Z"
-    />,
-    20 / 24,
-  ),
-  makeIcon(
-    "copy",
-    <>
-      <path
-        d="M6 9.5H10"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M6 7.5H10"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 2.5H12.5C12.6326 2.5 12.7598 2.55268 12.8536 2.64645C12.9473 2.74021 13 2.86739 13 3V13.5C13 13.6326 12.9473 13.7598 12.8536 13.8536C12.7598 13.9473 12.6326 14 12.5 14H3.5C3.36739 14 3.24021 13.9473 3.14645 13.8536C3.05268 13.7598 3 13.6326 3 13.5V3C3 2.86739 3.05268 2.74021 3.14645 2.64645C3.24021 2.55268 3.36739 2.5 3.5 2.5H6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M5.5 4.5V4C5.5 3.33696 5.76339 2.70107 6.23223 2.23223C6.70107 1.76339 7.33696 1.5 8 1.5C8.66304 1.5 9.29893 1.76339 9.76777 2.23223C10.2366 2.70107 10.5 3.33696 10.5 4V4.5H5.5Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </>,
-    16 / 24,
-  ),
-  makeIcon(
-    "dummy",
-    <path
-      fill="currentColor"
-      d="M17.5 11.875V15C17.5 15.3315 17.3683 15.6495 17.1339 15.8839C16.8995 16.1183 16.5815 16.25 16.25 16.25H3.75C3.41848 16.25 3.10054 16.1183 2.86612 15.8839C2.6317 15.6495 2.5 15.3315 2.5 15V11.875C2.5 11.5435 2.6317 11.2255 2.86612 10.9911C3.10054 10.7567 3.41848 10.625 3.75 10.625H16.25C16.5815 10.625 16.8995 10.7567 17.1339 10.9911C17.3683 11.2255 17.5 11.5435 17.5 11.875ZM16.25 3.75H3.75C3.41848 3.75 3.10054 3.8817 2.86612 4.11612C2.6317 4.35054 2.5 4.66848 2.5 5V8.125C2.5 8.45652 2.6317 8.77446 2.86612 9.00888C3.10054 9.2433 3.41848 9.375 3.75 9.375H16.25C16.5815 9.375 16.8995 9.2433 17.1339 9.00888C17.3683 8.77446 17.5 8.45652 17.5 8.125V5C17.5 4.66848 17.3683 4.35054 17.1339 4.11612C16.8995 3.8817 16.5815 3.75 16.25 3.75Z"
-    />,
-    20 / 24,
-  ),
-];
-
-type IconName = (typeof iconData)[number]["name"];
-
-export function createIconSet() {
-  const iconSet = document.createElement("svg");
-  iconSet.id = "xendit-icon-set";
-  iconSet.style.display = "none";
-  render(<defs>{iconData.map((icon) => icon.node)}</defs>, iconSet);
-  document.head.appendChild(iconSet);
+): ComponentChildren {
+  return <g transform={`scale(${1 / scale} ${1 / scale})`}>{children}</g>;
 }
 
 export default Icon;

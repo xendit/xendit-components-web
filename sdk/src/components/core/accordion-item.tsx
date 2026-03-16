@@ -1,5 +1,5 @@
 import { useCallback } from "preact/hooks";
-import Icon from "./icon";
+import Icon from "../icon";
 import classNames from "classnames";
 import {
   ComponentChildren,

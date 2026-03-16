@@ -1,10 +1,10 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode, getCountries } from "libphonenumber-js";
-import { Dropdown, DropdownOption } from "./dropdown";
+import { Dropdown, DropdownOption } from "./core/dropdown";
 import { formFieldId, formFieldName, usePrevious } from "../utils";
 import { FunctionComponent } from "preact";
-import { useChannelComponentData } from "./payment-channel";
+import { useChannelComponentData } from "./channel-root";
 
 type FlagIconProps = {
   countryCode: string;

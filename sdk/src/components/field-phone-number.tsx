@@ -1,5 +1,5 @@
 import { FieldProps } from "./field";
-import { Dropdown, DropdownOption } from "./dropdown";
+import { Dropdown, DropdownOption } from "./core/dropdown";
 import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
 import {
   COUNTRIES_AS_DROPDOWN_OPTIONS,

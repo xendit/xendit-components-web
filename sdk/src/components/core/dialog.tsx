@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef } from "preact/hooks";
-import Icon from "./icon";
+import Icon from "../icon";
 import { ComponentChildren, FunctionComponent } from "preact";
 
 type Props = {
