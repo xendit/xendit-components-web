@@ -1,7 +1,7 @@
 import { ComponentChildren, createContext, FunctionComponent } from "preact";
 import { useContext, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { Scenarios } from "../data/simulation-scenarios";
-import { Dropdown } from "./dropdown";
+import { Dropdown } from "./core/dropdown";
 import { useSdk } from "./session-provider";
 
 interface Props {
