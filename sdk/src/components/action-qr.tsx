@@ -121,12 +121,15 @@ export function ActionQr(props: Props) {
       />
       <div className="xendit-action-title">{title}</div>
       <div className="xendit-action-qr-content">
-        <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
-          {businessName}
+        <div className="xendit-text-16 xendit-text-center xendit-qr-merchant-info">
+          <div className="xendit-text-semibold">{businessName}</div>
+          {merchantId ? (
+            <div className="xendit-text-16 xendit-text-center">
+              {merchantId}
+            </div>
+          ) : null}
         </div>
-        {merchantId ? (
-          <div className="xendit-text-16 xendit-text-center">{merchantId}</div>
-        ) : null}
+
         <div
           data-testid="qr-code"
           className="xendit-action-qr-qrcode-container"

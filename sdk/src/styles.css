@@ -344,47 +344,32 @@ xendit-payment-channel[inert] {
   cursor: pointer;
 }
 
-.xendit-form-field-group.invalid .xendit-channel-form-field input,
 .xendit-form-field-group.invalid
   .xendit-channel-form-field
-  .xendit-iframe-container,
-.xendit-form-field-group.invalid .xendit-dropdown button {
+  .xendit-form-field-inner {
   border: 1px solid var(--xendit-color-danger);
 }
 
-.xendit-channel-form-field input:not([type="checkbox"]),
-.xendit-channel-form-field select,
-.xendit-channel-form-field .xendit-iframe-container {
-  display: flex;
+.xendit-channel-form-field .xendit-form-field-inner {
   border: 1px solid var(--xendit-color-border);
   background: var(--xendit-color-background);
   border-radius: 8px;
-  padding: 12px;
   appearance: none;
 }
 
-/* TODO: Refine these class usages */
-.xendit-channel-form-field.field-radius-tl-0 input,
-.xendit-channel-form-field.field-radius-tl-0 button,
-.xendit-channel-form-field.field-radius-tl-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-tl-0 .xendit-form-field-inner {
   border-top-left-radius: 0;
 }
 
-.xendit-channel-form-field.field-radius-tr-0 input,
-.xendit-channel-form-field.field-radius-tr-0 button,
-.xendit-channel-form-field.field-radius-tr-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-tr-0 .xendit-form-field-inner {
   border-top-right-radius: 0;
 }
 
-.xendit-channel-form-field.field-radius-bl-0 input,
-.xendit-channel-form-field.field-radius-bl-0 button,
-.xendit-channel-form-field.field-radius-bl-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-bl-0 .xendit-form-field-inner {
   border-bottom-left-radius: 0;
 }
 
-.xendit-channel-form-field.field-radius-br-0 input,
-.xendit-channel-form-field.field-radius-br-0 button,
-.xendit-channel-form-field.field-radius-br-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-br-0 .xendit-form-field-inner {
   border-bottom-right-radius: 0;
 }
 
@@ -407,15 +392,11 @@ xendit-payment-channel[inert] {
   margin-right: 0;
 }
 
-.xendit-channel-form-field.field-collapse-t input,
-.xendit-channel-form-field.field-collapse-t button,
-.xendit-channel-form-field.field-collapse-t .xendit-iframe-container {
+.xendit-channel-form-field.field-collapse-t .xendit-form-field-inner {
   margin-top: var(--xendit-border-collapse-offset);
 }
 
-.xendit-channel-form-field.field-collapse-b input,
-.xendit-channel-form-field.field-collapse-b button,
-.xendit-channel-form-field.field-collapse-b .xendit-iframe-container {
+.xendit-channel-form-field.field-collapse-b .xendit-form-field-inner {
   margin-bottom: var(--xendit-border-collapse-offset);
 }
 
@@ -440,7 +421,6 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field.field-collapse-l .xendit-iframe-container:focus {
   border-left: none;
 }
-/* Ends TODO */
 
 .xendit-card-brand-logo {
   width: 24px;
@@ -458,10 +438,8 @@ xendit-payment-channel[inert] {
   gap: 4px;
 }
 
-.xendit-channel-form-field input:focus,
-.xendit-channel-form-field select:focus,
-.xendit-channel-form-field button:focus,
-.xendit-channel-form-field .xendit-iframe-container.xendit-field-focus {
+.xendit-channel-form-field .xendit-form-field-inner:focus,
+.xendit-channel-form-field .xendit-form-field-inner.xendit-field-focus {
   border-color: var(--xendit-color-primary);
   box-shadow: var(--xendit-focus-shadow);
   outline: none;
@@ -471,6 +449,10 @@ xendit-payment-channel[inert] {
 
 .xendit-channel-form-field button.xendit-dropdown-open {
   z-index: var(--xendit-z-index-focus);
+}
+
+.xendit-channel-form-field input.xendit-form-field-inner {
+  padding: 12px;
 }
 
 .xendit-channel-form-field .xendit-iframe-container {
@@ -673,6 +655,7 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dropdown-overlay {
+  contain: style;
   position: absolute;
   z-index: var(--xendit-z-index-overlay);
   display: flex;
@@ -709,6 +692,12 @@ xendit-payment-channel[inert] {
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   box-sizing: border-box;
+  outline: none;
+}
+
+.xendit-dropdown-search input:focus {
+  border-color: var(--xendit-color-primary);
+  box-shadow: var(--xendit-focus-shadow);
 }
 
 .xendit-dropdown-item {
@@ -1065,13 +1054,18 @@ xendit-payment-channel[inert] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   max-width: 384px;
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   padding: 16px;
-  padding-bottom: 24px;
   overflow: hidden;
+}
+.xendit-qr-merchant-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 .xendit-action-qr-channel-logo {
   height: 64px;

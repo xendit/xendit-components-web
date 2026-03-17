@@ -86,6 +86,8 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
           options={options}
           onChange={onChangeDropdown}
           placeholder={field.placeholder}
+          enableSearch
+          className="xendit-form-field-inner"
         />
       ) : (
         <input
@@ -93,7 +95,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
           id={id}
           onChange={onChangeInput}
           placeholder={field.placeholder}
-          className={`xendit-input xendit-text-14`}
+          className={`xendit-form-field-inner xendit-text-14`}
         />
       )}
     </>

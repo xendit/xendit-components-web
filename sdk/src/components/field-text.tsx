@@ -28,7 +28,7 @@ export const TextField: FunctionComponent<FieldProps> = (props) => {
       ref={inputRef}
       type="text"
       placeholder={field.placeholder}
-      className={`xendit-text-14`}
+      className={`xendit-form-field-inner xendit-text-14`}
       onBlur={handleBlur}
       onChange={handleChange}
       minLength={isTextField(field) ? field.type.min_length : undefined}

@@ -53,6 +53,7 @@ export const DropdownField: FunctionComponent<FieldProps> = (props) => {
         placeholder={field.placeholder}
         options={dropdownItems}
         onChange={onChangeWrapper}
+        className="xendit-form-field-inner"
       />
       <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
     </>

@@ -126,6 +126,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         onChange={handleCountryChange}
         fixedOverlayWidth={300}
         enableSearch
+        className="xendit-form-field-inner"
       />
       <input
         id={id}
@@ -133,7 +134,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         type="tel"
         inputMode="tel"
         placeholder={getExampleLocalNumber()}
-        className="xendit-text-14 xendit-phone-number-input"
+        className="xendit-text-14 xendit-form-field-inner xendit-phone-number-input"
         onBlur={handleBlur}
         onChange={handleLocalChange}
         value={localNumber}

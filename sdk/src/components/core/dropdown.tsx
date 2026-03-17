@@ -54,6 +54,9 @@ export type DropdownProps = {
   /** Makes the dropdown disabled */
   disabled?: boolean;
 
+  /** Adds a className to the button element */
+  className?: string;
+
   /** If set, controls the overlay width */
   fixedOverlayWidth?: number;
 
@@ -70,6 +73,7 @@ export const Dropdown = (props: DropdownProps) => {
     selectedIndex,
     placeholder,
     disabled,
+    className,
     fixedOverlayWidth,
     enableSearch,
   } = props;
@@ -368,7 +372,7 @@ export const Dropdown = (props: DropdownProps) => {
         id={id}
         ref={btnRef}
         type="button"
-        className={`xendit-dropdown ${open ? "xendit-dropdown-open" : ""} ${hasLeadingAsset(selected) ? "xendit-dropdown-has-asset" : ""}`}
+        className={`xendit-dropdown ${className} ${open ? "xendit-dropdown-open" : ""} ${hasLeadingAsset(selected) ? "xendit-dropdown-has-asset" : ""}`}
         aria-expanded={open ? "true" : "false"}
         onClick={onButtonClick}
         onKeyDown={onButtonKeyDown}
@@ -463,11 +467,14 @@ export const Dropdown = (props: DropdownProps) => {
   );
 };
 
-export const DropdownSkeleton: FunctionComponent<{ id: string }> = (props) => {
+export const DropdownSkeleton: FunctionComponent<{
+  id: string;
+  className?: string;
+}> = (props) => {
   return (
     <div className="xendit-dropdown-container xendit-skeleton-field">
       <button
-        className="xendit-dropdown"
+        className={`xendit-dropdown ${props.className}`}
         inert
         id={props.id}
         disabled

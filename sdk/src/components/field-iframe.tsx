@@ -174,7 +174,9 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
   return (
-    <div className={`xendit-iframe-container ${focusClass}`}>
+    <div
+      className={`xendit-iframe-container xendit-form-field-inner ${focusClass}`}
+    >
       <XenditFormAssociatedFocusTrap.tag
         id={id}
         onFocus={giveFocusToIframe}
