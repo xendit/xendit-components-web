@@ -22,6 +22,7 @@ import {
 } from "../bff-marshal";
 import { TFunction } from "../localization";
 import { FunctionComponent } from "preact";
+import { DottedLine } from "./core/dotted-line";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup;
@@ -215,6 +216,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
           />
         </div>
       )}
+      {!hideDropdown && containerIsPopulated ? <DottedLine /> : null}
       <div
         style={{ display: containerIsPopulated ? "" : "none" }}
         ref={containerRef}

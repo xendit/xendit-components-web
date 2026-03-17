@@ -115,6 +115,7 @@ describe("dropdown", () => {
           onChange={vi.fn()}
           placeholder="Select item"
           label="Dropdown example"
+          enableSearch
         />
       </SdkContext.Provider>,
       document.body,

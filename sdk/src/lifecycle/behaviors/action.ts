@@ -39,7 +39,8 @@ export abstract class ContainerActionBehavior implements Behavior {
       title: this.title,
       width: this.defaultContainerWidth,
       height: this.defaultContainerHeight,
-      borderColor: this.bb.channel.brand_color,
+      borderColor: undefined, // needs some design feedback
+      // borderColor: this.bb.channel.brand_color,
       onClose: () => {
         cleanedUp = true;
         render(null, container);

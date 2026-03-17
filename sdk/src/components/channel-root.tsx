@@ -199,7 +199,7 @@ function instructionsAsTuple(
   if (instructions && instructions.length === 2) {
     return [instructions[0], instructions[1]] as const;
   }
-  return null;
+  return ["", ""];
 }
 
 export class XenditChannelPropertiesChangedEvent extends Event {

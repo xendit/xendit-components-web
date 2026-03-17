@@ -10,7 +10,7 @@ type Props = {
   onClose: () => void;
   width: number;
   height: number;
-  borderColor: string;
+  borderColor?: string;
 };
 
 export default function DefaultActionContainer(props: Props) {
