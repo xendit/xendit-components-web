@@ -18,6 +18,8 @@ export abstract class ContainerActionBehavior implements Behavior {
    * Returns a cleanup function that destroys the default action container if it was created.
    */
   ensureHasActionContainer() {
+    assert(this.bb.channel);
+
     if (this.bb.sdk[internal].liveComponents.actionContainer) {
       // user created action container already
       // TODO: validate it's in the dom and the right size
@@ -32,11 +34,12 @@ export abstract class ContainerActionBehavior implements Behavior {
     const container = document.createElement("div");
     container.setAttribute("class", "xendit-default-action-container");
 
-    const props = {
+    const props: Parameters<typeof DefaultActionContainer>[0] = {
       sdk: this.bb.sdk,
       title: this.title,
       width: this.defaultContainerWidth,
       height: this.defaultContainerHeight,
+      borderColor: this.bb.channel.brand_color,
       onClose: () => {
         cleanedUp = true;
         render(null, container);

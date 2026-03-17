@@ -21,17 +21,21 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     assertEquals(qrAction?.type, "PRESENT_TO_CUSTOMER");
     assert(this.bb.world);
     assert(this.bb.channel);
+    assert(this.bb.world.paymentEntity);
 
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
 
-    const actionQrProps = {
+    const actionQrProps: Parameters<typeof ActionQr>[0] = {
       amount: this.bb.world.session.amount,
       businessName: this.bb.world.business.name ?? "",
+      channelCode: this.bb.channel.channel_code,
+      channelName: this.bb.channel.brand_name,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,
+      enableCustomQrArt: true,
       title: qrAction.action_subtitle,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };

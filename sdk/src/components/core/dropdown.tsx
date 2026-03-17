@@ -18,6 +18,7 @@ import { ButtonLoadingSpinner } from "./button";
 
 export type DropdownOption = {
   leadingAsset?: ComponentChildren; // e.g. flag/icon URL
+  leadingAssetInOverlay?: ComponentChildren; // e.g. flag/icon URL, shown in the dropdown list (instead of the main button)
   title: string; // primary line
   shortTitle?: string;
   description?: string; // secondary line
@@ -50,11 +51,14 @@ export type DropdownProps = {
   /** Placeholder text when nothing selected. */
   placeholder?: string;
 
-  /** Extra class on the root container. */
-  className?: string;
-
   /** Makes the dropdown disabled */
   disabled?: boolean;
+
+  /** If set, controls the overlay width */
+  fixedOverlayWidth?: number;
+
+  /** Toggles the search feature */
+  enableSearch?: boolean;
 };
 
 export const Dropdown = (props: DropdownProps) => {
@@ -64,9 +68,10 @@ export const Dropdown = (props: DropdownProps) => {
     onChange,
     defaultIndex = -1,
     selectedIndex,
-    className,
     placeholder,
     disabled,
+    fixedOverlayWidth,
+    enableSearch,
   } = props;
 
   const t = useSdk().t;
@@ -87,12 +92,14 @@ export const Dropdown = (props: DropdownProps) => {
   const open = _open && !disabled && options.length > 0; // force closed when disabled or no options
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [lastWidth, setLastWidth] = useState(0);
 
-  const rootRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const activeRef = useRef<HTMLLIElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   // Filter options based on search query
   const filteredOptions = useMemo(() => {
@@ -115,13 +122,87 @@ export const Dropdown = (props: DropdownProps) => {
     Math.min(filteredOptions.length - 1, activeIndex),
   );
 
+  // Keep the overlay width in sync with the parent of the container element
+  useLayoutEffect(() => {
+    if (fixedOverlayWidth) {
+      setLastWidth(fixedOverlayWidth);
+      return;
+    }
+
+    const targetElement = btnRef.current;
+    if (!targetElement) return;
+    const width = targetElement.getBoundingClientRect().width;
+    setLastWidth(width);
+
+    if (!window.ResizeObserver) {
+      // jsdom doesn't support ResizeObserver
+      return;
+    }
+
+    // observe for future width changes (e.g. due to window resize)
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target !== targetElement) continue;
+        if (!entry.borderBoxSize?.length) continue;
+        setLastWidth(entry.borderBoxSize[0].inlineSize);
+      }
+    });
+    resizeObserver.observe(targetElement);
+    return () => resizeObserver.disconnect();
+  }, [fixedOverlayWidth]);
+
+  // if the viewport OR the overlay element changes size, and on scroll, check if the overlay is overlapping the bottom of the viewport, and if it is, add bottom:0
+  useLayoutEffect(() => {
+    if (!open) return;
+    const overlayEl = overlayRef.current;
+    if (!overlayEl) return;
+    const buttonEl = btnRef.current;
+    if (!buttonEl) return;
+
+    if (!window.ResizeObserver) {
+      // jsdom doesn't support ResizeObserver
+      return;
+    }
+
+    function updateOverlayPosition() {
+      if (!overlayEl) return;
+      if (!buttonEl) return;
+      // if the distance from the bottom of the button to the bottom of the viewport is less than the height of the overlay, position the overlay with bottom:0
+      const buttonRect = buttonEl.getBoundingClientRect();
+      const overlayRect = overlayEl.getBoundingClientRect();
+      const viewportBottom = window.innerHeight;
+      const spaceBelow = viewportBottom - buttonRect.bottom;
+      if (spaceBelow < overlayRect.height) {
+        overlayEl.style.position = "fixed";
+        overlayEl.style.bottom = "0";
+      } else {
+        overlayEl.style.position = "";
+        overlayEl.style.bottom = "";
+      }
+    }
+
+    updateOverlayPosition();
+
+    const resizeObserver = new ResizeObserver(updateOverlayPosition);
+    resizeObserver.observe(overlayEl);
+    window.addEventListener("resize", updateOverlayPosition);
+    window.addEventListener("scroll", updateOverlayPosition, true);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateOverlayPosition);
+      window.removeEventListener("scroll", updateOverlayPosition, true);
+    };
+  }, [open]);
+
   // Close on outside click
   useLayoutEffect(() => {
     if (!open) return;
     const onMouseDown = (e: MouseEvent) => {
       const root = rootRef.current;
       if (!root) return;
-      if (!root.contains(e.target as Node)) setOpen(false);
+      if (!root.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", onMouseDown);
     return () => document.removeEventListener("mousedown", onMouseDown);
@@ -194,21 +275,6 @@ export const Dropdown = (props: DropdownProps) => {
     [closeList, isControlled, onChange, options],
   );
 
-  const onButtonKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (
-        e.key === "ArrowDown" ||
-        e.key === "ArrowUp" ||
-        e.key === " " ||
-        e.key === "Enter"
-      ) {
-        e.preventDefault();
-        openList();
-      }
-    },
-    [openList],
-  );
-
   const onListKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Allow normal typing in search input
@@ -255,6 +321,24 @@ export const Dropdown = (props: DropdownProps) => {
     [clampedActive, closeList, selectItemAndClose, filteredOptions],
   );
 
+  const onButtonKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (open) {
+        return onListKeyDown(e);
+      }
+      if (
+        e.key === "ArrowDown" ||
+        e.key === "ArrowUp" ||
+        e.key === " " ||
+        e.key === "Enter"
+      ) {
+        e.preventDefault();
+        openList();
+      }
+    },
+    [onListKeyDown, open, openList],
+  );
+
   const onOptionClick = useCallback(
     (e: TargetedMouseEvent<HTMLLIElement>) => {
       e.stopPropagation();
@@ -275,25 +359,29 @@ export const Dropdown = (props: DropdownProps) => {
   const selected = currentIndex >= 0 ? options[currentIndex] : undefined;
 
   return (
-    <div ref={rootRef} className={`xendit-dropdown ${className ?? ""}`}>
+    <div
+      className="xendit-dropdown-container"
+      ref={rootRef}
+      style={{ "--xendit-dropdown-width": lastWidth + "px" }}
+    >
       <button
         id={id}
         ref={btnRef}
         type="button"
-        className={selected?.leadingAsset ? "xendit-dropdown-has-asset" : ""}
+        className={`xendit-dropdown ${open ? "xendit-dropdown-open" : ""} ${hasLeadingAsset(selected) ? "xendit-dropdown-has-asset" : ""}`}
         aria-expanded={open ? "true" : "false"}
         onClick={onButtonClick}
         onKeyDown={onButtonKeyDown}
         disabled={disabled}
       >
-        {selected?.leadingAsset ? selected.leadingAsset : null}
+        {selected?.leadingAsset ?? null}
 
         {selected ? (
-          <span className="xendit-dropdown-button-title xendit-text-14">
+          <span className="xendit-dropdown-text xendit-text-14">
             {selected.shortTitle ?? selected.title}
           </span>
         ) : (
-          <span className="xendit-dropdown-button-title xendit-text-14">
+          <span className="xendit-dropdown-text xendit-text-14">
             {placeholder}
           </span>
         )}
@@ -302,22 +390,28 @@ export const Dropdown = (props: DropdownProps) => {
           className="xendit-dropdown-chevron"
           name="chevron"
           size={16}
-          direction={"down"}
+          direction="down"
         />
       </button>
 
       {open ? (
-        <div className="xendit-dropdown-menu">
-          <div className="xendit-dropdown-search">
-            <input
-              ref={searchInputRef}
-              placeholder={t("combobox.default_search_placeholder")}
-              value={searchQuery}
-              onInput={onSearchTermChange}
-              onClick={stopPropagation}
-              onKeyDown={onListKeyDown}
-            />
-          </div>
+        <div
+          className="xendit-dropdown-overlay"
+          style={{ width: "var(--xendit-dropdown-width)" }}
+          ref={overlayRef}
+        >
+          {enableSearch ? (
+            <div className="xendit-dropdown-search">
+              <input
+                ref={searchInputRef}
+                placeholder={t("combobox.default_search_placeholder")}
+                value={searchQuery}
+                onInput={onSearchTermChange}
+                onClick={stopPropagation}
+                onKeyDown={onListKeyDown}
+              />
+            </div>
+          ) : null}
           <ul
             ref={listRef}
             role="listbox"
@@ -340,7 +434,7 @@ export const Dropdown = (props: DropdownProps) => {
                   <div
                     className={`xendit-dropdown-item xendit-text-14 ${isActive ? "xendit-dropdown-item-active" : ""} ${opt.leadingAsset ? "xendit-dropdown-has-asset" : ""} ${opt.disabled ? "xendit-dropdown-item-disabled" : ""}`}
                   >
-                    {opt.leadingAsset ? opt.leadingAsset : null}
+                    {opt.leadingAssetInOverlay ?? opt.leadingAsset ?? null}
                     <div className="xendit-dropdown-item-text xendit-text-14">
                       <span className="xendit-dropdown-item-title">
                         {opt.title}
@@ -371,13 +465,24 @@ export const Dropdown = (props: DropdownProps) => {
 
 export const DropdownSkeleton: FunctionComponent<{ id: string }> = (props) => {
   return (
-    <div className="xendit-dropdown xendit-skeleton-field">
-      <button inert id={props.id} disabled type="button">
+    <div className="xendit-dropdown-container xendit-skeleton-field">
+      <button
+        className="xendit-dropdown"
+        inert
+        id={props.id}
+        disabled
+        type="button"
+      >
         <ButtonLoadingSpinner />
       </button>
     </div>
   );
 };
+
+function hasLeadingAsset(option: DropdownOption | undefined) {
+  if (!option) return false;
+  return !!(option.leadingAssetInOverlay || option.leadingAsset);
+}
 
 function stopPropagation(e: Event) {
   e.stopPropagation();

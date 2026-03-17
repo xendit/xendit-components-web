@@ -124,6 +124,8 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
         selectedIndex={countryCodeIndex}
         onChange={handleCountryChange}
+        fixedOverlayWidth={300}
+        enableSearch
       />
       <input
         id={id}

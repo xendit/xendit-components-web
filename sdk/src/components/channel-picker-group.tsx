@@ -150,6 +150,13 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
     return channelsInGroup.map<DropdownOption>((channel) => ({
       leadingAsset: (
         <img
+          className="xendit-dropdown-channel-logo"
+          src={channel.brand_logo_url}
+          key={channel.channel_code}
+        />
+      ),
+      leadingAssetInOverlay: (
+        <img
           className="xendit-channel-logo"
           src={channel.brand_logo_url}
           key={channel.channel_code}
@@ -176,6 +183,10 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
       return channel.value === fakeDropdownSelection;
     });
     if (i2 !== -1) return i2;
+
+    // if there's only one option, pretend it's always selected
+    if (channelOptions.length === 1) return 0;
+
     return -1;
   }
 

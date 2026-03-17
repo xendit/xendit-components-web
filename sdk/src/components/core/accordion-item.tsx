@@ -1,5 +1,5 @@
 import { useCallback } from "preact/hooks";
-import Icon from "../icon";
+import Icon, { IconName } from "../icon";
 import classNames from "classnames";
 import {
   ComponentChildren,
@@ -10,6 +10,7 @@ import {
 interface Props {
   id: string;
   title: string;
+  iconName: IconName;
   subtitle?: string;
   disabled?: boolean;
   open: boolean;
@@ -18,7 +19,8 @@ interface Props {
 }
 
 export const AccordionItem: FunctionComponent<Props> = (props) => {
-  const { id, title, subtitle, disabled, open, onClick, children } = props;
+  const { id, title, iconName, subtitle, disabled, open, onClick, children } =
+    props;
 
   const chevronDirection = open ? "up" : "down";
 
@@ -60,7 +62,7 @@ export const AccordionItem: FunctionComponent<Props> = (props) => {
       >
         <Icon
           className="xendit-accordion-item-header-icon"
-          name="dummy"
+          name={iconName}
           size={24}
         />
         <div className="xendit-accordion-item-header-title xendit-text-16 xendit-text-bold">

@@ -17,7 +17,6 @@ import { forwardRef } from "preact/compat";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
-import { internal } from "../internal";
 import { CARDS_SCENARIOS, Scenarios } from "../data/simulation-scenarios";
 import { useChannel, useChannelComponentData } from "./channel-root";
 
@@ -96,7 +95,7 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     const getSimulationScenarios = useCallback(
       (fieldGroup: ChannelFormField[]): Scenarios | null => {
         // only show simulation scenarios for prod-dev (test mode)
-        if (sdk[internal].sdkKey.hostId !== "pd") {
+        if (!sdk.supportsSimulationScenarios()) {
           return null;
         }
 

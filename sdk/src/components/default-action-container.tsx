@@ -10,10 +10,11 @@ type Props = {
   onClose: () => void;
   width: number;
   height: number;
+  borderColor: string;
 };
 
 export default function DefaultActionContainer(props: Props) {
-  const { sdk, title, onClose, width, height } = props;
+  const { sdk, title, onClose, width, height, borderColor } = props;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -25,7 +26,13 @@ export default function DefaultActionContainer(props: Props) {
   }, [sdk]);
 
   return (
-    <Dialog title={title} onClose={onClose} close={props.close} seamless>
+    <Dialog
+      title={title}
+      onClose={onClose}
+      close={props.close}
+      borderColor={borderColor}
+      seamless
+    >
       <div
         className="xendit-default-action-container"
         ref={wrapperRef}
