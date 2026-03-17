@@ -1,6 +1,8 @@
 # Unreleased
 
-No unreleased changes.
+### Notable
+
+Added support for E-Wallet channels
 
 # 0.0.17
 
