@@ -1,5 +1,5 @@
 import { TFunction } from "../localization";
-import { useCallback, useMemo, useState } from "preact/hooks";
+import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 import qrcode from "qrcode";
 import qrSvgRenderer from "qrcode/lib/renderer/svg-tag.js";
 import { amountFormat } from "../amount-format";
@@ -64,10 +64,16 @@ export function ActionQr(props: Props) {
     }
   }, [qrArtConfig, qrString, t]);
 
+  const didDownload = useRef(false);
   const onClickQrCode = useCallback(
     (event: TargetedEvent<HTMLDivElement>) => {
       if (event instanceof PointerEvent && event.pointerType !== "touch") {
         // only download on touch devices, only phone users need to save the qr code, desktop users can scan it with their phone
+        return;
+      }
+
+      if (didDownload.current) {
+        // prevent multiple downloads
         return;
       }
 
@@ -91,6 +97,8 @@ export function ActionQr(props: Props) {
         cleanStringForFilename(String(amount)),
         cleanStringForFilename(timestampForFilename()),
       ].join("-");
+
+      didDownload.current = true;
       downloadSvgAsPng(svgNode, `${filename}.png`).catch((error) => {
         console.error("Error downloading QR code:", error);
       });
