@@ -1,5 +1,5 @@
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
-import { useContext, useRef } from "preact/hooks";
+import { useContext, useLayoutEffect, useRef } from "preact/hooks";
 import {
   ComponentChildren,
   createContext,
@@ -113,6 +113,23 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     );
   };
 
+  useLayoutEffect(() => {
+    if (
+      !instructions &&
+      !resolvedChannel.form.length &&
+      !resolvedChannel.banner
+    ) {
+      console.error(
+        `Missing display data for ${resolvedChannel.channel_code}, this is a bug, please contact support`,
+      );
+    }
+  }, [
+    instructions,
+    resolvedChannel.banner,
+    resolvedChannel.channel_code,
+    resolvedChannel.form,
+  ]);
+
   return (
     <ChannelContext.Provider value={resolvedChannel}>
       <ChannelComponentDataContext.Provider value={channelData}>
@@ -199,7 +216,7 @@ function instructionsAsTuple(
   if (instructions && instructions.length === 2) {
     return [instructions[0], instructions[1]] as const;
   }
-  return ["", ""];
+  return null;
 }
 
 export class XenditChannelPropertiesChangedEvent extends Event {
