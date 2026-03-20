@@ -5,7 +5,8 @@ import qrSvgRenderer from "qrcode/lib/renderer/svg-tag.js";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
 import { ComponentChildren, TargetedEvent } from "preact";
-import { assert } from "../utils";
+import { emvcoQrParse } from "../emvco-qr";
+import { EmvcoQrData } from "../data/emvco-qr-schema";
 
 type Props = {
   amount: number;
@@ -48,9 +49,17 @@ export function ActionQr(props: Props) {
     onAffirm();
   }, [onAffirm]);
 
-  const merchantId = qrArtConfig.emvcoQrMerchantId
-    ? emvcoQrMerchantIdString(qrString, qrArtConfig)
-    : null;
+  const parsedQr = useMemo(() => {
+    try {
+      return emvcoQrParse(qrString);
+    } catch {
+      // this is fine
+      return null;
+    }
+  }, [qrString]);
+  const merchantLabelFromParsedQr = qrArtConfig.getMerchantLabelFromParsedQr?.(
+    parsedQr ?? {},
+  );
 
   const svgNode = useMemo(() => {
     try {
@@ -131,9 +140,9 @@ export function ActionQr(props: Props) {
       <div className="xendit-action-qr-content">
         <div className="xendit-text-16 xendit-text-center xendit-qr-merchant-info">
           <div className="xendit-text-semibold">{businessName}</div>
-          {merchantId ? (
+          {merchantLabelFromParsedQr ? (
             <div className="xendit-text-16 xendit-text-center">
-              {merchantId}
+              {merchantLabelFromParsedQr}
             </div>
           ) : null}
         </div>
@@ -307,10 +316,7 @@ type QrArtConfig = {
   margin: number;
   colors: [string, string];
   borderRadius?: number;
-  emvcoQrMerchantId?: {
-    location: string[];
-    label: string;
-  };
+  getMerchantLabelFromParsedQr?: (qr: EmvcoQrData) => string | null;
   merchantIdLabel?: string;
   surroundingArt?: ComponentChildren;
 };
@@ -340,9 +346,13 @@ const QR_ART_CONFIGS: {
       "var(--xendit-qr-background-color)",
     ],
     borderRadius: 4,
-    emvcoQrMerchantId: {
-      location: ["51", "02"],
-      label: "NMID: ",
+    getMerchantLabelFromParsedQr: (qr: EmvcoQrData) => {
+      const info = qr.merchantAccountInformation;
+      if (typeof info === "string") return null;
+      const qrisInfo = info?.["ID.CO.QRIS.WWW"];
+      if (typeof qrisInfo === "string") return null;
+      if (!qrisInfo?.nmid) return null;
+      return `NMID: ${qrisInfo.nmid}`;
     },
     surroundingArt: (
       <>
@@ -381,40 +391,3 @@ const QR_ART_CONFIGS: {
     ],
   },
 };
-
-function emvcoQrMerchantIdString(
-  qrString: string,
-  qrArtConfig: QrArtConfig,
-): string | null {
-  assert(qrArtConfig.emvcoQrMerchantId);
-  const { location, label } = qrArtConfig.emvcoQrMerchantId;
-  try {
-    let cursor = qrString;
-    for (const loc of location) {
-      const parsed = emvcoQrParse(cursor);
-      cursor = parsed[loc];
-      if (!cursor) {
-        return null;
-      }
-    }
-    return `${label}${cursor}`;
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
-function emvcoQrParse(emvcoString: string): { [key: string]: string } {
-  const result: { [key: string]: string } = {};
-  while (emvcoString.length) {
-    const currentTag = emvcoString.substring(0, 2);
-    assert(/^\d{2}$/.test(currentTag));
-    const length = parseInt(emvcoString.substring(2, 4), 10);
-    assert(!isNaN(length));
-    const value = emvcoString.substring(4, 4 + length);
-    result[currentTag] = value;
-    emvcoString = emvcoString.substring(4 + length);
-  }
-
-  return result;
-}
