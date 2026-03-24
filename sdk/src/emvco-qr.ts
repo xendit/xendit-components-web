@@ -5,6 +5,10 @@ import {
   rootTemplateClass,
 } from "./data/emvco-qr-schema";
 
+function isHighSurrogatePair(char: string) {
+  return /^[\uD800-\uDBFF]$/.test(char);
+}
+
 // decode an EMVCo QR string into an array of { key, value } pairs where key is 00 - 99
 export function emvcoQrTokenize(
   emvcoString: string,
@@ -36,7 +40,7 @@ export function emvcoQrTokenize(
       // read a character and increment valueChars unless it's a high surrogate pair
       const char = emvcoString.substring(4 + valueChars, 5 + valueChars);
       value += char;
-      if (!/^[\uD800-\uDBFF]$/.test(char)) {
+      if (!isHighSurrogatePair(char)) {
         valueChars++;
       }
     }

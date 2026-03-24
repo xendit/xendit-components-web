@@ -49,7 +49,9 @@ xendit-payment-channel {
 }
 
 xendit-action-container {
-  background-color: var(--xendit-color-background);
+  position: relative;
+  overflow: hidden;
+  /* background-color: var(--xendit-color-background); */
   flex: 1; /* Action container usually wants to stretch to fit, assuming the parent is a flexbox. */
   touch-action: manipulation;
 }
@@ -540,9 +542,12 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dialog {
+  position: relative;
+}
+
+.xendit-dialog.xendit-dialog-with-background {
   background-color: var(--xendit-color-background);
   border-radius: 8px;
-  position: relative;
   box-shadow: var(--xendit-dialog-shadow);
 }
 
@@ -1074,6 +1079,7 @@ xendit-payment-channel[inert] {
 }
 .xendit-action-qr-qrcode-container {
   width: 100%;
+  position: relative;
   z-index: var(--xendit-z-index-overlay);
 }
 

@@ -225,7 +225,7 @@ export const Dropdown = (props: DropdownProps) => {
     return () => document.body.removeEventListener("focusout", onFocusOut);
   }, [open]);
 
-  // Keep active in sync with current selection when opening
+  // Keep activeIndex in sync with current selection when opening
   useLayoutEffect(() => {
     if (!open) return;
     if (currentIndex >= 0) setActiveIndex(currentIndex);

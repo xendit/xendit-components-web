@@ -20,6 +20,7 @@ type Props = {
    * if true, the header will float on top of the body content without a dividing line
    */
   seamless?: boolean;
+  noBackground?: boolean;
   /**
    * Borders of the dialog.
    */
@@ -27,7 +28,8 @@ type Props = {
 };
 
 export const Dialog: FunctionComponent<Props> = (props) => {
-  const { title, onClose, children, seamless, borderColor } = props;
+  const { title, onClose, children, seamless, borderColor, noBackground } =
+    props;
 
   const closeCalledRef = useRef(false);
   const closeAnimationPlaying = useRef(false);
@@ -90,7 +92,7 @@ export const Dialog: FunctionComponent<Props> = (props) => {
   return (
     <div className="xendit-dialog-backdrop" ref={backdropRef}>
       <div
-        className="xendit-dialog"
+        className={`xendit-dialog ${noBackground ? "" : "xendit-dialog-with-background"}`}
         ref={dialogRef}
         style={borderColor ? { border: `4px solid ${borderColor}` } : undefined}
       >
@@ -101,7 +103,13 @@ export const Dialog: FunctionComponent<Props> = (props) => {
               <Icon name="x" size={20} />
             </button>
           </div>
+        ) : null}
+        {noBackground ? (
+          children
         ) : (
+          <div className="xendit-dialog-body">{children}</div>
+        )}
+        {seamless ? (
           <button
             aria-label="Close"
             onClick={onCloseWithAnimation}
@@ -109,8 +117,7 @@ export const Dialog: FunctionComponent<Props> = (props) => {
           >
             <Icon name="x" size={20} />
           </button>
-        )}
-        <div className="xendit-dialog-body">{children}</div>
+        ) : null}
       </div>
     </div>
   );

@@ -136,7 +136,7 @@ export const rootTemplateClass: Record<string, EmvcoQrFieldDescriptor> = {
 // PayNow
 export const paynowTemplateClass: EmvcoQrTemplateClass = {
   "00": {
-    name: "participantCode",
+    name: "globallyUniqueIdentifier",
     type: "string",
   },
   "01": {
@@ -192,7 +192,7 @@ export const danaTemplateClass: EmvcoQrTemplateClass = {
 // SGQR
 export const sgqrTemplateClass: EmvcoQrTemplateClass = {
   "00": {
-    name: "participantCode",
+    name: "globallyUniqueIdentifier",
     type: "string",
   },
   "01": {
@@ -229,7 +229,7 @@ export const sgqrTemplateClass: EmvcoQrTemplateClass = {
 // https://xendit.atlassian.net/wiki/spaces/D/pages/3090056015/QR+String+Definitions
 export const qrphTemplateClass: EmvcoQrTemplateClass = {
   "00": {
-    name: "participantCode",
+    name: "globallyUniqueIdentifier",
     type: "string",
   },
   "01": {

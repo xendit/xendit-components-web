@@ -489,6 +489,44 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Mock QR Channel (Custom Art)",
+        channel_code: "MOCK_QR_CUSTOM_ART",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        pm_type: "QR_CODE",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: "QR",
+        form: [
+          {
+            label: "QR Style",
+            placeholder: "Select",
+            type: {
+              name: "dropdown",
+              options: [
+                { label: "QRIS", value: "ID.CO.QRIS.WWW" },
+                { label: "SGQR", value: "SG.SGQR" },
+                {
+                  label: "Duitnow QR",
+                  value: "A0000006150001",
+                },
+              ],
+            },
+            channel_property: "mock_emvco_qr_field_26_00",
+            required: false,
+            span: 2,
+          },
+        ],
+        instructions: [
+          "Mock QR channel",
+          "This mock channel behaves similarly to production QR channels.",
+        ],
+      },
+      {
         brand_name: "Mock Direct Debit Channel",
         channel_code: "MOCK_DIRECT_DEBIT",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
