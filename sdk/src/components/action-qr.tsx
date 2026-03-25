@@ -4,20 +4,19 @@ import qrcode from "qrcode";
 import qrSvgRenderer from "qrcode/lib/renderer/svg-tag.js";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
-import { ComponentChildren, TargetedEvent } from "preact";
-import { assert } from "../utils";
+import { ComponentChildren, JSX, TargetedEvent } from "preact";
+import { EmvcoQrData } from "../data/emvco-qr-schema";
 
 type Props = {
   amount: number;
   businessName: string;
-  channelCode: string;
   channelName: string;
   channelLogo: string;
   currency: string;
   hideUi: boolean;
   onAffirm: () => void;
   qrString: string;
-  enableCustomQrArt: boolean;
+  parsedQr: EmvcoQrData | null;
   title: string;
   t: TFunction;
 };
@@ -26,20 +25,14 @@ export function ActionQr(props: Props) {
   const {
     amount,
     businessName,
-    channelCode,
     channelName,
     channelLogo,
     currency,
     onAffirm,
     qrString,
-    enableCustomQrArt,
-    title,
+    parsedQr,
     t,
   } = props;
-
-  const qrArtConfig = enableCustomQrArt
-    ? (QR_ART_CONFIGS[channelCode] ?? qrArtConfigDefault)
-    : qrArtConfigDefault;
 
   const [showSpinner, setShowSpinner] = useState(false);
 
@@ -48,13 +41,9 @@ export function ActionQr(props: Props) {
     onAffirm();
   }, [onAffirm]);
 
-  const merchantId = qrArtConfig.emvcoQrMerchantId
-    ? emvcoQrMerchantIdString(qrString, qrArtConfig)
-    : null;
-
   const svgNode = useMemo(() => {
     try {
-      return generateQrSvg(qrString, qrArtConfig);
+      return generateQrSvg(qrString, qrArtConfigDefault);
     } catch (error) {
       console.log("Error generating QR code SVG:", error);
       // show an error message in place of the QR code
@@ -62,7 +51,7 @@ export function ActionQr(props: Props) {
       node.innerText = t("action_qr.unable_to_generate");
       return node;
     }
-  }, [qrArtConfig, qrString, t]);
+  }, [qrString, t]);
 
   const didDownload = useRef(false);
   const onClickQrCode = useCallback(
@@ -120,53 +109,196 @@ export function ActionQr(props: Props) {
     );
   }
 
+  const qrWrapper = (
+    <div
+      data-testid="qr-code"
+      className="xendit-action-qr-qrcode-container"
+      role="button"
+      tabIndex={0}
+      onClick={onClickQrCode}
+      ref={(r) => {
+        if (r && (r.childNodes.length !== 1 || r.firstChild !== svgNode)) {
+          // insert svg if not already present
+          r?.replaceChildren(svgNode);
+        }
+      }}
+    />
+  );
+
+  const affirmSection = (
+    <div className="xendit-action-present-to-customer-affirm">
+      <Button
+        variant={ButtonVariant.WHITE_ROUNDED}
+        disabled={showSpinner}
+        onClick={onMadePaymentClicked}
+        className="xendit-button-block"
+      >
+        {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
+      </Button>
+      <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
+        {t("action.payment_confirmation_instructions")}
+      </div>
+    </div>
+  );
+
+  const amountText = amountFormat(amount, currency);
+
+  const QrArtComponent = getCustomQrArtComponent(parsedQr);
+
+  if (QrArtComponent) {
+    return (
+      <>
+        <QrArtComponent
+          channelLogo={channelLogo}
+          channelName={channelName}
+          merchantName={businessName}
+          amountText={amountText}
+          parsedQr={parsedQr}
+          qr={qrWrapper}
+          t={t}
+        />
+        <div
+          style={{
+            padding: "8px",
+            background: "white",
+            marginTop: "25px",
+            borderRadius: "8px",
+          }}
+        >
+          {affirmSection}
+        </div>
+      </>
+    );
+  } else {
+    return (
+      <div className="xendit-action-present-to-customer">
+        <img
+          src={channelLogo}
+          alt={t("image_alt.channel_logo", { channelName })}
+          className="xendit-action-qr-channel-logo"
+        />
+        <div className="xendit-action-qr-content">
+          <div className="xendit-text-16 xendit-text-center xendit-qr-merchant-info">
+            <div className="xendit-text-semibold">{businessName}</div>
+          </div>
+          {qrWrapper}
+          <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
+            {amountText}
+          </div>
+        </div>
+        {affirmSection}
+      </div>
+    );
+  }
+}
+
+export function hasCustomQrArt(parsedQr: EmvcoQrData | null): boolean {
+  return getCustomQrArtComponent(parsedQr) !== null;
+}
+
+export type QrArtComponentProps = {
+  channelName: string;
+  channelLogo: string;
+  amountText: string;
+  qr: ComponentChildren;
+  parsedQr: EmvcoQrData | null;
+  merchantName: string;
+  t: TFunction;
+};
+
+export function getCustomQrArtComponent(
+  parsedQr: EmvcoQrData | null,
+): JSX.ElementType<QrArtComponentProps> | null {
+  if (!parsedQr) return null;
+
+  if (
+    !parsedQr.merchantAccountInformation ||
+    typeof parsedQr.merchantAccountInformation !== "object"
+  ) {
+    return null;
+  }
+
+  if (parsedQr.merchantAccountInformation["ID.CO.QRIS.WWW"]) {
+    return QrArtQris;
+  }
+
+  return null;
+}
+
+const QRIS_ACCENT_COLOR = "rgb(238, 54, 66)";
+
+function QrArtQris(props: QrArtComponentProps) {
+  const { channelLogo, channelName, merchantName, amountText, parsedQr, t } =
+    props;
+
+  function getMerchantIdLabel() {
+    const info = parsedQr?.merchantAccountInformation;
+    if (typeof info === "string") return undefined;
+    const qrisInfo = info?.["ID.CO.QRIS.WWW"];
+    if (typeof qrisInfo === "string") return undefined;
+    if (!qrisInfo?.nmid) return undefined;
+    return `NMID: ${qrisInfo.nmid}`;
+  }
+  const merchantIdLabel = getMerchantIdLabel();
+
   return (
-    <div className="xendit-action-present-to-customer">
+    <div
+      style={{
+        display: "flex",
+        gap: "16px",
+        flexDirection: "column",
+        padding: "20px",
+        position: "relative",
+        borderRadius: "8px",
+        overflow: "hidden",
+        backgroundColor: "var(--xendit-color-background)",
+      }}
+    >
       <img
         src={channelLogo}
         alt={t("image_alt.channel_logo", { channelName })}
-        className="xendit-action-qr-channel-logo"
+        style={{
+          height: "64px",
+          alignSelf: "flex-start",
+        }}
       />
-      <div className="xendit-action-title">{title}</div>
-      <div className="xendit-action-qr-content">
-        <div className="xendit-text-16 xendit-text-center xendit-qr-merchant-info">
-          <div className="xendit-text-semibold">{businessName}</div>
-          {merchantId ? (
-            <div className="xendit-text-16 xendit-text-center">
-              {merchantId}
-            </div>
-          ) : null}
-        </div>
-
-        <div
-          data-testid="qr-code"
-          className="xendit-action-qr-qrcode-container"
-          role="button"
-          tabIndex={0}
-          onClick={onClickQrCode}
-          ref={(r) => {
-            if (r && (r.childNodes.length !== 1 || r.firstChild !== svgNode)) {
-              // insert svg if not already present
-              r?.replaceChildren(svgNode);
-            }
-          }}
-        />
-        <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
-          {amountFormat(amount, currency)}
-        </div>
-        {qrArtConfig.surroundingArt ?? null}
+      <div
+        className="xendit-text-center xendit-text-16"
+        style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+      >
+        <div className="xendit-text-semibold">{merchantName}</div>
+        {merchantIdLabel ? <div>{merchantIdLabel}</div> : null}
       </div>
-      <div className="xendit-action-present-to-customer-affirm">
-        <Button
-          variant={ButtonVariant.WHITE_ROUNDED}
-          disabled={showSpinner}
-          onClick={onMadePaymentClicked}
-          className="xendit-button-block"
+      <div style={{ position: "relative", margin: "-20px", padding: "20px" }}>
+        {props.qr}
+        <svg
+          style={{
+            position: "absolute",
+            top: "-9%",
+            left: 0,
+            width: "60%",
+            height: "auto",
+            pointerEvents: "none",
+          }}
+          viewBox="0 0 100 100"
         >
-          {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
-        </Button>
-        <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
-          {t("action.payment_confirmation_instructions")}
+          <polygon fill={QRIS_ACCENT_COLOR} points="0,0 50,50 0,100" />
+        </svg>
+        <svg
+          style={{
+            position: "absolute",
+            bottom: 0,
+            right: 0,
+            width: "30%",
+            height: "auto",
+            pointerEvents: "none",
+          }}
+          viewBox="0 0 100 100"
+        >
+          <polygon fill={QRIS_ACCENT_COLOR} points="0,100 100,100 100,0" />
+        </svg>
+        <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
+          {amountText}
         </div>
       </div>
     </div>
@@ -307,16 +439,11 @@ type QrArtConfig = {
   margin: number;
   colors: [string, string];
   borderRadius?: number;
-  emvcoQrMerchantId?: {
-    location: string[];
-    label: string;
-  };
-  merchantIdLabel?: string;
-  surroundingArt?: ComponentChildren;
 };
 
 const qrArtConfigDefault: QrArtConfig = {
-  margin: 0,
+  margin: 2,
+  borderRadius: 4,
   colors: [
     "var(--xendit-qr-foreground-color)",
     "var(--xendit-qr-background-color)",
@@ -327,94 +454,3 @@ const qrArtConfigForDownload: QrArtConfig = {
   margin: 2,
   colors: ["#000", "#FFF"],
 };
-
-const QRIS_ACCENT_COLOR = "rgb(238, 54, 66)";
-
-const QR_ART_CONFIGS: {
-  [key: string]: QrArtConfig;
-} = {
-  QRIS: {
-    margin: 1,
-    colors: [
-      "var(--xendit-qr-foreground-color)",
-      "var(--xendit-qr-background-color)",
-    ],
-    borderRadius: 4,
-    emvcoQrMerchantId: {
-      location: ["51", "02"],
-      label: "NMID: ",
-    },
-    surroundingArt: (
-      <>
-        <svg
-          style={{
-            position: "absolute",
-            top: "5%",
-            left: 0,
-            width: "60%",
-            height: "auto",
-          }}
-          viewBox="0 0 100 100"
-        >
-          <polygon fill={QRIS_ACCENT_COLOR} points="0,0 50,50 0,100" />
-        </svg>
-        <svg
-          style={{
-            position: "absolute",
-            bottom: 0,
-            right: 0,
-            width: "30%",
-            height: "auto",
-          }}
-          viewBox="0 0 100 100"
-        >
-          <polygon fill={QRIS_ACCENT_COLOR} points="0,100 100,100 100,0" />
-        </svg>
-      </>
-    ),
-  },
-  SGQR: {
-    margin: 0,
-    colors: [
-      "var(--xendit-channel-brand-color)",
-      "var(--xendit-qr-background-color)",
-    ],
-  },
-};
-
-function emvcoQrMerchantIdString(
-  qrString: string,
-  qrArtConfig: QrArtConfig,
-): string | null {
-  assert(qrArtConfig.emvcoQrMerchantId);
-  const { location, label } = qrArtConfig.emvcoQrMerchantId;
-  try {
-    let cursor = qrString;
-    for (const loc of location) {
-      const parsed = emvcoQrParse(cursor);
-      cursor = parsed[loc];
-      if (!cursor) {
-        return null;
-      }
-    }
-    return `${label}${cursor}`;
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
-function emvcoQrParse(emvcoString: string): { [key: string]: string } {
-  const result: { [key: string]: string } = {};
-  while (emvcoString.length) {
-    const currentTag = emvcoString.substring(0, 2);
-    assert(/^\d{2}$/.test(currentTag));
-    const length = parseInt(emvcoString.substring(2, 4), 10);
-    assert(!isNaN(length));
-    const value = emvcoString.substring(4, 4 + length);
-    result[currentTag] = value;
-    emvcoString = emvcoString.substring(4 + length);
-  }
-
-  return result;
-}
