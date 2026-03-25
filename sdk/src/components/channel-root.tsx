@@ -1,6 +1,7 @@
 import ChannelForm, { ChannelFormHandle } from "./channel-form";
-import { useContext, useRef } from "preact/hooks";
+import { useContext, useLayoutEffect, useRef } from "preact/hooks";
 import {
+  ComponentChildren,
   createContext,
   FunctionComponent,
   RefObject,
@@ -112,6 +113,23 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     );
   };
 
+  useLayoutEffect(() => {
+    if (
+      !instructions &&
+      !resolvedChannel.form.length &&
+      !resolvedChannel.banner
+    ) {
+      console.error(
+        `Missing display data for ${resolvedChannel.channel_code}, this is a bug, please contact support`,
+      );
+    }
+  }, [
+    instructions,
+    resolvedChannel.banner,
+    resolvedChannel.channel_code,
+    resolvedChannel.form,
+  ]);
+
   return (
     <ChannelContext.Provider value={resolvedChannel}>
       <ChannelComponentDataContext.Provider value={channelData}>
@@ -133,9 +151,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
           )}
           {instructions ? (
             <div className="xendit-payment-channel-instructions">
-              {resolvedChannel.pm_type === "QR_CODE" ? (
-                <GraphicQrScan />
-              ) : (
+              {GRAPHIC_COMPONENTS_BY_PM_TYPE[resolvedChannel.pm_type ?? ""] ?? (
                 <GraphicRedirectInstructions />
               )}
               <div className="xendit-payment-channel-instructions-text xendit-text-12">
@@ -154,6 +170,11 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
       </ChannelComponentDataContext.Provider>
     </ChannelContext.Provider>
   );
+};
+
+const GRAPHIC_COMPONENTS_BY_PM_TYPE: Record<string, ComponentChildren> = {
+  EWALLET: <GraphicRedirectInstructions />,
+  QR_CODE: <GraphicQrScan />,
 };
 
 const Banner: FunctionComponent<{ banner: BffChannelBanner }> = (props) => {

@@ -11,10 +11,13 @@
   --xendit-color-background: #ffffff;
   --xendit-focus-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
+  --xendit-card-shadow: 0px 4px 8px 0px #25252514;
+  --xendit-dialog-shadow: 8px 8px 12px 8px #25252529;
   --xendit-animation-duration: 0.3s;
   --xendit-animation-ease: ease-in-out;
   --xendit-radius-1: 8px;
   --xendit-z-index-focus: 2;
+  --xendit-z-index-overlay: 3;
 
   /* Browser-specific border collapse margins */
   --xendit-border-collapse-offset: -0.5px; /* Default for Chrome/Edge */
@@ -37,15 +40,18 @@ xendit-payment-channel {
   unicode-bidi: isolate;
   font-family: var(--xendit-font-family);
   color: var(--xendit-color-text);
+  touch-action: manipulation;
 }
 
 .xendit-default-action-container {
   font-family: var(--xendit-font-family);
+  touch-action: manipulation;
 }
 
 xendit-action-container {
-  background-color: var(--xendit-color-background);
+  position: relative;
   flex: 1; /* Action container usually wants to stretch to fit, assuming the parent is a flexbox. */
+  touch-action: manipulation;
 }
 
 xendit-payment-channel button,
@@ -118,6 +124,17 @@ xendit-payment-channel select::placeholder {
   text-align: center;
 }
 
+.xendit-dotted-line {
+  height: 1px;
+  border: none;
+  background: repeating-linear-gradient(
+    to right,
+    var(--xendit-color-border) 0px 4px,
+    transparent 4px 8px
+  );
+  margin: 0;
+}
+
 /* Accordion component */
 
 .xendit-accordion {
@@ -181,8 +198,7 @@ xendit-payment-channel select::placeholder {
 
 .xendit-accordion-item-header:focus-visible {
   border-radius: 8px;
-  box-shadow: 0px 0px 0px 2px
-    color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
+  box-shadow: var(--xendit-focus-shadow);
   outline: none;
 }
 
@@ -233,8 +249,7 @@ xendit-payment-channel select::placeholder {
 }
 
 .xendit-channel-picker-group select:focus {
-  box-shadow: 0px 0px 0px 2px
-    color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
+  box-shadow: var(--xendit-focus-shadow);
 }
 
 .xendit-channel-logo {
@@ -329,47 +344,32 @@ xendit-payment-channel[inert] {
   cursor: pointer;
 }
 
-.xendit-form-field-group.invalid .xendit-channel-form-field input,
 .xendit-form-field-group.invalid
   .xendit-channel-form-field
-  .xendit-iframe-container,
-.xendit-form-field-group.invalid .xendit-dropdown button {
+  .xendit-form-field-inner {
   border: 1px solid var(--xendit-color-danger);
 }
 
-.xendit-channel-form-field input:not([type="checkbox"]),
-.xendit-channel-form-field select,
-.xendit-channel-form-field .xendit-iframe-container {
-  display: flex;
+.xendit-channel-form-field .xendit-form-field-inner {
   border: 1px solid var(--xendit-color-border);
   background: var(--xendit-color-background);
   border-radius: 8px;
-  padding: 12px;
   appearance: none;
 }
 
-/* TODO: Refine these class usages */
-.xendit-channel-form-field.field-radius-tl-0 input,
-.xendit-channel-form-field.field-radius-tl-0 button,
-.xendit-channel-form-field.field-radius-tl-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-tl-0 .xendit-form-field-inner {
   border-top-left-radius: 0;
 }
 
-.xendit-channel-form-field.field-radius-tr-0 input,
-.xendit-channel-form-field.field-radius-tr-0 button,
-.xendit-channel-form-field.field-radius-tr-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-tr-0 .xendit-form-field-inner {
   border-top-right-radius: 0;
 }
 
-.xendit-channel-form-field.field-radius-bl-0 input,
-.xendit-channel-form-field.field-radius-bl-0 button,
-.xendit-channel-form-field.field-radius-bl-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-bl-0 .xendit-form-field-inner {
   border-bottom-left-radius: 0;
 }
 
-.xendit-channel-form-field.field-radius-br-0 input,
-.xendit-channel-form-field.field-radius-br-0 button,
-.xendit-channel-form-field.field-radius-br-0 .xendit-iframe-container {
+.xendit-channel-form-field.field-radius-br-0 .xendit-form-field-inner {
   border-bottom-right-radius: 0;
 }
 
@@ -392,15 +392,11 @@ xendit-payment-channel[inert] {
   margin-right: 0;
 }
 
-.xendit-channel-form-field.field-collapse-t input,
-.xendit-channel-form-field.field-collapse-t button,
-.xendit-channel-form-field.field-collapse-t .xendit-iframe-container {
+.xendit-channel-form-field.field-collapse-t .xendit-form-field-inner {
   margin-top: var(--xendit-border-collapse-offset);
 }
 
-.xendit-channel-form-field.field-collapse-b input,
-.xendit-channel-form-field.field-collapse-b button,
-.xendit-channel-form-field.field-collapse-b .xendit-iframe-container {
+.xendit-channel-form-field.field-collapse-b .xendit-form-field-inner {
   margin-bottom: var(--xendit-border-collapse-offset);
 }
 
@@ -425,7 +421,6 @@ xendit-payment-channel[inert] {
 .xendit-channel-form-field.field-collapse-l .xendit-iframe-container:focus {
   border-left: none;
 }
-/* Ends TODO */
 
 .xendit-card-brand-logo {
   width: 24px;
@@ -443,18 +438,21 @@ xendit-payment-channel[inert] {
   gap: 4px;
 }
 
-.xendit-channel-form-field input:focus,
-.xendit-channel-form-field select:focus,
-.xendit-channel-form-field .xendit-iframe-container.xendit-field-focus {
+.xendit-channel-form-field .xendit-form-field-inner:focus,
+.xendit-channel-form-field .xendit-form-field-inner.xendit-field-focus {
   border-color: var(--xendit-color-primary);
   box-shadow: var(--xendit-focus-shadow);
   outline: none;
   z-index: var(--xendit-z-index-focus);
+  position: relative;
 }
 
-.xendit-channel-form-field button:focus {
-  position: relative;
+.xendit-channel-form-field button.xendit-dropdown-open {
   z-index: var(--xendit-z-index-focus);
+}
+
+.xendit-channel-form-field input.xendit-form-field-inner {
+  padding: 12px;
 }
 
 .xendit-channel-form-field .xendit-iframe-container {
@@ -521,6 +519,11 @@ xendit-payment-channel[inert] {
   border-color: var(--xendit-color-primary);
 }
 
+.xendit-checkbox input:focus + .xendit-checkbox-graphic {
+  border: 1px solid var(--xendit-color-primary);
+  box-shadow: var(--xendit-focus-shadow);
+}
+
 /* Dialog */
 
 .xendit-dialog-backdrop {
@@ -537,9 +540,13 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dialog {
+  position: relative;
+}
+
+.xendit-dialog.xendit-dialog-with-background {
   background-color: var(--xendit-color-background);
   border-radius: 8px;
-  position: relative;
+  box-shadow: var(--xendit-dialog-shadow);
 }
 
 .xendit-dialog-header {
@@ -566,6 +573,7 @@ xendit-payment-channel[inert] {
   position: absolute;
   top: 24px;
   right: 24px;
+  display: flex;
   background: none;
   border: none;
   color: var(--xendit-color-text);
@@ -592,73 +600,87 @@ xendit-payment-channel[inert] {
   width: 100%;
 }
 
-.xendit-dropdown .xendit-dropdown-search input {
-  padding: 8px;
-  border: 1px solid var(--xendit-color-border);
-  border-radius: var(--xendit-radius-1);
-  box-sizing: border-box;
-}
-
-.xendit-dropdown-search input:focus {
-  outline: none;
-  border-color: var(--xendit-color-primary);
-  box-shadow: var(--xendit-focus-shadow);
-}
-
 /* Phone input Dropdown ends */
 
 /* Dropdown */
-.xendit-dropdown button {
+.xendit-dropdown {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 8px;
   text-align: left;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   justify-content: space-between;
-  padding: 12px;
   cursor: pointer;
+  padding: 0;
+  padding-left: 12px;
+  outline: none;
 }
 
-.xendit-dropdown button.xendit-dropdown-has-asset {
+.xendit-dropdown:focus {
+  border-color: var(--xendit-color-primary);
+  box-shadow: var(--xendit-focus-shadow);
+  outline: none;
+  z-index: var(--xendit-z-index-focus);
+  position: relative;
+}
+
+.xendit-dropdown.xendit-dropdown-has-asset {
   grid-template-columns: auto 1fr auto;
 }
 
-.xendit-dropdown button:disabled {
+.xendit-dropdown-channel-logo {
+  height: 24px;
+  width: 32px;
+  object-fit: contain;
+  padding: 2px 0px;
+  padding-right: 12px;
+  border-right: 1px solid var(--xendit-color-border);
+}
+
+.xendit-dropdown-text {
+  padding: 12px;
+  padding-right: 0;
+}
+
+.xendit-dropdown-chevron {
+  height: 38px;
+  width: 38px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.xendit-dropdown:disabled {
   background: var(--xendit-color-disabled);
+  cursor: default;
 }
 
-.xendit-dropdown button:focus {
-  outline: none;
-  border: 1px solid var(--xendit-color-primary);
-  box-shadow: 0px 0px 0px 2px #1762ee26;
-}
-
-.xendit-dropdown-menu {
+.xendit-dropdown-overlay {
+  contain: style;
   position: absolute;
-  z-index: 1;
+  z-index: var(--xendit-z-index-overlay);
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 168px;
-  width: 257px;
+  max-height: 320px;
   padding: 4px;
   margin: 4px 0;
+  box-sizing: border-box;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   list-style: none;
-  box-shadow: 0px 4px 8px 0px #25252514;
+  box-shadow: var(--xendit-card-shadow);
   overflow-y: auto;
+  overscroll-behavior: none;
 }
 
-.xendit-dropdown-menu ul {
+.xendit-dropdown-overlay ul {
   list-style: none;
   padding: 4px;
-  margin-top: 0;
+  margin: 0;
 }
 
 .xendit-dropdown-search {
@@ -669,6 +691,16 @@ xendit-payment-channel[inert] {
 
 .xendit-dropdown-search input {
   width: 100%;
+  padding: 8px;
+  border: 1px solid var(--xendit-color-border);
+  border-radius: var(--xendit-radius-1);
+  box-sizing: border-box;
+  outline: none;
+}
+
+.xendit-dropdown-search input:focus {
+  border-color: var(--xendit-color-primary);
+  box-shadow: var(--xendit-focus-shadow);
 }
 
 .xendit-dropdown-item {
@@ -798,17 +830,6 @@ xendit-payment-channel[inert] {
 
 /* Button ends */
 
-.xendit-dotted-line {
-  height: 1px;
-  border: none;
-  background: repeating-linear-gradient(
-    to right,
-    var(--xendit-color-border) 0px 4px,
-    transparent 4px 8px
-  );
-  margin: 16px 0;
-}
-
 /* Form Simulation Helper */
 .xendit-form-simulation-root {
   position: relative;
@@ -837,15 +858,13 @@ xendit-payment-channel[inert] {
     transparent 40%
   );
   backdrop-filter: blur(6px);
-  box-shadow: 0px 0px 0px 2px
-    color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
+  box-shadow: var(--xendit-card-shadow);
 }
-.xendit-form-simulation-popover .xendit-dropdown {
-  position: relative;
-}
-.xendit-form-simulation-popover .xendit-dropdown-menu {
+
+.xendit-form-simulation-popover .xendit-dropdown-overlay {
   width: auto;
 }
+
 .xendit-form-simulation-scenario-icon {
   height: 28px;
   width: 40px;
@@ -971,6 +990,7 @@ xendit-payment-channel[inert] {
   border: none;
   border-top: 3px solid transparent;
   border-bottom: 3px solid transparent;
+  cursor: pointer;
 }
 .xendit-instructions-active-tab {
   border-bottom-color: var(--xendit-color-primary);
@@ -1033,22 +1053,32 @@ xendit-payment-channel[inert] {
   gap: 8px;
 }
 .xendit-action-qr-content {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   max-width: 384px;
   border: 1px solid var(--xendit-color-border);
   border-radius: var(--xendit-radius-1);
   padding: 16px;
-  padding-bottom: 24px;
+  overflow: hidden;
+}
+.xendit-qr-merchant-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 .xendit-action-qr-channel-logo {
   height: 64px;
+  align-self: center;
   object-fit: contain;
 }
 .xendit-action-qr-qrcode-container {
   width: 100%;
+  position: relative;
+  z-index: var(--xendit-z-index-overlay);
 }
 
 /* va actions */
@@ -1104,6 +1134,7 @@ xendit-payment-channel[inert] {
   border: 2px solid var(--xendit-color-border);
   border-radius: 50%;
   overflow: hidden;
+  box-shadow: var(--xendit-card-shadow);
 }
 
 .xendit-redirect-instructions-logo img {
@@ -1126,6 +1157,7 @@ xendit-payment-channel[inert] {
   background-color: var(--xendit-channel-brand-color, #000);
   text-decoration: none;
   white-space: nowrap;
+  box-shadow: var(--xendit-card-shadow);
 }
 
 .xendit-redirect-instructions-button:hover,

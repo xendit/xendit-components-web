@@ -22,6 +22,7 @@ import {
 } from "../bff-marshal";
 import { TFunction } from "../localization";
 import { FunctionComponent } from "preact";
+import { DottedLine } from "./core/dotted-line";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup;
@@ -150,6 +151,13 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
     return channelsInGroup.map<DropdownOption>((channel) => ({
       leadingAsset: (
         <img
+          className="xendit-dropdown-channel-logo"
+          src={channel.brand_logo_url}
+          key={channel.channel_code}
+        />
+      ),
+      leadingAssetInOverlay: (
+        <img
           className="xendit-channel-logo"
           src={channel.brand_logo_url}
           key={channel.channel_code}
@@ -176,6 +184,10 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
       return channel.value === fakeDropdownSelection;
     });
     if (i2 !== -1) return i2;
+
+    // if there's only one option, pretend it's always selected
+    if (channelOptions.length === 1) return 0;
+
     return -1;
   }
 
@@ -204,6 +216,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
           />
         </div>
       )}
+      {!hideDropdown && containerIsPopulated ? <DottedLine /> : null}
       <div
         style={{ display: containerIsPopulated ? "" : "none" }}
         ref={containerRef}

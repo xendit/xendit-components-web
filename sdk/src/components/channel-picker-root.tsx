@@ -30,6 +30,7 @@ import {
 } from "../bff-marshal";
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
 import { internal } from "../internal";
+import { IconName } from "./icon";
 
 type Props = object;
 
@@ -170,6 +171,10 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
                 key={group.id}
                 id={group.id}
                 title={group.label}
+                iconName={iconName(
+                  selectedGroupId === group.id ? currentChannel : null,
+                  channelsByGroup[group.id],
+                )}
                 subtitle={disabledReason ?? undefined}
                 open={open}
                 disabled={disabled}
@@ -214,6 +219,31 @@ function groupEnabledChannelStats(
     enabledChannels,
     firstDisabledChannelReason,
   };
+}
+
+const ICONS_BY_PM_TYPE: Record<string, IconName> = {
+  CARDS: "card",
+  QR_CODE: "qr",
+};
+
+function iconName(
+  currentChannel: BffChannel | null,
+  channelsInGroup: BffChannel[],
+): IconName {
+  if (
+    currentChannel &&
+    currentChannel.pm_type &&
+    ICONS_BY_PM_TYPE[currentChannel.pm_type]
+  ) {
+    return ICONS_BY_PM_TYPE[currentChannel.pm_type];
+  } else {
+    for (const channel of channelsInGroup) {
+      if (channel.pm_type && ICONS_BY_PM_TYPE[channel.pm_type]) {
+        return ICONS_BY_PM_TYPE[channel.pm_type];
+      }
+    }
+  }
+  return "dummy";
 }
 
 export class XenditClearCurrentChannelEvent extends Event {

@@ -148,13 +148,13 @@ export const FieldInstallmentPlan: FunctionComponent<FieldProps> = (props) => {
         <Dropdown
           id={id}
           placeholder={field.placeholder}
-          className={`xendit-text-14`}
           onChange={handleChange}
           options={dropdownItems}
           selectedIndex={selectedItemIndex}
+          className="xendit-form-field-inner"
         />
       ) : (
-        <DropdownSkeleton id={id} />
+        <DropdownSkeleton id={id} className="xendit-form-field-inner" />
       )}
       <input type="hidden" name={name} ref={hiddenFieldRef} />
     </>
