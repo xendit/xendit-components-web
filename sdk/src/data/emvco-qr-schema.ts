@@ -6,7 +6,7 @@
 export type EmvcoQrTemplateClass = Record<string, EmvcoQrFieldDescriptor>;
 export type EmvcoQrFieldDescriptor = {
   name: string;
-  type: "template" | "ans" | "string" | "numeric" | "string";
+  type: "template" | "ans" | "string" | "numeric";
   templateClass?: EmvcoQrTemplateClass;
 };
 export type EmvcoQrData = { [key: string]: string | EmvcoQrData };

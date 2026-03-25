@@ -5,7 +5,7 @@ import {
   rootTemplateClass,
 } from "./data/emvco-qr-schema";
 
-function isHighSurrogatePair(char: string) {
+function isSurrogatePair(char: string) {
   return /^[\uD800-\uDBFF]$/.test(char);
 }
 
@@ -19,33 +19,45 @@ export function emvcoQrTokenize(
   while (emvcoString.length) {
     const currentTag = emvcoString.substring(0, 2);
     if (!/^\d{2}$/.test(currentTag)) {
-      throw new Error(
-        `Invalid EMVCo QR string, expected tag but got ${currentTag}`,
-      );
+      throw new Error(`Invalid EMVCo QR string, invalid tag`);
     }
     if (seen.has(currentTag)) {
       throw new Error(`Duplicate tag ${currentTag} in EMVCo QR string`);
     }
     seen.add(currentTag);
     const lengthStr = emvcoString.substring(2, 4);
-    const length = parseInt(lengthStr, 10);
+    if (!/^\d{2}$/.test(lengthStr)) {
+      throw new Error(`Invalid EMVCo QR string, invalid length`);
+    }
+    const length = parseInt(lengthStr, 10); // nan and zero are both invalid
     if (!length) {
       throw new Error(
         `Invalid EMVCo QR string, expected length but got ${lengthStr}`,
       );
     }
     let value = "";
-    let valueChars = 0;
-    while (valueChars < length) {
+    let javascriptCharacters = 0; // javascript length of the value
+    let realCharacters = 0; // normal characters count as 2, surrogate pair halves count as 1
+    while (realCharacters < length) {
       // read a character and increment valueChars unless it's a high surrogate pair
-      const char = emvcoString.substring(4 + valueChars, 5 + valueChars);
+      const char = emvcoString.substring(
+        4 + javascriptCharacters,
+        5 + javascriptCharacters,
+      );
+      if (char === "") {
+        throw new Error(`Invalid EMVCo QR string, unexpected end of string`);
+      }
       value += char;
-      if (!isHighSurrogatePair(char)) {
-        valueChars++;
+      javascriptCharacters += 1;
+
+      if (isSurrogatePair(char)) {
+        realCharacters += 0.5;
+      } else {
+        realCharacters += 1;
       }
     }
     result.push({ key: currentTag, value });
-    emvcoString = emvcoString.substring(4 + length);
+    emvcoString = emvcoString.substring(4 + javascriptCharacters);
   }
 
   return result;

@@ -50,8 +50,6 @@ xendit-payment-channel {
 
 xendit-action-container {
   position: relative;
-  overflow: hidden;
-  /* background-color: var(--xendit-color-background); */
   flex: 1; /* Action container usually wants to stretch to fit, assuming the parent is a flexbox. */
   touch-action: manipulation;
 }

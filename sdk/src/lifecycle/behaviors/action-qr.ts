@@ -33,7 +33,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     }
 
     // in mock mode, we lie about what's inside the qr code so we can trigger custom art,
-    // the channel property mock_emvco_qr_field_26_00 controlls this behavior
+    // the channel property mock_emvco_qr_field_26_00 controls this behavior
     if (
       this.bb.mock &&
       typeof this.bb.channelProperties?.mock_emvco_qr_field_26_00 === "string"
