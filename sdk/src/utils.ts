@@ -12,7 +12,7 @@ import { XenditComponents } from "./public-sdk";
 export const MOCK_NETWORK_DELAY_MS = 300;
 
 export function assert<T>(arg: unknown): asserts arg is NonNullable<T> {
-  if (arg === null || arg === undefined) {
+  if (!arg) {
     throw new Error(
       "Assertion failed: argument is null or undefined; this is a bug, please contact support.",
     );
