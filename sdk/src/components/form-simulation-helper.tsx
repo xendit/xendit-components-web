@@ -3,6 +3,7 @@ import { useContext, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { Scenarios } from "../data/simulation-scenarios";
 import { Dropdown } from "./core/dropdown";
 import { useSdk } from "./session-provider";
+import { assert } from "../utils";
 
 interface Props {
   scenarios: Scenarios;
@@ -70,8 +71,9 @@ export const FormSimulationTrigger: FunctionComponent<{
 };
 
 export const FormSimulationHelperPopover: FunctionComponent = () => {
-  const { open, setOpen, scenarios, onSelect } =
-    useContext(FormSimulationHelperContext) || {};
+  const simulateHelper = useContext(FormSimulationHelperContext);
+  assert(simulateHelper);
+  const { open, setOpen, scenarios, onSelect } = simulateHelper;
   const { t } = useSdk();
 
   if (!open || !scenarios) {
@@ -85,23 +87,15 @@ export const FormSimulationHelperPopover: FunctionComponent = () => {
       </div>
       <Dropdown
         onChange={(option) => {
-          const selectedScenario = scenarios.scenarios.find(
-            (scenario) => scenario.description === option.value,
-          );
-          if (selectedScenario) {
-            onSelect?.(selectedScenario.name);
-            setOpen?.(false);
-          }
+          onSelect?.(option.value);
+          setOpen?.(false);
         }}
         placeholder={t("simulation.select_scenario")}
         options={scenarios.scenarios.map((scenario) => ({
           title: scenario.description,
-          value: scenario.description,
+          value: scenario.name,
           leadingAsset: (
-            <img
-              src={scenario.imageUrl}
-              className="xendit-form-simulation-scenario-icon"
-            />
+            <img src={scenario.imageUrl} className="xendit-channel-logo" />
           ),
         }))}
       />

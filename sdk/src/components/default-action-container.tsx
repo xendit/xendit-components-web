@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from "preact/hooks";
 import { XenditComponents } from "../public-sdk";
 import { Dialog } from "./core/dialog";
 import { internal } from "../internal";
+import { DefaultActionContainerType } from "../lifecycle/behaviors/action";
 
 type Props = {
   sdk: XenditComponents;
@@ -10,10 +11,12 @@ type Props = {
   onClose: () => void;
   width: number;
   height: number;
+  borderColor?: string;
+  defaultActionContainerType: DefaultActionContainerType;
 };
 
 export default function DefaultActionContainer(props: Props) {
-  const { sdk, title, onClose, width, height } = props;
+  const { sdk, title, onClose, width, height, borderColor } = props;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -25,7 +28,17 @@ export default function DefaultActionContainer(props: Props) {
   }, [sdk]);
 
   return (
-    <Dialog title={title} onClose={onClose} close={props.close} seamless>
+    <Dialog
+      title={title}
+      onClose={onClose}
+      close={props.close}
+      borderColor={borderColor}
+      seamless
+      noBackground={
+        props.defaultActionContainerType ===
+        DefaultActionContainerType.QrWithCustomArt
+      }
+    >
       <div
         className="xendit-default-action-container"
         ref={wrapperRef}

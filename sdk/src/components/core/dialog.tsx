@@ -20,10 +20,16 @@ type Props = {
    * if true, the header will float on top of the body content without a dividing line
    */
   seamless?: boolean;
+  noBackground?: boolean;
+  /**
+   * Borders of the dialog.
+   */
+  borderColor?: string;
 };
 
 export const Dialog: FunctionComponent<Props> = (props) => {
-  const { title, onClose, children, seamless } = props;
+  const { title, onClose, children, seamless, borderColor, noBackground } =
+    props;
 
   const closeCalledRef = useRef(false);
   const closeAnimationPlaying = useRef(false);
@@ -56,10 +62,13 @@ export const Dialog: FunctionComponent<Props> = (props) => {
       return;
     }
 
-    backdropRef.current.animate?.(backdropFadeOutKeyframes, animationOptions);
+    backdropRef.current.animate?.(
+      backdropFadeOutKeyframes,
+      animationOptionsOut,
+    );
     const animation = dialogRef.current.animate?.(
       foregroundFadeOutKeyframes,
-      animationOptions,
+      animationOptionsOut,
     );
     animation.onfinish = onCloseSafe;
   }, [onCloseSafe, supportsAnimation]);
@@ -70,8 +79,8 @@ export const Dialog: FunctionComponent<Props> = (props) => {
       return;
     }
 
-    backdropRef.current?.animate?.(backdropFadeKeyframes, animationOptions);
-    dialogRef.current?.animate?.(foregroundFadeKeyframes, animationOptions);
+    backdropRef.current?.animate?.(backdropFadeKeyframes, animationOptionsIn);
+    dialogRef.current?.animate?.(foregroundFadeKeyframes, animationOptionsIn);
   }, [supportsAnimation]);
 
   useLayoutEffect(() => {
@@ -82,7 +91,11 @@ export const Dialog: FunctionComponent<Props> = (props) => {
 
   return (
     <div className="xendit-dialog-backdrop" ref={backdropRef}>
-      <div className="xendit-dialog" ref={dialogRef}>
+      <div
+        className={`xendit-dialog ${noBackground ? "" : "xendit-dialog-with-background"}`}
+        ref={dialogRef}
+        style={borderColor ? { border: `4px solid ${borderColor}` } : undefined}
+      >
         {!seamless ? (
           <div className="xendit-dialog-header xendit-text-16 xendit-text-semibold">
             {title}
@@ -90,7 +103,13 @@ export const Dialog: FunctionComponent<Props> = (props) => {
               <Icon name="x" size={20} />
             </button>
           </div>
+        ) : null}
+        {noBackground ? (
+          children
         ) : (
+          <div className="xendit-dialog-body">{children}</div>
+        )}
+        {seamless ? (
           <button
             aria-label="Close"
             onClick={onCloseWithAnimation}
@@ -98,16 +117,21 @@ export const Dialog: FunctionComponent<Props> = (props) => {
           >
             <Icon name="x" size={20} />
           </button>
-        )}
-        <div className="xendit-dialog-body">{children}</div>
+        ) : null}
       </div>
     </div>
   );
 };
 
-const animationOptions: EffectTiming = {
+const animationOptionsIn: EffectTiming = {
+  duration: 500,
+  easing: "cubic-bezier(.32,.23,0,.92)",
+  fill: "forwards",
+};
+
+const animationOptionsOut: EffectTiming = {
   duration: 200,
-  easing: "ease-in-out",
+  easing: "linear",
   fill: "forwards",
 };
 
@@ -116,7 +140,11 @@ const backdropFadeKeyframes: Keyframe[] = [
     backgroundColor: "rgba(0, 0, 0, 0)",
   },
   {
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    offset: 0.1,
+  },
+  {
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
   },
 ];
 const backdropFadeOutKeyframes = backdropFadeKeyframes.slice().reverse();
@@ -124,11 +152,25 @@ const backdropFadeOutKeyframes = backdropFadeKeyframes.slice().reverse();
 const foregroundFadeKeyframes: Keyframe[] = [
   {
     opacity: 0,
-    transform: `scale(0.9) translateY(-20px)`,
+    transform: `scale(0.98) translateY(-40px) rotateX(15deg)`,
+  },
+  {
+    opacity: 0,
+    transform: `scale(0.98) translateY(-40px) rotateX(15deg)`,
   },
   {
     opacity: 1,
     transform: "",
   },
 ];
-const foregroundFadeOutKeyframes = foregroundFadeKeyframes.slice().reverse();
+
+const foregroundFadeOutKeyframes: Keyframe[] = [
+  {
+    opacity: 1,
+    transform: "",
+  },
+  {
+    opacity: 0,
+    transform: `scale(0.92) translateY(-10px)`,
+  },
+];

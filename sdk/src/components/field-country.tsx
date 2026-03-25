@@ -72,6 +72,8 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
         onChange={onChangeWrapper}
         placeholder={field.placeholder}
         selectedIndex={selectedCountryIndex}
+        enableSearch
+        className="xendit-form-field-inner"
       />
     </div>
   );

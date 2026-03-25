@@ -5,6 +5,11 @@ import { Behavior } from "../behavior-tree-runner";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
 
+export enum DefaultActionContainerType {
+  QrWithCustomArt = "qr-with-custom-art",
+  Generic = "generic",
+}
+
 export abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
   defaultContainerHeight = 0;
@@ -17,7 +22,11 @@ export abstract class ContainerActionBehavior implements Behavior {
    * Creates a default action container if the user has not created one already.
    * Returns a cleanup function that destroys the default action container if it was created.
    */
-  ensureHasActionContainer() {
+  ensureHasActionContainer(
+    defaultActionContainerType: DefaultActionContainerType = DefaultActionContainerType.Generic,
+  ) {
+    assert(this.bb.channel);
+
     if (this.bb.sdk[internal].liveComponents.actionContainer) {
       // user created action container already
       // TODO: validate it's in the dom and the right size
@@ -32,11 +41,14 @@ export abstract class ContainerActionBehavior implements Behavior {
     const container = document.createElement("div");
     container.setAttribute("class", "xendit-default-action-container");
 
-    const props = {
+    const props: Parameters<typeof DefaultActionContainer>[0] = {
       sdk: this.bb.sdk,
       title: this.title,
       width: this.defaultContainerWidth,
       height: this.defaultContainerHeight,
+      borderColor: undefined, // needs some design feedback
+      // borderColor: this.bb.channel.brand_color,
+      defaultActionContainerType,
       onClose: () => {
         cleanedUp = true;
         render(null, container);
@@ -46,6 +58,7 @@ export abstract class ContainerActionBehavior implements Behavior {
         }
       },
     };
+
     render(createElement(DefaultActionContainer, props), container);
     document.body.appendChild(container);
 
