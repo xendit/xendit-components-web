@@ -116,6 +116,12 @@ export function ActionQr(props: Props) {
       role="button"
       tabIndex={0}
       onClick={onClickQrCode}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClickQrCode(e);
+        }
+      }}
       ref={(r) => {
         if (r && (r.childNodes.length !== 1 || r.firstChild !== svgNode)) {
           // insert svg if not already present
@@ -405,6 +411,10 @@ export async function downloadSvgAsPng(
 
       image.remove();
       resolve();
+    };
+    image.onerror = function (error) {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to generate image"));
     };
   });
 }
