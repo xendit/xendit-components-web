@@ -523,7 +523,7 @@ export function makeTestBffData(): BffResponse {
         ],
         instructions: [
           "Mock QR channel",
-          "This mock channel behaves similarly to production QR channels.",
+          "This mock channel has a QR action with branded layouts. You can choose what branded layout to use.",
         ],
       },
       {

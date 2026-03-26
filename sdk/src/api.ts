@@ -101,7 +101,7 @@ type GetPaymentOptionsRequest = {
   };
 };
 /**
- * Returns metadata about a card number.
+ * Returns the list of installment plans available if possible.
  */
 export const getPaymentOptions = endpoint<
   GetPaymentOptionsRequest,

@@ -224,6 +224,12 @@ function groupEnabledChannelStats(
 const ICONS_BY_PM_TYPE: Record<string, IconName> = {
   CARDS: "card",
   QR_CODE: "qr",
+  OVER_THE_COUNTER: "otc",
+  EWALLET: "ewallet",
+  BANK_TRANSFER: "bank_transfer",
+  DIRECT_DEBIT: "bank_transfer",
+  VIRTUAL_ACCOUNT: "bank_transfer",
+  ONLINE_BANKING: "online_banking",
 };
 
 function iconName(
