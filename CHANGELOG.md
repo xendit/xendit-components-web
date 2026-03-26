@@ -4,6 +4,16 @@ No unreleased changes.
 
 # 0.0.17
 
+### Notable
+
+Simplified the QR action UI, added a custom branded layout for QRIS actions.
+
+Improved the dropdown widget.
+
+Improved the card simulation UI in test mode.
+
+# 0.0.17
+
 ### Bug Fixes
 
 - Fixed typescript import resolution
