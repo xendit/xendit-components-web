@@ -86,6 +86,10 @@ const simulateButton = document.createElement("button");
 simulateButton.textContent = "Simulate Payment";
 controlsDiv.appendChild(simulateButton);
 
+const createActionContainer = document.createElement("button");
+createActionContainer.textContent = "Create Action Container";
+controlsDiv.appendChild(createActionContainer);
+
 // const { XenditComponents, XenditComponentsTest } = (
 //   window as unknown as { Xendit: typeof import("./src/public-sdk") }
 // ).Xendit;
@@ -222,4 +226,16 @@ abortButton.addEventListener("click", () => {
 
 simulateButton.addEventListener("click", () => {
   components.simulatePayment();
+});
+
+createActionContainer.addEventListener("click", () => {
+  const element = components.createActionContainerComponent({
+    qrCode: {
+      // qrCodeOnly: true,
+    },
+  });
+  element.style.width = "400px";
+  element.style.minHeight = "10px";
+  element.style.border = "2px solid black";
+  controlsDiv.appendChild(element);
 });
