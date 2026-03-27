@@ -21,9 +21,11 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
 
   enter() {
     this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainer(() =>
-      createElement(ActionIframe, {
+    this.populateActionContainer(() => {
+      assert(this.bb.channel);
+      return createElement(ActionIframe, {
         url: this.url,
+        channelCode: this.bb.channel.channel_code,
         mock: this.bb.mock,
         onIframeComplete: (event: IframeActionCompleteEvent) => {
           this.cleanupActionContainer(false);
@@ -39,8 +41,8 @@ export class ActionIframeBehavior extends ContainerActionBehavior {
 
           this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
         },
-      }),
-    );
+      });
+    });
   }
 
   updateMocksOnIframeCompletion(result: "SUCCESS" | "FAILURE") {

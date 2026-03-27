@@ -1123,10 +1123,6 @@ export class XenditComponents extends EventTarget {
   ): HTMLElement {
     this.assertInitialized();
 
-    if (this[internal].liveComponents.actionContainer) {
-      this.destroyComponent(this[internal].liveComponents.actionContainer);
-    }
-
     // Type guard to check if parameter is the internal symbol
     const isInternal = optionsOrInternal === internal;
     const options = isInternal
@@ -1144,6 +1140,10 @@ export class XenditComponents extends EventTarget {
       throw new Error(
         "Unable to create action container; there is an action in progress. Create an action before or during the `action-begin` event.",
       );
+    }
+
+    if (this[internal].liveComponents.actionContainer) {
+      this.destroyComponent(this[internal].liveComponents.actionContainer);
     }
 
     const container = document.createElement("xendit-action-container");

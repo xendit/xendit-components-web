@@ -4,11 +4,12 @@ import { IframeActionCompleteEvent } from "../../../shared/types";
 type Props = {
   url: string;
   mock: boolean;
+  channelCode: string;
   onIframeComplete: (event: IframeActionCompleteEvent) => void;
 };
 
 export function ActionIframe(props: Props) {
-  const { url, mock, onIframeComplete } = props;
+  const { url, channelCode, mock, onIframeComplete } = props;
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -41,10 +42,15 @@ export function ActionIframe(props: Props) {
   }, [handleEventFromIframe]);
 
   if (mock) {
+    const authenticationTypeDescription =
+      channelCode === "CARDS"
+        ? "a 3DS authentication page"
+        : "an authentication page";
+    const srcDoc = mockIframeSrcDoc(authenticationTypeDescription);
     return (
       <iframe
         ref={iframeRef}
-        srcDoc={MOCK_IFRAME_SRCDOC}
+        srcDoc={srcDoc}
         className="xendit-action-iframe"
       />
     );
@@ -60,7 +66,7 @@ export function ActionIframe(props: Props) {
   );
 }
 
-const MOCK_IFRAME_SRCDOC = `
+const mockIframeSrcDoc = (whatItWouldBe: string) => `
   <html>
     <head>
       <title>Xendit Mock Action Iframe</title>
@@ -101,7 +107,7 @@ const MOCK_IFRAME_SRCDOC = `
     </head>
     <body>
       <p>This is a mock action page.</p>
-      <p>Normally, this would be a 3DS authentication page.</p>
+      <p>Normally, this would be ${whatItWouldBe}.</p>
       <p>Click a button below to simulate the result of the action.</p>
       <div class="buttons">
         <button onclick="parent.postMessage({type: 'xendit-iframe-action-complete', mockStatus: 'success'}, '*')">
