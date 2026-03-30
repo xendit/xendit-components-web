@@ -3,10 +3,11 @@ import { internal } from "../../internal";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior, DefaultActionContainerType } from "./action";
-import { ActionQr, hasCustomQrArt } from "../../components/action-qr";
+import { ActionQr } from "../../components/action-qr";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { emvcoQrParse } from "../../emvco-qr";
 import { EmvcoQrData } from "../../data/emvco-qr-schema";
+import { hasCustomQrArt } from "../../components/action-qr-custom-art";
 
 export class ActionQrBehavior extends ContainerActionBehavior {
   constructor(
