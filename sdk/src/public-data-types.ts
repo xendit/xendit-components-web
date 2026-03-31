@@ -23,6 +23,7 @@ export interface XenditSession {
    *
    * PAY sessions create a payment request, calling /v3/payment_requests
    * SAVE sessions create a saved payment token, calling /v3/payment_tokens
+   * SUBSCRIPTION sessions create a subscription, also calling /v3/payment_tokens
    */
   sessionType: "PAY" | "SAVE" | "SUBSCRIPTION";
   /**
