@@ -5,7 +5,7 @@ export type BffSessionCaptureMethod = "AUTOMATIC" | "MANUAL";
 
 export type BffSessionMode = "PAYMENT_LINK" | "COMPONENTS" | "CARDS_SESSION_JS";
 
-export type BffSessionType = "SAVE" | "PAY" | "AUTHORIZATION";
+export type BffSessionType = "SAVE" | "PAY" | "AUTHORIZATION" | "SUBSCRIPTION";
 
 export type BffSessionStatus =
   | "ACTIVE"

@@ -24,7 +24,7 @@ export interface XenditSession {
    * PAY sessions create a payment request, calling /v3/payment_requests
    * SAVE sessions create a saved payment token, calling /v3/payment_tokens
    */
-  sessionType: "PAY" | "SAVE";
+  sessionType: "PAY" | "SAVE" | "SUBSCRIPTION";
   /**
    * The kind of session, only COMPONENT sessions can be used with the components SDK.
    */
