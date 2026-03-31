@@ -81,6 +81,48 @@ export interface XenditSession {
    */
   captureMethod?: "AUTOMATIC" | "MANUAL";
   /**
+   * For subscription sessions, the subscription details. This will be undefined for PAY and SAVE sessions.
+   */
+  subscription?: {
+    /**
+     * Whether the first payment for the subscription should be made immediately upon session completion, or only after the anchor date.
+     */
+    immediatePayment?: boolean;
+    /**
+     * The subscription schedule. This includes the anchor date, which determines when the subscription payments will be made, as well as the interval and count for both the regular payments and the retries.
+     */
+    schedule: {
+      /**
+       * The anchor date for the subscription. This determines when the subscription payments will be made.
+       */
+      anchorDate: Date;
+      /**
+       * The interval for the subscription payments.
+       */
+      interval: "DAY" | "WEEK" | "MONTH";
+      /**
+       * The number of intervals for the subscription payments.
+       */
+      intervalCount: number;
+      /**
+       * The interval for retrying failed subscription payments.
+       */
+      retryInterval?: "DAY" | "WEEK" | "MONTH";
+      /**
+       * The number of intervals for retrying failed subscription payments.
+       */
+      retryIntervalCount?: number;
+      /**
+       * The total number of subscription payments.
+       */
+      totalRecurrence?: number;
+      /**
+       * The total number of retry attempts for failed subscription payments.
+       */
+      totalRetry?: number;
+    };
+  };
+  /**
    * Line items. The components SDK does not use this, but you may show it to your users.
    */
   items?: {

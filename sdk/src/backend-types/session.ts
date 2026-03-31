@@ -1,5 +1,6 @@
 import { ChannelProperties } from "./channel";
 import { BffItem } from "./item";
+import { BffSubscription } from "./subscription";
 
 export type BffSessionCaptureMethod = "AUTOMATIC" | "MANUAL";
 
@@ -43,4 +44,5 @@ export type BffSession = {
   payment_channel_code?: string | null;
   allow_save_payment_method?: BffSessionAllowSavePaymentMethod;
   capture_method: BffSessionCaptureMethod;
+  subscription?: BffSubscription;
 };
