@@ -1,11 +1,12 @@
 import { ChannelProperties } from "./channel";
 import { BffItem } from "./item";
+import { BffSubscription } from "./subscription";
 
 export type BffSessionCaptureMethod = "AUTOMATIC" | "MANUAL";
 
 export type BffSessionMode = "PAYMENT_LINK" | "COMPONENTS" | "CARDS_SESSION_JS";
 
-export type BffSessionType = "SAVE" | "PAY" | "AUTHORIZATION";
+export type BffSessionType = "SAVE" | "PAY" | "AUTHORIZATION" | "SUBSCRIPTION";
 
 export type BffSessionStatus =
   | "ACTIVE"
@@ -43,4 +44,5 @@ export type BffSession = {
   payment_channel_code?: string | null;
   allow_save_payment_method?: BffSessionAllowSavePaymentMethod;
   capture_method: BffSessionCaptureMethod;
+  subscription?: BffSubscription;
 };

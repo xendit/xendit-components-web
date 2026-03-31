@@ -38,6 +38,21 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
     expiresAt: new Date(bffSession.expires_at),
     locale: bffSession.locale,
     status: bffSession.status,
+    subscription: bffSession.subscription
+      ? {
+          immediatePayment: bffSession.subscription.immediate_payment,
+          schedule: {
+            anchorDate: new Date(bffSession.subscription.schedule.anchor_date),
+            interval: bffSession.subscription.schedule.interval,
+            intervalCount: bffSession.subscription.schedule.interval_count,
+            retryInterval: bffSession.subscription.schedule.retry_interval,
+            retryIntervalCount:
+              bffSession.subscription.schedule.retry_interval_count,
+            totalRecurrence: bffSession.subscription.schedule.total_recurrence,
+            totalRetry: bffSession.subscription.schedule.total_retry,
+          },
+        }
+      : undefined,
 
     items: bffSession.items?.map((item) => {
       return removeUndefinedPropertiesFromObject<XenditItem>({

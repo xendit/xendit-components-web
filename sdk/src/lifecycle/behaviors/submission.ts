@@ -277,7 +277,8 @@ async function asyncSubmit(
         result = makeTestPaymentRequest(channelCode, mockActionType);
         break;
       }
-      case "SAVE": {
+      case "SAVE":
+      case "SUBSCRIPTION": {
         await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
         result = makeTestPaymentToken(channelCode, mockActionType);
         break;
@@ -305,7 +306,8 @@ async function asyncSubmit(
         );
         break;
       }
-      case "SAVE": {
+      case "SAVE":
+      case "SUBSCRIPTION": {
         result = await createPaymentToken(
           sdkKey,
           {
