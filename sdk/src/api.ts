@@ -1,6 +1,5 @@
 import { ChannelProperties } from "./backend-types/channel";
 import { BffPollResponse, BffResponse } from "./backend-types/common";
-import { BffCustomer } from "./backend-types/customer";
 import {
   BffPaymentRequest,
   BffPaymentToken,
@@ -35,7 +34,9 @@ type CreatePaymentRequestRequestBody = {
   session_id: string;
   channel_code: string;
   channel_properties: ChannelProperties;
-  customer?: BffCustomer;
+  customer?: {
+    given_names?: string;
+  };
   save_payment_method?: boolean;
 };
 /**
