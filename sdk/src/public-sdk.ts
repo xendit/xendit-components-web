@@ -767,12 +767,11 @@ export class XenditComponents extends EventTarget {
     // return previously created component if it exists
     const cachedComponent =
       this[internal].liveComponents.paymentChannels.get(channelCode);
+    const channelFormRef = createRef<ChannelFormHandle>();
     let container: HTMLElement;
-    let channelFormRef = createRef<ChannelFormHandle>();
 
     if (cachedComponent) {
       container = cachedComponent.element;
-      channelFormRef = cachedComponent.channelFormRef;
     } else {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("data-channel-code", channelCode);
@@ -983,15 +982,11 @@ export class XenditComponents extends EventTarget {
     this[internal].currentChannelCode = channelCode;
 
     // if channel is not null, the component must exist
-    let component: CachedChannelComponent | null = null;
     if (channel && channelCode) {
-      component =
+      const component =
         this[internal].liveComponents.paymentChannels.get(channelCode) ?? null;
       if (!component) {
         this.createChannelComponent(channel, false);
-        component =
-          this[internal].liveComponents.paymentChannels.get(channelCode) ??
-          null;
       }
     }
 

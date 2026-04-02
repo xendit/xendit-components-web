@@ -146,7 +146,6 @@ export function applyPlaceholderStyles(
 
 export function applyFontFace(options: IframeAppearanceOptions): void {
   if (!window.FontFace) return;
-  // @ts-expect-error add funciton is missing from typescript definitions
   if (!document.fonts?.add) return;
   if (!options.fontFace || !options.fontFace.source) return;
 
@@ -157,6 +156,5 @@ export function applyFontFace(options: IframeAppearanceOptions): void {
     weight: "normal",
   });
 
-  // @ts-expect-error add funciton is missing from typescript definitions
   document.fonts.add(fontFace);
 }

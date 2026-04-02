@@ -6,7 +6,7 @@ import {
 } from "./data/currencies";
 
 export function amountFormat(amount: number, currency: string): string {
-  let str = "";
+  let str: string;
 
   const isNegative = amount < 0;
 
