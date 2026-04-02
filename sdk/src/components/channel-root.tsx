@@ -107,11 +107,11 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
   const onCustomerDetailsChanged = (
     customerDetails: { given_names?: string } | null,
   ) => {
-    const event = new XenditCustomerDetailsChangedEvent(
-      firstMemberChannel.channel_code,
-      customerDetails,
+    sdk?.dispatchEvent(
+      new InternalUpdateChannelComponentData(firstMemberChannel.channel_code, {
+        customerDetails,
+      }),
     );
-    divRef.current?.dispatchEvent(event);
   };
 
   const shouldShowSaveCheckbox =
@@ -249,23 +249,5 @@ export class XenditChannelPropertiesChangedEvent extends Event {
     });
     this.channel = channel;
     this.channelProperties = channelProperties;
-  }
-}
-
-export class XenditCustomerDetailsChangedEvent extends Event {
-  static readonly type = "xendit-customer-details-changed" as const;
-  channel: string;
-  customerDetails: { given_names?: string } | null;
-
-  constructor(
-    channel: string,
-    customerDetails: { given_names?: string } | null,
-  ) {
-    super(XenditCustomerDetailsChangedEvent.type, {
-      bubbles: true,
-      composed: true,
-    });
-    this.channel = channel;
-    this.customerDetails = customerDetails;
   }
 }
