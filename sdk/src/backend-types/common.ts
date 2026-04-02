@@ -18,7 +18,7 @@ export type BffErrorContent = {
 
 export type BffResponse = {
   business: BffBusiness;
-  customer: BffCustomer;
+  customer: BffCustomer | null;
   channels: BffChannel[];
   channel_ui_groups: BffChannelUiGroup[];
   session: BffSession;

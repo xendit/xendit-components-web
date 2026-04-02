@@ -63,6 +63,7 @@ export type BlackboardType = {
   channelData: ChannelComponentData | null;
   channelIsDigitalWallet: boolean;
   instantSubmissionError: SubmissionError | null;
+  customerDetails: { given_names?: string } | null;
 
   // dispatch event on the SDK instance
   dispatchEvent(event: Event): boolean;
@@ -151,10 +152,18 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     bb.channelProperties,
     bb.channelData,
   );
+  const requiresCustomerDetails =
+    bb.channel.requires_customer_details && !bb.world.customer;
+  let customerDetailsValid = true;
+  if (requiresCustomerDetails) {
+    // for now we only require given names for customer details
+    customerDetailsValid = bb.customerDetails?.given_names?.trim().length !== 0;
+  }
 
-  const validityBehavior = channelPropertiesValid
-    ? behaviorNode(ChannelValidBehavior)
-    : behaviorNode(ChannelInvalidBehavior);
+  const validityBehavior =
+    channelPropertiesValid && customerDetailsValid
+      ? behaviorNode(ChannelValidBehavior)
+      : behaviorNode(ChannelInvalidBehavior);
 
   const cardInfoBehavior = formHasFieldOfType(
     bb.channel.form,

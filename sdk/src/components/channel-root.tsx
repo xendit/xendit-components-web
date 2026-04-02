@@ -14,11 +14,12 @@ import {
 } from "../backend-types/channel";
 import { GraphicRedirectInstructions } from "./graphic-redirect-instructions";
 import { GraphicQrScan } from "./graphic-qr-scan";
-import { useSdk, useSession } from "./session-provider";
+import { useCustomer, useSdk, useSession } from "./session-provider";
 import { Checkbox } from "./core/checkbox";
 import { resolvePairedChannel } from "../utils";
 import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
+import { CustomerForm } from "./customer-form";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -54,6 +55,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
   const sdk = useSdk();
   const { t } = sdk;
   const session = useSession();
+  const customer = useCustomer();
 
   // events always use channelOrPair[0] because the CachedChannelComponents are keyed by that
   const firstMemberChannel = channelOrPair[0];
@@ -64,6 +66,8 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     savePaymentMethod,
   );
 
+  const shouldShowCustomerDetailsForm =
+    resolvedChannel.requires_customer_details && !customer;
   const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
   const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
@@ -96,6 +100,16 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     const event = new XenditChannelPropertiesChangedEvent(
       firstMemberChannel.channel_code,
       cleanedProperties,
+    );
+    divRef.current?.dispatchEvent(event);
+  };
+
+  const onCustomerDetailsChanged = (
+    customerDetails: { given_names?: string } | null,
+  ) => {
+    const event = new XenditCustomerDetailsChangedEvent(
+      firstMemberChannel.channel_code,
+      customerDetails,
     );
     divRef.current?.dispatchEvent(event);
   };
@@ -139,6 +153,10 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
             form={resolvedChannel.form}
             onChannelPropertiesChanged={onChannelPropertiesChanged}
           />
+          {shouldShowCustomerDetailsForm && (
+            <CustomerForm onChange={onCustomerDetailsChanged} />
+          )}
+
           {resolvedChannel.banner ? (
             <Banner banner={resolvedChannel.banner} />
           ) : null}
@@ -231,5 +249,23 @@ export class XenditChannelPropertiesChangedEvent extends Event {
     });
     this.channel = channel;
     this.channelProperties = channelProperties;
+  }
+}
+
+export class XenditCustomerDetailsChangedEvent extends Event {
+  static readonly type = "xendit-customer-details-changed" as const;
+  channel: string;
+  customerDetails: { given_names?: string } | null;
+
+  constructor(
+    channel: string,
+    customerDetails: { given_names?: string } | null,
+  ) {
+    super(XenditCustomerDetailsChangedEvent.type, {
+      bubbles: true,
+      composed: true,
+    });
+    this.channel = channel;
+    this.customerDetails = customerDetails;
   }
 }

@@ -48,6 +48,7 @@ import {
 import {
   ChannelRoot,
   XenditChannelPropertiesChangedEvent,
+  XenditCustomerDetailsChangedEvent,
 } from "./components/channel-root";
 import { fetchSessionData } from "./api";
 import { ChannelFormHandle } from "./components/channel-form";
@@ -298,6 +299,7 @@ export class XenditComponents extends EventTarget {
         channelData: null,
         channelIsDigitalWallet: false,
         instantSubmissionError: null,
+        customerDetails: null,
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
@@ -1049,6 +1051,24 @@ export class XenditComponents extends EventTarget {
         component.channelProperties = event.channelProperties;
 
         // update behavior tree (form validity may have changed)
+        this.behaviorTreeUpdate();
+      },
+    );
+
+    // update customer details
+    container.addEventListener(
+      XenditCustomerDetailsChangedEvent.type,
+      (_event) => {
+        const event = _event as XenditCustomerDetailsChangedEvent;
+        const channelCode = event.channel;
+        const component =
+          this[internal].liveComponents.paymentChannels.get(channelCode);
+        if (!component) {
+          return;
+        }
+
+        this[internal].behaviorTree.bb.customerDetails = event.customerDetails;
+
         this.behaviorTreeUpdate();
       },
     );

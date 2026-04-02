@@ -15,7 +15,9 @@ SessionContext.displayName = "SessionContext";
 export const BusinessContext = createContext<BffBusiness | null>(null);
 BusinessContext.displayName = "BusinessContext";
 
-export const CustomerContext = createContext<BffCustomer | null>(null);
+export const CustomerContext = createContext<BffCustomer | null | undefined>(
+  undefined,
+);
 CustomerContext.displayName = "CustomerContext";
 
 export const ChannelsContext = createContext<BffChannel[] | null>(null);
@@ -56,7 +58,7 @@ export const useBusiness = () => {
 
 export const useCustomer = () => {
   const context = useContext(CustomerContext);
-  if (context === null) {
+  if (context === undefined) {
     throw new Error("useCustomer must be used within a XenditSessionProvider");
   }
   return context;
