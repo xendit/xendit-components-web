@@ -1,10 +1,16 @@
 # Unreleased
 
+-
+
+# 0.0.19
+
 ### Notable
 
-Added support for E-Wallet channels
+Added support for E-Wallet channels.
 
-# 0.0.17
+Added custom layouts for more QR screens.
+
+# 0.0.18
 
 ### Notable
 
