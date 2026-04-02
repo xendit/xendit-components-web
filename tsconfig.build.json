@@ -4,6 +4,7 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": "./temp-dts",
+    "rootDir": "./sdk/src",
     "declaration": true,
     "emitDeclarationOnly": true,
     "stripInternal": true
