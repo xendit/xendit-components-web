@@ -33,11 +33,11 @@ export default function DefaultActionContainer(props: Props) {
       onClose={onClose}
       close={props.close}
       borderColor={borderColor}
-      seamless
-      noBackground={
+      noPadding={
         props.defaultActionContainerType ===
         DefaultActionContainerType.QrWithCustomArt
       }
+      seamless
     >
       <div
         className="xendit-default-action-container"
