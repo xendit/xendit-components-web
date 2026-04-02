@@ -1,6 +1,12 @@
 # Unreleased
 
--
+None
+
+# 0.0.19
+
+### Bug Fixes
+
+- Fixed redirect after ewallet payment
 
 # 0.0.19
 
