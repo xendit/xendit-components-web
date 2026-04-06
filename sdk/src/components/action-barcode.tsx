@@ -71,11 +71,11 @@ export function ActionBarcode(props: Props) {
       <img
         src={channelLogo}
         alt="Channel Logo"
-        className="xendit-action-qr-channel-logo"
+        className="xendit-action-barcode-channel-logo"
       />
       <div className="xendit-action-title">{title}</div>
       <div
-        data-testid="qr-code"
+        data-testid="barcode"
         className="xendit-action-barcode-barcode-container"
         role="button"
         tabIndex={0}

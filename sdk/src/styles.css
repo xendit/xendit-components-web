@@ -1049,6 +1049,8 @@ xendit-payment-channel[inert] {
   flex-direction: column;
   gap: 8px;
 }
+
+/* qr actions */
 .xendit-action-qr-content {
   position: relative;
   display: flex;
@@ -1079,6 +1081,11 @@ xendit-payment-channel[inert] {
 }
 
 /* barcode actions */
+.xendit-action-barcode-channel-logo {
+  height: 64px;
+  align-self: center;
+  object-fit: contain;
+}
 .xendit-action-barcode-barcode-container {
   width: 100%;
   position: relative;
