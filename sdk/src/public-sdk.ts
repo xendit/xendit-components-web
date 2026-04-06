@@ -59,7 +59,7 @@ import {
 } from "./lifecycle/behavior-tree";
 import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
-import { BffCustomer } from "./backend-types/customer";
+import { BffCustomer, CustomerDetails } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
 import {
   InternalBehaviorTreeUpdateEvent,
@@ -137,9 +137,7 @@ export type ChannelComponentData = {
     cardNumber: string | null;
     options: BffPaymentOptions | null;
   } | null;
-  customerDetails: {
-    given_names?: string;
-  } | null;
+  customerDetails: CustomerDetails | null;
 };
 
 /**

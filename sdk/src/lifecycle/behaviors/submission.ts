@@ -41,6 +41,7 @@ import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
+import { CustomerDetails } from "../../backend-types/customer";
 
 export type SubmissionError = {
   text: string[];
@@ -272,7 +273,7 @@ async function asyncSubmit(
   channelProperties: ChannelProperties,
   abortController: AbortController,
   savePaymentMethod: boolean | undefined,
-  customerDetails: { given_names?: string } | undefined,
+  customerDetails: CustomerDetails | undefined,
 ): Promise<BffPaymentEntity> {
   let result: BffPaymentToken | BffPaymentRequest;
   if (mock) {

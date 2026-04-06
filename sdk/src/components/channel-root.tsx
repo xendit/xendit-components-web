@@ -20,6 +20,7 @@ import { resolvePairedChannel } from "../utils";
 import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
 import { CustomerForm } from "./customer-form";
+import { CustomerDetails } from "../backend-types/customer";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -104,9 +105,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     divRef.current?.dispatchEvent(event);
   };
 
-  const onCustomerDetailsChanged = (
-    customerDetails: { given_names?: string } | null,
-  ) => {
+  const onCustomerDetailsChanged = (customerDetails: CustomerDetails) => {
     sdk?.dispatchEvent(
       new InternalUpdateChannelComponentData(firstMemberChannel.channel_code, {
         customerDetails,

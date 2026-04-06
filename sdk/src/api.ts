@@ -7,6 +7,7 @@ import {
 import { BffCardDetails } from "./backend-types/card-details";
 import { endpoint } from "./networking";
 import { BffPaymentOptions } from "./backend-types/payment-options";
+import { CustomerDetails } from "./backend-types/customer";
 
 /**
  * Initialization method, returns session, customer, business, and channels.
@@ -34,9 +35,7 @@ type CreatePaymentRequestRequestBody = {
   session_id: string;
   channel_code: string;
   channel_properties: ChannelProperties;
-  customer?: {
-    given_names?: string;
-  };
+  customer?: CustomerDetails;
   save_payment_method?: boolean;
 };
 /**

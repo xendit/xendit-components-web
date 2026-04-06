@@ -1,7 +1,8 @@
 import { forwardRef } from "preact/compat";
+import { CustomerDetails } from "../backend-types/customer";
 
 type Props = {
-  onChange: (customerDetails: { given_names?: string } | null) => void;
+  onChange: (customerDetails: CustomerDetails) => void;
 };
 
 export const CustomerForm = forwardRef<HTMLFormElement, Props>(
