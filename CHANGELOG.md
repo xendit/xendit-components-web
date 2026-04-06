@@ -1,8 +1,22 @@
 # Unreleased
 
-No unreleased changes.
+None
 
-# 0.0.17
+# 0.0.19
+
+### Bug Fixes
+
+- Fixed redirect after ewallet payment
+
+# 0.0.19
+
+### Notable
+
+Added support for E-Wallet channels.
+
+Added custom layouts for more QR screens.
+
+# 0.0.18
 
 ### Notable
 

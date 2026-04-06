@@ -20,7 +20,10 @@ type Props = {
    * if true, the header will float on top of the body content without a dividing line
    */
   seamless?: boolean;
-  noBackground?: boolean;
+  /**
+   * Remove padding on body element.
+   */
+  noPadding?: boolean;
   /**
    * Borders of the dialog.
    */
@@ -28,8 +31,7 @@ type Props = {
 };
 
 export const Dialog: FunctionComponent<Props> = (props) => {
-  const { title, onClose, children, seamless, borderColor, noBackground } =
-    props;
+  const { title, onClose, children, seamless, borderColor } = props;
 
   const closeCalledRef = useRef(false);
   const closeAnimationPlaying = useRef(false);
@@ -92,7 +94,7 @@ export const Dialog: FunctionComponent<Props> = (props) => {
   return (
     <div className="xendit-dialog-backdrop" ref={backdropRef}>
       <div
-        className={`xendit-dialog ${noBackground ? "" : "xendit-dialog-with-background"}`}
+        className={`xendit-dialog`}
         ref={dialogRef}
         style={borderColor ? { border: `4px solid ${borderColor}` } : undefined}
       >
@@ -104,11 +106,12 @@ export const Dialog: FunctionComponent<Props> = (props) => {
             </button>
           </div>
         ) : null}
-        {noBackground ? (
-          children
-        ) : (
-          <div className="xendit-dialog-body">{children}</div>
-        )}
+        <div
+          className="xendit-dialog-body"
+          style={props.noPadding ? { padding: "0" } : undefined}
+        >
+          {children}
+        </div>
         {seamless ? (
           <button
             aria-label="Close"

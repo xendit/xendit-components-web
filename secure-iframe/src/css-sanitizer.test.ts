@@ -80,7 +80,7 @@ describe("sanitizeCssValue", () => {
     });
 
     it("rejects double commas and invalid characters", () => {
-      // expect(sanitizeCssValue("Arial,,", "fontFamily")).toBe(""); // this test doesn't work due to a bug in jsdom css parsing
+      expect(sanitizeCssValue("Arial,,", "fontFamily")).toBe("");
       expect(sanitizeCssValue("Arial{test}", "fontFamily")).toBe("");
     });
 

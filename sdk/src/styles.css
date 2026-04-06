@@ -543,12 +543,6 @@ xendit-payment-channel[inert] {
   position: relative;
 }
 
-.xendit-dialog.xendit-dialog-with-background {
-  background-color: var(--xendit-color-background);
-  border-radius: 8px;
-  box-shadow: var(--xendit-dialog-shadow);
-}
-
 .xendit-dialog-header {
   display: flex;
   justify-content: space-between;
@@ -584,6 +578,9 @@ xendit-payment-channel[inert] {
 .xendit-dialog-body {
   display: flex;
   padding: 24px;
+  background-color: var(--xendit-color-background);
+  border-radius: 8px;
+  box-shadow: var(--xendit-dialog-shadow);
 }
 
 .xendit-error-message {

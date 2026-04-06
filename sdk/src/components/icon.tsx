@@ -27,7 +27,7 @@ const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
 ) => {
   const { name, size, direction } = props;
 
-  let svgTransform = undefined;
+  let svgTransform: string;
   switch (direction) {
     case "right":
       svgTransform = "rotate(180 12 12)";
@@ -44,7 +44,7 @@ const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
       break;
   }
 
-  let iconNode: ComponentChildren = null;
+  let iconNode: ComponentChildren;
   switch (name) {
     case "chevron": {
       iconNode = (
