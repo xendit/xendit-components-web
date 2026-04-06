@@ -50,19 +50,18 @@ export function makeTestBffData(): BffResponse {
       merchant_profile_picture_url:
         "https://placehold.co/256x256.png?text=Logo",
     },
-    customer: null,
-    // customer: {
-    //   type: "INDIVIDUAL",
-    //   id: `cust-${randomUUID()}`,
-    //   email: "exa**@example.com",
-    //   mobile_number: null,
-    //   phone_number: null,
-    //   individual_detail: {
-    //     given_names: "exa********",
-    //     surname: null,
-    //   },
-    //   business_detail: null,
-    // },
+    customer: {
+      type: "INDIVIDUAL",
+      id: `cust-${randomUUID()}`,
+      email: "exa**@example.com",
+      mobile_number: null,
+      phone_number: null,
+      individual_detail: {
+        given_names: "exa********",
+        surname: null,
+      },
+      business_detail: null,
+    },
     channels: [
       {
         brand_name: "Cards",
