@@ -39,7 +39,7 @@ export function ActionBarcode(props: Props) {
     onAffirm();
   }, [onAffirm]);
 
-  const vaDetails = [
+  const barcodeDetails = [
     {
       heading: t("action_barcode.merchant_name"),
       value: merchantName,
@@ -76,7 +76,7 @@ export function ActionBarcode(props: Props) {
       <div className="xendit-action-title">{title}</div>
       <div
         data-testid="qr-code"
-        className="xendit-action-qr-qrcode-container"
+        className="xendit-action-barcode-barcode-container"
         role="button"
         tabIndex={0}
         ref={(r) => {
@@ -86,15 +86,15 @@ export function ActionBarcode(props: Props) {
           }
         }}
       />
-      <div className="xendit-action-va-content">
-        <div className="xendit-action-va-details">
-          {vaDetails.map((detail, index) => (
-            <div key={index} className="xendit-action-va-detail-item">
-              <div className="xendit-action-va-detail-content">
-                <div className="xendit-action-va-heading xendit-text-12 xendit-text-semibold">
+      <div className="xendit-action-barcode-content">
+        <div className="xendit-action-barcode-details">
+          {barcodeDetails.map((detail, index) => (
+            <div key={index} className="xendit-action-barcode-detail-item">
+              <div className="xendit-action-barcode-detail-content">
+                <div className="xendit-action-barcode-heading xendit-text-12 xendit-text-semibold">
                   {detail.heading}
                 </div>
-                <div className="xendit-action-va-value xendit-text-semibold">
+                <div className="xendit-action-barcode-value xendit-text-semibold">
                   {detail.value}
                 </div>
               </div>
