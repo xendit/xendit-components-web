@@ -19,7 +19,7 @@ import { Checkbox } from "./core/checkbox";
 import { resolvePairedChannel } from "../utils";
 import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
-import { CustomerForm } from "./customer-form";
+import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
 import { CustomerDetails } from "../backend-types/customer";
 
 const ChannelContext = createContext<BffChannel | null>(null);
@@ -48,10 +48,17 @@ interface Props {
   channelData: ChannelComponentData;
   savePaymentMethod: boolean;
   formRef: RefObject<ChannelFormHandle>;
+  customerDetailsFormRef: RefObject<CustomerDetailsFormHandle>;
 }
 
 export const ChannelRoot: FunctionComponent<Props> = (props) => {
-  const { channelOrPair, channelData, savePaymentMethod, formRef } = props;
+  const {
+    channelOrPair,
+    channelData,
+    savePaymentMethod,
+    formRef,
+    customerDetailsFormRef,
+  } = props;
   const divRef = useRef<HTMLDivElement>(null);
   const sdk = useSdk();
   const { t } = sdk;
@@ -153,7 +160,11 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
             onChannelPropertiesChanged={onChannelPropertiesChanged}
           />
           {shouldShowCustomerDetailsForm && (
-            <CustomerForm onChange={onCustomerDetailsChanged} />
+            <CustomerForm
+              ref={customerDetailsFormRef}
+              onChange={onCustomerDetailsChanged}
+              value={channelData.customerDetails || { given_names: "" }}
+            />
           )}
 
           {resolvedChannel.banner ? (

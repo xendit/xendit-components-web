@@ -50,18 +50,19 @@ export function makeTestBffData(): BffResponse {
       merchant_profile_picture_url:
         "https://placehold.co/256x256.png?text=Logo",
     },
-    customer: {
-      type: "INDIVIDUAL",
-      id: `cust-${randomUUID()}`,
-      email: "exa**@example.com",
-      mobile_number: null,
-      phone_number: null,
-      individual_detail: {
-        given_names: "exa********",
-        surname: null,
-      },
-      business_detail: null,
-    },
+    customer: null,
+    // customer: {
+    //   type: "INDIVIDUAL",
+    //   id: `cust-${randomUUID()}`,
+    //   email: "exa**@example.com",
+    //   mobile_number: null,
+    //   phone_number: null,
+    //   individual_detail: {
+    //     given_names: "exa********",
+    //     surname: null,
+    //   },
+    //   business_detail: null,
+    // },
     channels: [
       {
         brand_name: "Cards",
@@ -650,6 +651,23 @@ export function makeTestBffData(): BffResponse {
         instructions: [
           "Mock Installments channel",
           "This mock channel behaves similarly to production installment channels in Thailand.",
+        ],
+      },
+      {
+        brand_name: "Customer Details Test",
+        channel_code: "UI_CUSTOMER_DETAILS_TEST",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "ui_tests",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: true,
+        form: [],
+        instructions: [
+          "This test demonstrates the customer details form.",
+          "The user will be required to fill out the customer details form before submitting.",
         ],
       },
       {

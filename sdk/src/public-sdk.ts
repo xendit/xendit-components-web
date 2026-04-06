@@ -110,6 +110,7 @@ import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
+import { CustomerDetailsFormHandle } from "./components/customer-form";
 
 /**
  * @internal
@@ -120,6 +121,7 @@ type CachedChannelComponent = {
   channel: XenditPaymentChannel;
   channelProperties: ChannelProperties | null;
   channelFormRef: RefObject<ChannelFormHandle>;
+  customerDetailsFormRef: RefObject<ChannelFormHandle>;
   data: ChannelComponentData;
 };
 
@@ -770,10 +772,12 @@ export class XenditComponents extends EventTarget {
       this[internal].liveComponents.paymentChannels.get(channelCode);
     let container: HTMLElement;
     let channelFormRef = createRef<ChannelFormHandle>();
+    let customerDetailsFormRef = createRef<CustomerDetailsFormHandle>();
 
     if (cachedComponent) {
       container = cachedComponent.element;
       channelFormRef = cachedComponent.channelFormRef;
+      customerDetailsFormRef = cachedComponent.customerDetailsFormRef;
     } else {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("data-channel-code", channelCode);
@@ -790,6 +794,7 @@ export class XenditComponents extends EventTarget {
         channel,
         channelProperties: null,
         channelFormRef: channelFormRef,
+        customerDetailsFormRef: customerDetailsFormRef,
         data: {
           savePaymentMethod: false,
           cardDetails: null,
@@ -835,6 +840,7 @@ export class XenditComponents extends EventTarget {
           channelData: component.data,
           savePaymentMethod: component.data.savePaymentMethod,
           formRef: component.channelFormRef,
+          customerDetailsFormRef: component.customerDetailsFormRef,
         }),
       }),
       component.element,
@@ -1090,6 +1096,8 @@ export class XenditComponents extends EventTarget {
 
     const form = component.channelFormRef.current;
     form?.setAllFieldsTouched();
+    const customerDetailsForm = component.customerDetailsFormRef.current;
+    customerDetailsForm?.setAllFieldsTouched();
   }
 
   /**
