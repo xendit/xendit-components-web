@@ -94,6 +94,8 @@
     "simulation.simulate_test_scenario": "Simulate a test scenario",
     "simulation.select_scenario": "Select a scenario",
     "simulation.want_to_test_all_scenarios": "Want to test different scenarios?",
-    "simulation.see_all_scenarios": "See the full list here."
+    "simulation.see_all_scenarios": "See the full list here.",
+    "customer_details.form_name": "Your Name",
+    "customer_details.name": "Name"
   }
 }

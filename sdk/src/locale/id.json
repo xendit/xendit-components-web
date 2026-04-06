@@ -67,6 +67,8 @@
     "action.payment_made": "Saya telah melakukan pembayaran ini",
     "action_va.amount_to_pay": "Jumlah Pembayaran",
     "action_va.virtual_account_number": "Nomor Virtual Account",
-    "action_qr.unable_to_generate": "Tidak dapat membuat kode QR"
+    "action_qr.unable_to_generate": "Tidak dapat membuat kode QR",
+    "customer_details.form_name": "Nama Anda",
+    "customer_details.name": "Nama"
   }
 }

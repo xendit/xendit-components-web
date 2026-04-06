@@ -57,7 +57,7 @@ export const CustomerForm = forwardRef<CustomerDetailsFormHandle, Props>(
         <div className="xendit-channel-form-field-group">
           <div className="xendit-channel-form-field-group-label-container">
             <label htmlFor="given_names" className="xendit-text-14">
-              Name
+              {t("customer_details.name")}
             </label>
           </div>
 
@@ -67,7 +67,7 @@ export const CustomerForm = forwardRef<CustomerDetailsFormHandle, Props>(
                 id="given_names"
                 name="given_names"
                 type="text"
-                placeholder="Your Name"
+                placeholder={t("customer_details.form_name")}
                 className="xendit-form-field-inner xendit-text-14"
                 onBlur={handleBlur}
                 onChange={handleChange}
