@@ -408,3 +408,13 @@ You can customize the appearance of the button using the options parameter of `c
 
 To use Google Pay, you must adhere to the Google Pay and Wallet API's [Acceptable Use Policy](https://payments.developers.google.com/terms/aup) and accept the terms defined in the [Google Pay API Terms of Service](https://payments.developers.google.com/terms/sellertos). Additionally, please ensure you follow the [Google Pay brand guidelines](https://developers.google.com/pay/api/web/guides/brand-guidelines).
 -->
+
+## Troubleshooting
+
+### Usage with React Strict Mode
+
+Since React 18, Strict Mode will perform mount/unmount checks during development. This means React intentionally unmounts and remounts every component on its initial mount.
+
+If you instantiate XenditComponents and add a listener for the `init` event in a side effect, this can cause a race condition where the event fires for the last instance before the first instance finishes mounting.
+
+To work around this issue, please do not use the `init` event when Strict Mode is on.
