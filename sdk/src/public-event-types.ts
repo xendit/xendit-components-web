@@ -184,7 +184,7 @@ export class XenditWillRedirectEvent extends Event {
 export class XenditSessionCompleteEvent extends Event {
   static type = "session-complete" as const;
 
-  constructor() {
+  constructor(public succeededChannel: string | null) {
     super(XenditSessionCompleteEvent.type, {});
   }
 }
