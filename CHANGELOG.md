@@ -2,7 +2,13 @@
 
 None
 
-# 0.0.19
+# 0.0.21
+
+### Bug Fixes
+
+- Fixed missing card brand icons in card input
+
+# 0.0.20
 
 ### Bug Fixes
 
