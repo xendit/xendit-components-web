@@ -456,6 +456,7 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-channel-form-field .xendit-iframe-container {
+  display: flex;
   height: 40px;
   width: 100%;
   padding: 0;
