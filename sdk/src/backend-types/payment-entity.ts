@@ -15,8 +15,6 @@ export type BffAction =
       descriptor: "WEB_URL" | "DEEPLINK_URL" | "WEB_GOOGLE_PAYLINK";
       value: string;
       // indicates whether the redirect URL can be opened in an iframe
-      // defaults to true since this isn't returned from backend yet
-      // TODO: return this flag from backend
       iframe_capable?: boolean;
     }
   | {
