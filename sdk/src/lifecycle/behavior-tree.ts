@@ -21,6 +21,7 @@ import { ActionCompletedBehavior } from "./behaviors/action-completed";
 import { ActionDeepLinkBehavior } from "./behaviors/action-deep-link";
 import { ActionEmptyListPushNotificationBehavior } from "./behaviors/action-empty-list-push-notification";
 import { ActionIframeBehavior } from "./behaviors/action-iframe";
+import { ActionBarcodeBehavior } from "./behaviors/action-barcode";
 import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
 import { ActionQrBehavior } from "./behaviors/action-qr";
 import { ActionRedirectBehavior } from "./behaviors/action-redirect";
@@ -318,8 +319,10 @@ export function behaviorTreeForAction(bb: BlackboardType) {
           );
         }
         case "PAYMENT_CODE": {
-          throw new Error(
-            `Unsupported action type ${action.type} ${action.descriptor}`,
+          return behaviorNode(
+            ActionBarcodeBehavior,
+            String(actionIndex),
+            simulateBehavior,
           );
         }
         case "VIRTUAL_ACCOUNT_NUMBER": {

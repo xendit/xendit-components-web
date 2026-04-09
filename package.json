@@ -1,6 +1,6 @@
 {
   "name": "xendit-components-web",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "Xendit frontend payment components SDK",
   "type": "module",
   "author": "Xendit",
@@ -56,6 +56,7 @@
   "dependencies": {
     "card-validator": "^10.0.4",
     "classnames": "^2.5.1",
+    "jsbarcode": "^3.12.3",
     "libphonenumber-js": "^1.12.41",
     "preact": "^10.29.0",
     "qrcode": "^1.5.4",

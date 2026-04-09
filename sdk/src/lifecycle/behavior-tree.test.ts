@@ -32,6 +32,7 @@ import { ActionCompletedBehavior } from "./behaviors/action-completed";
 import { ActionQrBehavior } from "./behaviors/action-qr";
 import { ActionIframeBehavior } from "./behaviors/action-iframe";
 import { ActionDeepLinkBehavior } from "./behaviors/action-deep-link";
+import { ActionBarcodeBehavior } from "./behaviors/action-barcode";
 import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
 import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
 
@@ -374,6 +375,28 @@ describe("Behavior Tree - Actions", () => {
       PaymentEntityRequiresActionBehavior,
       ActionDeepLinkBehavior,
       ActionPaylinkBehavior,
+    ]);
+  });
+
+  it("should give barcode behavior", () => {
+    const node = behaviorTreeForSdk({
+      ...mockBlackboard,
+      channel: findChannel(mockBlackboard.world.channels, "MOCK_OTC"),
+      submissionRequested: true,
+      world: {
+        ...mockBlackboard.world,
+        paymentEntity: toPaymentEntity(
+          makeTestPaymentRequest("MOCK_OTC", "BARCODE"),
+        ),
+        sessionTokenRequestId: randomUUID(),
+      },
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      SubmissionBehavior,
+      PaymentEntityRequiresActionBehavior,
+      ActionBarcodeBehavior,
     ]);
   });
 });

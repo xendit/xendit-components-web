@@ -456,6 +456,7 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-channel-form-field .xendit-iframe-container {
+  display: flex;
   height: 40px;
   width: 100%;
   padding: 0;
@@ -1049,6 +1050,8 @@ xendit-payment-channel[inert] {
   flex-direction: column;
   gap: 8px;
 }
+
+/* qr actions */
 .xendit-action-qr-content {
   position: relative;
   display: flex;
@@ -1078,8 +1081,23 @@ xendit-payment-channel[inert] {
   z-index: var(--xendit-z-index-overlay);
 }
 
+/* barcode actions */
+.xendit-action-barcode-channel-logo {
+  height: 64px;
+  align-self: center;
+  object-fit: contain;
+}
+.xendit-action-barcode-barcode-container {
+  width: 100%;
+  position: relative;
+  z-index: var(--xendit-z-index-overlay);
+  display: flex;
+  justify-content: center;
+}
+
 /* va actions */
-.xendit-action-va-content {
+.xendit-action-va-content,
+.xendit-action-barcode-content {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--xendit-color-border);
@@ -1087,23 +1105,27 @@ xendit-payment-channel[inert] {
   padding: 16px;
   padding-bottom: 24px;
 }
-.xendit-action-va-details {
+.xendit-action-va-details,
+.xendit-action-barcode-details {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-.xendit-action-va-detail-item {
+.xendit-action-va-detail-item,
+.xendit-action-barcode-detail-item {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.xendit-action-va-detail-content {
+.xendit-action-va-detail-content,
+.xendit-action-barcode-detail-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.xendit-action-va-heading {
+.xendit-action-va-heading,
+.xendit-action-barcode-heading {
   color: var(--xendit-color-text-placeholder);
 }
 .xendit-action-va-tag {
