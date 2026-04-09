@@ -1,5 +1,4 @@
 import { ComponentChildren, JSX } from "preact";
-import { EmvcoQrData } from "../data/emvco-qr-schema";
 import { TFunction } from "../localization";
 
 export type QrArtComponentProps = {
@@ -7,36 +6,26 @@ export type QrArtComponentProps = {
   channelLogo: string;
   amountText: string;
   qr: ComponentChildren;
-  parsedQr: EmvcoQrData | null;
   merchantName: string;
   t: TFunction;
 };
 
-export function hasCustomQrArt(parsedQr: EmvcoQrData | null): boolean {
-  return getCustomQrArtComponent(parsedQr) !== null;
+export function hasCustomQrArt(channelCode: string): boolean {
+  return getCustomQrArtComponent(channelCode) !== null;
 }
 
 export function getCustomQrArtComponent(
-  parsedQr: EmvcoQrData | null,
+  channelCode: string,
 ): JSX.ElementType<QrArtComponentProps> | null {
-  if (!parsedQr) return null;
-
-  if (
-    !parsedQr.merchantAccountInformation ||
-    typeof parsedQr.merchantAccountInformation !== "object"
-  ) {
-    return null;
-  }
-
-  if (parsedQr.merchantAccountInformation["ID.CO.QRIS.WWW"]) {
+  if (channelCode === "QRIS") {
     return QrArtQris;
   }
 
-  // if (parsedQr.merchantAccountInformation["SG.SGQR"]) {
+  // if (channelCode === "SGQR") {
   //   return QrArtSgqr;
   // }
 
-  if (parsedQr.merchantAccountInformation["A0000006150001"]) {
+  if (channelCode === "DUITNOW_QR") {
     return QrArtDuitnow;
   }
 
@@ -44,18 +33,17 @@ export function getCustomQrArtComponent(
 }
 
 function QrArtQris(props: QrArtComponentProps) {
-  const { channelLogo, channelName, merchantName, amountText, parsedQr, t } =
-    props;
+  const { channelLogo, channelName, merchantName, amountText, t } = props;
 
-  function getMerchantIdLabel() {
-    const info = parsedQr?.merchantAccountInformation;
-    if (typeof info === "string") return undefined;
-    const qrisInfo = info?.["ID.CO.QRIS.WWW"];
-    if (typeof qrisInfo === "string") return undefined;
-    if (!qrisInfo?.nmid) return undefined;
-    return `NMID: ${qrisInfo.nmid}`;
-  }
-  const merchantIdLabel = getMerchantIdLabel();
+  // function getMerchantIdLabel() {
+  //   const info = parsedQr?.merchantAccountInformation;
+  //   if (typeof info === "string") return undefined;
+  //   const qrisInfo = info?.["ID.CO.QRIS.WWW"];
+  //   if (typeof qrisInfo === "string") return undefined;
+  //   if (!qrisInfo?.nmid) return undefined;
+  //   return `NMID: ${qrisInfo.nmid}`;
+  // }
+  // const merchantIdLabel = getMerchantIdLabel();
 
   const qrisAccentColor = "#DB4849";
   const borderArtWidth = "24px";
@@ -90,7 +78,7 @@ function QrArtQris(props: QrArtComponentProps) {
         }}
       >
         <div className="xendit-text-semibold">{merchantName}</div>
-        {merchantIdLabel ? <div>{merchantIdLabel}</div> : null}
+        {/* {merchantIdLabel ? <div>{merchantIdLabel}</div> : null} */}
       </div>
       <div
         style={{
