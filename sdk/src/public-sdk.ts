@@ -387,7 +387,7 @@ export class XenditComponents extends EventTarget {
         digitalWallets: bff.digital_wallets ?? null,
         paymentEntity: null,
         sessionTokenRequestId: null,
-        succeededChannel: null,
+        succeededChannel: bff.succeeded_channel ?? null,
       } satisfies WorldState),
     );
   }

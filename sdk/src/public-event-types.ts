@@ -184,7 +184,13 @@ export class XenditWillRedirectEvent extends Event {
 export class XenditSessionCompleteEvent extends Event {
   static type = "session-complete" as const;
 
-  constructor() {
+  constructor(
+    /**
+     * The channel code that the user used to complete the session.
+     * Null if the channel code is unknown.
+     */
+    public succeededChannel: string | null,
+  ) {
     super(XenditSessionCompleteEvent.type, {});
   }
 }
