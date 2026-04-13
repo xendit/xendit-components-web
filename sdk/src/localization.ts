@@ -39,11 +39,19 @@ export interface TFunction {
   ): string;
 }
 
+const tFunctionCache: Map<string, TFunction> = new Map();
+
 /**
  * Generate a TFunction for a locale.
  */
 export function createTFunction(locale: string): TFunction {
-  const localeData = localeMap[locale];
+  let localeData = localeMap[locale];
+  if (!localeData) {
+    localeData = localeMap["en"];
+  }
+  if (tFunctionCache.has(locale)) {
+    return tFunctionCache.get(locale)!;
+  }
   const tFn: TFunction = function (...args: unknown[]) {
     let key: keyof typeof en.session;
     let fallback: string | undefined;
@@ -85,6 +93,7 @@ export function createTFunction(locale: string): TFunction {
       return key;
     }
   };
+  tFunctionCache.set(locale, tFn);
   return tFn;
 }
 

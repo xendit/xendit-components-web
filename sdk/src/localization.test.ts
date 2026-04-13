@@ -4,6 +4,21 @@ import { ChannelFormField } from "./backend-types/channel";
 
 const t = createTFunction("en");
 
+describe("createTFunction", () => {
+  it("should cache function instances", () => {
+    const t1 = createTFunction("en");
+    const t2 = createTFunction("en");
+    const t3 = createTFunction("id");
+    expect(t1).toBe(t2);
+    expect(t1).not.toBe(t3);
+  });
+  it("should default to english", () => {
+    expect(createTFunction("zz")("validation.card_cvn_invalid")).toBe(
+      "CVN is not valid",
+    );
+  });
+});
+
 describe("t", () => {
   it("returns localized string for a valid key", () => {
     expect(t("validation.card_cvn_invalid")).toBe("CVN is not valid");
