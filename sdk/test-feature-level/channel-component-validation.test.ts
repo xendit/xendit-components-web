@@ -76,7 +76,7 @@ describe("channel component validation", () => {
     document.body.appendChild(sdk.createChannelComponent(ch));
 
     expect(
-      screen.queryByText("Required Text Field is required"),
+      screen.queryByText("Required Text Field is required."),
     ).not.toBeInTheDocument();
 
     // explicitly show validation errors
@@ -84,7 +84,7 @@ describe("channel component validation", () => {
     await Promise.resolve();
 
     expect(
-      screen.queryByText("Required Text Field is required"),
+      screen.getByText("Required Text Field is required."),
     ).toBeInTheDocument();
   });
 });

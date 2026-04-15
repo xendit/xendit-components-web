@@ -23,6 +23,7 @@ export type BffResponse = {
   channel_ui_groups: BffChannelUiGroup[];
   session: BffSession;
   digital_wallets?: BffDigitalWallets;
+  succeeded_channel?: BffSucceededChannel;
 };
 
 export type BffPollResponse = {
