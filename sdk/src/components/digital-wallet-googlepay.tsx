@@ -91,8 +91,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       );
       return;
     }
+    const isTestEnv = sdk.isMock() || sdk.isDevelopmentEnv();
     paymentsClient.current = new PaymentsClient({
-      environment: sdk.isMock() ? "TEST" : "PRODUCTION",
+      environment: isTestEnv ? "TEST" : "PRODUCTION",
     });
   }, [sdk]);
 
