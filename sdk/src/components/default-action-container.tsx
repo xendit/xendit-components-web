@@ -27,16 +27,18 @@ export default function DefaultActionContainer(props: Props) {
     };
   }, [sdk]);
 
+  const isCustomArtQr =
+    props.defaultActionContainerType ===
+    DefaultActionContainerType.QrWithCustomArt;
+
   return (
     <Dialog
       title={title}
       onClose={onClose}
       close={props.close}
       borderColor={borderColor}
-      noPadding={
-        props.defaultActionContainerType ===
-        DefaultActionContainerType.QrWithCustomArt
-      }
+      noPadding={isCustomArtQr}
+      noCloseButton={isCustomArtQr}
       seamless
     >
       <div
