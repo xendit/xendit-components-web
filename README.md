@@ -415,6 +415,17 @@ To use Google Pay, you must adhere to the Google Pay and Wallet API's [Acceptabl
 
 Since React 18, Strict Mode will perform mount/unmount checks during development. This means React intentionally unmounts and remounts every component on its initial mount.
 
-If you instantiate XenditComponents and add a listener for the `init` event in a side effect, this can cause a race condition where the event fires for the last instance before the first instance finishes mounting.
+If you instantiate XenditComponents and add a listener for the `init` event in a side effect, this can cause a race condition where the event fires for the last instance before the first instance finishes mounting. Hence, you should remember to remove the `init` event listener in the effect cleanup function when Strict Mode is on.
 
-To work around this issue, please do not use the `init` event when Strict Mode is on.
+```typescript
+useEffect(() => {
+  // ...
+  const handleInit = () => {
+    // ...
+  };
+  components.addEventListener("init", handleInit);
+  return () => {
+    components.removeEventListener("init", handleInit);
+  };
+}, []);
+```
