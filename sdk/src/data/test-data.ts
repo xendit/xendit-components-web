@@ -508,15 +508,15 @@ export function makeTestBffData(): BffResponse {
             type: {
               name: "dropdown",
               options: [
-                { label: "QRIS", value: "ID.CO.QRIS.WWW" },
-                { label: "SGQR", value: "SG.SGQR" },
+                { label: "QRIS", value: "QRIS" },
+                { label: "PayNow", value: "SGQR" },
                 {
                   label: "Duitnow QR",
-                  value: "A0000006150001",
+                  value: "DUITNOW_QR",
                 },
               ],
             },
-            channel_property: "mock_emvco_qr_field_26_00",
+            channel_property: "mock_channel_code_for_qr_art",
             required: false,
             span: 2,
           },

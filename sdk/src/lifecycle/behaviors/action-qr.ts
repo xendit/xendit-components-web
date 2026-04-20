@@ -5,8 +5,6 @@ import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior, DefaultActionContainerType } from "./action";
 import { ActionQr } from "../../components/action-qr";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
-import { emvcoQrParse } from "../../emvco-qr";
-import { EmvcoQrData } from "../../data/emvco-qr-schema";
 import { hasCustomQrArt } from "../../components/action-qr-custom-art";
 
 export class ActionQrBehavior extends ContainerActionBehavior {
@@ -26,43 +24,32 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     assert(this.bb.channel);
     assert(this.bb.world.paymentEntity);
 
-    let parsedQr: EmvcoQrData | null = null;
-    try {
-      parsedQr = emvcoQrParse(qrAction.value);
-    } catch {
-      // if we can't parse it, that's ok
-    }
+    let channelCodeForQrArt = this.bb.channel.channel_code;
 
-    // in mock mode, we lie about what's inside the qr code so we can trigger custom art,
-    // the channel property mock_emvco_qr_field_26_00 controls this behavior
     if (
       this.bb.mock &&
-      typeof this.bb.channelProperties?.mock_emvco_qr_field_26_00 === "string"
+      typeof this.bb.channelProperties?.mock_channel_code_for_qr_art ===
+        "string"
     ) {
-      const field_26_00 = this.bb.channelProperties.mock_emvco_qr_field_26_00;
-      parsedQr = {
-        merchantAccountInformation: {
-          [field_26_00]: {
-            globallyUniqueIdentifier: field_26_00,
-          },
-        },
-      };
+      // in mock mode, override the channel for custom art purposes with the user selected value
+      channelCodeForQrArt =
+        this.bb.channelProperties.mock_channel_code_for_qr_art;
     }
 
-    const qrHasCustomArt = hasCustomQrArt(parsedQr);
+    const qrHasCustomArt = hasCustomQrArt(channelCodeForQrArt);
 
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
 
     const actionQrProps: Parameters<typeof ActionQr>[0] = {
       amount: this.bb.world.session.amount,
       businessName: this.bb.world.business.name ?? "",
+      channelCodeForQrArt: channelCodeForQrArt,
       channelName: this.bb.channel.brand_name,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,
-      parsedQr,
       title: qrAction.action_subtitle,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };

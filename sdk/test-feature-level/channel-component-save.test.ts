@@ -25,7 +25,9 @@ describe("channel component save", () => {
     document.body.appendChild(sdk.createChannelComponent(ch));
 
     // save checkbox should exist
-    const checkbox = screen.getByLabelText("Save for faster payment next time");
+    const checkbox = screen.getByLabelText(
+      "Save this payment method for recurring payments",
+    );
     expect(checkbox).toBeInTheDocument();
     expect(checkbox).toBeInstanceOf(HTMLInputElement);
 
@@ -55,7 +57,9 @@ describe("channel component save", () => {
     }
     expect(getRealValueOfSaveCheckbox()).toBe(false);
 
-    const checkbox = screen.getByLabelText("Save for faster payment next time");
+    const checkbox = screen.getByLabelText(
+      "Save this payment method for recurring payments",
+    );
     await userEvent.click(checkbox);
 
     expect(getRealValueOfSaveCheckbox()).toBe(true);

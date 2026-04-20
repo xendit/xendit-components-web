@@ -10,7 +10,7 @@ describe("t", () => {
   });
   it("returns localized string for a valid key with interpolation", () => {
     expect(t("validation.required", { field: "Email" })).toBe(
-      "Email is required",
+      "Email is required.",
     );
   });
   it("returns localized string with fallback", () => {
@@ -56,7 +56,7 @@ describe("getLocalizedErrorMessage", () => {
       },
       mockField,
     );
-    expect(result).toBe("Email is required");
+    expect(result).toBe("Email is required.");
   });
 
   it("returns pre-localized string as-is", () => {
