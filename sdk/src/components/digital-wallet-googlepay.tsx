@@ -2,13 +2,14 @@ import { FunctionComponent } from "preact";
 import { useCallback, useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import {
   useBusiness,
+  useChannels,
   useDigitalWallets,
   useSdk,
   useSession,
 } from "./session-provider";
 import { ChannelProperties } from "../backend-types/channel";
 import { XenditPaymentChannel } from "../public-data-types";
-import { assert } from "../utils";
+import { assert, satisfiesMinMax } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
 
 type Props = {
@@ -24,6 +25,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
 
   const session = useSession();
   const business = useBusiness();
+  const channels = useChannels();
   const digitalWallets = useDigitalWallets();
   const digitalWalletsGooglePay = digitalWallets?.google_pay;
   assert(digitalWalletsGooglePay);
@@ -36,10 +38,25 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
   );
 
   const googlePayChannels = useMemo(() => {
-    return digitalWalletsGooglePay.allowed_payment_methods.map(
-      (obj) => obj.payment_method_specification,
-    );
+    return digitalWalletsGooglePay.allowed_payment_methods
+      .filter((gpayMethod) => {
+        const ch = channels.find(
+          (c) => c.channel_code === gpayMethod.channel_code,
+        );
+        if (!ch) {
+          throw new Error(
+            "Channel found in Google Pay config not found in channels list",
+          );
+        }
+        return satisfiesMinMax(session, ch);
+      })
+      .map((obj) => obj.payment_method_specification);
+
+    // assume the session min/max and channels list won't change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [digitalWalletsGooglePay.allowed_payment_methods]);
+
+  console.log("Google Pay enabled channels", googlePayChannels);
 
   const googlePayConfig: google.payments.api.PaymentDataRequest = useMemo(
     () => ({
@@ -197,6 +214,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     if (didCallReady.current) {
       return;
     }
+    if (googlePayChannels.length === 0) {
+      return;
+    }
 
     paymentsClient.current
       .isReadyToPay({
@@ -224,6 +244,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
   // create the button
   useLayoutEffect(() => {
     if (!paymentsClient.current) {
+      return;
+    }
+    if (googlePayChannels.length === 0) {
       return;
     }
 

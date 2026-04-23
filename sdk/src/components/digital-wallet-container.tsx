@@ -18,8 +18,12 @@ export const DigitalWalletContainer: FunctionComponent<
   const containerRef = useRef<HTMLDivElement>(null);
 
   const onReady = useCallback(() => {
-    containerRef.current?.parentElement?.style.setProperty("display", "block");
-  }, []);
+    if (!containerRef.current) return;
+    containerRef.current.parentElement?.style.setProperty("display", "block");
+    containerRef.current.dispatchEvent(
+      new InternalDigitalWalletReady(digitalWalletCode),
+    );
+  }, [digitalWalletCode]);
 
   let el: JSX.Element | null = null;
   switch (digitalWalletCode) {
@@ -49,3 +53,11 @@ const sdkStatusCheckers = {
       typeof google !== "undefined" && typeof google.payments !== "undefined",
   },
 };
+
+export class InternalDigitalWalletReady extends Event {
+  static type = "xendit-internal-digital-wallet-ready" as const;
+
+  constructor(public digitalWalletCode: XenditDigitalWalletCode) {
+    super(InternalDigitalWalletReady.type, { bubbles: true });
+  }
+}
