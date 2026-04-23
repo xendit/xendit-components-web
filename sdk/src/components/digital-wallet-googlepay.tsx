@@ -56,8 +56,6 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [digitalWalletsGooglePay.allowed_payment_methods]);
 
-  console.log("Google Pay enabled channels", googlePayChannels);
-
   const googlePayConfig: google.payments.api.PaymentDataRequest = useMemo(
     () => ({
       apiVersion: 2,
