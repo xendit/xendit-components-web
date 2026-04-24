@@ -79,7 +79,7 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   MMK: "K",
   MOP: "MOP$",
   MUR: "₨",
-  MXN: "MX$",
+  MXN: "MXN$",
   MYR: "RM",
   MZN: "MTn",
   NAD: "N$",
