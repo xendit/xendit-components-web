@@ -86,6 +86,8 @@
     "payment_token_status.expired.title": "ไม่สามารถเพิ่มวิธีการชําระเงินได้",
     "payment_token_status.failed.subtext": "ไม่สามารถดำเนินการชำระเงินได้ กรุณาลองใช้วิธีการชำระเงินอื่น หรือส่งคำถามไปยังผู้ขายโดยแชร์ Unique Identifiers ของคุณ",
     "payment_token_status.failed.title": "ไม่สามารถเพิ่มวิธีการชําระเงินได้",
+    "customer_details.form_name": "ชื่อของคุณ",
+    "customer_details.name": "ชื่อ",
     "simulation.see_all_scenarios": "",
     "simulation.select_scenario": "",
     "simulation.simulate_scenario": "",

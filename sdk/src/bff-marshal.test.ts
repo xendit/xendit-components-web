@@ -25,7 +25,7 @@ describe("BFF Marshal - bffSessionToPublic", () => {
 
 describe("BFF Marshal - bffCustomerToPublic", () => {
   it("should generate a public customer object", () => {
-    const bffCustomer = makeTestBffData().customer;
+    const bffCustomer = makeTestBffData().customer!;
     const publicCustomer = bffCustomerToPublic(bffCustomer);
     expect(publicCustomer).toEqual(
       expect.objectContaining({

@@ -86,6 +86,8 @@
     "payment_token_status.expired.title": "Không thể thêm phương thức thanh toán",
     "payment_token_status.failed.subtext": "Không thể thực hiện thanh toán. Vui lòng thử phương thức khác hoặc gửi yêu cầu đến người bán bằng cách chia sẻ Mã định danh duy nhất.",
     "payment_token_status.failed.title": "Không thể thêm phương thức thanh toán",
+    "customer_details.form_name": "Tên của bạn",
+    "customer_details.name": "Tên",
     "simulation.see_all_scenarios": "",
     "simulation.select_scenario": "",
     "simulation.simulate_scenario": "",

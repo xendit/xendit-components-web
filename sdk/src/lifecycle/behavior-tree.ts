@@ -152,10 +152,19 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     bb.channelProperties,
     bb.channelData,
   );
+  const requiresCustomerDetails =
+    bb.channel.requires_customer_details && !bb.world.customer;
+  let customerDetailsValid = true;
+  if (requiresCustomerDetails) {
+    // for now we only require given names for customer details
+    customerDetailsValid =
+      bb.channelData?.customerDetails?.given_names?.trim().length !== 0;
+  }
 
-  const validityBehavior = channelPropertiesValid
-    ? behaviorNode(ChannelValidBehavior)
-    : behaviorNode(ChannelInvalidBehavior);
+  const validityBehavior =
+    channelPropertiesValid && customerDetailsValid
+      ? behaviorNode(ChannelValidBehavior)
+      : behaviorNode(ChannelInvalidBehavior);
 
   const cardInfoBehavior = formHasFieldOfType(
     bb.channel.form,

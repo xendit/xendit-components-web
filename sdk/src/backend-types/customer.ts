@@ -13,3 +13,7 @@ export type BffCustomer = {
     surname: string | null;
   } | null;
 };
+
+export type CustomerDetails = {
+  given_names: string;
+};

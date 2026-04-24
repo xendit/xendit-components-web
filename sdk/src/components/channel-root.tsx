@@ -14,11 +14,13 @@ import {
 } from "../backend-types/channel";
 import { GraphicRedirectInstructions } from "./graphic-redirect-instructions";
 import { GraphicQrScan } from "./graphic-qr-scan";
-import { useSdk, useSession } from "./session-provider";
+import { useCustomer, useSdk, useSession } from "./session-provider";
 import { Checkbox } from "./core/checkbox";
 import { resolvePairedChannel } from "../utils";
 import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
+import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
+import { CustomerDetails } from "../backend-types/customer";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -46,14 +48,22 @@ interface Props {
   channelData: ChannelComponentData;
   savePaymentMethod: boolean;
   formRef: RefObject<ChannelFormHandle>;
+  customerDetailsFormRef: RefObject<CustomerDetailsFormHandle>;
 }
 
 export const ChannelRoot: FunctionComponent<Props> = (props) => {
-  const { channelOrPair, channelData, savePaymentMethod, formRef } = props;
+  const {
+    channelOrPair,
+    channelData,
+    savePaymentMethod,
+    formRef,
+    customerDetailsFormRef,
+  } = props;
   const divRef = useRef<HTMLDivElement>(null);
   const sdk = useSdk();
   const { t } = sdk;
   const session = useSession();
+  const customer = useCustomer();
 
   // events always use channelOrPair[0] because the CachedChannelComponents are keyed by that
   const firstMemberChannel = channelOrPair[0];
@@ -64,6 +74,8 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     savePaymentMethod,
   );
 
+  const shouldShowCustomerDetailsForm =
+    resolvedChannel.requires_customer_details && !customer;
   const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
   const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
@@ -98,6 +110,14 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
       cleanedProperties,
     );
     divRef.current?.dispatchEvent(event);
+  };
+
+  const onCustomerDetailsChanged = (customerDetails: CustomerDetails) => {
+    sdk?.dispatchEvent(
+      new InternalUpdateChannelComponentData(firstMemberChannel.channel_code, {
+        customerDetails,
+      }),
+    );
   };
 
   const shouldShowSaveCheckbox =
@@ -139,6 +159,14 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
             form={resolvedChannel.form}
             onChannelPropertiesChanged={onChannelPropertiesChanged}
           />
+          {shouldShowCustomerDetailsForm && (
+            <CustomerForm
+              ref={customerDetailsFormRef}
+              onChange={onCustomerDetailsChanged}
+              value={channelData.customerDetails || { given_names: "" }}
+            />
+          )}
+
           {resolvedChannel.banner ? (
             <Banner banner={resolvedChannel.banner} />
           ) : null}

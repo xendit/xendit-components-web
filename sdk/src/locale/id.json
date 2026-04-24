@@ -86,6 +86,8 @@
     "payment_token_status.expired.title": "Metode pembayaran tidak dapat ditambahkan",
     "payment_token_status.failed.subtext": "Pembayaran Anda tidak dapat diproses. Silakan coba metode pembayaran lain atau ajukan pertanyaan kepada penjual dengan membagikan ID Unik Anda.",
     "payment_token_status.failed.title": "Metode pembayaran tidak dapat ditambahkan",
+    "customer_details.form_name": "Nama Anda",
+    "customer_details.name": "Nama",
     "simulation.see_all_scenarios": "",
     "simulation.select_scenario": "",
     "simulation.simulate_scenario": "",

@@ -72,7 +72,12 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
   });
 }
 
-export function bffCustomerToPublic(bffCustomer: BffCustomer): XenditCustomer {
+export function bffCustomerToPublic(
+  bffCustomer: BffCustomer | null,
+): XenditCustomer | null {
+  if (!bffCustomer) {
+    return null;
+  }
   assertEquals(bffCustomer.type, "INDIVIDUAL");
   assert(bffCustomer.individual_detail);
   return {

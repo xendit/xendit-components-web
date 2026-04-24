@@ -109,7 +109,7 @@ export const isLocaleKey = (errorCode: unknown): errorCode is LocaleKey => {
 export const getLocalizedErrorMessage = (
   t: TFunction,
   errorCode: LocaleKey | LocalizedString,
-  field: ChannelFormField,
+  field: ChannelFormField | string,
 ): string | null => {
   if (!errorCode) return null;
 
@@ -118,5 +118,7 @@ export const getLocalizedErrorMessage = (
   }
 
   // Get localized message with field name interpolation using i18n key directly
-  return t(errorCode.localeKey, { field: field.label });
+  return t(errorCode.localeKey, {
+    field: typeof field === "string" ? field : field.label,
+  });
 };
