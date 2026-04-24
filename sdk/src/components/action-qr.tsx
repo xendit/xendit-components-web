@@ -3,7 +3,6 @@ import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
 import { TargetedEvent } from "preact";
-import { EmvcoQrData } from "../data/emvco-qr-schema";
 import { getCustomQrArtComponent } from "./action-qr-custom-art";
 import {
   cleanStringForFilename,
@@ -16,13 +15,13 @@ import {
 type Props = {
   amount: number;
   businessName: string;
+  channelCodeForQrArt: string;
   channelName: string;
   channelLogo: string;
   currency: string;
   hideUi: boolean;
   onAffirm: () => void;
   qrString: string;
-  parsedQr: EmvcoQrData | null;
   title: string;
   t: TFunction;
 };
@@ -31,12 +30,12 @@ export function ActionQr(props: Props) {
   const {
     amount,
     businessName,
+    channelCodeForQrArt,
     channelName,
     channelLogo,
     currency,
     onAffirm,
     qrString,
-    parsedQr,
     t,
   } = props;
 
@@ -155,7 +154,7 @@ export function ActionQr(props: Props) {
 
   const amountText = amountFormat(amount, currency);
 
-  const QrArtComponent = getCustomQrArtComponent(parsedQr);
+  const QrArtComponent = getCustomQrArtComponent(channelCodeForQrArt);
 
   if (QrArtComponent) {
     return (
@@ -165,7 +164,6 @@ export function ActionQr(props: Props) {
           channelName={channelName}
           merchantName={businessName}
           amountText={amountText}
-          parsedQr={parsedQr}
           qr={qrWrapper}
           t={t}
         />
