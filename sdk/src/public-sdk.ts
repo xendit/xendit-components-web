@@ -421,12 +421,18 @@ export class XenditComponents extends EventTarget {
   /**
    * @internal
    */
-  public supportsSimulationScenarios(): boolean {
+  public isDevelopmentEnv() {
     return (
-      this.isMock() ||
       this[internal].sdkKey.hostId === "pd" ||
       this[internal].sdkKey.hostId === "sd"
     );
+  }
+
+  /**
+   * @internal
+   */
+  public supportsSimulationScenarios(): boolean {
+    return this.isMock() || this.isDevelopmentEnv();
   }
 
   /**
