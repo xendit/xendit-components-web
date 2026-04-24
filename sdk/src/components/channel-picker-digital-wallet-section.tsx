@@ -1,6 +1,7 @@
 import { FunctionComponent } from "preact";
 import { useDigitalWallets, useSdk } from "./session-provider";
-import { useLayoutEffect, useRef } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
+import { InternalDigitalWalletReady } from "./digital-wallet-container";
 
 export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
   const sdk = useSdk();
@@ -9,6 +10,8 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
 
   const digitalWallets = useDigitalWallets();
   const digitalWalletsGooglePay = digitalWallets?.google_pay;
+
+  const [hasAnyDigitalWallet, setHasAnyDigitalWallet] = useState(false);
 
   useLayoutEffect(() => {
     if (containerRef.current && digitalWalletsGooglePay) {
@@ -20,10 +23,25 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
     }
   }, [digitalWalletsGooglePay, sdk]);
 
+  useLayoutEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.addEventListener(
+        InternalDigitalWalletReady.type,
+        (e) => {
+          setHasAnyDigitalWallet(true);
+        },
+      );
+    }
+  }, []);
+
   return (
     <div
       ref={containerRef}
-      className="xendit-channel-picker-digital-wallet-section"
+      className={
+        hasAnyDigitalWallet
+          ? "xendit-channel-picker-digital-wallet-section"
+          : undefined
+      }
     ></div>
   );
 };

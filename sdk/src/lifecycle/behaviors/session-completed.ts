@@ -6,6 +6,10 @@ export class SessionCompletedBehavior implements Behavior {
   constructor(private bb: BlackboardType) {}
 
   enter() {
-    this.bb.dispatchEvent(new XenditSessionCompleteEvent());
+    this.bb.dispatchEvent(
+      new XenditSessionCompleteEvent(
+        this.bb.world?.succeededChannel?.channel_code || null,
+      ),
+    );
   }
 }
