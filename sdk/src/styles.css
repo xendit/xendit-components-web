@@ -565,10 +565,17 @@ xendit-payment-channel[inert] {
 }
 
 .xendit-dialog-floating-close {
+  display: none;
+}
+
+.xendit-dialog .xendit-dialog-floating-close {
+  display: flex;
+}
+
+.xendit-dialog-floating-close {
   position: absolute;
   top: 24px;
   right: 24px;
-  display: flex;
   background: none;
   border: none;
   color: var(--xendit-color-text);
