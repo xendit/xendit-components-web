@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useRef } from "preact/hooks";
 import Icon from "../icon";
-import { ComponentChildren, FunctionComponent } from "preact";
+import { ComponentChildren, FunctionComponent, TargetedEvent } from "preact";
 
 type Props = {
   /**
@@ -25,13 +25,18 @@ type Props = {
    */
   noPadding?: boolean;
   /**
+   * Remove close button. It must be closed by firing an event or rendering with close=true.
+   */
+  noCloseButton?: boolean;
+  /**
    * Borders of the dialog.
    */
   borderColor?: string;
 };
 
 export const Dialog: FunctionComponent<Props> = (props) => {
-  const { title, onClose, children, seamless, borderColor } = props;
+  const { title, onClose, children, seamless, borderColor, noCloseButton } =
+    props;
 
   const closeCalledRef = useRef(false);
   const closeAnimationPlaying = useRef(false);
@@ -85,6 +90,27 @@ export const Dialog: FunctionComponent<Props> = (props) => {
     dialogRef.current?.animate?.(foregroundFadeKeyframes, animationOptionsIn);
   }, [supportsAnimation]);
 
+  // handle close event
+  useLayoutEffect(() => {
+    const el = backdropRef.current;
+    if (!el) return;
+    const handleCloseEvent = (event: Event) => {
+      onCloseWithAnimation();
+    };
+    el.addEventListener(InternalDialogCloseEvent.eventName, handleCloseEvent);
+    return () => {
+      el.removeEventListener(
+        InternalDialogCloseEvent.eventName,
+        handleCloseEvent,
+      );
+    };
+  }, [onCloseWithAnimation]);
+
+  const onCloseButtonClick = useCallback((e: TargetedEvent) => {
+    e.target?.dispatchEvent(new InternalDialogCloseEvent());
+  }, []);
+
+  // close if rerendered with close=true
   useLayoutEffect(() => {
     if (props.close) {
       onCloseWithAnimation();
@@ -98,7 +124,7 @@ export const Dialog: FunctionComponent<Props> = (props) => {
         ref={dialogRef}
         style={borderColor ? { border: `4px solid ${borderColor}` } : undefined}
       >
-        {!seamless ? (
+        {!noCloseButton && !seamless ? (
           <div className="xendit-dialog-header xendit-text-16 xendit-text-semibold">
             {title}
             <button aria-label="Close" onClick={onCloseWithAnimation}>
@@ -112,10 +138,10 @@ export const Dialog: FunctionComponent<Props> = (props) => {
         >
           {children}
         </div>
-        {seamless ? (
+        {!noCloseButton && seamless ? (
           <button
             aria-label="Close"
-            onClick={onCloseWithAnimation}
+            onClick={onCloseButtonClick}
             className="xendit-dialog-floating-close"
           >
             <Icon name="x" size={20} />
@@ -125,6 +151,13 @@ export const Dialog: FunctionComponent<Props> = (props) => {
     </div>
   );
 };
+
+export class InternalDialogCloseEvent extends Event {
+  static eventName = "xendit-internal-dialog-close";
+  constructor() {
+    super(InternalDialogCloseEvent.eventName, { bubbles: true });
+  }
+}
 
 const animationOptionsIn: EffectTiming = {
   duration: 500,
