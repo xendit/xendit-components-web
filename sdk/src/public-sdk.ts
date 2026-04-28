@@ -103,7 +103,7 @@ import {
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
 import { createTFunction, TFunction } from "./localization";
-import { amountFormat } from "./amount-format";
+import { amountFormat as _amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { DigitalWalletContainer } from "./components/digital-wallet-container";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
@@ -1708,19 +1708,8 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
-   * Formats a currency value according to the currency's conventions.
-   *
-   * e.g.
-   * ```
-   * USD 1000 -> "$1,000"
-   * USD 1000.5 -> "$1,000.50"
-   * IDR 1000000 -> "Rp1.000.000"
-   * PHP 1000 -> "₱1,000.00"
-   * ```
    */
-  static amountFormat(amount: number, currency: string): string {
-    return amountFormat(amount, currency);
-  }
+  static amountFormat = amountFormat;
 }
 
 /**
@@ -1806,6 +1795,22 @@ export class XenditComponentsTest extends XenditComponents {
     const event = _event as InternalScheduleMockUpdateEvent;
     this.nextMockUpdate = event.mockData;
   }
+}
+
+/**
+ * @public
+ * Formats a currency value according to the currency's conventions.
+ *
+ * e.g.
+ * ```
+ * USD 1000 -> "$1,000"
+ * USD 1000.5 -> "$1,000.50"
+ * IDR 1000000 -> "Rp1.000.000"
+ * PHP 1000 -> "₱1,000.00"
+ * ```
+ */
+export function amountFormat(amount: number, currency: string): string {
+  return _amountFormat(amount, currency);
 }
 
 // re-exports
