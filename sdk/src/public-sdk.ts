@@ -59,7 +59,7 @@ import {
 } from "./lifecycle/behavior-tree";
 import { BffSession } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
-import { BffCustomer } from "./backend-types/customer";
+import { BffCustomer, CustomerDetails } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
 import {
   InternalBehaviorTreeUpdateEvent,
@@ -103,13 +103,14 @@ import {
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
 import { createTFunction, TFunction } from "./localization";
-import { amountFormat } from "./amount-format";
+import { amountFormat as _amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { DigitalWalletContainer } from "./components/digital-wallet-container";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
+import { CustomerDetailsFormHandle } from "./components/customer-form";
 
 /**
  * @internal
@@ -120,6 +121,7 @@ type CachedChannelComponent = {
   channel: XenditPaymentChannel;
   channelProperties: ChannelProperties | null;
   channelFormRef: RefObject<ChannelFormHandle>;
+  customerDetailsFormRef: RefObject<ChannelFormHandle>;
   data: ChannelComponentData;
 };
 
@@ -137,6 +139,7 @@ export type ChannelComponentData = {
     cardNumber: string | null;
     options: BffPaymentOptions | null;
   } | null;
+  customerDetails: CustomerDetails | null;
 };
 
 /**
@@ -774,6 +777,7 @@ export class XenditComponents extends EventTarget {
     const cachedComponent =
       this[internal].liveComponents.paymentChannels.get(channelCode);
     const channelFormRef = createRef<ChannelFormHandle>();
+    const customerDetailsFormRef = createRef<CustomerDetailsFormHandle>();
     let container: HTMLElement;
 
     if (cachedComponent) {
@@ -789,16 +793,19 @@ export class XenditComponents extends EventTarget {
       );
 
       this.setupUiEventsForPaymentChannel(container);
-
       this[internal].liveComponents.paymentChannels.set(channelCode, {
         element: container,
         channel,
         channelProperties: null,
         channelFormRef: channelFormRef,
+        customerDetailsFormRef: customerDetailsFormRef,
         data: {
           savePaymentMethod: false,
           cardDetails: null,
           paymentOptions: null,
+          customerDetails: channel[internal][0].requires_customer_details
+            ? { given_names: "" }
+            : null,
         },
       });
     }
@@ -837,6 +844,7 @@ export class XenditComponents extends EventTarget {
           channelData: component.data,
           savePaymentMethod: component.data.savePaymentMethod,
           formRef: component.channelFormRef,
+          customerDetailsFormRef: component.customerDetailsFormRef,
         }),
       }),
       component.element,
@@ -1088,6 +1096,8 @@ export class XenditComponents extends EventTarget {
 
     const form = component.channelFormRef.current;
     form?.setAllFieldsTouched();
+    const customerDetailsForm = component.customerDetailsFormRef.current;
+    customerDetailsForm?.setAllFieldsTouched();
   }
 
   /**
@@ -1698,19 +1708,8 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
-   * Formats a currency value according to the currency's conventions.
-   *
-   * e.g.
-   * ```
-   * USD 1000 -> "$1,000"
-   * USD 1000.5 -> "$1,000.50"
-   * IDR 1000000 -> "Rp1.000.000"
-   * PHP 1000 -> "₱1,000.00"
-   * ```
    */
-  static amountFormat(amount: number, currency: string): string {
-    return amountFormat(amount, currency);
-  }
+  static amountFormat = amountFormat;
 }
 
 /**
@@ -1796,6 +1795,22 @@ export class XenditComponentsTest extends XenditComponents {
     const event = _event as InternalScheduleMockUpdateEvent;
     this.nextMockUpdate = event.mockData;
   }
+}
+
+/**
+ * @public
+ * Formats a currency value according to the currency's conventions.
+ *
+ * e.g.
+ * ```
+ * USD 1000 -> "$1,000"
+ * USD 1000.5 -> "$1,000.50"
+ * IDR 1000000 -> "Rp1.000.000"
+ * PHP 1000 -> "₱1,000.00"
+ * ```
+ */
+export function amountFormat(amount: number, currency: string): string {
+  return _amountFormat(amount, currency);
 }
 
 // re-exports

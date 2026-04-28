@@ -41,6 +41,7 @@ import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
+import { CustomerDetails } from "../../backend-types/customer";
 
 export type SubmissionError = {
   text: string[];
@@ -179,6 +180,8 @@ export class SubmissionBehavior implements Behavior {
     const shouldSendSavePaymentMethod =
       this.bb.world.session.allow_save_payment_method === "OPTIONAL" &&
       this.bb.channel?.allow_save;
+    const shouldSendCustomerDetails =
+      this.bb.channel?.requires_customer_details && !this.bb.world.customer;
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
     const mockActionType = this.bb.channel._mock_action_type;
@@ -194,6 +197,9 @@ export class SubmissionBehavior implements Behavior {
       abortController,
       shouldSendSavePaymentMethod
         ? (this.bb.channelData?.savePaymentMethod ?? false)
+        : undefined,
+      shouldSendCustomerDetails
+        ? (this.bb.channelData?.customerDetails ?? { given_names: "" })
         : undefined,
     )
       .then((paymentEntity: BffPaymentEntity) => {
@@ -267,6 +273,7 @@ async function asyncSubmit(
   channelProperties: ChannelProperties,
   abortController: AbortController,
   savePaymentMethod: boolean | undefined,
+  customerDetails: CustomerDetails | undefined,
 ): Promise<BffPaymentEntity> {
   let result: BffPaymentToken | BffPaymentRequest;
   if (mock) {
@@ -298,7 +305,7 @@ async function asyncSubmit(
             channel_code: channelCode,
             channel_properties: channelProperties,
             save_payment_method: savePaymentMethod,
-            // TODO: pass customer for VA channels
+            customer: customerDetails,
           },
           null,
           null,

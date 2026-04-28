@@ -10,6 +10,7 @@ import { BffSessionType } from "./backend-types/session";
 import { LocaleKey, LocalizedString } from "./localization";
 import { ChannelComponentData } from "./public-sdk";
 import { parseEncryptedFieldValue } from "./utils";
+import { CustomerDetails } from "./backend-types/customer";
 
 export type ValidationResult = {
   errorCode: LocaleKey | LocalizedString | undefined;
@@ -191,6 +192,14 @@ export function channelPropertyFieldValidate(
     if (error) {
       return error;
     }
+  }
+}
+
+export function validateCustomerDetails(
+  customerDetails: CustomerDetails,
+): LocaleKey | LocalizedString | undefined {
+  if (customerDetails.given_names.length === 0) {
+    return { localeKey: "validation.required" };
   }
 }
 

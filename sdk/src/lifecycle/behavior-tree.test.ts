@@ -69,6 +69,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
     savePaymentMethod: false,
     cardDetails: null,
     paymentOptions: null,
+    customerDetails: null,
   },
   channelIsDigitalWallet: false,
   instantSubmissionError: null,

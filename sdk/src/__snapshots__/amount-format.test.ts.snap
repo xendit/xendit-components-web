@@ -410,7 +410,7 @@ exports[`currency formatting > should format every known currency 1`] = `
   "MMK: K1,000,000.01",
   "MOP: MOP$1,000,000.01",
   "MUR: ₨1,000,000.01",
-  "MXN: MX$1,000,000.01",
+  "MXN: MXN$1,000,000.01",
   "MYR: RM1,000,000.01",
   "MZN: MTn1,000,000.01",
   "NAD: N$1,000,000.01",
