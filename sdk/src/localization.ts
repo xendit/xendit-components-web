@@ -3,6 +3,7 @@ import en from "./locale/en.json";
 import id from "./locale/id.json";
 import th from "./locale/th.json";
 import vi from "./locale/vi.json";
+import es from "./locale/es.json";
 
 const localeMap: {
   en: typeof en.session;
@@ -12,6 +13,7 @@ const localeMap: {
   id: id.session,
   th: th.session,
   vi: vi.session,
+  es: es.session,
 };
 
 type InterpolationOptions = Record<string, string | number>;
