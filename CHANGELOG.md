@@ -1,6 +1,10 @@
-# Unreleased
+# 0.0.22
 
-None
+### Notable
+
+Added custom branded layouts for some QR channels.
+
+### Bug fixes
 
 # 0.0.21
 
