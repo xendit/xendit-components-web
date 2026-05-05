@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -73,6 +74,12 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       setChannelProperties(channelProperties);
       onChannelPropertiesChanged(channelProperties);
     }, [getChannelProperties, onChannelPropertiesChanged]);
+
+    // call onChannelPropertiesChanged once on init
+    useLayoutEffect(() => {
+      handleFieldChanged();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const filteredForm = useFilteredFormFields(
       session,

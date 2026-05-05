@@ -1,4 +1,4 @@
-import { useRef, useCallback, useLayoutEffect } from "preact/hooks";
+import { useRef, useCallback, useLayoutEffect, useState } from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
@@ -27,9 +27,12 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const allFields = useChannel()?.form;
   const channelProperties = useChannelProperties();
 
+  const [value, setValue] = useState(field.initial_value as string);
+
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
   const clearValue = useCallback(() => {
+    setValue("");
     if (hiddenFieldRef.current) {
       hiddenFieldRef.current.value = "";
     }
@@ -38,6 +41,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   const onChangeDropdown = useCallback(
     (option: DropdownOption) => {
+      setValue(option.value);
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = option.value;
       }
@@ -49,6 +53,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   const onChangeInput = useCallback(
     (e: TargetedEvent<HTMLInputElement>) => {
+      setValue(e.currentTarget.value);
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = (e.target as HTMLInputElement).value;
       }
@@ -67,14 +72,38 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
       session,
     ),
   );
+  const selectedOptionIndex = options
+    ? options.findIndex((option) => option.value === value)
+    : -1;
 
-  // if the option list changes, clear the selection
+  // if the options list changes, clear the value,
+  // but not on first render,
+  // or if the current value happens to be a valid option in the new list
   const previousOptions = usePrevious(options);
+  const didRenderOnce = useRef(false);
   useLayoutEffect(() => {
-    if (previousOptions !== options) {
+    if (!didRenderOnce.current) {
+      didRenderOnce.current = true;
+      return;
+    }
+
+    // if options list changes, clear the selected value
+    if (options !== previousOptions) {
+      if (selectedOptionIndex !== -1) return; // ok, this is still valid
       clearValue();
     }
-  }, [clearValue, options, previousOptions]);
+  }, [clearValue, options, previousOptions, selectedOptionIndex]);
+
+  // on first render, populate hidden field and notify parent of initial value
+  useLayoutEffect(() => {
+    if (field.initial_value) {
+      if (hiddenFieldRef.current) {
+        hiddenFieldRef.current.value = value;
+      }
+      onChange();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -84,6 +113,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
           key={objectId(options)}
           id={id}
           options={options}
+          selectedIndex={selectedOptionIndex}
           onChange={onChangeDropdown}
           placeholder={field.placeholder}
           enableSearch
@@ -93,6 +123,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
         <input
           type="text"
           id={id}
+          value={value}
           onChange={onChangeInput}
           placeholder={field.placeholder}
           className={`xendit-form-field-inner xendit-text-14`}

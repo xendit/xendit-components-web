@@ -3,7 +3,13 @@ import { ChannelFormField, FieldType } from "../backend-types/channel";
 import { formFieldId, formFieldName } from "../utils";
 import { Dropdown, DropdownOption } from "./core/dropdown";
 import { FieldProps } from "./field";
-import { useCallback, useMemo, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 
 const toDropdownOptions = (
   fieldOptions: (FieldType & { name: "dropdown" })["options"],
@@ -58,6 +64,14 @@ export const DropdownField: FunctionComponent<FieldProps> = (props) => {
   const selectedIndex = dropdownItems.findIndex(
     (opt) => opt.value === selectedItemValue,
   );
+
+  // call onChange once on init
+  useLayoutEffect(() => {
+    if (field.initial_value) {
+      onChangeWrapper(dropdownItems[selectedIndex]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

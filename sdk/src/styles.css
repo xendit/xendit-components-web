@@ -648,6 +648,9 @@ xendit-payment-channel[inert] {
 .xendit-dropdown-text {
   padding: 12px;
   padding-right: 0;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: clip;
 }
 
 .xendit-dropdown-chevron {

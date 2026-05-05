@@ -849,7 +849,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "email_field",
             required: false,
             span: 2,
-            initial_value: "initial_value@text.com",
+            initial_value: "initial_value@test.com",
           },
           {
             label: "Postal Code",
@@ -871,7 +871,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "country_field",
             required: false,
             span: 2,
-            initial_value: "ID",
+            initial_value: "SG",
           },
           {
             label: "Dropdown",
@@ -1126,6 +1126,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "country_field",
             required: true,
             span: 2,
+            initial_value: "US",
           },
           {
             label: "State / Province",
@@ -1137,6 +1138,7 @@ export function makeTestBffData(): BffResponse {
             required: true,
             span: 2,
             join: true,
+            initial_value: "CA",
           },
           {
             group_label:
@@ -1149,6 +1151,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "country_field_2",
             required: true,
             span: 1,
+            initial_value: "AU",
           },
           {
             label: "State / Province",
@@ -1160,6 +1163,7 @@ export function makeTestBffData(): BffResponse {
             required: true,
             span: 1,
             join: true,
+            initial_value: "NSW",
           },
         ],
         instructions: [
