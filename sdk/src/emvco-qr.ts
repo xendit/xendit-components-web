@@ -37,9 +37,9 @@ export function emvcoQrTokenize(
     }
     let value = "";
     let javascriptCharacters = 0; // javascript length of the value
-    let realCharacters = 0; // normal characters count as 2, surrogate pair halves count as 1
+    let realCharacters = 0; // normal characters count as 1, surrogate pair halves count as 0.5
     while (realCharacters < length) {
-      // read a character and increment valueChars unless it's a high surrogate pair
+      // read one javascript character
       const char = emvcoString.substring(
         4 + javascriptCharacters,
         5 + javascriptCharacters,

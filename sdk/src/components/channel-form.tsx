@@ -234,7 +234,13 @@ function formKvToChannelProperties(
 
       // assign next value to channel properties
       const nextValue = valueAsArray.length ? valueAsArray.shift() : "";
-      cursor[parts[0]] = nextValue;
+
+      // wrap in array if the subkey ends in []
+      if (parts[0].endsWith("[]")) {
+        cursor[parts[0].slice(0, -2)] = [nextValue];
+      } else {
+        cursor[parts[0]] = nextValue;
+      }
     }
   }
 

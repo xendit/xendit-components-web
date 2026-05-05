@@ -12,7 +12,13 @@ import parsePhoneNumberFromString, {
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
 import { formFieldId, formFieldName } from "../utils";
-import { useCallback, useMemo, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
@@ -104,19 +110,39 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
     );
   }
 
-  function formatForUser() {
-    const phoneNumber = sanitizePhoneNumber(country, localNumber);
+  function formatForUser(_country = country, _localNumber = localNumber) {
+    const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
     if (phoneNumber) {
       const international = phoneNumber.formatInternational();
       // remove country dial code from displayed local number
       setLocalNumber(
         international.replace(
-          `+${getCountryCallingCode(country.value as CountryCode)} `,
+          `+${getCountryCallingCode(_country.value as CountryCode)} `,
           "",
         ),
       );
     }
   }
+
+  useLayoutEffect(() => {
+    if (field.initial_value) {
+      const parsed = parsePhoneNumberFromString(field.initial_value);
+      if (!parsed) return;
+
+      // populate initial value
+      const countryOption = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
+        (option) => option.value === parsed.country,
+      );
+      if (!countryOption) return;
+      setCountryCode(countryOption.value);
+      formatForUser(countryOption, parsed.nationalNumber);
+      if (hiddenFieldRef.current) {
+        hiddenFieldRef.current.value = field.initial_value;
+      }
+      onChange();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="xendit-input-phone">

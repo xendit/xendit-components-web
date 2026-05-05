@@ -37,6 +37,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
   const [selectedCountry, setSelectedCountry] = useState<
     CountryCode | undefined
   >(undefined);
+
   const selectedCountryIndex = COUNTRIES_AS_DROPDOWN_OPTIONS.findIndex(
     (option) => option.value === selectedCountry,
   );
@@ -62,6 +63,17 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     },
     [onChange],
   );
+
+  // populate initial value
+  useLayoutEffect(() => {
+    if (field.initial_value) {
+      const initialOption = COUNTRIES_AS_DROPDOWN_OPTIONS.find((option) => {
+        return option.value === field.initial_value;
+      });
+      if (initialOption) onChangeWrapper(initialOption);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>

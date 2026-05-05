@@ -1,7 +1,7 @@
 import { ChannelFormField } from "../backend-types/channel";
 import { FieldProps } from "./field";
 import { formFieldId, formFieldName } from "../utils";
-import { useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
@@ -11,7 +11,10 @@ export const TextField: FunctionComponent<FieldProps> = (props) => {
   const name = formFieldName(field);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [value, setValue] = useState(field.initial_value ?? "");
+
   function handleChange(event: TargetedEvent<HTMLInputElement>): void {
+    setValue(event.currentTarget.value);
     onChange();
   }
 
@@ -29,6 +32,7 @@ export const TextField: FunctionComponent<FieldProps> = (props) => {
       type="text"
       placeholder={field.placeholder}
       className={`xendit-form-field-inner xendit-text-14`}
+      value={value}
       onBlur={handleBlur}
       onChange={handleChange}
       minLength={isTextField(field) ? field.type.min_length : undefined}
