@@ -620,7 +620,6 @@ xendit-payment-channel[inert] {
   justify-content: space-between;
   cursor: pointer;
   padding: 0;
-  padding-left: 12px;
   outline: none;
 }
 
@@ -634,6 +633,7 @@ xendit-payment-channel[inert] {
 
 .xendit-dropdown.xendit-dropdown-has-asset {
   grid-template-columns: auto 1fr auto;
+  padding-left: 12px;
 }
 
 .xendit-dropdown-channel-logo {
@@ -648,6 +648,9 @@ xendit-payment-channel[inert] {
 .xendit-dropdown-text {
   padding: 12px;
   padding-right: 0;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: clip;
 }
 
 .xendit-dropdown-chevron {

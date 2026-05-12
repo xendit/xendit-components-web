@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -73,6 +74,12 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       setChannelProperties(channelProperties);
       onChannelPropertiesChanged(channelProperties);
     }, [getChannelProperties, onChannelPropertiesChanged]);
+
+    // call onChannelPropertiesChanged once on init
+    useLayoutEffect(() => {
+      handleFieldChanged();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const filteredForm = useFilteredFormFields(
       session,
@@ -234,7 +241,13 @@ function formKvToChannelProperties(
 
       // assign next value to channel properties
       const nextValue = valueAsArray.length ? valueAsArray.shift() : "";
-      cursor[parts[0]] = nextValue;
+
+      // wrap in array if the subkey ends in []
+      if (parts[0].endsWith("[]")) {
+        cursor[parts[0].slice(0, -2)] = [nextValue];
+      } else {
+        cursor[parts[0]] = nextValue;
+      }
     }
   }
 

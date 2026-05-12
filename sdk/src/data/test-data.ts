@@ -806,6 +806,96 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Initial Value Test",
+        channel_code: "UI_INITIAL_VALUE_TEST",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "ui_tests",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        form: [
+          {
+            label: "Text",
+            placeholder: "Text",
+            type: {
+              name: "text",
+              max_length: 50,
+            },
+            channel_property: "text_field",
+            required: false,
+            span: 2,
+            initial_value: "Initial value",
+          },
+          {
+            label: "Phone Number",
+            placeholder: "123 123 123",
+            type: {
+              name: "phone_number",
+            },
+            channel_property: "phone_number_field",
+            required: false,
+            span: 2,
+            initial_value: "+6581234567",
+          },
+          {
+            label: "Email",
+            placeholder: "test@example.com",
+            type: {
+              name: "email",
+            },
+            channel_property: "email_field",
+            required: false,
+            span: 2,
+            initial_value: "initial_value@test.com",
+          },
+          {
+            label: "Postal Code",
+            placeholder: "123456",
+            type: {
+              name: "postal_code",
+            },
+            channel_property: "postal_code_field",
+            required: false,
+            span: 2,
+            initial_value: "123456",
+          },
+          {
+            label: "Country",
+            placeholder: "Select",
+            type: {
+              name: "country",
+            },
+            channel_property: "country_field",
+            required: false,
+            span: 2,
+            initial_value: "SG",
+          },
+          {
+            label: "Dropdown",
+            placeholder: "Select",
+            type: {
+              name: "dropdown",
+              options: [
+                { label: "Option 1", value: "option_1" },
+                { label: "Option 2", value: "option_2" },
+                { label: "Option 3", value: "option_3" },
+              ],
+            },
+            channel_property: "dropdown_field",
+            required: false,
+            span: 2,
+            initial_value: "option_2",
+          },
+        ],
+        instructions: [
+          "This test demonstrates initial field values.",
+          "All fields here should be populated by default.",
+        ],
+      },
+      {
         brand_name: "Field Grouping Test",
         channel_code: "UI_FIELD_GROUPING_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
@@ -1036,6 +1126,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "country_field",
             required: true,
             span: 2,
+            initial_value: "US",
           },
           {
             label: "State / Province",
@@ -1047,6 +1138,7 @@ export function makeTestBffData(): BffResponse {
             required: true,
             span: 2,
             join: true,
+            initial_value: "CA",
           },
           {
             group_label:
@@ -1059,6 +1151,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "country_field_2",
             required: true,
             span: 1,
+            initial_value: "AU",
           },
           {
             label: "State / Province",
@@ -1070,6 +1163,7 @@ export function makeTestBffData(): BffResponse {
             required: true,
             span: 1,
             join: true,
+            initial_value: "NSW",
           },
         ],
         instructions: [

@@ -208,9 +208,19 @@ export function getChannelPropertyValue(
   key: string,
 ): ChannelPropertyPrimative | ChannelPropertyPrimative[] | undefined {
   const parts = key.split(".");
+  const wantsArray = parts[0].endsWith("[]");
+  if (wantsArray) {
+    if (parts.length !== 1) {
+      throw new Error("Array channel properties cannot have nested keys");
+    }
+    parts[0] = parts[0].slice(0, -2);
+  }
   const value = channelProperties[parts[0]];
   if (value === undefined) {
     return undefined;
+  }
+  if (wantsArray && Array.isArray(value)) {
+    return value;
   }
   if (typeof value !== "object" || Array.isArray(value)) {
     if (parts.length !== 1) {

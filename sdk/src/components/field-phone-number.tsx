@@ -12,7 +12,13 @@ import parsePhoneNumberFromString, {
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
 import { formFieldId, formFieldName } from "../utils";
-import { useCallback, useMemo, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 
@@ -25,7 +31,12 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
-  const [countryCode, setCountryCode] = useState(session.country);
+  const initial = useMemo(
+    () => initialValues(field.initial_value, session.country),
+    [field.initial_value, session.country],
+  );
+
+  const [countryCode, setCountryCode] = useState(initial.country);
   const countryCodeIndex = useMemo(() => {
     const index = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.findIndex(
       (r) => r.value === countryCode,
@@ -36,7 +47,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   const country =
     COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS[countryCodeIndex];
 
-  const [localNumber, setLocalNumber] = useState("");
+  const [localNumber, setLocalNumber] = useState(initial.localNumber);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const formatPhoneNumber = useCallback(
@@ -104,19 +115,30 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
     );
   }
 
-  function formatForUser() {
-    const phoneNumber = sanitizePhoneNumber(country, localNumber);
+  function formatForUser(_country = country, _localNumber = localNumber) {
+    const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
     if (phoneNumber) {
       const international = phoneNumber.formatInternational();
       // remove country dial code from displayed local number
       setLocalNumber(
         international.replace(
-          `+${getCountryCallingCode(country.value as CountryCode)} `,
+          `+${getCountryCallingCode(_country.value as CountryCode)} `,
           "",
         ),
       );
     }
   }
+
+  // on first render, populate hidden input and notify parent component of initial value
+  useLayoutEffect(() => {
+    if (field.initial_value) {
+      if (hiddenFieldRef.current) {
+        hiddenFieldRef.current.value = field.initial_value;
+      }
+      onChange();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="xendit-input-phone">
@@ -174,3 +196,25 @@ const sanitizePhoneNumber = (
 
   return null;
 };
+
+function initialValues(initial: string | undefined, sessionCountry: string) {
+  const defaultInitial = {
+    country: sessionCountry,
+    localNumber: "",
+  };
+  if (!initial) return defaultInitial;
+  const parsed = parsePhoneNumberFromString(initial);
+  if (!parsed) return defaultInitial;
+  const countryOption = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
+    (option) => option.value === parsed.country,
+  );
+  if (!countryOption) return defaultInitial;
+  const sanitized = sanitizePhoneNumber(countryOption, parsed.nationalNumber);
+  if (!sanitized) return defaultInitial;
+  const international = parsed.formatInternational();
+  const countryCode = getCountryCallingCode(countryOption.value as CountryCode);
+  return {
+    country: countryOption.value as string,
+    localNumber: international.replace(`+${countryCode} `, ""),
+  };
+}

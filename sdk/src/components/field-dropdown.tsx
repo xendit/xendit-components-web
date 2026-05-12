@@ -18,6 +18,16 @@ const toDropdownOptions = (
     title: opt.label,
     description: opt.subtitle,
     value: opt.value,
+    leadingAsset: opt.icon_url ? (
+      <img
+        style={{
+          height: "16px",
+          width: "16px",
+          objectFit: "contain",
+        }}
+        src={opt.icon_url}
+      />
+    ) : null,
   }));
 };
 
@@ -37,7 +47,7 @@ export const DropdownField: FunctionComponent<FieldProps> = (props) => {
   }, [field.type.options]);
 
   const [selectedItemValue, setSelectedItemValue] = useState<string>(
-    dropdownItems[0]?.value ?? "",
+    field.initial_value ?? "",
   );
 
   const onChangeWrapper = useCallback(
@@ -51,15 +61,17 @@ export const DropdownField: FunctionComponent<FieldProps> = (props) => {
     [onChange],
   );
 
-  useLayoutEffect(() => {
-    // first render only, force select first option
-    if (dropdownItems.length) onChangeWrapper(dropdownItems[0]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const selectedIndex = dropdownItems.findIndex(
     (opt) => opt.value === selectedItemValue,
   );
+
+  // call onChange once on init
+  useLayoutEffect(() => {
+    if (field.initial_value) {
+      onChangeWrapper(dropdownItems[selectedIndex]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
