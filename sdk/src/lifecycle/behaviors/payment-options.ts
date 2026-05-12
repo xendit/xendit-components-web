@@ -70,8 +70,7 @@ export class PaymentOptionsBehavior implements Behavior {
 
       // don't look up the payment options if we already have them for the same card numnber (including null)
       if (
-        this.bb.channelData?.paymentOptions?.cardNumber ??
-        null === cardNumber
+        (this.bb.channelData?.paymentOptions?.cardNumber ?? null) === cardNumber
       ) {
         return;
       }
