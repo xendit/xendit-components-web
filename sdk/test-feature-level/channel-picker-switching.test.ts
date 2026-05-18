@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { XenditComponentsTest } from "../src";
-import { waitForEvent } from "./utils";
+import { waitForEvent, waitForEventSequence } from "./utils";
 import { screen } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
+import { assert } from "../src/utils";
 
 afterEach(() => {
   document.body.replaceChildren();
@@ -152,6 +153,36 @@ describe("channel picker switching", () => {
     );
     expect(testEl).toBeInTheDocument();
     expect(testEl).not.toHaveAttribute("inert");
+  });
+
+  it("should not switch channels while submission is in progress", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    await waitForEvent(sdk, "init");
+
+    // createChannelComponent auto-selects the channel (active=true by default)
+    const ch1 = sdk.getActiveChannels({ filter: "UI_INPUT_TEST" })[0];
+    const ch2 = sdk.getActiveChannels({ filter: "MOCK_QR" })[0];
+    assert(ch1 && ch2);
+    document.body.appendChild(sdk.createChannelComponent(ch1));
+
+    // submit then immediately try to switch — the switch must be ignored
+    setTimeout(() => {
+      sdk.submit();
+      sdk.setCurrentChannel(ch2);
+    });
+
+    await waitForEvent(sdk, "submission-begin");
+
+    // channel must not have changed to ch2
+    expect(sdk.getCurrentChannel()?.channelCode).toBe("UI_INPUT_TEST");
+
+    await waitForEventSequence(sdk, [
+      { name: "submission-end" },
+      { name: "session-complete" },
+    ]);
   });
 
   it("should collapse group if a channel is selected and the channel is cleared by api", async () => {
