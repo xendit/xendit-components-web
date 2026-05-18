@@ -984,6 +984,9 @@ export class XenditComponents extends EventTarget {
    * Set to null to clear the current channel.
    */
   setCurrentChannel(channel: XenditPaymentChannel | null): void {
+    if (this[internal].behaviorTree.bb.submissionRequested) {
+      return;
+    }
     const currentChannelCode = this[internal].currentChannelCode;
 
     const channelCode = channel?.[internal][0].channel_code ?? null;
