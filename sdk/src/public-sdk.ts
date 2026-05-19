@@ -985,7 +985,9 @@ export class XenditComponents extends EventTarget {
    */
   setCurrentChannel(channel: XenditPaymentChannel | null): void {
     if (this[internal].behaviorTree.bb.submissionRequested) {
-      return;
+      throw new Error(
+        "Cannot change the payment channel while a submission is in progress.",
+      );
     }
     const currentChannelCode = this[internal].currentChannelCode;
 
@@ -1035,6 +1037,16 @@ export class XenditComponents extends EventTarget {
         }
       } else {
         component.element.setAttribute("inert", "");
+      }
+    }
+
+    // lock the channel picker during submission
+    const channelPicker = this[internal].liveComponents.channelPicker;
+    if (channelPicker) {
+      if (hasSubmissionInProgress) {
+        channelPicker.setAttribute("inert", "");
+      } else {
+        channelPicker.removeAttribute("inert");
       }
     }
   }

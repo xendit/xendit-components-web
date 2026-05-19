@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { XenditComponentsTest } from "../src";
-import { waitForEvent, waitForEventSequence } from "./utils";
+import { waitForEvent } from "./utils";
 import { screen } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { assert } from "../src/utils";
@@ -155,34 +155,32 @@ describe("channel picker switching", () => {
     expect(testEl).not.toHaveAttribute("inert");
   });
 
-  it("should not switch channels while submission is in progress", async () => {
+  it("should throw error when trying to switch channels while submission is in progress", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
     });
 
     await waitForEvent(sdk, "init");
 
-    // createChannelComponent auto-selects the channel (active=true by default)
+    // select a channel and render its component
     const ch1 = sdk.getActiveChannels({ filter: "UI_INPUT_TEST" })[0];
     const ch2 = sdk.getActiveChannels({ filter: "MOCK_QR" })[0];
     assert(ch1 && ch2);
     document.body.appendChild(sdk.createChannelComponent(ch1));
 
-    // submit then immediately try to switch — the switch must be ignored
-    setTimeout(() => {
-      sdk.submit();
-      sdk.setCurrentChannel(ch2);
-    });
+    // start submission — sets submissionRequested = true
+    sdk.submit();
 
-    await waitForEvent(sdk, "submission-begin");
+    // trying to switch channel via API during submission should throw
+    expect(() => sdk.setCurrentChannel(ch2)).toThrow(
+      "Cannot change the payment channel while a submission is in progress.",
+    );
 
-    // channel must not have changed to ch2
+    // abort so the test does not wait for the full submission to complete
+    sdk.abortSubmission();
+
+    // channel must not have changed
     expect(sdk.getCurrentChannel()?.channelCode).toBe("UI_INPUT_TEST");
-
-    await waitForEventSequence(sdk, [
-      { name: "submission-end" },
-      { name: "session-complete" },
-    ]);
   });
 
   it("should collapse group if a channel is selected and the channel is cleared by api", async () => {
