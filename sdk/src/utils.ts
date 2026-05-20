@@ -647,7 +647,6 @@ const RELEASED_CHANNELS: Record<string, boolean> = {
   SHOPEEPAY: true,
   TOUCHNGO: true,
   TRUEMONEY: true,
-  MONEY: true,
   TTB_CARD_INSTALLMENT: true,
   UBP_DIRECT_DEBIT: true,
   UBP_EADA: true,
