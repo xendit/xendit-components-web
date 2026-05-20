@@ -279,6 +279,12 @@ export class XenditComponents extends EventTarget {
       throw new Error("XenditComponents can only be instantiated in a browser");
     }
 
+    if (window.location.origin === "null") {
+      throw new Error(
+        "XenditComponents cannot be used when the page origin is null",
+      );
+    }
+
     const sdkKey = parseSdkKey(options.componentsSdkKey);
     this[internal] = {
       sdkKey,
