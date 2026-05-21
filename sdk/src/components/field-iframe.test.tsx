@@ -3,7 +3,7 @@ import { render } from "preact";
 import { XenditSessionProvider } from "./session-provider";
 import { XenditComponentsTest } from "../public-sdk";
 import { IframeField } from "./field-iframe";
-import { ChannelFormField } from "../backend-types/channel";
+import { BffChannel, ChannelFormField } from "../backend-types/channel";
 import { waitForEvent, Writable } from "../../test-feature-level/utils";
 import { internal } from "../internal";
 import {
@@ -13,6 +13,7 @@ import {
 } from "../../../shared/types";
 import { assert, sleep } from "../utils";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { ChannelContext } from "./channel-root";
 
 afterEach(() => {
   render(null, document.body);
@@ -283,6 +284,117 @@ describe("field-iframe", () => {
     expect(hiddenInput.value).toBe("");
   });
 
+  it("should mark field invalid when card brand is not in allowed list", async () => {
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    const onChange = vi.fn();
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <ChannelContext.Provider
+          value={channelWithBrands(["VISA", "MASTERCARD"])}
+        >
+          <IframeField field={field} onChange={onChange} />
+        </ChannelContext.Provider>
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    fireIframeEvent(iframeElement, iframeReadyEvent());
+    await sleep(1);
+
+    // AMERICAN-EXPRESS is not in the allowed list
+    fireIframeEvent(
+      iframeElement,
+      iframeChangeEvent({ cardBrand: "AMERICAN-EXPRESS", valid: true }),
+    );
+
+    const hiddenInput = document.querySelector<HTMLInputElement>(
+      'input[type="hidden"]',
+    );
+    assert(hiddenInput);
+    expect(hiddenInput.value).toBe(
+      `xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT-invalid-${btoa("validation.card_brand_not_allowed")}`,
+    );
+  });
+
+  it("should not mark field invalid when card brand is in allowed list", async () => {
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    const onChange = vi.fn();
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <ChannelContext.Provider
+          value={channelWithBrands(["VISA", "MASTERCARD"])}
+        >
+          <IframeField field={field} onChange={onChange} />
+        </ChannelContext.Provider>
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    fireIframeEvent(iframeElement, iframeReadyEvent());
+    await sleep(1);
+
+    // VISA is in the allowed list
+    fireIframeEvent(
+      iframeElement,
+      iframeChangeEvent({ cardBrand: "VISA", valid: true }),
+    );
+
+    const hiddenInput = document.querySelector<HTMLInputElement>(
+      'input[type="hidden"]',
+    );
+    assert(hiddenInput);
+    expect(hiddenInput.value).toBe(
+      "xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT",
+    );
+  });
+
+  it("should not validate brand when channel has no card brands configured", async () => {
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    const onChange = vi.fn();
+    // no ChannelContext.Provider — useChannel() returns null, card is undefined
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={onChange} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    fireIframeEvent(iframeElement, iframeReadyEvent());
+    await sleep(1);
+
+    // any brand passes when no brands configured
+    fireIframeEvent(
+      iframeElement,
+      iframeChangeEvent({ cardBrand: "AMERICAN-EXPRESS", valid: true }),
+    );
+
+    const hiddenInput = document.querySelector<HTMLInputElement>(
+      'input[type="hidden"]',
+    );
+    assert(hiddenInput);
+    expect(hiddenInput.value).toBe(
+      "xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT",
+    );
+  });
+
   it("should ignore unexpected onmessage events (events from another origin)", async () => {
     const sdk: XenditComponentsTest = new XenditComponentsTest({});
     await waitForEvent(sdk, "init");
@@ -362,4 +474,21 @@ function fireEvilIframeEvent(iframe: HTMLIFrameElement, data: IframeEvent) {
   event.origin = "https://example.com"; // wrong origin
   event.data = data;
   window.dispatchEvent(event);
+}
+
+function channelWithBrands(brandNames: string[]): BffChannel {
+  return {
+    brand_name: "Cards",
+    brand_logo_url: "",
+    brand_color: "#000000",
+    ui_group: "cards",
+    channel_code: "CARDS",
+    allow_pay_without_save: false,
+    allow_save: false,
+    form: [],
+    instructions: [],
+    card: {
+      brands: brandNames.map((name) => ({ name, logo_url: "" })),
+    },
+  };
 }
