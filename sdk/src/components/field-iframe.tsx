@@ -93,6 +93,12 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
                 "invalid",
                 btoa(data.validationErrorCodes[0].localeKey),
               );
+            } else if (
+              data.cardBrand &&
+              card?.brands?.length &&
+              !card.brands.some((b) => b.name === data.cardBrand)
+            ) {
+              parts.push("invalid", btoa("validation.card_brand_not_allowed"));
             }
 
             return parts.join("-");

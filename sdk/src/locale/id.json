@@ -93,6 +93,7 @@
     "simulation.simulate_scenario": "",
     "simulation.simulate_test_scenario": "",
     "simulation.want_to_test_all_scenarios": "",
+    "validation.card_brand_not_allowed": "Kartu ini tidak didukung.",
     "validation.card_cvn_invalid": "CVN tidak valid",
     "validation.card_expiry_invalid": "Tanggal kedaluwarsa kartu tidak valid",
     "validation.card_number_incomplete": "Nomor kartu tidak lengkap",
