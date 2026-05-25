@@ -22,7 +22,7 @@ import { InternalUpdateChannelComponentData } from "../private-event-types";
 import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
 import { CustomerDetails } from "../backend-types/customer";
 
-export const ChannelContext = createContext<BffChannel | null>(null);
+const ChannelContext = createContext<BffChannel | null>(null);
 
 export const useChannel = () => {
   const context = useContext(ChannelContext);
