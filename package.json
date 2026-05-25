@@ -54,7 +54,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "card-validator": "^10.0.4",
     "classnames": "^2.5.1",
     "jsbarcode": "^3.12.3",
     "libphonenumber-js": "^1.12.41",
