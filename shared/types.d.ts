@@ -1,14 +1,5 @@
 import { LocaleKey } from "../sdk/src/localization";
 
-type CardBrand =
-  | "VISA"
-  | "MASTERCARD"
-  | "AMERICAN-EXPRESS"
-  | "JCB"
-  | "DISCOVER"
-  | "DINERS-CLUB"
-  | "UNIONPAY";
-
 type IframeChangeEvent = {
   type: "xendit-iframe-change";
   encrypted: {
@@ -18,7 +9,6 @@ type IframeChangeEvent = {
   empty: boolean;
   valid: boolean;
   validationErrorCodes: LocaleKey[];
-  cardBrand: CardBrand | null;
 };
 
 type IframeReadyEvent = {
