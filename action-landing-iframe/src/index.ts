@@ -40,7 +40,7 @@ if (isIframe) {
   //     } else {
   if (componentStatus === "SUCCESS") {
     window.location.href = "https://xendit.co/success";
-  } else if (componentStatus === "FAILURE") {
+  } else if (componentStatus === "FAILURE" || componentStatus === "FAILED") {
     window.location.href = "https://xendit.co/failure";
   } else {
     console.error("Missing component_status query parameter");
