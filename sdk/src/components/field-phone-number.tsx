@@ -148,6 +148,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         onChange={handleCountryChange}
         fixedOverlayWidth={300}
         enableSearch
+        noOverflow
         className="xendit-form-field-inner"
       />
       <input

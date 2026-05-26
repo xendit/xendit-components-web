@@ -621,6 +621,7 @@ xendit-payment-channel[inert] {
   cursor: pointer;
   padding: 0;
   outline: none;
+  overflow: hidden;
 }
 
 .xendit-dropdown:focus {
@@ -649,7 +650,6 @@ xendit-payment-channel[inert] {
   padding: 12px;
   padding-right: 0;
   white-space: nowrap;
-  min-width: 0;
   overflow: clip;
 }
 
