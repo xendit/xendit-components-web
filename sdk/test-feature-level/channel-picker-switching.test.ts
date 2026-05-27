@@ -3,6 +3,7 @@ import { XenditComponentsTest } from "../src";
 import { waitForEvent } from "./utils";
 import { screen } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
+import { assert } from "../src/utils";
 
 afterEach(() => {
   document.body.replaceChildren();
@@ -152,6 +153,34 @@ describe("channel picker switching", () => {
     );
     expect(testEl).toBeInTheDocument();
     expect(testEl).not.toHaveAttribute("inert");
+  });
+
+  it("should throw error when trying to switch channels while submission is in progress", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    await waitForEvent(sdk, "init");
+
+    // select a channel and render its component
+    const ch1 = sdk.getActiveChannels({ filter: "UI_INPUT_TEST" })[0];
+    const ch2 = sdk.getActiveChannels({ filter: "MOCK_QR" })[0];
+    assert(ch1 && ch2);
+    document.body.appendChild(sdk.createChannelComponent(ch1));
+
+    // start submission — sets submissionRequested = true
+    sdk.submit();
+
+    // trying to switch channel via API during submission should throw
+    expect(() => sdk.setCurrentChannel(ch2)).toThrow(
+      "Cannot change the payment channel while a submission is in progress.",
+    );
+
+    // abort so the test does not wait for the full submission to complete
+    sdk.abortSubmission();
+
+    // channel must not have changed
+    expect(sdk.getCurrentChannel()?.channelCode).toBe("UI_INPUT_TEST");
   });
 
   it("should collapse group if a channel is selected and the channel is cleared by api", async () => {

@@ -41,6 +41,8 @@ xendit-payment-channel {
   font-family: var(--xendit-font-family);
   color: var(--xendit-color-text);
   touch-action: manipulation;
+  transition: filter var(--xendit-animation-duration)
+    var(--xendit-animation-ease);
 }
 
 .xendit-default-action-container {
@@ -265,7 +267,8 @@ xendit-payment-channel select::placeholder {
 
 /* Payment channel */
 
-xendit-payment-channel[inert] {
+xendit-payment-channel[inert],
+xendit-channel-picker[inert] {
   filter: opacity(0.5) grayscale(1);
 }
 
