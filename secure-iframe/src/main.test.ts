@@ -93,7 +93,6 @@ describe("secure iframe ui - main - basics", () => {
     const changeEvent = await expectPostMessage(
       {
         type: "xendit-iframe-change",
-        cardBrand: "VISA",
         empty: false,
         valid: true,
         validationErrorCodes: [],
@@ -126,7 +125,6 @@ describe("secure iframe ui - main - basics", () => {
     const changeEvent = await expectPostMessage(
       {
         type: "xendit-iframe-change",
-        cardBrand: null,
         empty: false,
         valid: true,
         validationErrorCodes: [],
@@ -163,7 +161,6 @@ describe("secure iframe ui - main - basics", () => {
     const changeEvent = await expectPostMessage(
       {
         type: "xendit-iframe-change",
-        cardBrand: null,
         empty: false,
         valid: true,
         validationErrorCodes: [],

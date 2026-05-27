@@ -7,8 +7,8 @@ import {
 } from "preact/hooks";
 import { FieldProps } from "./field";
 import { useSdk, useSession } from "./session-provider";
-import { CardBrand, IframeEvent } from "../../../shared/types";
-import { useChannel } from "./channel-root";
+import { IframeEvent } from "../../../shared/types";
+import { useChannel, useChannelComponentData } from "./channel-root";
 import { XenditFormAssociatedFocusTrap } from "./core/form-ascociated-focus-trap";
 import { internal } from "../internal";
 import { assert, formFieldId, formFieldName } from "../utils";
@@ -41,9 +41,13 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
 
   const [focusWithin, setFocusWithin] = useState(false);
 
-  const [cardBrand, setCardBrand] = useState<CardBrand | null>(null);
-
   const { card } = useChannel() ?? {};
+
+  const channelData = useChannelComponentData();
+  const schemes = channelData?.cardDetails?.details?.schemes;
+  const selectedCardBrand =
+    schemes?.find((scheme) => card?.brands?.some((b) => b.name === scheme)) ??
+    null;
 
   const handleEventFromIframe = useCallback(
     (event: MessageEvent) => {
@@ -69,8 +73,6 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
         }
         case "xendit-iframe-change": {
           if (!hiddenFieldRef.current) return;
-
-          setCardBrand(data.cardBrand);
 
           const encrypted = data.encrypted;
           const encryptionVersion = 1;
@@ -191,7 +193,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
       {field.type.name === "credit_card_number" && card && (
         <CardBrands
           cardsBrandList={card.brands}
-          selectedCardBrand={cardBrand}
+          selectedCardBrand={selectedCardBrand}
         />
       )}
     </div>
@@ -203,7 +205,7 @@ const CardBrands = ({
   selectedCardBrand,
 }: {
   cardsBrandList: { name: string; logo_url: string }[];
-  selectedCardBrand: CardBrand | null;
+  selectedCardBrand: string | null;
 }) => {
   if (!cardsBrandList) return null;
 

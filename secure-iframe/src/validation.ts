@@ -1,12 +1,25 @@
 import { LocaleKey } from "../../sdk/src/localization";
-import { CardBrand, IframeFieldType } from "../../shared/types";
-import cardValidator from "card-validator";
+import { IframeFieldType } from "../../shared/types";
+
+function luhnCheck(value: string): boolean {
+  let sum = 0;
+  let alternate = false;
+  for (let i = value.length - 1; i >= 0; i--) {
+    let n = parseInt(value[i], 10);
+    if (alternate) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+    alternate = !alternate;
+  }
+  return sum % 10 === 0;
+}
 
 export type ValidationResult = {
   empty: boolean;
   valid: boolean;
   errorCodes: LocaleKey[];
-  cardBrand?: CardBrand;
 };
 
 export const validateCreditCardNumber = (value: string): ValidationResult => {
@@ -15,75 +28,51 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
 
   const errorCodes: LocaleKey[] = [];
 
-  // Check for non-numeric input
   if (!/^\d*$/.test(value)) {
-    errorCodes.push({
-      localeKey: "validation.card_number_invalid",
-    });
-  }
-
-  const cardInfo = cardValidator.number(value);
-  const cardBrand = cardInfo.card
-    ? (cardInfo.card.type?.toUpperCase() as CardBrand)
-    : undefined;
-
-  // Brand detection
-  if (!cardBrand && value.length >= 6) {
-    // Unable to detect brand from IIN range
-    errorCodes.push({
-      localeKey: "validation.card_number_invalid",
-    });
-  }
-
-  // Length validation
-  if (cardBrand) {
-    const validLengths = cardInfo.card?.lengths || [];
-    if (!validLengths.includes(value.length)) {
-      // Invalid length for detected brand
-      errorCodes.push({
-        localeKey: "validation.card_number_invalid",
-      });
-    }
-  } else {
-    if (value.length < 12 || value.length > 19) {
-      // Too short or too long for any card brand
-      errorCodes.push({
-        localeKey: "validation.card_number_invalid",
-      });
-    }
-  }
-
-  // Luhn validation (only if length is valid for the brand)
-  if (cardBrand && cardInfo.card?.lengths?.includes(value.length)) {
-    if (!cardInfo.isValid) {
-      // Luhn check failed
-      errorCodes.push({
-        localeKey: "validation.card_number_invalid",
-      });
-    }
+    // non-numeric input
+    errorCodes.push({ localeKey: "validation.card_number_invalid" });
+  } else if (value.length < 12 || value.length > 19) {
+    // too short or too long for any card brand
+    errorCodes.push({ localeKey: "validation.card_number_invalid" });
+  } else if (!luhnCheck(value)) {
+    // Luhn check failed
+    errorCodes.push({ localeKey: "validation.card_number_invalid" });
   }
 
   return {
     empty: value.length === 0,
     valid: errorCodes.length === 0,
     errorCodes,
-    cardBrand,
   };
 };
 
 export const validateCreditCardExpiry = (value: string): ValidationResult => {
   const errorCodes: LocaleKey[] = [];
 
-  const MAX = 99;
-  const expiryInfo = cardValidator.expirationDate(value, MAX);
-  const { isPotentiallyValid, isValid, month, year } = expiryInfo;
-  if (!isPotentiallyValid || month === null || year === null) {
+  // MM/YY or MM/YYYY format
+  const parts = value.split("/");
+  const month = parseInt(parts[0] ?? "", 10);
+  const yearStr = (parts[1] ?? "").trim();
+  const year =
+    yearStr.length === 2 ? 2000 + parseInt(yearStr, 10) : parseInt(yearStr, 10);
+
+  const isValidMonth = month >= 1 && month <= 12;
+  const isValidYear = year >= 2000 && year <= 2099;
+
+  if (!isValidMonth || !isValidYear || parts.length !== 2) {
     errorCodes.push({ localeKey: "validation.card_expiry_invalid" });
+  } else {
+    const now = new Date();
+    const expiry = new Date(year, month - 1);
+    const currentMonth = new Date(now.getFullYear(), now.getMonth());
+    if (expiry < currentMonth) {
+      errorCodes.push({ localeKey: "validation.card_expiry_invalid" });
+    }
   }
 
   return {
     empty: value.length === 0,
-    valid: isValid,
+    valid: errorCodes.length === 0,
     errorCodes,
   };
 };

@@ -13,26 +13,25 @@ const cards = [
 ];
 
 describe("validate - credit_card_number", () => {
-  describe("card brand detection", () => {
-    cards.forEach(({ brand, number }) => {
-      it(`detects ${brand} for number ${number}`, () => {
-        const result = validate("credit_card_number", number);
-        expect(result.cardBrand).toBe(brand);
-        // For most brands, the test number is valid and should pass Luhn
-        if (brand !== "UNIONPAY") {
-          expect(result.valid).toBe(true);
-          expect(result.errorCodes.length).toBe(0);
-        } else {
-          // UnionPay may not always pass Luhn, so just check brand detection
-          expect(result.cardBrand).toBe("UNIONPAY");
-        }
-      });
+  cards.forEach(({ brand, number }) => {
+    it(`validates ${brand} number ${number}`, () => {
+      const result = validate("credit_card_number", number);
+      expect(result.valid).toBe(true);
+      expect(result.errorCodes.length).toBe(0);
     });
   });
 
-  it("returns validation.card_number_invalid for unknown prefix", () => {
+  it("returns valid=true for unknown prefix with valid Luhn", () => {
+    // 1234567890123452: unknown prefix, 16 digits, passes Luhn (sum=60)
+    const result = validate("credit_card_number", "1234 5678 9012 3452");
+    expect(result.valid).toBe(true);
+    expect(result.errorCodes.length).toBe(0);
+  });
+
+  it("returns validation.card_number_invalid for unknown prefix with invalid Luhn", () => {
+    // 1234567890123456: unknown prefix, 16 digits, fails Luhn
     const result = validate("credit_card_number", "1234 5678 9012 3456");
-    expect(result.cardBrand).toBeUndefined();
+    expect(result.valid).toBe(false);
     expect(result.errorCodes.map((code) => code.localeKey)).toContain(
       "validation.card_number_invalid",
     );

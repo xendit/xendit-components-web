@@ -328,7 +328,6 @@ function iframeChangeEvent(
     type: "xendit-iframe-change",
     empty: false,
     valid: false,
-    cardBrand: "VISA",
     encrypted: [
       {
         iv: "IV",

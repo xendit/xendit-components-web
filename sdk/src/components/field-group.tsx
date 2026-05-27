@@ -18,6 +18,7 @@ import {
   IframeRegistryContext,
   IframeRegistryProvider,
 } from "./iframe-registry";
+import { useChannel, useChannelComponentData } from "./channel-root";
 import { FunctionComponent } from "preact";
 
 const CSS_CLASSES = {
@@ -47,6 +48,8 @@ const FieldGroup = ({
   simulationScenarios,
 }: Props) => {
   const { t } = useSdk();
+  const channelComponentData = useChannelComponentData();
+  const channel = useChannel();
 
   const groupContainerRef = useRef<HTMLDivElement>(null);
 
@@ -135,6 +138,29 @@ const FieldGroup = ({
         </span>
       );
     }
+
+    // brand mismatch check for credit_card_number
+    for (const field of fieldGroup) {
+      if (field.type.name !== "credit_card_number") continue;
+      if (!touchedFields[formFieldName(field)]) continue;
+
+      const allowedBrands = channel?.card?.brands;
+      const schemes = channelComponentData?.cardDetails?.details?.schemes;
+      if (allowedBrands?.length && schemes?.length) {
+        if (!schemes.some((s) => allowedBrands.some((b) => b.name === s))) {
+          return (
+            <span className="xendit-error-message xendit-text-12">
+              {getLocalizedErrorMessage(
+                t,
+                { localeKey: "validation.card_brand_not_allowed" },
+                field,
+              )}
+            </span>
+          );
+        }
+      }
+    }
+
     return null;
   };
 

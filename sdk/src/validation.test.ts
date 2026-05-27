@@ -4,6 +4,7 @@ import {
   channelPropertiesAreValid,
   channelPropertyFieldValidate,
 } from "./validation";
+import { ChannelComponentData } from "./public-sdk";
 
 function makeField(
   channelProperty: string,
@@ -76,6 +77,31 @@ function channelWithForm(form: ChannelFormField[]): BffChannel {
     _mock_action_type: "REDIRECT",
     form,
     instructions: [],
+  };
+}
+
+function channelWithBrands(brandNames: string[]): BffChannel {
+  return {
+    ...channelWithForm([encryptedField]),
+    card: {
+      brands: brandNames.map((name) => ({ name, logo_url: "" })),
+    },
+  };
+}
+
+function channelDataWithSchemes(schemes: string[]): ChannelComponentData {
+  return {
+    savePaymentMethod: false,
+    cardDetails: {
+      cardNumber: "xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT",
+      details: {
+        schemes,
+        country_codes: ["ID"],
+        require_billing_information: false,
+      },
+    },
+    paymentOptions: null,
+    customerDetails: null,
   };
 }
 
@@ -246,5 +272,45 @@ describe("validation", () => {
     // invalid
     const props3 = {};
     expect(channelPropertiesAreValid("PAY", channel, props3, null)).toBe(false);
+  });
+});
+
+describe("card brand validation", () => {
+  it("should block submit when card brand is not in allowed list", () => {
+    const channel = channelWithBrands(["VISA", "MASTERCARD"]);
+    const channelData = channelDataWithSchemes(["AMERICAN-EXPRESS"]);
+    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
+      false,
+    );
+  });
+
+  it("should allow submit when card brand is in allowed list", () => {
+    const channel = channelWithBrands(["VISA", "MASTERCARD"]);
+    const channelData = channelDataWithSchemes(["VISA"]);
+    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
+      true,
+    );
+  });
+
+  it("should allow submit when one scheme of a co-branded card matches", () => {
+    const channel = channelWithBrands(["VISA", "MASTERCARD"]);
+    const channelData = channelDataWithSchemes(["JCB", "VISA"]);
+    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
+      true,
+    );
+  });
+
+  it("should allow submit when channel has no allowed brands configured", () => {
+    const channel = channelWithForm([encryptedField]); // no card.brands
+    const channelData = channelDataWithSchemes(["AMERICAN-EXPRESS"]);
+    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
+      true,
+    );
+  });
+
+  it("should allow submit when card_info has not yet responded", () => {
+    const channel = channelWithBrands(["VISA", "MASTERCARD"]);
+    // null = card_info request still in flight, don't block yet
+    expect(channelPropertiesAreValid("PAY", channel, {}, null)).toBe(true);
   });
 });

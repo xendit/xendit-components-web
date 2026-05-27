@@ -168,6 +168,15 @@ export function channelPropertiesAreValid(
     }
   }
 
+  const allowedBrands = channel.card?.brands;
+  const schemes = channelComponentData?.cardDetails?.details?.schemes;
+  if (allowedBrands?.length && schemes?.length) {
+    const allowedNames = allowedBrands.map((b) => b.name);
+    if (!schemes.some((s) => allowedNames.includes(s))) {
+      return false;
+    }
+  }
+
   return true;
 }
 

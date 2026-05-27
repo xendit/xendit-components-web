@@ -55,7 +55,6 @@ describe("channel component card data", () => {
       type: "xendit-iframe-change",
       empty: false,
       valid: false,
-      cardBrand: "VISA",
       encrypted: [
         {
           iv: "IV",

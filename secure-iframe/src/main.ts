@@ -185,7 +185,6 @@ export async function main() {
       empty: value.length === 0,
       valid: validationResult.valid,
       validationErrorCodes: validationResult.errorCodes,
-      cardBrand: validationResult.cardBrand ?? null,
     });
   }
 
