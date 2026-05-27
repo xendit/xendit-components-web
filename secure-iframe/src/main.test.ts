@@ -186,6 +186,16 @@ describe("secure iframe ui - main - basics", () => {
   });
 });
 
+describe("secure iframe ui - main - null origin", () => {
+  it("should fail if embedder origin is null", async () => {
+    await setQueryParams({ embedder: "null" });
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+    expect(screen.getByText("✕ null embedder origin")).toBeInTheDocument();
+  });
+});
+
 describe("secure iframe ui - fatalError", () => {
   it("should send fatal error event", async () => {
     await expectPostMessage(

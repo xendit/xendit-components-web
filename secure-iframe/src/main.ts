@@ -36,6 +36,7 @@ function getQueryInputs() {
   assert(inputType, "missing qs input_type");
   const embedderOrigin = query.get("embedder");
   assert(embedderOrigin, "missing qs embedder");
+  assert(embedderOrigin !== "null", "null embedder origin");
   const sessionId = query.get("session_id");
   assert(sessionId, "missing qs session_id");
   const serverPublicKeyBase64 = query.get("pk");

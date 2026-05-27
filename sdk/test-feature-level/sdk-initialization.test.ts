@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import {
   XenditInitEvent,
   XenditComponents,
@@ -7,6 +7,18 @@ import {
 import { findEvent, waitForEvent, watchEvents } from "./utils";
 
 describe("sdk initialization", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("should throw when page origin is null", () => {
+    vi.stubGlobal("location", { ...window.location, origin: "null" });
+
+    expect(() => new XenditComponentsTest({})).toThrow(
+      "XenditComponents cannot be used when the page origin is null",
+    );
+  });
+
   it("should fire the init event after constructing with mock data", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
