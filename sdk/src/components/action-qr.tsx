@@ -1,5 +1,6 @@
 import { TFunction } from "../localization";
 import { useCallback, useMemo, useRef, useState } from "preact/hooks";
+import { emvcoQrParse } from "../emvco-qr";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
 import { TargetedEvent } from "preact";
@@ -57,6 +58,20 @@ export function ActionQr(props: Props) {
       return node;
     }
   }, [qrString, t]);
+
+  const nmid = useMemo(() => {
+    try {
+      const parsed = emvcoQrParse(qrString);
+      const info = parsed.merchantAccountInformation;
+      if (!info || typeof info === "string") return undefined;
+      const qrisInfo = (info as Record<string, unknown>)["ID.CO.QRIS.WWW"];
+      if (!qrisInfo || typeof qrisInfo === "string") return undefined;
+      const nmidValue = (qrisInfo as Record<string, unknown>).nmid;
+      return typeof nmidValue === "string" ? nmidValue : undefined;
+    } catch {
+      return undefined;
+    }
+  }, [qrString]);
 
   const didDownload = useRef(false);
   const onClickQrCode = useCallback(
@@ -166,6 +181,7 @@ export function ActionQr(props: Props) {
           amountText={amountText}
           qr={qrWrapper}
           t={t}
+          nmid={nmid}
         />
         <div
           style={{
