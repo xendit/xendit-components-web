@@ -51,15 +51,6 @@ export function getCustomQrArtComponent(
 
 function QrArtQris(props: QrArtComponentProps) {
   const { channelLogo, channelName, merchantName, amountText, t, nmid } = props;
-  // function getMerchantIdLabel() {
-  //   const info = parsedQr?.merchantAccountInformation;
-  //   if (typeof info === "string") return undefined;
-  //   const qrisInfo = info?.["ID.CO.QRIS.WWW"];
-  //   if (typeof qrisInfo === "string") return undefined;
-  //   if (!qrisInfo?.nmid) return undefined;
-  //   return `NMID: ${qrisInfo.nmid}`;
-  // }
-  // const merchantIdLabel = getMerchantIdLabel();
 
   const qrisAccentColor = "#DB4849";
   const borderArtWidth = "24px";
@@ -95,7 +86,6 @@ function QrArtQris(props: QrArtComponentProps) {
         }}
       >
         <div className="xendit-text-semibold">{merchantName}</div>
-        {/* {merchantIdLabel ? <div>{merchantIdLabel}</div> : null} */}
         {nmid ? <div className="xendit-text-14">NMID: {nmid}</div> : null}
       </div>
       <div
