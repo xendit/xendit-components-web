@@ -62,6 +62,9 @@ export type DropdownProps = {
 
   /** Toggles the search feature */
   enableSearch?: boolean;
+
+  /** If false, always expand to match text length */
+  noOverflow?: boolean;
 };
 
 export const Dropdown = (props: DropdownProps) => {
@@ -366,7 +369,10 @@ export const Dropdown = (props: DropdownProps) => {
     <div
       className="xendit-dropdown-container"
       ref={rootRef}
-      style={{ "--xendit-dropdown-width": lastWidth + "px" }}
+      style={{
+        "--xendit-dropdown-width": lastWidth + "px",
+        minWidth: props.noOverflow ? undefined : "0",
+      }}
     >
       <button
         id={id}
