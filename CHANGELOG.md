@@ -1,3 +1,21 @@
+# 0.0.23
+
+### Notable
+
+Added support for REDIRECT payment channels.
+
+Cards with a brand not in the merchant's allowed brands list now show a validation error.
+
+Restored NMID display on QRIS payment screen.
+
+### Bug Fixes
+
+- Fixed an error when SDK origin is null in constructor and secure iframe
+- Fixed switching payment channels while a submission is in progress
+- Fixed failed state handling in action landing iframe
+- Fixed phone input area code width
+- Fixed card brand error message copy
+
 # 0.0.22
 
 ### Notable
