@@ -10,11 +10,10 @@ Added NMID display on QRIS payment screen.
 
 ### Bug Fixes
 
-- Fixed an error when SDK origin is null in constructor and secure iframe
+- Now throws an error if initialized on a null origin page
 - Fixed switching payment channels while a submission is in progress
-- Fixed failed state handling in action landing iframe
+- Fixed redirects after failing a payment in a redirect channel
 - Fixed phone input area code width
-- Fixed card brand error message copy
 
 # 0.0.22
 
