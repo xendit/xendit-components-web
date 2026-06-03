@@ -2,11 +2,11 @@
 
 ### Notable
 
-Added support for REDIRECT payment channels.
+Added support for most channels supported by Xendit (all but over the counter channels).
 
 Cards with a brand not in the merchant's allowed brands list now show a validation error.
 
-Restored NMID display on QRIS payment screen.
+Added NMID display on QRIS payment screen.
 
 ### Bug Fixes
 
