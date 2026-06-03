@@ -1,3 +1,20 @@
+# 0.0.23
+
+### Notable
+
+Added support for most channels supported by Xendit (all but over the counter channels).
+
+Cards with a brand not in the merchant's allowed brands list now show a validation error.
+
+Added NMID display on QRIS payment screen.
+
+### Bug Fixes
+
+- Now throws an error if initialized on a null origin page
+- Fixed switching payment channels while a submission is in progress
+- Fixed redirects after failing a payment in a redirect channel
+- Fixed phone input area code width
+
 # 0.0.22
 
 ### Notable
