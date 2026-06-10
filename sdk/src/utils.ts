@@ -566,7 +566,6 @@ const RELEASED_CHANNELS: Record<string, boolean> = {
   BPI_DIRECT_DEBIT: true,
   BPI_ONLINE_BANKING: true,
   BPI_RECURRING: true,
-  BRI_DIRECT_DEBIT: true,
   BSN_FPX: true,
   CARDS: true,
   CHINABANK_DIRECT_DEBIT: true,
