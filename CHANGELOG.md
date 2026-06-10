@@ -1,3 +1,9 @@
+# 0.0.24
+
+### Bug Fixes
+
+- Removed BRI Direct Debit due to a crash in the MM/YY expiry field
+
 # 0.0.23
 
 ### Notable
