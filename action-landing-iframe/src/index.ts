@@ -34,7 +34,11 @@ if (isIframe) {
       ? "https://xendit.co/success"
       : "https://xendit.co/failure";
 
-  if (sessionAuthId) {
+  if (!env || !sessionAuthId || !componentsVersion) {
+    console.log("missing parameter");
+    window.location.href = fallbackUrl;
+    return;
+  }
     const getSessionUrl = new URL(`/api/sessions/${sessionAuthId}`, targetHost);
     const componentsVersion = queryString.get("components_version") ?? "v0.0.0";
     getSessionUrl.searchParams.set("components_version", componentsVersion);
