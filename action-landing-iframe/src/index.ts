@@ -21,14 +21,14 @@ if (isIframe) {
   });
 } else {
   const hosts: Record<string, string> = {
-    "production-live": "https://checkout-ui-gateway.xendit.co",
-    "production-development": "https://checkout-ui-gateway-prod-dev.xendit.co",
-    "staging-live": "https://checkout-ui-gateway-live.stg.tidnex.dev",
-    "staging-development": "https://checkout-ui-gateway-dev.stg.tidnex.dev",
+    pl: "https://checkout-ui-gateway.xendit.co",
+    pd: "https://checkout-ui-gateway-prod-dev.xendit.co",
+    sl: "https://checkout-ui-gateway-live.stg.tidnex.dev",
+    sd: "https://checkout-ui-gateway-dev.stg.tidnex.dev",
   };
-  const env = queryString.get("env") ?? "production-live";
+  const env = queryString.get("env");
   const sessionAuthId = queryString.get("session_auth_id");
-  const targetHost = hosts[env] ?? hosts["production-live"];
+  const componentsVersion = queryString.get("components_version");
   const fallbackUrl =
     componentStatus === "SUCCESS"
       ? "https://xendit.co/success"
@@ -37,28 +37,18 @@ if (isIframe) {
   if (!env || !sessionAuthId || !componentsVersion) {
     console.log("missing parameter");
     window.location.href = fallbackUrl;
-    return;
-  }
+  } else {
+    const targetHost = hosts[env] ?? hosts["pl"];
     const getSessionUrl = new URL(`/api/sessions/${sessionAuthId}`, targetHost);
-    const componentsVersion = queryString.get("components_version") ?? "v0.0.0";
     getSessionUrl.searchParams.set("components_version", componentsVersion);
     fetch(getSessionUrl.toString())
       .then((response) => response.json())
       .then((data) => {
         const returnUrl = data?.session?.components_configuration?.return_url;
-        if (returnUrl) {
-          const url = new URL(returnUrl);
-          if (componentStatus)
-            url.searchParams.set("component_status", componentStatus);
-          window.location.href = url.toString();
-        } else {
-          window.location.href = fallbackUrl;
-        }
+        window.location.href = returnUrl ?? fallbackUrl;
       })
       .catch(() => {
         window.location.href = fallbackUrl;
       });
-  } else {
-    window.location.href = fallbackUrl;
   }
 }
