@@ -22,6 +22,11 @@ export type BffSessionAllowSavePaymentMethod =
 
 export type BffSession = {
   payment_session_id: string;
+  components_sdk_key?: string;
+  components_configuration?: {
+    origins: string[];
+    return_url?: string;
+  };
   business_id: string;
   created: string;
   updated: string;
