@@ -1,6 +1,6 @@
 {
   "name": "xendit-components-web",
-  "version": "0.0.24",
+  "version": "0.0.24-alpha",
   "description": "Xendit frontend payment components SDK",
   "type": "module",
   "author": "Xendit",
