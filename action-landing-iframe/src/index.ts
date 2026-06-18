@@ -10,16 +10,6 @@ function insecurePostMessage<T extends IframeEvent>(message: T) {
 }
 
 const queryString = new URLSearchParams(window.location.search);
-
-// const hosts: Record<string, string | undefined> = {
-//   pl: process.env.XENDIT_CHECKOUT_UI_GATEWAY_PROD_LIVE,
-//   pd: process.env.XENDIT_CHECKOUT_UI_GATEWAY_PROD_DEV,
-//   sl: process.env.XENDIT_CHECKOUT_UI_GATEWAY_STAGING_LIVE,
-//   sd: process.env.XENDIT_CHECKOUT_UI_GATEWAY_STAGING_DEV,
-// };
-// const targetHost = hosts[queryString.get("env") || "pl"];
-// const sessionAuthKey = queryString.get("session_auth_id");
-
 const componentStatus = queryString.get("component_status");
 
 const isIframe = window.self !== window.top;
@@ -30,21 +20,35 @@ if (isIframe) {
     type: "xendit-iframe-action-complete",
   });
 } else {
-  // const getSessionUrl = new URL(`/api/sessions/${sessionAuthKey}`, targetHost);
-  // fetch(getSessionUrl.toString())
-  //   .then((response) => response.json())
-  //   .then((session) => {
-  //     const returnUrl = session.component_configuration.return_url;
-  //     if (returnUrl) {
-  //       window.location.href = session.component_configuration.return_url;
-  //     } else {
-  if (componentStatus === "SUCCESS") {
-    window.location.href = "https://xendit.co/success";
-  } else if (componentStatus === "FAILURE" || componentStatus === "FAILED") {
-    window.location.href = "https://xendit.co/failure";
+  const hosts: Record<string, string> = {
+    pl: "https://checkout-ui-gateway.xendit.co",
+    pd: "https://checkout-ui-gateway-prod-dev.xendit.co",
+    sl: "https://checkout-ui-gateway-live.stg.tidnex.dev",
+    sd: "https://checkout-ui-gateway-dev.stg.tidnex.dev",
+  };
+  const env = queryString.get("env");
+  const sessionAuthId = queryString.get("session_auth_id");
+  const componentsVersion = queryString.get("components_version");
+  const fallbackUrl =
+    componentStatus === "SUCCESS"
+      ? "https://xendit.co/success"
+      : "https://xendit.co/failure";
+
+  if (!env || !sessionAuthId || !componentsVersion) {
+    console.log("missing parameter");
+    window.location.href = fallbackUrl;
   } else {
-    console.error("Missing component_status query parameter");
+    const targetHost = hosts[env] ?? hosts["pl"];
+    const getSessionUrl = new URL(`/api/sessions/${sessionAuthId}`, targetHost);
+    getSessionUrl.searchParams.set("components_version", componentsVersion);
+    fetch(getSessionUrl.toString())
+      .then((response) => response.json())
+      .then((data) => {
+        const returnUrl = data?.session?.components_configuration?.return_url;
+        window.location.href = returnUrl ?? fallbackUrl;
+      })
+      .catch(() => {
+        window.location.href = fallbackUrl;
+      });
   }
-  //   }
-  // });
 }
