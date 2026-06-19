@@ -656,6 +656,21 @@ const RELEASED_CHANNELS: Record<string, boolean> = {
   VNPTWALLET: true,
   WECHATPAY: true,
   ZALOPAY: true,
+  // OTC
+  "7ELEVEN": true,
+  "7ELEVEN_CLIQQ": true,
+  CEBUANA: true,
+  ECPAY: true,
+  PALAWAN: true,
+  MLHUILLIER: true,
+  ECPAY_DRAGONLOAN: true,
+  LBC: true,
+  ECPAY_SCHOOL: true,
+  USSC: true,
+  SM_BILLS_PAYMENT: true,
+  ROBINSONS_BILLS_PAYMENT: true,
+  ALFAMART: true,
+  INDOMARET: true,
 };
 
 // filter out channels not supported by this SDK version

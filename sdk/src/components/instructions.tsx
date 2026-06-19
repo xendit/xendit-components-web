@@ -167,7 +167,7 @@ function renderImageStep(step: Extract<InstructionsStep, { type: "image" }>) {
       <img
         src={step.src}
         alt={step.alt || ""}
-        style={{ height: `${step.height ?? 24}px` }}
+        style={{ height: `${(step.height ?? 24) * 0.75}px` }}
       />
     </div>
   );
