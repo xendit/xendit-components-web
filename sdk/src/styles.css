@@ -540,14 +540,12 @@ xendit-channel-picker[inert] {
   display: flex;
   padding: 48px;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  overflow-y: auto;
 }
 
 .xendit-dialog {
   position: relative;
-  max-height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
 }
 
 .xendit-dialog-header {
@@ -595,8 +593,6 @@ xendit-channel-picker[inert] {
   background-color: var(--xendit-color-background);
   border-radius: 8px;
   box-shadow: var(--xendit-dialog-shadow);
-  overflow-y: auto;
-  flex: 1;
 }
 
 .xendit-error-message {
