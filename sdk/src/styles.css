@@ -540,7 +540,8 @@ xendit-channel-picker[inert] {
   display: flex;
   padding: 48px;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  overflow-y: auto;
 }
 
 .xendit-dialog {

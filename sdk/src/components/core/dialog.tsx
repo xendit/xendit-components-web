@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef } from "preact/hooks";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "preact/hooks";
 import Icon from "../icon";
 import { ComponentChildren, FunctionComponent, TargetedEvent } from "preact";
 
@@ -79,6 +79,15 @@ export const Dialog: FunctionComponent<Props> = (props) => {
     );
     animation.onfinish = onCloseSafe;
   }, [onCloseSafe, supportsAnimation]);
+
+  // lock body scroll while dialog is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
 
   // play fade-in animation
   useLayoutEffect(() => {

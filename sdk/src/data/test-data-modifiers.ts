@@ -291,7 +291,102 @@ export function makeOneMockAction(
         action_title: "Pay at a Store",
         action_subtitle: "Show this barcode to the cashier",
         action_graphic: "",
-        instructions: null,
+        instructions: [
+          {
+            title: "Mock App 1",
+            content: [
+              { type: "text", text: "Log in to your mock app" },
+              [
+                { type: "text", text: "Tap <b>Bills</b>" },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+2",
+                  height: 400,
+                },
+              ],
+              [
+                { type: "text", text: "Search <b>Mock Biller</b>" },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+3",
+                  height: 400,
+                },
+              ],
+              [
+                {
+                  type: "text",
+                  text: "Fill out your <b>account number, payment amount, and mobile number</b>",
+                },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+4",
+                  height: 400,
+                },
+              ],
+              { type: "text", text: "Tap <b>Continue</b>" },
+              [
+                {
+                  type: "text",
+                  text: "Review your details and tap <b>Pay</b>",
+                },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+6",
+                  height: 400,
+                },
+              ],
+              {
+                type: "text",
+                text: "Return to this page and click <b>I've made this payment</b> above to confirm your payment.",
+              },
+            ],
+          },
+          {
+            title: "Mock App 2",
+            content: [
+              { type: "text", text: "Log in to your mock app" },
+              [
+                { type: "text", text: "Tap <b>Pay Bills</b>" },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+2",
+                  height: 400,
+                },
+              ],
+              [
+                { type: "text", text: "Search <b>Mock Biller</b>" },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+3",
+                  height: 400,
+                },
+              ],
+              [
+                {
+                  type: "text",
+                  text: "Fill out your <b>payment amount and reference number</b>",
+                },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+4",
+                  height: 400,
+                },
+              ],
+              [
+                { type: "text", text: "Tap <b>Confirm</b>" },
+                {
+                  type: "image",
+                  src: "https://placehold.co/300x400.png?text=Step+5",
+                  height: 400,
+                },
+              ],
+              {
+                type: "text",
+                text: "Return to this page and click <b>I've made this payment</b> above to confirm your payment.",
+              },
+            ],
+          },
+        ],
       };
     case "VA":
       return {
