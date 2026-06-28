@@ -13,6 +13,11 @@ export interface XenditSdkOptions {
   iframeFieldAppearance?: IframeAppearanceOptions;
 
   /**
+   * If true, the SDK checks for a `token_request_id` query parameter on the url
+   */
+  resume?: boolean;
+
+  /**
    * @internal
    */
   enableDigitalWallets?: boolean;

@@ -13,6 +13,7 @@ import {
   XenditSessionCompleteEvent,
   XenditSessionExpiredOrCanceledEvent,
   XenditSubmissionBeginEvent,
+  XenditSubmissionResumeEvent,
   XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
   XenditSessionPendingEvent,
@@ -49,7 +50,8 @@ import {
   ChannelRoot,
   XenditChannelPropertiesChangedEvent,
 } from "./components/channel-root";
-import { fetchSessionData } from "./api";
+import { fetchSessionData, pollSession } from "./api";
+import { resolveResumeState, getResumeTokenRequestId } from "./resume";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
 import {
@@ -310,6 +312,7 @@ export class XenditComponents extends EventTarget {
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
+        resuming: false,
         simulatePaymentRequested: false,
         actionCompleted: false,
         pollImmediatelyRequested: false,
@@ -385,6 +388,36 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
+    // If asked to resume (user landed on return_url after a failed redirect
+    // payment), read token_request_id from the URL, poll that attempt, and if it
+    // failed, restore the state so the existing error chain fires. Any failure
+    // here degrades gracefully to the normal channel picker.
+    let resumePaymentEntity: BffPaymentEntity | null = null;
+    let resumeSessionTokenRequestId: string | null = null;
+    const resumeTokenRequestId = this[internal].options.resume
+      ? getResumeTokenRequestId(window.location.search)
+      : null;
+    if (resumeTokenRequestId && bff.session.status === "ACTIVE") {
+      try {
+        const pollResult = await pollSession(
+          this[internal].sdkKey,
+          this[internal].sdkKey.sessionAuthKey,
+          resumeTokenRequestId,
+        );
+        const resumeState = resolveResumeState(
+          pollResult,
+          resumeTokenRequestId,
+        );
+        if (resumeState) {
+          resumePaymentEntity = resumeState.paymentEntity;
+          resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
+          this[internal].behaviorTree.bb.resuming = true;
+        }
+      } catch {
+        // show the channel picker as usual
+      }
+    }
+
     // Update world state
     this.dispatchEvent(
       new InternalUpdateWorldState({
@@ -394,8 +427,8 @@ export class XenditComponents extends EventTarget {
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
         digitalWallets: bff.digital_wallets ?? null,
-        paymentEntity: null,
-        sessionTokenRequestId: null,
+        paymentEntity: resumePaymentEntity,
+        sessionTokenRequestId: resumeSessionTokenRequestId,
         succeededChannel: bff.succeeded_channel ?? null,
       } satisfies WorldState),
     );
@@ -1545,6 +1578,11 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "submission-begin",
     listener: XenditEventListener<XenditSubmissionBeginEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    name: "submission-resume",
+    listener: XenditEventListener<XenditSubmissionResumeEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
   addEventListener(
