@@ -8,6 +8,7 @@ export type XenditEventMap = {
   "submission-not-ready": XenditReadyEvent;
 
   "submission-begin": XenditSubmissionBeginEvent;
+  "submission-resume": XenditSubmissionResumeEvent;
   "submission-end": XenditSubmissionEndEvent;
 
   "action-begin": XenditActionBeginEvent;
@@ -97,6 +98,22 @@ export class XenditSubmissionBeginEvent extends Event {
 
   constructor() {
     super(XenditSubmissionBeginEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Event fired when the SDK resumes a previous payment attempt after the user
+ * returns to your `return_url` following a redirect payment. Unlike
+ * `submission-begin`, no new submission is being made — the SDK is restoring the
+ * outcome of the earlier attempt. A `submission-end` event follows with the
+ * result (e.g. an error message if the earlier attempt failed).
+ */
+export class XenditSubmissionResumeEvent extends Event {
+  static type = "submission-resume" as const;
+
+  constructor() {
+    super(XenditSubmissionResumeEvent.type, {});
   }
 }
 

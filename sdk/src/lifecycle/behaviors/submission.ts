@@ -22,6 +22,7 @@ import {
   XenditPaymentRequestCreatedEvent,
   XenditPaymentTokenCreatedEvent,
   XenditSubmissionBeginEvent,
+  XenditSubmissionResumeEvent,
   XenditSubmissionEndEvent,
 } from "../../public-event-types";
 import {
@@ -60,6 +61,12 @@ export class SubmissionBehavior implements Behavior {
   constructor(private bb: BlackboardType) {}
 
   enter() {
+    // Resume case: the SDK is restoring a previous (failed) payment attempt after a redirect. Do not start a new submission
+    if (this.bb.resuming) {
+      this.bb.dispatchEvent(new XenditSubmissionResumeEvent());
+      return;
+    }
+
     this.bb.dispatchEvent(new XenditSubmissionBeginEvent());
     this.bb.dispatchEvent(new InternalScheduleMockUpdateEvent(null));
     this.submit();
@@ -155,6 +162,7 @@ export class SubmissionBehavior implements Behavior {
 
     // Ensure submit flags are reset
     this.bb.submissionRequested = false;
+    this.bb.resuming = false;
 
     // Schedule rerender (to clear the inert attribute on the active component)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());

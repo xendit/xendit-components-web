@@ -71,6 +71,10 @@ export type BlackboardType = {
   // flags
   // if true, start a submission, if false abort submission
   submissionRequested: boolean;
+  // if true, the SDK is resuming a previous (failed) payment attempt after a
+  // redirect; skip submitting and let the tree route straight to the failure
+  // behavior. Distinct from submissionRequested, which means "submit now".
+  resuming: boolean;
   // if true, start simulate payment, if false abort simulate payment
   simulatePaymentRequested: boolean;
   // if true, do not show the current action UI
@@ -111,7 +115,7 @@ export function behaviorTreeForSession(bb: BlackboardType) {
       return behaviorNode(
         SessionActiveBehavior,
         "active",
-        bb.submissionRequested
+        bb.submissionRequested || bb.resuming
           ? behaviorTreeForSubmission(bb)
           : behaviorTreeForForm(bb),
       );
