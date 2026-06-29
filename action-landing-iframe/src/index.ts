@@ -46,11 +46,7 @@ if (isIframe) {
       .then((response) => response.json())
       .then((data) => {
         const returnUrl = data?.session?.components_configuration?.return_url;
-        if (!returnUrl) {
-          window.location.href = fallbackUrl;
-          return;
-        }
-        if (tokenRequestId) {
+        if (returnUrl && tokenRequestId) {
           const target = new URL(returnUrl);
           target.searchParams.set("token_request_id", tokenRequestId);
           window.location.href = target.toString();

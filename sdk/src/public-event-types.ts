@@ -104,10 +104,12 @@ export class XenditSubmissionBeginEvent extends Event {
 /**
  * @public
  * Event fired when the SDK resumes a previous payment attempt after the user
- * returns to your `return_url` following a redirect payment. Unlike
- * `submission-begin`, no new submission is being made — the SDK is restoring the
- * outcome of the earlier attempt. A `submission-end` event follows with the
- * result (e.g. an error message if the earlier attempt failed).
+ * returns to your `return_url` following a redirect.
+ * 
+ * This is similar to the `submission-begin` event, and the normal flow follows from
+ * there, e.g. `session-complete` to indicate a successful payment or `submission-end` to
+ * indicate a failure. Error messages can be retrieved from `submission-end` as usual.
+ 
  */
 export class XenditSubmissionResumeEvent extends Event {
   static type = "submission-resume" as const;
