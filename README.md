@@ -299,11 +299,30 @@ Notifies you when a submission is in progress.
 
 You might want to show a pending state UI when in the submission state, and allowing the action UI to show on top.
 
+### `submission-resume`
+
+Notifies you when the SDK is resuming a previous attempt after the user returns to your `return_url` (see [Resuming after a redirect](#resuming-after-a-redirect)). the result follows in `submission-end`.
+
 ### `action-begin` and `action-end`
 
 Notifies you when an action is in progress.
 
 Optionally, you can create an action container in the action-begin event. A default action container modal will be created if you don't.
+
+## Resuming after a redirect
+
+Some channels redirect the user away from your page to pay (e.g. DANA, OVO). When they return to the `return_url` you set on the session, re-initialize the SDK with `resume: true` to show the result of the attempt:
+
+```typescript
+const components = new XenditComponents({
+  componentsSdkKey, // the same session key as before
+  resume: true,
+});
+```
+
+The SDK reads the `token_request_id` Xendit appends to your `return_url`, polls that attempt, and resumes: if it succeeded, `session-complete` fires; if it failed, `submission-resume` then `submission-end` fire with a `userErrorMessage`.
+
+Re-initialize with the same `components_sdk_key` as the original session the `token_request_id` belongs to it, so have your server provide the key again on the return page. A `fatal-error` is fired if the `token_request_id` cannot be matched to a payment.
 
 ## Appearance
 
