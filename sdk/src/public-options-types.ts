@@ -14,9 +14,9 @@ export interface XenditSdkOptions {
 
   /**
    * Set this to true if you're resuming a session after the user returns from a redirection, i.e, the user is on your `return_url` page. The SDK will initialize with the same PaymentRequest or PaymentToken from the before the redirect, check it's status, and resume normal operation.
-   * 
+   *
    * We insert some values into the query string when returning from a redirect, which must be left intact.
-   * 
+   *
    * An `fatal-error` is fired if there is nothing to resume.
    */
   resume?: boolean;
