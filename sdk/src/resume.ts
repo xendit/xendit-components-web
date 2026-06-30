@@ -9,7 +9,11 @@ import {
  * Only these are worth resuming into the error chain — a still-active session
  * keeps these on the payment entity while remaining ACTIVE.
  */
-const TERMINAL_FAILURE_STATUSES = ["FAILED", "EXPIRED", "CANCELED"] as const;
+const TERMINAL_FAILURE_STATUSES: BffPaymentEntity["entity"]["status"][] = [
+  "FAILED",
+  "EXPIRED",
+  "CANCELED",
+];
 
 /**
  * Given a poll response for a specific token_request_id, decide whether the SDK
@@ -28,7 +32,7 @@ export function resolveResumeState(
   const paymentEntity = toPaymentEntity(entityRaw);
   const status = paymentEntity.entity.status;
 
-  if (!(TERMINAL_FAILURE_STATUSES as readonly string[]).includes(status)) {
+  if (!TERMINAL_FAILURE_STATUSES.includes(status)) {
     return null;
   }
 

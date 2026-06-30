@@ -118,6 +118,7 @@ if (savedKey) {
     iframeFieldAppearance,
     enableDigitalWallets: true,
     enablePaylinks: true,
+    resume: true,
   });
 } else {
   components = new XenditComponentsTest({

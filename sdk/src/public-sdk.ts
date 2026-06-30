@@ -388,10 +388,9 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
-    // If asked to resume (user landed on return_url after a failed redirect
-    // payment), read token_request_id from the URL, poll that attempt, and if it
-    // failed, restore the state so the existing error chain fires. Any failure
-    // here degrades gracefully to the normal channel picker.
+    // If asked to resume (user landed on return_url after a redirect payment),
+    // read token_request_id from the URL and poll that attempt. When no token_request_id is present, this is a normal first checkout.
+    // When one is present but cannot be resolved to a payment (e.g. the SDK was re-initialized with a different session than the token_request_id belongs to), there is nothing to resume that is a fatal misconfiguration.
     let resumePaymentEntity: BffPaymentEntity | null = null;
     let resumeSessionTokenRequestId: string | null = null;
     const resumeTokenRequestId = this[internal].options.resume
@@ -413,8 +412,14 @@ export class XenditComponents extends EventTarget {
           resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
           this[internal].behaviorTree.bb.resuming = true;
         }
-      } catch {
-        // show the channel picker as usual
+      } catch (error) {
+        // The token_request_id could not be resolved to a payment (e.g. the SDK was re-initialized with a different session). There is nothing to resume.
+        this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+        this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+          errorToString(error) +
+          "could not resolve the token_request_id. Re-initialize with the same components_sdk_key as the original session. ";
+        this.behaviorTreeUpdate();
+        return;
       }
     }
 
