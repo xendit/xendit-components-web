@@ -100,25 +100,6 @@ const simulateButton = document.createElement("button");
 simulateButton.textContent = "Simulate Payment";
 controlsDiv.appendChild(simulateButton);
 
-const resumeStatusSelect = document.createElement("select");
-for (const status of [
-  "CANCELED",
-  "FAILED",
-  "EXPIRED",
-  "REQUIRES_ACTION",
-  "SUCCEEDED",
-]) {
-  const option = document.createElement("option");
-  option.value = status;
-  option.textContent = status;
-  resumeStatusSelect.appendChild(option);
-}
-controlsDiv.appendChild(resumeStatusSelect);
-
-const simulateResumeButton = document.createElement("button");
-simulateResumeButton.textContent = "Simulate Resume";
-controlsDiv.appendChild(simulateResumeButton);
-
 const createActionContainer = document.createElement("button");
 createActionContainer.textContent = "Create Action Container";
 controlsDiv.appendChild(createActionContainer);
@@ -145,7 +126,6 @@ const iframeFieldAppearance: import("./src/public-options-types").IframeAppearan
   };
 const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
 const savedResume = localStorage.getItem(LOCALSTORAGE_RESUME_KEY) === "true";
-simulateResumeButton.disabled = !!savedKey;
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
@@ -263,17 +243,6 @@ abortButton.addEventListener("click", () => {
 
 simulateButton.addEventListener("click", () => {
   components.simulatePayment();
-});
-
-simulateResumeButton.addEventListener("click", () => {
-  components.simulateResume(
-    resumeStatusSelect.value as
-      | "CANCELED"
-      | "FAILED"
-      | "EXPIRED"
-      | "REQUIRES_ACTION"
-      | "SUCCEEDED",
-  );
 });
 
 createActionContainer.addEventListener("click", () => {

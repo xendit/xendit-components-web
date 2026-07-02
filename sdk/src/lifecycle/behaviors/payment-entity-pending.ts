@@ -26,15 +26,6 @@ export class PaymentEntityPendingBehavior implements Behavior {
       // if we get to pending state in mock mode, we need to schedule a mock update or nothing will happen.
       // usually, the payment entity will have a success/fail status and we need to also update the session status.
       assert(this.bb.world?.paymentEntity);
-      // On simulate resume, bb.channel is null (no channel was selected on the reloaded page).
-      //  Fall back to the channel the payment entity references so the mock poll response can still be built.
-      const entityChannelCode = this.bb.world.paymentEntity.entity.channel_code;
-      const channel =
-        this.bb.channel ??
-        this.bb.world.channels.find(
-          (c) => c.channel_code === entityChannelCode,
-        ) ??
-        null;
       switch (this.bb.world?.paymentEntity.entity.status) {
         case "ACTIVE":
         case "AUTHORIZED":
@@ -42,7 +33,7 @@ export class PaymentEntityPendingBehavior implements Behavior {
         case "PENDING":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponse(this.bb.world, channel, "SUCCESS"),
+              makeTestPollResponse(this.bb.world, this.bb.channel, "SUCCESS"),
             ),
           );
           break;
@@ -51,7 +42,7 @@ export class PaymentEntityPendingBehavior implements Behavior {
         case "EXPIRED":
           this.bb.dispatchEvent(
             new InternalScheduleMockUpdateEvent(
-              makeTestPollResponse(this.bb.world, channel, "FAILURE"),
+              makeTestPollResponse(this.bb.world, this.bb.channel, "FAILURE"),
             ),
           );
           break;

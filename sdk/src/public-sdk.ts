@@ -89,11 +89,7 @@ import {
   satisfiesMinMax,
   sleep,
 } from "./utils";
-import {
-  makeTestSdkKey,
-  makeTestPaymentRequest,
-  withPaymentEntityStatus,
-} from "./data/test-data-modifiers";
+import { makeTestSdkKey } from "./data/test-data-modifiers";
 import { PaymentEntityRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity-requires-action";
 import {
   SubmissionBehavior,
@@ -1485,56 +1481,6 @@ export class XenditComponents extends EventTarget {
 
     this[internal].behaviorTree.bb.simulatePaymentRequested = true;
     this.behaviorTreeUpdate();
-  }
-
-  /**
-   * @public
-   * Simulates returning to the page after a redirect payment.
-   * Only available when using `XenditComponentsTest`.
-   */
-  simulateResume(
-    status:
-      | "CANCELED"
-      | "FAILED"
-      | "EXPIRED"
-      | "REQUIRES_ACTION"
-      | "SUCCEEDED" = "CANCELED",
-  ): void {
-    if (!this[internal].behaviorTree.bb.mock) {
-      throw new Error(
-        "simulateResume is only available when using XenditComponentsTest.",
-      );
-    }
-
-    const worldState = this[internal].worldState;
-    if (!worldState) return;
-
-    // Build a mock poll response, then run it through the same resolver the SDK uses on a real resume.
-    const channelCode = worldState.channels[0]?.channel_code ?? "MOCK_QR";
-    const pollResult: BffPollResponse = {
-      session: worldState.session,
-      payment_request: withPaymentEntityStatus(
-        makeTestPaymentRequest(channelCode, undefined),
-        status,
-      ),
-    };
-    const componentStatus = status === "REQUIRES_ACTION" ? "FAILED" : null;
-
-    const resumeState = resolveResumeState(
-      pollResult,
-      "mock-resume-token-id",
-      componentStatus,
-    );
-    if (!resumeState) return;
-
-    this[internal].behaviorTree.bb.resuming = true;
-    this.dispatchEvent(
-      new InternalUpdateWorldState({
-        ...worldState,
-        paymentEntity: resumeState.paymentEntity,
-        sessionTokenRequestId: resumeState.sessionTokenRequestId,
-      } satisfies WorldState),
-    );
   }
 
   /**
