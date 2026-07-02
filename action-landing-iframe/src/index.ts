@@ -49,6 +49,9 @@ if (isIframe) {
         if (returnUrl && tokenRequestId) {
           const target = new URL(returnUrl);
           target.searchParams.set("token_request_id", tokenRequestId);
+          if (componentStatus) {
+            target.searchParams.set("component_status", componentStatus);
+          }
           window.location.href = target.toString();
         } else {
           window.location.href = returnUrl;

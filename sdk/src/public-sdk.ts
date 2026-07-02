@@ -51,7 +51,7 @@ import {
   XenditChannelPropertiesChangedEvent,
 } from "./components/channel-root";
 import { fetchSessionData, pollSession } from "./api";
-import { resolveResumeState, getResumeTokenRequestId } from "./resume";
+import { resolveResumeState, getResumeParams } from "./resume";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
 import {
@@ -89,7 +89,11 @@ import {
   satisfiesMinMax,
   sleep,
 } from "./utils";
-import { makeTestSdkKey } from "./data/test-data-modifiers";
+import {
+  makeTestSdkKey,
+  makeTestPaymentRequest,
+  withPaymentEntityStatus,
+} from "./data/test-data-modifiers";
 import { PaymentEntityRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity-requires-action";
 import {
   SubmissionBehavior,
@@ -393,23 +397,28 @@ export class XenditComponents extends EventTarget {
     // When one is present but cannot be resolved to a payment (e.g. the SDK was re-initialized with a different session than the token_request_id belongs to), there is nothing to resume that is a fatal misconfiguration.
     let resumePaymentEntity: BffPaymentEntity | null = null;
     let resumeSessionTokenRequestId: string | null = null;
-    const resumeTokenRequestId = this[internal].options.resume
-      ? getResumeTokenRequestId(window.location.search)
+    let resumeSession: BffSession | null = null;
+    const resumeParams = this[internal].options.resume
+      ? getResumeParams(window.location.search)
       : null;
-    if (resumeTokenRequestId && bff.session.status === "ACTIVE") {
+    if (resumeParams?.tokenRequestId && bff.session.status === "ACTIVE") {
       try {
         const pollResult = await pollSession(
           this[internal].sdkKey,
           this[internal].sdkKey.sessionAuthKey,
-          resumeTokenRequestId,
+          resumeParams.tokenRequestId,
         );
         const resumeState = resolveResumeState(
           pollResult,
-          resumeTokenRequestId,
+          resumeParams.tokenRequestId,
+          resumeParams.componentStatus,
         );
         if (resumeState) {
           resumePaymentEntity = resumeState.paymentEntity;
           resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
+          // Use the session from the poll, not the earlier fetchSessionData.
+          // Without this the SDK keeps a stale ACTIVE session and polls a completed one.
+          resumeSession = pollResult.session;
           this[internal].behaviorTree.bb.resuming = true;
         }
       } catch (error) {
@@ -428,7 +437,7 @@ export class XenditComponents extends EventTarget {
       new InternalUpdateWorldState({
         business: bff.business,
         customer: bff.customer,
-        session: bff.session,
+        session: resumeSession ?? bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
         digitalWallets: bff.digital_wallets ?? null,
@@ -1476,6 +1485,56 @@ export class XenditComponents extends EventTarget {
 
     this[internal].behaviorTree.bb.simulatePaymentRequested = true;
     this.behaviorTreeUpdate();
+  }
+
+  /**
+   * @public
+   * Simulates returning to the page after a redirect payment.
+   * Only available when using `XenditComponentsTest`.
+   */
+  simulateResume(
+    status:
+      | "CANCELED"
+      | "FAILED"
+      | "EXPIRED"
+      | "REQUIRES_ACTION"
+      | "SUCCEEDED" = "CANCELED",
+  ): void {
+    if (!this[internal].behaviorTree.bb.mock) {
+      throw new Error(
+        "simulateResume is only available when using XenditComponentsTest.",
+      );
+    }
+
+    const worldState = this[internal].worldState;
+    if (!worldState) return;
+
+    // Build a mock poll response, then run it through the same resolver the SDK uses on a real resume.
+    const channelCode = worldState.channels[0]?.channel_code ?? "MOCK_QR";
+    const pollResult: BffPollResponse = {
+      session: worldState.session,
+      payment_request: withPaymentEntityStatus(
+        makeTestPaymentRequest(channelCode, undefined),
+        status,
+      ),
+    };
+    const componentStatus = status === "REQUIRES_ACTION" ? "FAILED" : null;
+
+    const resumeState = resolveResumeState(
+      pollResult,
+      "mock-resume-token-id",
+      componentStatus,
+    );
+    if (!resumeState) return;
+
+    this[internal].behaviorTree.bb.resuming = true;
+    this.dispatchEvent(
+      new InternalUpdateWorldState({
+        ...worldState,
+        paymentEntity: resumeState.paymentEntity,
+        sessionTokenRequestId: resumeState.sessionTokenRequestId,
+      } satisfies WorldState),
+    );
   }
 
   /**
