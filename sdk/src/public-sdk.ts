@@ -394,6 +394,7 @@ export class XenditComponents extends EventTarget {
     let resumePaymentEntity: BffPaymentEntity | null = null;
     let resumeSessionTokenRequestId: string | null = null;
     let resumeSession: BffSession | null = null;
+    let resumeSucceededChannel: BffSucceededChannel | null = null;
     const resumeParams = this[internal].options.resume
       ? getResumeParams(window.location.search)
       : null;
@@ -415,6 +416,8 @@ export class XenditComponents extends EventTarget {
           // Use the session from the poll, not the earlier fetchSessionData.
           // Without this the SDK keeps a stale ACTIVE session and polls a completed one.
           resumeSession = pollResult.session;
+          // the succeeded channel is only known after the poll
+          resumeSucceededChannel = pollResult.succeeded_channel ?? null;
           this[internal].behaviorTree.bb.resuming = true;
         }
       } catch (error) {
@@ -439,7 +442,8 @@ export class XenditComponents extends EventTarget {
         digitalWallets: bff.digital_wallets ?? null,
         paymentEntity: resumePaymentEntity,
         sessionTokenRequestId: resumeSessionTokenRequestId,
-        succeededChannel: bff.succeeded_channel ?? null,
+        succeededChannel:
+          resumeSucceededChannel ?? bff.succeeded_channel ?? null,
       } satisfies WorldState),
     );
   }
