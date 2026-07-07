@@ -398,36 +398,44 @@ export class XenditComponents extends EventTarget {
     const resumeParams = this[internal].options.resume
       ? getResumeParams(window.location.search)
       : null;
-    if (resumeParams?.tokenRequestId && bff.session.status === "ACTIVE") {
-      try {
-        const pollResult = await pollSession(
-          this[internal].sdkKey,
-          this[internal].sdkKey.sessionAuthKey,
-          resumeParams.tokenRequestId,
-        );
-        const resumeState = resolveResumeState(
-          pollResult,
-          resumeParams.tokenRequestId,
-          resumeParams.componentStatus,
-        );
-        if (resumeState) {
-          resumePaymentEntity = resumeState.paymentEntity;
-          resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
-          // Use the session from the poll, not the earlier fetchSessionData.
-          // Without this the SDK keeps a stale ACTIVE session and polls a completed one.
-          resumeSession = pollResult.session;
-          // the succeeded channel is only known after the poll
-          resumeSucceededChannel = pollResult.succeeded_channel ?? null;
-          this[internal].behaviorTree.bb.resuming = true;
-        }
-      } catch (error) {
-        // The token_request_id could not be resolved to a payment (e.g. the SDK was re-initialized with a different session). There is nothing to resume.
+    if (resumeParams) {
+      if (!resumeParams.tokenRequestId) {
+        // Nothing to resume
         this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
         this[internal].behaviorTree.bb.sdkFatalErrorMessage =
-          errorToString(error) +
-          "could not resolve the token_request_id. Re-initialize with the same components_sdk_key as the original session. ";
+          "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
         this.behaviorTreeUpdate();
         return;
+      }
+      if (bff.session.status === "ACTIVE") {
+        try {
+          const pollResult = await pollSession(
+            this[internal].sdkKey,
+            this[internal].sdkKey.sessionAuthKey,
+            resumeParams.tokenRequestId,
+          );
+          const resumeState = resolveResumeState(
+            pollResult,
+            resumeParams.tokenRequestId,
+            resumeParams.componentStatus,
+          );
+          if (resumeState) {
+            resumePaymentEntity = resumeState.paymentEntity;
+            resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
+            // Use the one from the poll call since its more recent
+            resumeSession = pollResult.session;
+            // The succeeded channel is only known after the poll
+            resumeSucceededChannel = pollResult.succeeded_channel ?? null;
+            this[internal].behaviorTree.bb.resuming = true;
+          }
+        } catch {
+          // we can't read the error code here, but most likely the token_request_id is from another session
+          this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+          this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+            "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
+          this.behaviorTreeUpdate();
+          return;
+        }
       }
     }
 
@@ -1074,7 +1082,8 @@ export class XenditComponents extends EventTarget {
   syncInertAttribute() {
     // all channel components should have `inert` unless they are the current channel and there is no submission in progress
     const hasSubmissionInProgress =
-      this[internal].behaviorTree.bb.submissionRequested;
+      this[internal].behaviorTree.bb.submissionRequested ||
+      this[internal].behaviorTree.bb.resuming;
     const channelComponents = this[internal].liveComponents.paymentChannels;
 
     for (const [_, component] of channelComponents) {
