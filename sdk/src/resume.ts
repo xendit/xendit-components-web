@@ -1,6 +1,7 @@
 import { BffPollResponse } from "./backend-types/common";
 import {
   BffPaymentEntity,
+  BffPaymentEntityType,
   toPaymentEntity,
 } from "./backend-types/payment-entity";
 
@@ -9,11 +10,11 @@ import {
  * should resume. Returns the world-state fragment to apply if a payment entity
  * was found, otherwise null (no entity = nothing to resume).
  *
- * Some channels (e.g. GOPAY) don't update the payment status when the user
- * cancels on the partner page — the status stays REQUIRES_ACTION. In that case
- * we can't rely on the status alone, so we trust the redirect hint: when
- * componentStatus is "FAILED", treat a still-REQUIRES_ACTION entity as CANCELED
- * so the tree routes to the error state instead of re-showing the action.
+ * If the poll still says REQUIRES_ACTION, the backend hasn't settled yet, so we
+ * map the redirect hint (component_status) to a final status:
+ *   FAILED  -> FAILED
+ *   SUCCESS -> SUCCEEDED (payment request) / ACTIVE (payment token)
+ * Any already-settled status, or a missing hint, is left unchanged.
  */
 export function resolveResumeState(
   pollResult: BffPollResponse,
@@ -27,11 +28,15 @@ export function resolveResumeState(
 
   const paymentEntity = toPaymentEntity(entityRaw);
 
-  if (
-    paymentEntity.entity.status === "REQUIRES_ACTION" &&
-    componentStatus === "FAILED"
-  ) {
-    paymentEntity.entity.status = "CANCELED";
+  if (paymentEntity.entity.status === "REQUIRES_ACTION") {
+    if (componentStatus === "FAILED") {
+      paymentEntity.entity.status = "FAILED";
+    } else if (componentStatus === "SUCCESS") {
+      paymentEntity.entity.status =
+        paymentEntity.type === BffPaymentEntityType.PaymentRequest
+          ? "SUCCEEDED"
+          : "ACTIVE";
+    }
   }
 
   return {

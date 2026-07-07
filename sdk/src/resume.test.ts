@@ -3,6 +3,7 @@ import { resolveResumeState, getResumeParams } from "./resume";
 import { BffPollResponse } from "./backend-types/common";
 import {
   makeTestPaymentRequest,
+  makeTestPaymentToken,
   withPaymentEntityStatus,
 } from "./data/test-data-modifiers";
 import { makeTestBffData } from "./data/test-data";
@@ -14,6 +15,17 @@ function pollWith(status: string): BffPollResponse {
     session,
     payment_request: withPaymentEntityStatus(
       makeTestPaymentRequest("MOCK_QR", undefined),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      status as any,
+    ),
+  };
+}
+
+function pollWithToken(status: string): BffPollResponse {
+  return {
+    session,
+    payment_token: withPaymentEntityStatus(
+      makeTestPaymentToken("MOCK_QR", undefined),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       status as any,
     ),
@@ -38,35 +50,50 @@ describe("resolveResumeState", () => {
     expect(resolveResumeState(pollWith("SUCCEEDED"), "t", null)).not.toBeNull();
   });
 
-  it("overrides REQUIRES_ACTION to CANCELED when component_status is FAILED", () => {
-    const result = resolveResumeState(
-      pollWith("REQUIRES_ACTION"),
-      "t",
-      "FAILED",
-    );
-    expect(result?.paymentEntity.entity.status).toBe("CANCELED");
+  it("maps REQUIRES_ACTION + FAILED to FAILED (payment_request)", () => {
+    expect(
+      resolveResumeState(pollWith("REQUIRES_ACTION"), "t", "FAILED")
+        ?.paymentEntity.entity.status,
+    ).toBe("FAILED");
   });
 
-  it("does not override REQUIRES_ACTION without a FAILED hint", () => {
+  it("maps REQUIRES_ACTION + FAILED to FAILED (payment_token)", () => {
+    expect(
+      resolveResumeState(pollWithToken("REQUIRES_ACTION"), "t", "FAILED")
+        ?.paymentEntity.entity.status,
+    ).toBe("FAILED");
+  });
+
+  it("maps REQUIRES_ACTION + SUCCESS to SUCCEEDED for a payment_request", () => {
+    expect(
+      resolveResumeState(pollWith("REQUIRES_ACTION"), "t", "SUCCESS")
+        ?.paymentEntity.entity.status,
+    ).toBe("SUCCEEDED");
+  });
+
+  it("maps REQUIRES_ACTION + SUCCESS to ACTIVE for a payment_token", () => {
+    expect(
+      resolveResumeState(pollWithToken("REQUIRES_ACTION"), "t", "SUCCESS")
+        ?.paymentEntity.entity.status,
+    ).toBe("ACTIVE");
+  });
+
+  it("leaves REQUIRES_ACTION unchanged when there is no hint", () => {
     expect(
       resolveResumeState(pollWith("REQUIRES_ACTION"), "t", null)?.paymentEntity
         .entity.status,
     ).toBe("REQUIRES_ACTION");
-    expect(
-      resolveResumeState(pollWith("REQUIRES_ACTION"), "t", "SUCCESS")
-        ?.paymentEntity.entity.status,
-    ).toBe("REQUIRES_ACTION");
   });
 
-  it("does not change a non-REQUIRES_ACTION status even with a FAILED hint", () => {
+  it("does not override a status that is already settled", () => {
     expect(
       resolveResumeState(pollWith("PENDING"), "t", "FAILED")?.paymentEntity
         .entity.status,
     ).toBe("PENDING");
     expect(
-      resolveResumeState(pollWith("FAILED"), "t", "FAILED")?.paymentEntity
+      resolveResumeState(pollWith("SUCCEEDED"), "t", "FAILED")?.paymentEntity
         .entity.status,
-    ).toBe("FAILED");
+    ).toBe("SUCCEEDED");
   });
 
   it("returns null when there is no payment entity in the poll", () => {
