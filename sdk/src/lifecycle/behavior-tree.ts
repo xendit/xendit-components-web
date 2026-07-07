@@ -204,6 +204,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
 
   function maybePaylinkAction() {
     assert(bb.world?.paymentEntity);
+    if (bb.resuming) return undefined;
     return findPaylinkAction(bb.sdk, bb.world.paymentEntity.entity.actions)
       ? behaviorTreeForPaylink(bb)
       : undefined;
@@ -266,7 +267,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
 export function behaviorTreeForAction(bb: BlackboardType) {
   assert(bb.world?.paymentEntity);
 
-  if (bb.actionCompleted) {
+  if (bb.actionCompleted || bb.resuming) {
     // action completed is for when we want to close the action UI and go back to polling
     return behaviorNode(ActionCompletedBehavior);
   }
