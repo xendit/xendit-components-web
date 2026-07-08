@@ -1,3 +1,11 @@
+# 0.0.25
+
+### Notable
+
+Added support for over the counter (OTC) channels.
+
+Added support for resuming a payment after a redirect. When the customer returns to the `components_configuration.return_url` set on the session, re-initialize the SDK with the new `resume: true` option to continue the payment flow and show the result of the attempt. A new `submission-resume` event fires when the SDK resumes, followed by `session-complete` on success or `submission-end` on failure.
+
 # 0.0.24
 
 ### Bug Fixes
