@@ -8,6 +8,7 @@ const Xendit =
 const { XenditComponents, XenditComponentsTest } = Xendit;
 
 const LOCALSTORAGE_KEY = "test_ui_components_sdk_key";
+const LOCALSTORAGE_RESUME_KEY = "test_ui_resume";
 
 // document.documentElement.style.setProperty(
 //   "--xendit-qr-foreground-color",
@@ -65,6 +66,19 @@ outputBehaviorTree.style.width = "100%";
 outputBehaviorTree.setAttribute("rows", "10");
 controlsDiv.appendChild(outputBehaviorTree);
 
+const resumeLabel = document.createElement("label");
+const resumeCheckbox = document.createElement("input");
+resumeCheckbox.type = "checkbox";
+resumeCheckbox.checked =
+  localStorage.getItem(LOCALSTORAGE_RESUME_KEY) === "true";
+resumeCheckbox.addEventListener("change", () => {
+  localStorage.setItem(LOCALSTORAGE_RESUME_KEY, String(resumeCheckbox.checked));
+  location.reload();
+});
+resumeLabel.appendChild(resumeCheckbox);
+resumeLabel.appendChild(document.createTextNode(" Resume"));
+controlsDiv.appendChild(resumeLabel);
+
 const clearButton = document.createElement("button");
 clearButton.textContent = "Clear Output";
 controlsDiv.appendChild(clearButton);
@@ -111,6 +125,7 @@ const iframeFieldAppearance: import("./src/public-options-types").IframeAppearan
     },
   };
 const savedKey = localStorage.getItem(LOCALSTORAGE_KEY);
+const savedResume = localStorage.getItem(LOCALSTORAGE_RESUME_KEY) === "true";
 if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
@@ -118,6 +133,7 @@ if (savedKey) {
     iframeFieldAppearance,
     enableDigitalWallets: true,
     enablePaylinks: true,
+    resume: savedResume,
   });
 } else {
   components = new XenditComponentsTest({
@@ -148,6 +164,7 @@ components.addEventListener("submission-ready", logEvent);
 components.addEventListener("submission-not-ready", logEvent);
 
 components.addEventListener("submission-begin", logEvent);
+components.addEventListener("submission-resume", logEvent);
 components.addEventListener("submission-end", logEvent);
 components.addEventListener("action-begin", (event) => {
   logEvent(event);

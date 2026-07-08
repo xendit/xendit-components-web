@@ -77,6 +77,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
     throw new Error("Should not be called in this test");
   },
   submissionRequested: false,
+  resuming: false,
   simulatePaymentRequested: false,
   actionCompleted: false,
   pollImmediatelyRequested: false,

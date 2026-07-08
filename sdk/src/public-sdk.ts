@@ -13,6 +13,7 @@ import {
   XenditSessionCompleteEvent,
   XenditSessionExpiredOrCanceledEvent,
   XenditSubmissionBeginEvent,
+  XenditSubmissionResumeEvent,
   XenditSubmissionEndEvent,
   XenditWillRedirectEvent,
   XenditSessionPendingEvent,
@@ -49,7 +50,8 @@ import {
   ChannelRoot,
   XenditChannelPropertiesChangedEvent,
 } from "./components/channel-root";
-import { fetchSessionData } from "./api";
+import { fetchSessionData, pollSession } from "./api";
+import { resolveResumeState, getResumeParams } from "./resume";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
 import {
@@ -310,6 +312,7 @@ export class XenditComponents extends EventTarget {
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
+        resuming: false,
         simulatePaymentRequested: false,
         actionCompleted: false,
         pollImmediatelyRequested: false,
@@ -385,18 +388,70 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
+    // If asked to resume (user landed on return_url after a redirect payment),
+    // read token_request_id from the URL and poll that attempt. When no token_request_id is present, this is a normal first checkout.
+    // When one is present but cannot be resolved to a payment (e.g. the SDK was re-initialized with a different session than the token_request_id belongs to), there is nothing to resume that is a fatal misconfiguration.
+    let resumePaymentEntity: BffPaymentEntity | null = null;
+    let resumeSessionTokenRequestId: string | null = null;
+    let resumeSession: BffSession | null = null;
+    let resumeSucceededChannel: BffSucceededChannel | null = null;
+    const resumeParams = this[internal].options.resume
+      ? getResumeParams(window.location.search)
+      : null;
+    if (resumeParams) {
+      if (!resumeParams.tokenRequestId) {
+        // Nothing to resume
+        this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+        this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+          "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
+        this.behaviorTreeUpdate();
+        return;
+      }
+      if (bff.session.status === "ACTIVE") {
+        try {
+          const pollResult = await pollSession(
+            this[internal].sdkKey,
+            this[internal].sdkKey.sessionAuthKey,
+            resumeParams.tokenRequestId,
+          );
+          const resumeState = resolveResumeState(
+            pollResult,
+            resumeParams.tokenRequestId,
+            resumeParams.componentStatus,
+          );
+          if (resumeState) {
+            resumePaymentEntity = resumeState.paymentEntity;
+            resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
+            // Use the one from the poll call since its more recent
+            resumeSession = pollResult.session;
+            // The succeeded channel is only known after the poll
+            resumeSucceededChannel = pollResult.succeeded_channel ?? null;
+            this[internal].behaviorTree.bb.resuming = true;
+          }
+        } catch {
+          // we can't read the error code here, but most likely the token_request_id is from another session
+          this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+          this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+            "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
+          this.behaviorTreeUpdate();
+          return;
+        }
+      }
+    }
+
     // Update world state
     this.dispatchEvent(
       new InternalUpdateWorldState({
         business: bff.business,
         customer: bff.customer,
-        session: bff.session,
+        session: resumeSession ?? bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
         digitalWallets: bff.digital_wallets ?? null,
-        paymentEntity: null,
-        sessionTokenRequestId: null,
-        succeededChannel: bff.succeeded_channel ?? null,
+        paymentEntity: resumePaymentEntity,
+        sessionTokenRequestId: resumeSessionTokenRequestId,
+        succeededChannel:
+          resumeSucceededChannel ?? bff.succeeded_channel ?? null,
       } satisfies WorldState),
     );
   }
@@ -1027,7 +1082,8 @@ export class XenditComponents extends EventTarget {
   syncInertAttribute() {
     // all channel components should have `inert` unless they are the current channel and there is no submission in progress
     const hasSubmissionInProgress =
-      this[internal].behaviorTree.bb.submissionRequested;
+      this[internal].behaviorTree.bb.submissionRequested ||
+      this[internal].behaviorTree.bb.resuming;
     const channelComponents = this[internal].liveComponents.paymentChannels;
 
     for (const [_, component] of channelComponents) {
@@ -1545,6 +1601,11 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "submission-begin",
     listener: XenditEventListener<XenditSubmissionBeginEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    name: "submission-resume",
+    listener: XenditEventListener<XenditSubmissionResumeEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
   addEventListener(

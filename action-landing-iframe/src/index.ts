@@ -11,6 +11,7 @@ function insecurePostMessage<T extends IframeEvent>(message: T) {
 
 const queryString = new URLSearchParams(window.location.search);
 const componentStatus = queryString.get("component_status");
+const tokenRequestId = queryString.get("token_request_id");
 
 const isIframe = window.self !== window.top;
 
@@ -45,7 +46,16 @@ if (isIframe) {
       .then((response) => response.json())
       .then((data) => {
         const returnUrl = data?.session?.components_configuration?.return_url;
-        window.location.href = returnUrl ?? fallbackUrl;
+        if (returnUrl && tokenRequestId) {
+          const target = new URL(returnUrl);
+          target.searchParams.set("token_request_id", tokenRequestId);
+          if (componentStatus) {
+            target.searchParams.set("component_status", componentStatus);
+          }
+          window.location.href = target.toString();
+        } else {
+          window.location.href = returnUrl;
+        }
       })
       .catch(() => {
         window.location.href = fallbackUrl;

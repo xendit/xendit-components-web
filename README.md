@@ -299,11 +299,36 @@ Notifies you when a submission is in progress.
 
 You might want to show a pending state UI when in the submission state, and allowing the action UI to show on top.
 
+### `submission-resume`
+
+Notifies you when the SDK is resuming a previous attempt after the user returns to your `return_url` (see [Resuming after a redirect](#resuming-after-a-redirect)). This event is only fired for sessions that are still active. It behaves the same as `submission-begin`, and the events that follow will also be the same.
+
+If the session is already complete, expired, or cancelled, the the resume event is not fired.
+
 ### `action-begin` and `action-end`
 
 Notifies you when an action is in progress.
 
 Optionally, you can create an action container in the action-begin event. A default action container modal will be created if you don't.
+
+## Resuming after a redirect
+
+Some channels redirect the user away from your page to pay (e.g. DANA, OVO). When they return to the `components_configuration.return_url` you set on the session, re-initialize the SDK in the same way, with the same key, but with `resume: true` to continue the payment flow:
+
+```typescript
+const components = new XenditComponents({
+  componentsSdkKey, // the same session key as before
+  resume: true,
+});
+```
+
+We append query string parameters to your `return_url`, which must be preserved until you initialize the SDK.
+
+After initialization, if the session is still active, a `submission-resume` event fires. The SDK is then in the submitting state, as if you had called `submit()`, and the usual flow follows from there.
+
+A `fatal-error` is fired if the query string parameters are not preserved, or if they don't match the key you use to initialize.
+
+Only set `resume: true` when you intend to resume a payment flow, i.e. on your `return_url`.
 
 ## Appearance
 

@@ -71,6 +71,10 @@ export type BlackboardType = {
   // flags
   // if true, start a submission, if false abort submission
   submissionRequested: boolean;
+  // if true, the SDK is resuming a previous (failed) payment attempt after a
+  // redirect; skip submitting and let the tree route straight to the failure
+  // behavior. Distinct from submissionRequested, which means "submit now".
+  resuming: boolean;
   // if true, start simulate payment, if false abort simulate payment
   simulatePaymentRequested: boolean;
   // if true, do not show the current action UI
@@ -111,7 +115,7 @@ export function behaviorTreeForSession(bb: BlackboardType) {
       return behaviorNode(
         SessionActiveBehavior,
         "active",
-        bb.submissionRequested
+        bb.submissionRequested || bb.resuming
           ? behaviorTreeForSubmission(bb)
           : behaviorTreeForForm(bb),
       );
@@ -200,6 +204,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
 
   function maybePaylinkAction() {
     assert(bb.world?.paymentEntity);
+    if (bb.resuming) return undefined;
     return findPaylinkAction(bb.sdk, bb.world.paymentEntity.entity.actions)
       ? behaviorTreeForPaylink(bb)
       : undefined;
@@ -262,7 +267,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
 export function behaviorTreeForAction(bb: BlackboardType) {
   assert(bb.world?.paymentEntity);
 
-  if (bb.actionCompleted) {
+  if (bb.actionCompleted || bb.resuming) {
     // action completed is for when we want to close the action UI and go back to polling
     return behaviorNode(ActionCompletedBehavior);
   }
