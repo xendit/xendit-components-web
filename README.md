@@ -301,7 +301,9 @@ You might want to show a pending state UI when in the submission state, and allo
 
 ### `submission-resume`
 
-Notifies you when the SDK is resuming a previous attempt after the user returns to your `return_url` (see [Resuming after a redirect](#resuming-after-a-redirect)). The outcome then follows as `session-complete` or `submission-end`.
+Notifies you when the SDK is resuming a previous attempt after the user returns to your `return_url` (see [Resuming after a redirect](#resuming-after-a-redirect)). This event is only fired for sessions that are still active. It behaves the same as `submission-begin`, and the events that follow will also be the same.
+
+If the session is already complete, expired, or cancelled, the the resume event is not fired.
 
 ### `action-begin` and `action-end`
 
@@ -311,7 +313,7 @@ Optionally, you can create an action container in the action-begin event. A defa
 
 ## Resuming after a redirect
 
-Some channels redirect the user away from your page to pay (e.g. DANA, OVO). When they return to the `return_url` you set on the session, re-initialize the SDK with `resume: true` to show the result of the attempt:
+Some channels redirect the user away from your page to pay (e.g. DANA, OVO). When they return to the `components_configuration.return_url` you set on the session, re-initialize the SDK in the same way, with the same key, but with `resume: true` to continue the payment flow:
 
 ```typescript
 const components = new XenditComponents({
@@ -320,13 +322,14 @@ const components = new XenditComponents({
 });
 ```
 
-The SDK reads the `token_request_id` & `component_status` Xendit appends to your `return_url`, polls that attempt, and resumes. `submission-resume` fires when resuming begins; the outcome then follows as `session-complete` (success) or `submission-end` (failure, with a `userErrorMessage`).
+We append query string parameters to your `return_url`, which must be preserved until you initialize the SDK.
 
-Re-initialize with the same `components_sdk_key` as the original session the `token_request_id` belongs to it, so have your server provide the key again on the return page. A `fatal-error` is fired if the `token_request_id` cannot be matched to a payment.
+After initialization, if the session is still active, a `submission-resume` event fires. The SDK is then in the submitting state, as if you had called `submit()`, and the usual flow follows from there.
 
-Resume only restores an in-progress attempt while the session is still `ACTIVE`. If the session has already `COMPLETED`, the SDK skips the poll and fires `session-complete` directly, the backend does not return the payment request id for completed sessions, so the attempt cannot be polled.
+A `fatal-error` is fired if the query string parameters are not preserved, or if they don't match the key you use to initialize.
 
-Only set `resume: true` on the return page (when `token_request_id` is present in the URL), not on a first checkout.
+
+Only set `resume: true` when you intend to resume a payment flow, i.e. on your `return_url`.
 
 ## Appearance
 
