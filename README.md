@@ -301,7 +301,7 @@ You might want to show a pending state UI when in the submission state, and allo
 
 ### `submission-resume`
 
-Notifies you when the SDK is resuming a previous attempt after the user returns to your `return_url` (see [Resuming after a redirect](#resuming-after-a-redirect)). the result follows in `submission-end`.
+Notifies you when the SDK is resuming a previous attempt after the user returns to your `return_url` (see [Resuming after a redirect](#resuming-after-a-redirect)). The outcome then follows as `session-complete` or `submission-end`.
 
 ### `action-begin` and `action-end`
 
@@ -320,9 +320,13 @@ const components = new XenditComponents({
 });
 ```
 
-The SDK reads the `token_request_id` Xendit appends to your `return_url`, polls that attempt, and resumes: if it succeeded, `session-complete` fires; if it failed, `submission-resume` then `submission-end` fire with a `userErrorMessage`.
+The SDK reads the `token_request_id` & `component_status` Xendit appends to your `return_url`, polls that attempt, and resumes. `submission-resume` fires when resuming begins; the outcome then follows as `session-complete` (success) or `submission-end` (failure, with a `userErrorMessage`).
 
 Re-initialize with the same `components_sdk_key` as the original session the `token_request_id` belongs to it, so have your server provide the key again on the return page. A `fatal-error` is fired if the `token_request_id` cannot be matched to a payment.
+
+Resume only restores an in-progress attempt while the session is still `ACTIVE`. If the session has already `COMPLETED`, the SDK skips the poll and fires `session-complete` directly, the backend does not return the payment request id for completed sessions, so the attempt cannot be polled.
+
+Only set `resume: true` on the return page (when `token_request_id` is present in the URL), not on a first checkout.
 
 ## Appearance
 
