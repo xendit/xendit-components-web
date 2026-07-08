@@ -328,7 +328,6 @@ After initialization, if the session is still active, a `submission-resume` even
 
 A `fatal-error` is fired if the query string parameters are not preserved, or if they don't match the key you use to initialize.
 
-
 Only set `resume: true` when you intend to resume a payment flow, i.e. on your `return_url`.
 
 ## Appearance
