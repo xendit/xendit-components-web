@@ -26,15 +26,16 @@ Our npm package includes TypeScript types. You also download the [.d.ts file](ht
 
 ## Sessions
 
-The Xendit Session API is an abstraction over the Xendit Payments API, representing one transaction (or tokenization). Using one session, a user can make any number
+The Xendit Session API is an abstraction over the Xendit Payments API, a Session encapsulates one successful transaction, tokenization, or subscription. Using one session, a user can make any number
 of attempts to pay, one of which can be successful. A successful payment completes the session.
 
-Sessions also abstract away any differences between channels, allowing you to write once, and accept payments from any channel Xendit supports.
+Sessions also abstract away the differences between payment channels, allowing you to integrate once, and accept payments from any channel Xendit supports.
 
-Two types of sessions are available:
+Three types of sessions are available:
 
 - `PAY` sessions collect a payment and optionally save a payment token for later use
 - `SAVE` sessions save a payment token
+- `SUBSCRIPTION` sessions save a payment token and create a subscription plan to automatically collect payment on a recurring basis
 
 ## Quick Start
 
@@ -310,6 +311,14 @@ If the session is already complete, expired, or cancelled, the the resume event 
 Notifies you when an action is in progress.
 
 Optionally, you can create an action container in the action-begin event. A default action container modal will be created if you don't.
+
+### `payment-request-created` and `payment-request-discarded`
+
+Notifies you when an underlying Payment Request is created by the session, or thrown away when the user cancels the payment flow.
+
+### `payment-token-created` and `payment-token-discarded`
+
+Notifies you when an underlying Payment Token is created by the session, or thrown away when the user cancels the tokenization flow.
 
 ## Resuming after a redirect
 
