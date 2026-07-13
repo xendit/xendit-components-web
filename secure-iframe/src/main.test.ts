@@ -225,8 +225,17 @@ async function setQueryParams(params: Record<string, string>) {
     }),
   };
   const allParams = { ...defaults, ...params };
-  const queryString = new URLSearchParams(allParams).toString();
-  history.replaceState(null, "", `?${queryString}`);
+  const queryString = new URLSearchParams({
+    input_type: allParams.input_type,
+    embedder: allParams.embedder,
+    appearance: allParams.appearance,
+  }).toString();
+  const hashString = new URLSearchParams({
+    session_id: allParams.session_id,
+    pk: allParams.pk,
+    sig: allParams.sig,
+  }).toString();
+  history.replaceState(null, "", `?${queryString}#${hashString}`);
 }
 
 /**
@@ -262,7 +271,9 @@ async function validateEncryptedText(
   changeEvent: IframeChangeEvent,
   expectedStrings: string[],
 ) {
-  const sessionId = new URLSearchParams(location.search).get("session_id");
+  const sessionId = new URLSearchParams(location.hash.slice(1)).get(
+    "session_id",
+  );
   assert(sessionId);
 
   for (let i = 0; i < changeEvent.encrypted.length; i++) {

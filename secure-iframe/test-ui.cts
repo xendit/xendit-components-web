@@ -170,12 +170,14 @@ async function createTestCase(testCaseName: string, inputType: string) {
   const embedderOrigin = "https://localhost:4444";
   const search = new URLSearchParams({
     embedder: embedderOrigin,
+    input_type: inputType,
+  });
+  const hash = new URLSearchParams({
     pk: arrayBufferToBase64(ecdhPublicKeyBytes),
     sig: arrayBufferToBase64(signature),
     session_id: sessionId,
-    input_type: inputType,
   });
-  const url = `./secure-iframe.html?${search}`;
+  const url = `./secure-iframe.html?${search}#${hash}`;
 
   // make ui
   const iframe = document.createElement("iframe");
