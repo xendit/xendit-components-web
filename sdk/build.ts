@@ -23,12 +23,17 @@ import assert from "assert";
 const SDK_PORT = 4443;
 
 let lastSeenBuildOutput: Map<string, Buffer> | null = null;
+let buildInProgress: boolean = false;
 
 const absoluteNodeModulesPath = path.join(
   import.meta.dirname,
   "..",
   "node_modules",
 );
+
+export async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 const packageJson = JSON.parse(
   readFileSync(path.join(import.meta.dirname, "../package.json"), "utf-8"),
@@ -196,6 +201,11 @@ async function rollupWatch() {
 
   watcher.on("event", async (event) => {
     switch (event.code) {
+      case "START": {
+        console.log("Rollup build start");
+        buildInProgress = true;
+        break;
+      }
       case "BUNDLE_END": {
         if (event.result) {
           for (const o of options.output as rollup.OutputOptions[]) {
@@ -219,6 +229,7 @@ async function rollupWatch() {
       }
       case "END": {
         console.log("Rollup build completed");
+        buildInProgress = false;
         break;
       }
       case "ERROR": {
@@ -252,6 +263,10 @@ async function handleDevServerRequest(
   req: IncomingMessage,
   res: ServerResponse,
 ) {
+  while (buildInProgress) {
+    await sleep(100);
+  }
+
   const pathname = new URL(`http://example.com${req.url}`).pathname;
 
   async function serveFileFromBundle(filename: string, mime: string) {
