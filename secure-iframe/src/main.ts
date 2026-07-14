@@ -31,18 +31,19 @@ function insecurePostMessage<T extends IframeEvent>(message: T) {
 
 function getQueryInputs() {
   const query = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
 
   const inputType = query.get("input_type");
   assert(inputType, "missing qs input_type");
   const embedderOrigin = query.get("embedder");
   assert(embedderOrigin, "missing qs embedder");
   assert(embedderOrigin !== "null", "null embedder origin");
-  const sessionId = query.get("session_id");
-  assert(sessionId, "missing qs session_id");
-  const serverPublicKeyBase64 = query.get("pk");
-  assert(serverPublicKeyBase64, "missing qs pk");
-  const serverPublicKeySignatureBase64 = query.get("sig");
-  assert(serverPublicKeySignatureBase64, "missing qs sig");
+  const sessionId = hash.get("session_id");
+  assert(sessionId, "missing hash session_id");
+  const serverPublicKeyBase64 = hash.get("pk");
+  assert(serverPublicKeyBase64, "missing hash pk");
+  const serverPublicKeySignatureBase64 = hash.get("sig");
+  assert(serverPublicKeySignatureBase64, "missing hash sig");
   const appearanceOptions = query.get("appearance");
 
   return {

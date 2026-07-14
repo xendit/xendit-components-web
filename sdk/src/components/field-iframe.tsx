@@ -160,11 +160,6 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
   const iframeUrl = new URL(IFRAME_SRC);
   iframeUrl.searchParams.set("input_type", field.type.name);
   iframeUrl.searchParams.set("embedder", window.location.origin);
-  iframeUrl.searchParams.set("session_id", session.payment_session_id);
-
-  iframeUrl.searchParams.set("pk", sdk[internal].sdkKey.publicKey);
-  iframeUrl.searchParams.set("sig", sdk[internal].sdkKey.signature);
-
   // Pass appearance options if provided
   if (sdk[internal].options.iframeFieldAppearance) {
     iframeUrl.searchParams.set(
@@ -172,6 +167,12 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
       JSON.stringify(sdk[internal].options.iframeFieldAppearance),
     );
   }
+  // Per-session values live in the URL fragment, not the query string, so that the request URL stays stable across sessions and the iframe stays cacheable.
+  const iframeHashParams = new URLSearchParams();
+  iframeHashParams.set("session_id", session.payment_session_id);
+  iframeHashParams.set("pk", sdk[internal].sdkKey.publicKey);
+  iframeHashParams.set("sig", sdk[internal].sdkKey.signature);
+  iframeUrl.hash = iframeHashParams.toString();
 
   const focusClass = focusWithin ? "xendit-field-focus" : "";
 
