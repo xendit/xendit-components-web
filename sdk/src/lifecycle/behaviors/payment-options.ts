@@ -52,6 +52,11 @@ export class PaymentOptionsBehavior implements Behavior {
     assert(this.bb.world);
     assert(this.bb.channel);
 
+    // skip for non-pay sessions
+    if (this.bb.world.session.session_type !== "PAY") {
+      return;
+    }
+
     let cardNumber: string | undefined;
     if (formHasFieldOfType(this.bb.channel.form, "credit_card_number")) {
       cardNumber =

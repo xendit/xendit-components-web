@@ -38,6 +38,7 @@ sdkKeyInput.placeholder =
   "Paste components_sdk_key and reload (leave blank to use mock)";
 sdkKeyInput.style.width = "100%";
 sdkKeyInput.style.whiteSpace = "nowrap";
+sdkKeyInput.style.overflow = "hidden";
 sdkKeyInput.setAttribute("rows", "1");
 sdkKeyInput.oninput = (e) => {
   const target = e.target as HTMLTextAreaElement;
