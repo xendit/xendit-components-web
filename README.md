@@ -110,7 +110,6 @@ const groups = components.getActiveChannelGroups();
 Returns a list of channel groups. This can be used to categorize channels by type, if you want to build
 your own channel selection UI. Each channel has a `uiGroup` property which matches one group's `id` property.
 
-<!--
 ### `getActiveDigitalWallets`
 
 ```typescript
@@ -118,7 +117,6 @@ const digitalWallets = components.getActiveDigitalWallets();
 ```
 
 Returns a list of digital wallets available in this session.
--->
 
 ### `createChannelComponent`
 
@@ -138,7 +136,6 @@ This returns a `HTMLElement`, which you need to insert into your document.
 This method uses caching, it will always return the same element for the same channel, to preserve the
 values the user enters into any form fields. If you don't want that, use `destroyComponent`.
 
-<!--
 ### `createDigitalWalletComponent`
 
 ```typescript
@@ -150,7 +147,6 @@ Creates a digital wallet CTA button for the specified digital wallet.
 After a user clicks the button and completes the digital wallet flow, a submission will automatically begin. This is equivalent to setting the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired as a normal submission.
 
 This returns a `HTMLElement`, which you need to insert into your document.
--->
 
 ### `createActionContainerComponent`
 
@@ -417,7 +413,6 @@ const sdk = new XenditComponents({
 });
 ```
 
-<!--
 ## Digital Wallet Support
 
 Any available Digital Wallet integration is automatically added at the top of the channel picker component. You may also create a Digital Wallet button manually by calling `createDigitalWalletComponent("GOOGLE_PAY")`.
@@ -441,7 +436,6 @@ We configure Google Pay for you, providing your MerchantID, merchant name, and t
 You can customize the appearance of the button using the options parameter of `createDigitalWalletComponent`, it accepts the same options as the [Google Pay API](https://developers.google.com/pay/api/web/reference/request-objects#ButtonOptions).
 
 To use Google Pay, you must adhere to the Google Pay and Wallet API's [Acceptable Use Policy](https://payments.developers.google.com/terms/aup) and accept the terms defined in the [Google Pay API Terms of Service](https://payments.developers.google.com/terms/sellertos). Additionally, please ensure you follow the [Google Pay brand guidelines](https://developers.google.com/pay/api/web/guides/brand-guidelines).
--->
 
 ## Troubleshooting
 

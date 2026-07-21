@@ -29,7 +29,6 @@ import {
   singleBffChannelToPublic,
 } from "../bff-marshal";
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
-import { internal } from "../internal";
 import { IconName } from "./icon";
 
 type Props = object;
@@ -133,15 +132,9 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     }
   }, [currentChannel, previewGroupId]);
 
-  // TODO: enable by default when released
-  const digitalWalletSectionEnabled =
-    sdk[internal].options.enableDigitalWallets ?? false;
-
   return (
     <div ref={thisRef}>
-      {digitalWalletSectionEnabled ? (
-        <ChannelPickerDigitalWalletSection />
-      ) : null}
+      <ChannelPickerDigitalWalletSection />
       <Accordion>
         {channelUiGroups
           .filter((group) => {

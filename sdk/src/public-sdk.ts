@@ -913,7 +913,7 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
-   * @internal
+   * @public
    * TODO: make this public
    * Returns a list of digital wallets available for this session.
    *
@@ -944,7 +944,7 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
-   * @internal
+   * @public
    * TODO: make this public
    * Creates a UI component for making payments with a digital wallet. It will contain a button to trigger the digital
    * wallet payment. If the digital wallet is not supported by the browser, it will have `display:none`.
