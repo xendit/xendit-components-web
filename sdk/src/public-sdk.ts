@@ -951,7 +951,7 @@ export class XenditComponents extends EventTarget {
    *
    * After the user pays using the digital wallet UI, a submission will automatically begin. Equivalent to setting
    * the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired
-   * as a normal submission, see {@link submit}.
+   * as a normal submission, see {@link XenditComponents.submit}.
    *
    * This returns a HTML Element, which you should insert into the DOM.
    */
