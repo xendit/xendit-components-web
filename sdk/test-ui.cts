@@ -132,14 +132,12 @@ if (savedKey) {
   components = new XenditComponents({
     componentsSdkKey: savedKey,
     iframeFieldAppearance,
-    enableDigitalWallets: true,
     enablePaylinks: true,
     resume: savedResume,
   });
 } else {
   components = new XenditComponentsTest({
     iframeFieldAppearance,
-    enableDigitalWallets: true,
     enablePaylinks: true,
   });
 }

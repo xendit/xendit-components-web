@@ -913,8 +913,7 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
-   * @internal
-   * TODO: make this public
+   * @public
    * Returns a list of digital wallets available for this session.
    *
    * For `GOOGLE_PAY`:
@@ -944,14 +943,13 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
-   * @internal
-   * TODO: make this public
+   * @public
    * Creates a UI component for making payments with a digital wallet. It will contain a button to trigger the digital
    * wallet payment. If the digital wallet is not supported by the browser, it will have `display:none`.
    *
    * After the user pays using the digital wallet UI, a submission will automatically begin. Equivalent to setting
    * the channel used (using `setCurrentChannel()`), and then calling `submit()`. The same events will be fired
-   * as a normal submission, see {@link submit}.
+   * as a normal submission, see {@link XenditComponents.submit}.
    *
    * This returns a HTML Element, which you should insert into the DOM.
    */

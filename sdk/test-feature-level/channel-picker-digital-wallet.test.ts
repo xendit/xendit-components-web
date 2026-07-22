@@ -52,7 +52,6 @@ describe("channel picker digital wallet section", async () => {
   it("should render channel picker with digital wallet section", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
-      enableDigitalWallets: true,
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -69,7 +68,6 @@ describe("channel picker digital wallet section", async () => {
   it("should trigger a submission by clicking the button", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
-      enableDigitalWallets: true,
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -110,7 +108,6 @@ describe("channel picker digital wallet section", async () => {
   it("should trigger a submission by clicking the button (with error)", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
-      enableDigitalWallets: true,
     });
 
     document.body.appendChild(sdk.createChannelPickerComponent());
@@ -137,5 +134,20 @@ describe("channel picker digital wallet section", async () => {
         },
       },
     ]);
+  });
+
+  it("getActiveDigitalWallets returns the configured wallets", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    await waitForEvent(sdk, "init");
+
+    const wallets = sdk.getActiveDigitalWallets();
+
+    const googlePay = wallets.find(
+      (wallet) => wallet.digitalWalletCode === "GOOGLE_PAY",
+    );
+    expect(googlePay?.channels.length ?? 0).toBeGreaterThan(0);
   });
 });
