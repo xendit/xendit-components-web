@@ -145,7 +145,9 @@ describe("channel picker digital wallet section", async () => {
 
     const wallets = sdk.getActiveDigitalWallets();
 
-    expect(wallets.map((w) => w.digitalWalletCode)).toContain("GOOGLE_PAY");
-    expect(wallets[0].channels.length).toBeGreaterThan(0);
+    const googlePay = wallets.find(
+      (wallet) => wallet.digitalWalletCode === "GOOGLE_PAY",
+    );
+    expect(googlePay?.channels.length ?? 0).toBeGreaterThan(0);
   });
 });
