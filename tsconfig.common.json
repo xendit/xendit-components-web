@@ -13,7 +13,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["googlepay"],
+    "types": ["googlepay", "applepayjs"],
     "paths": {
       "react/jsx-runtime": ["./node_modules/preact/jsx-runtime"]
     }

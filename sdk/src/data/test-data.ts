@@ -1439,6 +1439,32 @@ export function makeTestBffData(): BffResponse {
           },
         ],
       },
+      apple_pay: {
+        merchant_id: "platformintegrator.com.xendit",
+        apple_pay_payment_request: {
+          countryCode: "MY",
+          currencyCode: "MYR",
+          supportedNetworks: ["visa", "masterCard"],
+          merchantCapabilities: ["supports3DS"],
+          total: {
+            label: "Test session",
+            amount: "100",
+            type: "final",
+          },
+          requiredBillingContactFields: [
+            "postalAddress",
+            "name",
+            "email",
+            "phone",
+          ],
+          requiredShippingContactFields: [
+            "postalAddress",
+            "name",
+            "email",
+            "phone",
+          ],
+        },
+      },
     },
   };
 }

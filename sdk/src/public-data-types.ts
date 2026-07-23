@@ -265,14 +265,14 @@ export interface XenditPaymentChannelGroup {
 /**
  * @public
  */
-export type XenditDigitalWalletCode = "GOOGLE_PAY";
+export type XenditDigitalWalletCode = "GOOGLE_PAY" | "APPLE_PAY";
 
 /**
  * @public
  */
 export type XenditDigitalWallet = {
   /**
-   * Identifier for the digital wallet, the only supported one right now is GOOGLE_PAY.
+   * Identifier for the digital wallet.
    */
   digitalWalletCode: XenditDigitalWalletCode;
   /**
