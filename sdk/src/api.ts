@@ -111,3 +111,21 @@ export const getPaymentOptions = endpoint<
   "POST",
   (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/payment_options`,
 );
+
+type ValidateApplePaySessionRequestBody = {
+  validation_url: string;
+};
+/**
+ * Validates an Apple Pay merchant session.
+ *
+ * The response is an object from Apple that must be handed straight back to `completeMerchantValidation()`.
+ */
+export const validateApplePaySession = endpoint<
+  ValidateApplePaySessionRequestBody,
+  unknown,
+  string
+>(
+  "POST",
+  (sessionAuthKey) =>
+    `/api/sessions/${sessionAuthKey}/validate_apple_pay_session`,
+);

@@ -4,6 +4,7 @@ import { DigitalWalletOptions } from "../public-options-types";
 import { XenditDigitalWalletCode } from "../public-data-types";
 import { useCallback, useRef } from "preact/hooks";
 import { DigitalWalletWaitForLoad } from "./digital-wallet-wait-for-load";
+import { DigitalWalletApplepay } from "./digital-wallet-applepay";
 
 type Props<T extends XenditDigitalWalletCode> = {
   digitalWalletCode: T;
@@ -35,7 +36,21 @@ export const DigitalWalletContainer: FunctionComponent<
         >
           <DigitalWalletGooglepay
             onReady={onReady}
-            options={digitalWalletOptions}
+            options={digitalWalletOptions as DigitalWalletOptions<"GOOGLE_PAY">}
+          />
+        </DigitalWalletWaitForLoad>
+      );
+      break;
+    }
+    case "APPLE_PAY": {
+      el = (
+        <DigitalWalletWaitForLoad
+          scriptTagRegex={sdkStatusCheckers.APPLE_PAY.scriptTagRegex}
+          checkLoaded={sdkStatusCheckers.APPLE_PAY.checkLoaded}
+        >
+          <DigitalWalletApplepay
+            onReady={onReady}
+            options={digitalWalletOptions as DigitalWalletOptions<"APPLE_PAY">}
           />
         </DigitalWalletWaitForLoad>
       );
@@ -51,6 +66,13 @@ const sdkStatusCheckers = {
     scriptTagRegex: /https:\/\/pay.google.com\/.*\/js\/pay.js/,
     checkLoaded: () =>
       typeof google !== "undefined" && typeof google.payments !== "undefined",
+  },
+  APPLE_PAY: {
+    scriptTagRegex:
+      /https:\/\/applepay\.cdn-apple\.com\/jsapi\/.*\/apple-pay-sdk\.js/,
+    checkLoaded: () =>
+      typeof window.ApplePaySession !== "undefined" &&
+      customElements.get("apple-pay-button") !== undefined,
   },
 };
 

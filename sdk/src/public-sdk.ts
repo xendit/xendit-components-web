@@ -50,7 +50,7 @@ import {
   ChannelRoot,
   XenditChannelPropertiesChangedEvent,
 } from "./components/channel-root";
-import { fetchSessionData, pollSession } from "./api";
+import { fetchSessionData, pollSession, validateApplePaySession } from "./api";
 import { resolveResumeState, getResumeParams } from "./resume";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
@@ -939,6 +939,28 @@ export class XenditComponents extends EventTarget {
         pairChannels: findChannelPairs(this[internal].worldState.channels),
         session: this[internal].worldState.session,
       },
+    );
+  }
+
+  /**
+   * @internal
+   * Validates an Apple Pay merchant session via the BFF.
+   *
+   * Apple requires the merchant to be proven before its payment sheet appears.
+   * The proof is an mTLS certificate held server-side
+   * The returned object is passed straight to `completeMerchantValidation()`.
+   */
+  async validateApplePayMerchant(validationUrl: string): Promise<unknown> {
+    this.assertInitialized();
+
+    if (this.isMock()) {
+      return {};
+    }
+
+    return validateApplePaySession(
+      this[internal].sdkKey,
+      { validation_url: validationUrl },
+      this[internal].sdkKey.sessionAuthKey,
     );
   }
 

@@ -405,5 +405,32 @@ export function bffDigitalWalletsToPublic(
     });
   }
 
+  if (bffDigitalWallets.apple_pay) {
+    // Apple Pay not send channel list like googlepay, and only supports CARDS
+    const cardsChannel = bffChannels.find((c) => c.channel_code === "CARDS");
+
+    if (cardsChannel) {
+      const channelsByGroupId = makeChannelsByGroupId(
+        [cardsChannel],
+        marshalConfig,
+      );
+
+      out.push({
+        digitalWalletCode: "APPLE_PAY",
+        get channels() {
+          return [
+            bffChannelToPublic(
+              cardsChannel,
+              channelsByGroupId,
+              groupsByGroupId,
+              marshalConfig,
+            ),
+          ];
+        },
+        [internal]: true,
+      });
+    }
+  }
+
   return out;
 }

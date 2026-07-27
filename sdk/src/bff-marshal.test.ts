@@ -3,6 +3,7 @@ import { makeTestBffData } from "./data/test-data";
 import {
   bffChannelsToPublic,
   bffCustomerToPublic,
+  bffDigitalWalletsToPublic,
   bffSessionToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
@@ -242,5 +243,53 @@ describe("BFF Marshal - bffUiGroupsToPublic", () => {
       testData.channels.filter((ch) => ch.ui_group === mockGroup.groupId)
         .length,
     );
+  });
+});
+
+describe("BFF Marshal - bffDigitalWalletsToPublic", () => {
+  it("should map Apple Pay to the CARDS channel", () => {
+    const testData = makeTestBffData();
+    assert(testData.digital_wallets);
+
+    const wallets = bffDigitalWalletsToPublic(
+      testData.digital_wallets,
+      testData.channels,
+      testData.channel_ui_groups,
+      {
+        options: { filterMinMax: false },
+        pairChannels: findChannelPairs(testData.channels),
+        session: testData.session,
+      },
+    );
+
+    const applePay = wallets.find((w) => w.digitalWalletCode === "APPLE_PAY");
+    assert(applePay);
+    expect(applePay.channels).toHaveLength(1);
+    expect(applePay.channels[0].channelCode).toBe("CARDS");
+  });
+
+  it("should omit Apple Pay when the session has no CARDS channel", () => {
+    const testData = makeTestBffData();
+    assert(testData.digital_wallets?.apple_pay);
+
+    // a session that only offers non-card channels
+    const channelsWithoutCards = testData.channels.filter(
+      (ch) => ch.channel_code !== "CARDS",
+    );
+
+    const wallets = bffDigitalWalletsToPublic(
+      { apple_pay: testData.digital_wallets.apple_pay },
+      channelsWithoutCards,
+      testData.channel_ui_groups,
+      {
+        options: { filterMinMax: false },
+        pairChannels: findChannelPairs(channelsWithoutCards),
+        session: testData.session,
+      },
+    );
+
+    expect(
+      wallets.find((w) => w.digitalWalletCode === "APPLE_PAY"),
+    ).toBeUndefined();
   });
 });
