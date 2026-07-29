@@ -22,7 +22,9 @@ export interface XenditSdkOptions {
   resume?: boolean;
 
   /**
-   * @internal
+   * A facilitated payment link is added to the page during redirect payments when the payment method supports it, so supporting browsers can offer to complete the payment directly instead of a full redirect. Set this to `true` to enable it.
+   *
+   * Default `false`.
    */
   enablePaylinks?: boolean;
 }
