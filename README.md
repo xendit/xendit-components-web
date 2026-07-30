@@ -335,6 +335,23 @@ A `fatal-error` is fired if the query string parameters are not preserved, or if
 
 Only set `resume: true` when you intend to resume a payment flow, i.e. on your `return_url`.
 
+## Paylink
+
+Paylink is an optional checkout optimization for redirect-based payment methods (such as e-wallets). It is disabled by default.
+
+When enabled, the SDK adds a facilitated payment link `<link rel="facilitated-payment">` into the page. Supported browsers can then offer to complete the payment directly via dialog, instead of sending the user through a full page redirect.
+
+Browsers that don't support the link will simply ignore it, and the user pays through the usual redirect.
+
+To opt in, initialize the SDK with `enablePaylinks: true`
+
+```typescript
+const components = new XenditComponents({
+  componentsSdkKey,
+  enablePaylinks: true,
+});
+```
+
 ## Appearance
 
 ### CSS
