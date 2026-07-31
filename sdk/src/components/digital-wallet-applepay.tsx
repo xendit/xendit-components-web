@@ -125,13 +125,22 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     };
 
     applePaySession.onpaymentauthorized = (event) => {
-      sdk.submitDigitalWallet("APPLE_PAY", cardsChannel, {
-        apple_pay: JSON.stringify({
-          billingContact: event.payment.billingContact,
-          shippingContact: event.payment.shippingContact,
-          token: event.payment.token,
-        }),
-      });
+      try {
+        sdk.submitDigitalWallet("APPLE_PAY", cardsChannel, {
+          apple_pay: JSON.stringify({
+            billingContact: event.payment.billingContact,
+            shippingContact: event.payment.shippingContact,
+            token: event.payment.token,
+          }),
+        });
+      } catch (err) {
+        console.error(
+          "XenditComponents: Unable to submit the Apple Pay payment",
+          err,
+        );
+        applePaySession.completePayment(ApplePaySession.STATUS_FAILURE);
+        return;
+      }
       applePaySession.completePayment(ApplePaySession.STATUS_SUCCESS);
     };
 
