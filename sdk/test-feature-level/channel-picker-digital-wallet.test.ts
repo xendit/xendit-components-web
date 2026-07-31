@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { XenditComponentsTest } from "../src";
 import { waitForEvent, waitForEventSequence } from "./utils";
 import { screen } from "@testing-library/dom";
+import { NetworkError } from "../src/networking";
 
 function errorWithStatusCode(
   message: string,
@@ -44,11 +45,74 @@ window.google = {
   },
 };
 
+// mock applepay
+window.ApplePaySession = class {
+  static supportsVersion(_version: number) {
+    return true;
+  }
+  static canMakePayments() {
+    return true;
+  }
+  static STATUS_SUCCESS = 0;
+
+  onvalidatemerchant:
+    | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
+    | null = null;
+  onpaymentauthorized:
+    | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
+    | null = null;
+  oncancel: ((event: Event) => void) | null = null;
+
+  begin() {
+    Promise.resolve().then(() => {
+      this.onvalidatemerchant?.({
+        validationURL: "https://apple-pay-gateway.apple.com/validate",
+      } as ApplePayJS.ApplePayValidateMerchantEvent);
+    });
+  }
+
+  completeMerchantValidation(_merchantSession: unknown) {}
+
+  completePayment(_status: number) {}
+
+  abort() {}
+} as unknown as typeof ApplePaySession;
+
+if (!customElements.get("apple-pay-button")) {
+  customElements.define("apple-pay-button", class extends HTMLElement {});
+}
+
 afterEach(() => {
   document.body.replaceChildren();
+  window.ApplePaySession = class {
+    static supportsVersion(_version: number) {
+      return true;
+    }
+    static canMakePayments() {
+      return true;
+    }
+    static STATUS_SUCCESS = 0;
+    onvalidatemerchant:
+      | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
+      | null = null;
+    onpaymentauthorized:
+      | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
+      | null = null;
+    oncancel: ((event: Event) => void) | null = null;
+    begin() {
+      Promise.resolve().then(() => {
+        this.onvalidatemerchant?.({
+          validationURL: "https://apple-pay-gateway.apple.com/validate",
+        } as ApplePayJS.ApplePayValidateMerchantEvent);
+      });
+    }
+    completeMerchantValidation(_merchantSession: unknown) {}
+    completePayment(_status: number) {}
+    abort() {}
+  } as unknown as typeof ApplePaySession;
 });
 
-describe("channel picker digital wallet section", async () => {
+describe("channel picker digital wallet section - Google Pay", async () => {
   it("should render channel picker with digital wallet section", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
@@ -149,5 +213,164 @@ describe("channel picker digital wallet section", async () => {
       (wallet) => wallet.digitalWalletCode === "GOOGLE_PAY",
     );
     expect(googlePay?.channels.length ?? 0).toBeGreaterThan(0);
+  });
+});
+
+describe("channel picker digital wallet section - Apple Pay", async () => {
+  it("should render channel picker with Apple Pay button", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    expect(button).toBeInTheDocument();
+  });
+
+  it("should trigger a submission after the user authorizes payment", async () => {
+    window.ApplePaySession = class {
+      static supportsVersion(_version: number) {
+        return true;
+      }
+      static canMakePayments() {
+        return true;
+      }
+      static STATUS_SUCCESS = 0;
+
+      onvalidatemerchant:
+        | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
+        | null = null;
+      onpaymentauthorized:
+        | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
+        | null = null;
+      oncancel: ((event: Event) => void) | null = null;
+
+      begin() {
+        Promise.resolve().then(() => {
+          this.onvalidatemerchant?.({
+            validationURL: "https://apple-pay-gateway.apple.com/validate",
+          } as ApplePayJS.ApplePayValidateMerchantEvent);
+        });
+
+        Promise.resolve().then(() => {
+          this.onpaymentauthorized?.({
+            payment: {
+              token: {
+                paymentMethod: {
+                  displayName: "Visa 1234",
+                  network: "Visa",
+                  type: "debit",
+                },
+                transactionIdentifier: "txn-abc",
+                paymentData: {},
+              },
+              billingContact: {},
+              shippingContact: {},
+            },
+          } as unknown as ApplePayJS.ApplePayPaymentAuthorizedEvent);
+        });
+      }
+
+      completeMerchantValidation(_merchantSession: unknown) {}
+      completePayment(_status: number) {}
+      abort() {}
+    } as unknown as typeof ApplePaySession;
+
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+
+    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    button.click();
+
+    await waitForEventSequence(sdk, [
+      { name: "submission-begin" },
+      { name: "action-begin" }, // mock 3DS triggered for the CARDS channel
+    ]);
+  });
+
+  it("should emit submission-end with APPLE_PAY_MERCHANT_VALIDATION_FAILED when merchant validation fails", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+
+    // Make validateApplePayMerchant throw a NetworkError.
+    sdk.validateApplePayMerchant = async () => {
+      throw new NetworkError({
+        message: "merchant validation failed",
+        error_code: "SERVER_ERROR",
+      });
+    };
+
+    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    button.click();
+
+    await waitForEventSequence(sdk, [
+      { name: "submission-begin" },
+      {
+        name: "submission-end",
+        expectedKeys: {
+          reason: "REQUEST_FAILED",
+          developerErrorMessage: {
+            code: "APPLE_PAY_MERCHANT_VALIDATION_FAILED",
+          },
+        },
+      },
+    ]);
+  });
+
+  it("should emit submission-end with APPLE_PAY_NETWORK_ERROR when merchant validation fails with a non-network error", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+
+    // Make validateApplePayMerchant throw a plain error (not a NetworkError).
+    sdk.validateApplePayMerchant = async () => {
+      throw new Error("something went wrong");
+    };
+
+    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    button.click();
+
+    await waitForEventSequence(sdk, [
+      { name: "submission-begin" },
+      {
+        name: "submission-end",
+        expectedKeys: {
+          reason: "REQUEST_FAILED",
+          developerErrorMessage: { code: "APPLE_PAY_NETWORK_ERROR" },
+        },
+      },
+    ]);
+  });
+
+  it("getActiveDigitalWallets returns Apple Pay mapped to the CARDS channel", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    await waitForEvent(sdk, "init");
+
+    const wallets = sdk.getActiveDigitalWallets();
+
+    const applePay = wallets.find(
+      (wallet) => wallet.digitalWalletCode === "APPLE_PAY",
+    );
+    expect(applePay?.channels.length ?? 0).toBeGreaterThan(0);
+    expect(applePay?.channels[0].channelCode).toBe("CARDS");
   });
 });
