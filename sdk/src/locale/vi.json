@@ -17,6 +17,7 @@
     "action_va.copy": "",
     "action_va.merchant_name": "",
     "action_va.virtual_account_number": "Số tài khoản định danh (Virtual Account)",
+    "card_field.load_failed": "✕ Không tải được",
     "combobox.default_search_placeholder": "Tìm kiếm...",
     "customer_details.form_name": "Tên của bạn",
     "customer_details.name": "Tên",

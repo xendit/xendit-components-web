@@ -465,6 +465,7 @@ xendit-channel-picker[inert] {
   padding: 0;
   overflow: hidden;
   box-sizing: border-box;
+  position: relative;
 }
 
 .xendit-channel-form-field .xendit-iframe-container iframe {
@@ -842,6 +843,66 @@ xendit-channel-picker[inert] {
 
 /* Button ends */
 
+/* Loading shimmer */
+@keyframes xendit-shimmer-sweep {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.xendit-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--xendit-color-disabled) 25%,
+    color-mix(in srgb, var(--xendit-color-disabled), white 40%) 50%,
+    var(--xendit-color-disabled) 75%
+  );
+  background-size: 200% 100%;
+  animation: xendit-shimmer-sweep 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xendit-shimmer {
+    animation: none;
+  }
+}
+
+.xendit-channel-form-field .xendit-iframe-shimmer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.xendit-channel-form-field .xendit-iframe-hidden {
+  opacity: 0;
+}
+
+/* Loading shimmer ends */
+
+/* Iframe field load failure */
+.xendit-channel-form-field .xendit-iframe-field-error {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.xendit-channel-form-field .xendit-iframe-field-error > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Iframe field load failure ends */
+
 /* Form Simulation Helper */
 .xendit-form-simulation-root {
   position: relative;
@@ -856,6 +917,9 @@ xendit-channel-picker[inert] {
   position: absolute;
   top: 100%;
   right: 0;
+  /* the form fields below are positioned too, and come later in the DOM, so
+     without this they would paint over the popover */
+  z-index: var(--xendit-z-index-overlay);
 
   width: 350px;
   display: flex;

@@ -17,6 +17,7 @@
     "action_va.copy": "Copiar",
     "action_va.merchant_name": "Nombre de Virtual Account",
     "action_va.virtual_account_number": "Número de Cuenta Virtual",
+    "card_field.load_failed": "✕ No se pudo cargar",
     "combobox.default_search_placeholder": "Buscar...",
     "customer_details.form_name": "Tu Nombre",
     "customer_details.name": "Nombre",

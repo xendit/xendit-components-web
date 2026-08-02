@@ -17,6 +17,7 @@
     "action_va.copy": "คัดลอก",
     "action_va.merchant_name": "ชื่อ Virtual Account",
     "action_va.virtual_account_number": "หมายเลข Virtual Account",
+    "card_field.load_failed": "✕ โหลดไม่สำเร็จ",
     "combobox.default_search_placeholder": "ค้นหา...",
     "customer_details.form_name": "ชื่อของคุณ",
     "customer_details.name": "ชื่อ",
