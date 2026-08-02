@@ -432,11 +432,9 @@ const sdk = new XenditComponents({
 
 ## Digital Wallet Support
 
-Any available Digital Wallet integration is automatically added at the top of the channel picker component. You may also create a Digital Wallet button manually by calling `createDigitalWalletComponent("GOOGLE_PAY")`.
+Any available Digital Wallet integration is automatically added at the top of the channel picker component. You may also create a Digital Wallet button manually by calling `createDigitalWalletComponent("GOOGLE_PAY")` or `createDigitalWalletComponent("APPLE_PAY")`.
 
 When the user pays using the digital wallet, the submission flow will automatically begin, the same as if you had called `submit()`.
-
-Google Pay is currently the only supported digital wallet.
 
 ### Google Pay™
 
@@ -453,6 +451,29 @@ We configure Google Pay for you, providing your MerchantID, merchant name, and t
 You can customize the appearance of the button using the options parameter of `createDigitalWalletComponent`, it accepts the same options as the [Google Pay API](https://developers.google.com/pay/api/web/reference/request-objects#ButtonOptions).
 
 To use Google Pay, you must adhere to the Google Pay and Wallet API's [Acceptable Use Policy](https://payments.developers.google.com/terms/aup) and accept the terms defined in the [Google Pay API Terms of Service](https://payments.developers.google.com/terms/sellertos). Additionally, please ensure you follow the [Google Pay brand guidelines](https://developers.google.com/pay/api/web/guides/brand-guidelines).
+
+### Apple Pay
+
+Apple Pay is available to Sessions that meet the following requirements:
+
+- Your Session country is a country where Apple Pay is supported.
+- You have a CARDS channel available in your session.
+- You've registered and verified your checkout domain for Apple Pay on the Xendit Dashboard. (Apple refuses to show its payment sheet on domains it does not recognize. To verify your domain, download the domain association file from the xendit dashboard and host it at `https://[YOUR_DOMAIN]/.well-known/apple-developer-merchantid-domain-association`)
+- The Apple Pay SDK is loaded using `<script async src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"></script>`. ( Same as googlepay you need to include the SDK yourself, we don't bundle it. There's no need to wait for it to finish loading, if it's still loading when you create the component, it'll have `display:none` until it finishes loading)
+- The user's browser and device support Apple Pay. (The component will have `display:none` otherwise)
+
+We configure Apple Pay for you, providing the payment request, supported card networks, and merchant details.
+
+You can customize the appearance of the button using the options parameter of `createDigitalWalletComponent`:
+
+```typescript
+const htmlElement = components.createDigitalWalletComponent("APPLE_PAY", {
+  buttonStyle: "black", // "black" | "white" | "white-outline"
+  buttonType: "plain", // "plain" | "buy" | "check-out" | "book" | "order" | "donate" | "subscribe"
+});
+```
+
+To use Apple Pay, you must follow the [Apple Pay Marketing Guidelines](https://developer.apple.com/apple-pay/marketing/) and accept the [Apple Pay Web Terms and Conditions](https://developer.apple.com/apple-pay/terms/).
 
 ## Troubleshooting
 

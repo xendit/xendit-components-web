@@ -254,6 +254,7 @@ async function generateTestPage() {
   </head>
   <body>
     <script async src="https://pay.google.com/gp/p/js/pay.js"></script>
+    <script async src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"></script>
     <script type="module">${stripTypeScriptTypes(code)}</script>
   </body>
 </html>`;
