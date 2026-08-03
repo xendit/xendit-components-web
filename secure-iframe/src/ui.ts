@@ -309,6 +309,7 @@ export function createFatalErrorComponent(code: string) {
   div.style.color = "red";
   div.style.fontFamily = "monospace";
   div.style.fontSize = "10px";
+  div.style.margin = "12px";
   div.textContent = `✕ ${code}`;
   return div;
 }
