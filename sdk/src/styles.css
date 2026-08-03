@@ -340,6 +340,7 @@ xendit-channel-picker[inert] {
   display: flex;
   justify-content: space-between;
   gap: 16px;
+  position: relative;
 }
 
 .xendit-channel-form-field-group label {
@@ -843,9 +844,6 @@ xendit-channel-picker[inert] {
 /* Button ends */
 
 /* Form Simulation Helper */
-.xendit-form-simulation-root {
-  position: relative;
-}
 .xendit-form-simulation-trigger {
   background: transparent;
   border: none;
@@ -855,20 +853,18 @@ xendit-channel-picker[inert] {
 .xendit-form-simulation-popover {
   position: absolute;
   top: 100%;
+  left: 0;
   right: 0;
+  margin-top: 8px;
+  z-index: var(--xendit-z-index-overlay);
 
-  width: 350px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   border-radius: 4px;
   padding: 12px;
   border: 1px solid var(--xendit-color-border);
-  background: color-mix(
-    in srgb,
-    var(--xendit-color-background),
-    transparent 40%
-  );
+  background: rgb(from var(--xendit-color-background) r g b / 70%);
   backdrop-filter: blur(6px);
   box-shadow: var(--xendit-card-shadow);
 }
