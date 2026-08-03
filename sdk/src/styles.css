@@ -439,6 +439,8 @@ xendit-channel-picker[inert] {
   align-items: center;
   padding: 8px 12px;
   gap: 4px;
+  position: relative;
+  z-index: 2;
 }
 
 .xendit-channel-form-field .xendit-form-field-inner:focus,
@@ -466,6 +468,13 @@ xendit-channel-picker[inert] {
   overflow: hidden;
   box-sizing: border-box;
   position: relative;
+}
+
+.xendit-channel-form-field .xendit-iframe-slot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
 }
 
 .xendit-channel-form-field .xendit-iframe-container iframe {
@@ -872,8 +881,10 @@ xendit-channel-picker[inert] {
 
 .xendit-channel-form-field .xendit-iframe-shimmer {
   position: absolute;
+  margin: 6px 12px;
   inset: 0;
   z-index: 1;
+  border-radius: 4px;
 }
 
 .xendit-channel-form-field .xendit-iframe-hidden {
@@ -885,13 +896,13 @@ xendit-channel-picker[inert] {
 /* Iframe field load failure */
 .xendit-channel-form-field .xendit-iframe-field-error {
   position: absolute;
+  margin: 6px 12px;
   inset: 0;
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 12px;
+  font-family: monospace;
+  font-size: 10px;
   box-sizing: border-box;
 }
 

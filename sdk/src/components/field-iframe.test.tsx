@@ -358,7 +358,7 @@ describe("field-iframe", () => {
     ).not.toContain("xendit-iframe-hidden");
   });
 
-  it("should show an error when the iframe reports a failed init", async () => {
+  it("should leave the iframe visible when it reports a failed init", async () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
@@ -380,12 +380,12 @@ describe("field-iframe", () => {
     fireIframeEvent(iframeElement, { type: "xendit-iframe-failed-init" });
     await sleep(1);
 
-    expect(document.querySelector(".xendit-iframe-field-error")).not.toBeNull();
+    expect(document.querySelector(".xendit-iframe-field-error")).toBeNull();
 
-    // the iframe stays mounted but hidden, so a late handshake can still recover the field without the user reloading the page
-    const hiddenIframe = document.querySelector<HTMLIFrameElement>("iframe");
-    assert(hiddenIframe);
-    expect(hiddenIframe.className).toContain("xendit-iframe-hidden");
+    const visibleIframe = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(visibleIframe);
+    expect(visibleIframe.className).not.toContain("xendit-iframe-hidden");
+
     expect(consoleError).toHaveBeenCalled();
 
     consoleError.mockRestore();
@@ -411,6 +411,42 @@ describe("field-iframe", () => {
     const hiddenIframe = document.querySelector<HTMLIFrameElement>("iframe");
     assert(hiddenIframe);
     expect(hiddenIframe.className).toContain("xendit-iframe-hidden");
+  });
+
+  it("should reveal the iframe error if a failed init arrives after our own timeout overlay", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={vi.fn()} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    // no message is ever sent; wait past the 8s deadline - our own overlay appears
+    await sleep(9000);
+    expect(document.querySelector(".xendit-iframe-field-error")).not.toBeNull();
+
+    // the iframe finally finishes loading, but crashes a signal, is preferred over our own generic overlay
+    fireIframeEvent(iframeElement, { type: "xendit-iframe-failed-init" });
+    await sleep(1); // wait for rerender
+
+    expect(document.querySelector(".xendit-iframe-field-error")).toBeNull();
+    const visibleIframe = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(visibleIframe);
+    expect(visibleIframe.className).not.toContain("xendit-iframe-hidden");
+    expect(consoleError).toHaveBeenCalled();
+
+    consoleError.mockRestore();
   });
 
   it("should recover if the iframe becomes ready after the deadline", async () => {
