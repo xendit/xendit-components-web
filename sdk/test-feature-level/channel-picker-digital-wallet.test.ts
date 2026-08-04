@@ -225,7 +225,7 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
     document.body.appendChild(sdk.createChannelPickerComponent());
 
     await waitForEvent(sdk, "init");
-    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    const button = screen.getByRole("button", { name: "Apple Pay" });
     expect(button).toBeInTheDocument();
   });
 
@@ -286,7 +286,9 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
 
     await waitForEvent(sdk, "init");
 
-    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    sdk.validateApplePayMerchant = async () => ({});
+
+    const button = screen.getByRole("button", { name: "Apple Pay" });
     button.click();
 
     await waitForEventSequence(sdk, [
@@ -312,7 +314,9 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
       });
     };
 
-    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+    const button = screen.getByRole("button", { name: "Apple Pay" });
     button.click();
 
     await waitForEventSequence(sdk, [
@@ -327,6 +331,8 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
         },
       },
     ]);
+
+    alertSpy.mockRestore();
   });
 
   it("should emit submission-end with APPLE_PAY_NETWORK_ERROR when merchant validation fails with a non-network error", async () => {
@@ -343,7 +349,7 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
       throw new Error("something went wrong");
     };
 
-    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    const button = screen.getByRole("button", { name: "Apple Pay" });
     button.click();
 
     await waitForEventSequence(sdk, [
@@ -376,7 +382,7 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
 
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
 
-    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    const button = screen.getByRole("button", { name: "Apple Pay" });
     button.click();
 
     await waitForEventSequence(sdk, [
@@ -411,7 +417,7 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
 
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
 
-    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    const button = screen.getByRole("button", { name: "Apple Pay" });
     button.click();
 
     await waitForEventSequence(sdk, [
@@ -440,7 +446,7 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
 
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
 
-    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    const button = screen.getByRole("button", { name: "Apple Pay" });
     button.click();
 
     await waitForEventSequence(sdk, [
