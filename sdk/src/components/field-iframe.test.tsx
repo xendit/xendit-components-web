@@ -312,6 +312,171 @@ describe("field-iframe", () => {
     assert(hiddenInput);
     expect(hiddenInput.value).toBe("");
   });
+
+  it("should show a shimmer while the iframe is loading", async () => {
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={vi.fn()} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    // the shimmer covers the field
+    expect(document.querySelector(".xendit-shimmer")).not.toBeNull();
+
+    // the iframe stays mounted so it can finish loading, but is hidden
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+    expect(iframeElement.className).toContain("xendit-iframe-hidden");
+  });
+
+  it("should hide the shimmer once the iframe is ready", async () => {
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={vi.fn()} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    fireIframeEvent(iframeElement, iframeReadyEvent());
+    await sleep(1);
+
+    expect(document.querySelector(".xendit-shimmer")).toBeNull();
+    expect(
+      document.querySelector<HTMLIFrameElement>("iframe")?.className,
+    ).not.toContain("xendit-iframe-hidden");
+  });
+
+  it("should leave the iframe visible when it reports a failed init", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={vi.fn()} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    fireIframeEvent(iframeElement, { type: "xendit-iframe-failed-init" });
+    await sleep(1);
+
+    expect(document.querySelector(".xendit-iframe-field-error")).toBeNull();
+
+    const visibleIframe = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(visibleIframe);
+    expect(visibleIframe.className).not.toContain("xendit-iframe-hidden");
+
+    expect(consoleError).toHaveBeenCalled();
+
+    consoleError.mockRestore();
+  });
+
+  it("should show an error when the iframe never becomes ready", async () => {
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={vi.fn()} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    // no message is ever sent; wait past the 8s deadline
+    await sleep(9000);
+
+    expect(document.querySelector(".xendit-iframe-field-error")).not.toBeNull();
+
+    const hiddenIframe = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(hiddenIframe);
+    expect(hiddenIframe.className).toContain("xendit-iframe-hidden");
+  });
+
+  it("should reveal the iframe error if a failed init arrives after our own timeout overlay", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={vi.fn()} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    // no message is ever sent; wait past the 8s deadline - our own overlay appears
+    await sleep(9000);
+    expect(document.querySelector(".xendit-iframe-field-error")).not.toBeNull();
+
+    // the iframe finally finishes loading, but crashes a signal, is preferred over our own generic overlay
+    fireIframeEvent(iframeElement, { type: "xendit-iframe-failed-init" });
+    await sleep(1); // wait for rerender
+
+    expect(document.querySelector(".xendit-iframe-field-error")).toBeNull();
+    const visibleIframe = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(visibleIframe);
+    expect(visibleIframe.className).not.toContain("xendit-iframe-hidden");
+    expect(consoleError).toHaveBeenCalled();
+
+    consoleError.mockRestore();
+  });
+
+  it("should recover if the iframe becomes ready after the deadline", async () => {
+    const sdk: XenditComponentsTest = new XenditComponentsTest({});
+    await waitForEvent(sdk, "init");
+    sdk.assertInitialized();
+
+    render(
+      <XenditSessionProvider sdk={sdk} data={sdk[internal].worldState}>
+        <IframeField field={field} onChange={vi.fn()} />
+      </XenditSessionProvider>,
+      document.body,
+    );
+
+    const iframeElement = document.querySelector<HTMLIFrameElement>("iframe");
+    assert(iframeElement);
+
+    // the deadline elapses before the iframe answers
+    await sleep(9000);
+    expect(document.querySelector(".xendit-iframe-field-error")).not.toBeNull();
+
+    // the slow iframe finally finishes loading
+    fireIframeEvent(iframeElement, iframeReadyEvent());
+    await sleep(1);
+
+    expect(document.querySelector(".xendit-iframe-field-error")).toBeNull();
+    expect(
+      document.querySelector<HTMLIFrameElement>("iframe")?.className,
+    ).not.toContain("xendit-iframe-hidden");
+  });
 });
 
 function iframeReadyEvent(): IframeReadyEvent {
