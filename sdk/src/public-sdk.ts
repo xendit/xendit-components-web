@@ -954,6 +954,9 @@ export class XenditComponents extends EventTarget {
     this.assertInitialized();
 
     if (this.isMock()) {
+      alert(
+        "Apple Pay can't be tested end-to-end in mock mode. Test with a real session, using a device signed into an Apple sandbox tester account.",
+      );
       return {};
     }
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { XenditComponentsTest } from "../src";
 import { waitForEvent, waitForEventSequence } from "./utils";
 import { screen } from "@testing-library/dom";
@@ -356,6 +356,101 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
         },
       },
     ]);
+  });
+
+  it("should alert in test environments when merchant validation fails", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+
+    sdk.validateApplePayMerchant = async () => {
+      throw new NetworkError({
+        message: "merchant validation failed",
+        error_code: "SERVER_ERROR",
+      });
+    };
+
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    button.click();
+
+    await waitForEventSequence(sdk, [
+      { name: "submission-begin" },
+      { name: "submission-end" },
+    ]);
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(alertSpy.mock.calls[0][0]).toContain("sandbox");
+
+    alertSpy.mockRestore();
+  });
+
+  it("should not alert when merchant validation fails on a live session", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+
+    // Simulate a live (non-test) session, where this alert must never appear in front of a real customer.
+    sdk.isMock = () => false;
+    sdk.isDevelopmentEnv = () => false;
+    sdk.validateApplePayMerchant = async () => {
+      throw new NetworkError({
+        message: "merchant validation failed",
+        error_code: "SERVER_ERROR",
+      });
+    };
+
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    button.click();
+
+    await waitForEventSequence(sdk, [
+      { name: "submission-begin" },
+      { name: "submission-end" },
+    ]);
+
+    expect(alertSpy).not.toHaveBeenCalled();
+
+    alertSpy.mockRestore();
+  });
+
+  it("should not alert when the request never reached the server", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+
+    // A plain error means the request never got a structured response back, the failure is a network or CORS problem rather than anything Apple said.
+    sdk.validateApplePayMerchant = async () => {
+      throw new Error("failed to fetch");
+    };
+
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+    const button = await screen.findByRole("button", { name: "Apple Pay" });
+    button.click();
+
+    await waitForEventSequence(sdk, [
+      { name: "submission-begin" },
+      { name: "submission-end" },
+    ]);
+
+    expect(alertSpy).not.toHaveBeenCalled();
+
+    alertSpy.mockRestore();
   });
 
   it("getActiveDigitalWallets returns Apple Pay mapped to the CARDS channel", async () => {
