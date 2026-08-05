@@ -11,7 +11,7 @@ import { IframeEvent } from "../../../shared/types";
 import { useChannel, useChannelComponentData } from "./channel-root";
 import { XenditFormAssociatedFocusTrap } from "./core/form-ascociated-focus-trap";
 import { internal } from "../internal";
-import { assert, formFieldId, formFieldName } from "../utils";
+import { assert, cancellableSleep, formFieldId, formFieldName } from "../utils";
 import { FunctionComponent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { IframeRegistryContext } from "./iframe-registry";
@@ -23,6 +23,9 @@ const parsedIframeUrl = new URL(
 );
 const IFRAME_SRC = parsedIframeUrl.toString();
 const IFRAME_ORIGIN = parsedIframeUrl.origin;
+
+//  How long to wait for the iframe's `xendit-iframe-ready` before showing error.
+const IFRAME_LOAD_TIMEOUT_MS = 8000;
 
 export const IframeField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -38,6 +41,9 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
   const [iframeEcdhPublicKey, setIframeEcdhPublicKey] = useState<
     string | undefined
   >();
+  const [status, setStatus] = useState<"loading" | "ready" | "failed">(
+    "loading",
+  );
 
   const [focusWithin, setFocusWithin] = useState(false);
 
@@ -69,6 +75,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
       switch (data.type) {
         case "xendit-iframe-ready": {
           setIframeEcdhPublicKey(data.ecdhPublicKey);
+          setStatus("ready");
           break;
         }
         case "xendit-iframe-change": {
@@ -128,6 +135,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
           console.error(
             `Iframe field for ${field.channel_property} failed to initialize securely`,
           );
+          setStatus("ready");
           break;
         }
       }
@@ -156,6 +164,19 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
     registry?.registerIframe(name, iframeRef);
     return () => registry?.unregisterIframe(name);
   }, [name, registry]);
+
+  useLayoutEffect(() => {
+    if (status !== "loading") return;
+
+    const controller = new AbortController();
+    cancellableSleep(IFRAME_LOAD_TIMEOUT_MS, controller.signal)
+      .then(() => setStatus("failed"))
+      .catch(() => {
+        // aborted because the iframe answered, or the component unmounted
+      });
+
+    return () => controller.abort();
+  }, [status]);
 
   const iframeUrl = new URL(IFRAME_SRC);
   iframeUrl.searchParams.set("input_type", field.type.name);
@@ -186,17 +207,32 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
         tabIndex={-1}
       />
       <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
-      <iframe
-        src={iframeUrl.toString()}
-        ref={iframeRef}
-        sandbox="allow-scripts allow-same-origin"
-      />
+      <div className="xendit-iframe-slot">
+        {status === "failed" && <IframeFieldError />}
+        {status === "loading" && (
+          <div className="xendit-shimmer xendit-iframe-shimmer" />
+        )}
+        <iframe
+          src={iframeUrl.toString()}
+          ref={iframeRef}
+          sandbox="allow-scripts allow-same-origin"
+          className={status === "ready" ? "" : "xendit-iframe-hidden"}
+        />
+      </div>
       {field.type.name === "credit_card_number" && card && (
         <CardBrands
           cardsBrandList={card.brands}
           selectedCardBrand={selectedCardBrand}
         />
       )}
+    </div>
+  );
+};
+
+const IframeFieldError: FunctionComponent = () => {
+  return (
+    <div className="xendit-iframe-field-error">
+      <span className="xendit-error-message">✕ network timeout</span>
     </div>
   );
 };

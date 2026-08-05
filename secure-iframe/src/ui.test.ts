@@ -412,7 +412,7 @@ describe("secure iframe ui - createFatalErrorComponent", () => {
     const el = createFatalErrorComponent("error code");
     document.body.appendChild(el);
     expect(el.outerHTML).toMatchInlineSnapshot(
-      `"<div style="color: red; font-family: monospace; font-size: 10px;">✕ error code</div>"`,
+      `"<div style="color: red; font-family: monospace; font-size: 10px; margin: 12px;">✕ error code</div>"`,
     );
   });
 });
