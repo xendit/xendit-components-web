@@ -2,17 +2,24 @@ import { internal } from "./internal";
 import { XenditComponents } from "./public-sdk";
 import { randomUUID, telemetryHostFromHostId } from "./utils";
 
+export type TelemetryStage =
+  | "CHECKOUT_LOADED" // on components/checkout UI init
+  | "CHECKOUT_RESUME" // emitted instead of CHECKOUT_LOADED if the user was redirected back from a partner page
+  | "CHECKOUT_CHANNEL_GROUP" // on channel group click (metadata: {group_name:string})
+  | "CHECKOUT_CHANNEL" // on current channel change
+  | "CHECKOUT_CHANNEL_FORM_INPUT" // once for each field in the form, the first time it's modified (including save payment method and customer given name) (metadata contains {field_name:string})
+  | "CHECKOUT_ATTEMPT_BEGIN" // on pr/pt request sent (or validation error) (metadata: {validation_error:string})
+  | "CHECKOUT_ATTEMPT" // on pr/pt response received (or error from server) (metadata: {error_code:string})
+  | "CHECKOUT_ATTEMPT_DISCARD" // when an attempt fails (payment failure screen), or the user aborts an attempt (metadata: {failure_code:string,user_abort:boolean})
+  | "CHECKOUT_ACTION_BEGIN" // on action screen shown
+  | "CHECKOUT_ACTION_CLOSE" // when an action closes for reason other than the session/PR/PT state changed (iframe flow ended, or user closed action screen)
+  | "CHECKOUT_ACTION_COPY_TEXT" // when VA/OTC action text copy button is pressed (metadata: {field_name:string})
+  | "CHECKOUT_END" // on session complete, expiry, or cancel state (metadata: {status:string})
+  | "CHECKOUT_ABANDON" // user closed page
+  | "CHECKOUT_REDIRECT_AWAY"; // after redirecting to one of the session return URLs (after the countdown) (metadata: {status:string,url:string})
+
 export interface SessionTelemetryEvent {
-  stage:
-    | "PAYMENT_SESSION_CREATED" // sent by backend
-    | "CHECKOUT_PAGE_VIEW" // on sdk init
-    | "METHOD_SELECTED" // on current channel change
-    | "FORM_INPUTTED" // first time any field is changed
-    | "ATTEMPT_CREATED" // on pr/pt created
-    | "ACTION_TAKEN" // on action end
-    | "REDIRECTED_BACK_TO_OUR_HOSTED" // on resume
-    | "REDIRECT_TO_MERCHANT" // on session terminal state
-    | "SUCCESS_PAYMENT"; // sent by backend
+  stage: TelemetryStage;
   success: boolean;
   payment_channel?: string;
   payment_request_id?: string;
@@ -28,6 +35,7 @@ interface SessionTelemetryEventWithExtras extends SessionTelemetryEvent {
 
 export type SessionTelemetryScope = {
   id: string | null;
+  fromEvent: string;
   parentScope: SessionTelemetryScope | null;
 };
 
@@ -37,10 +45,12 @@ export class SessionTelemetry {
   queue: SessionTelemetryEventWithExtras[] = [];
   scope: SessionTelemetryScope = {
     id: null,
+    fromEvent: "ROOT",
     parentScope: null,
   };
 
   timeout: number | null = 0;
+  beforeUnloadHandler: (() => void) | null = null;
   visibilityChangeHandler: (() => void) | null = null;
 
   constructor(private sdk: XenditComponents) {}
@@ -52,9 +62,9 @@ export class SessionTelemetry {
     const id = this.append(event);
     this.scope = {
       id,
+      fromEvent: event.stage,
       parentScope: this.scope,
     };
-    console.log("add scope", this.scope.id);
     return this.scope;
   }
 
@@ -63,9 +73,8 @@ export class SessionTelemetry {
    */
   popScope(scope: SessionTelemetryScope) {
     if (scope.parentScope) {
-      console.log("remove scope", this.scope.id);
+      console.log("remove scope", scope.fromEvent);
       this.scope = scope.parentScope;
-      console.log("new top scope", this.scope.id);
     }
   }
 
@@ -73,7 +82,7 @@ export class SessionTelemetry {
    * Send an event
    */
   append(event: SessionTelemetryEvent): string {
-    console.log(event);
+    console.log("event", { name: event.stage, event, scope: this.scope });
     const eventId = randomUUID();
     this.queue.push({
       ...event,
@@ -81,11 +90,11 @@ export class SessionTelemetry {
       event_id: eventId,
       parent_event_id: this.scope.id,
     });
-    this.scheduleSend();
+    this.setup();
     return eventId;
   }
 
-  private scheduleSend() {
+  private setup() {
     if (!this.timeout) {
       this.timeout = window.setTimeout(() => {
         this.end();

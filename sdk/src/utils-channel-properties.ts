@@ -136,3 +136,46 @@ export function getCardNumberFromChannelProperties(
   }
   return cardNumber;
 }
+
+/**
+ * Report the list of changed keys between two channel property objects
+ */
+export function changedChannelProperties(
+  a: ChannelProperties,
+  b: ChannelProperties,
+  out: string[],
+  path = "",
+): void {
+  for (const key of Object.keys(b)) {
+    const valA = a[key];
+    const valB = b[key];
+    const currentPath = path ? `${path}.${key}` : key;
+
+    const isValAObject =
+      typeof valA === "object" && valA !== null && !Array.isArray(valA);
+    const isValBObject =
+      typeof valB === "object" && valB !== null && !Array.isArray(valB);
+
+    if (isValBObject) {
+      if (isValAObject) {
+        // both are objects, recurse
+        changedChannelProperties(valA, valB, out, currentPath);
+      } else {
+        // b is an object and a is not, so it's changed
+        // (this should never actually happen)
+        out.push(currentPath);
+      }
+    } else if (Array.isArray(valB)) {
+      // b is an array, push all changed items
+      // (arrays cannot contain objects)
+      for (let i = 0; i < valB.length; i++) {
+        if (!Array.isArray(valA) || valA[i] !== valB[i]) {
+          out.push(`${currentPath}[${i}]`);
+        }
+      }
+    } else if (valA !== valB) {
+      // primative value is different
+      out.push(currentPath);
+    }
+  }
+}

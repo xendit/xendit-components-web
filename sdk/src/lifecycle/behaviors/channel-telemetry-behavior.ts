@@ -17,7 +17,7 @@ export class ChannelTelemetryBehavior implements Behavior {
   enter() {
     if (this.channelCode) {
       this.telemetryScope = this.bb.sdk[internal].telemetry.appendAndPushScope({
-        stage: "METHOD_SELECTED",
+        stage: "CHECKOUT_CHANNEL",
         payment_channel: this.channelCode ?? undefined,
         success: true,
       });

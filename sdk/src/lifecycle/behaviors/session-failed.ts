@@ -10,7 +10,7 @@ export class SessionFailedBehavior implements Behavior {
     this.bb.dispatchEvent(new XenditSessionExpiredOrCanceledEvent());
 
     this.bb.sdk[internal].telemetry.append({
-      stage: "REDIRECT_TO_MERCHANT",
+      stage: "CHECKOUT_END",
       success: false,
     });
   }

@@ -14,7 +14,7 @@ export class SessionCompletedBehavior implements Behavior {
     );
 
     this.bb.sdk[internal].telemetry.append({
-      stage: "REDIRECT_TO_MERCHANT",
+      stage: "CHECKOUT_END",
       success: true,
     });
   }

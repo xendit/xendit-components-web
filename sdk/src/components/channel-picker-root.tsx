@@ -30,11 +30,14 @@ import {
 } from "../bff-marshal";
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
 import { IconName } from "./icon";
+import { internal } from "../internal";
+import { SessionTelemetryScope } from "../telemetry";
 
 type Props = object;
 
 export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   const sdk = useSdk();
+  const telemetry = sdk[internal].telemetry;
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
   const currentChannel = useCurrentChannel();
@@ -70,6 +73,25 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   // previewed group means expanded but no channel selected
   const [previewGroupId, setPreviewGroupId] = useState<string | null>(null);
 
+  const telemetryScopeForGroup = useRef<SessionTelemetryScope | null>(null);
+  const telemetryForGroupClear = useCallback(() => {
+    if (telemetryScopeForGroup.current) {
+      telemetry.popScope(telemetryScopeForGroup.current);
+      telemetryScopeForGroup.current = null;
+    }
+  }, [telemetry]);
+  const telemetryForGroupChange = useCallback(
+    (groupId: string) => {
+      telemetryForGroupClear();
+      telemetryScopeForGroup.current = telemetry.appendAndPushScope({
+        stage: "CHECKOUT_CHANNEL_GROUP",
+        success: true,
+        metadata: { group_name: groupId },
+      });
+    },
+    [telemetry, telemetryForGroupClear],
+  );
+
   const handleSelectChannelGroup = useCallback(
     (groupId: string) => {
       if (selectedGroupId === groupId || previewGroupId === groupId) {
@@ -79,10 +101,12 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
           thisRef.current?.dispatchEvent(
             new XenditClearCurrentChannelEvent(groupId),
           );
+          telemetryForGroupClear();
         }
         if (previewGroupId === groupId) {
           // clear previewed state
           setPreviewGroupId(null);
+          telemetryForGroupClear();
         }
       } else {
         // user wants to open a different group
@@ -102,10 +126,12 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
         } else if (enabledChannels === 1) {
           // one enabled channel, select it automatically
           const ch = channelsByGroup[groupId][0];
+          telemetryForGroupChange(groupId);
           sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
           setPreviewGroupId(null);
         } else {
           // multiple enabled channels, set as previewed and clear the channel selection
+          telemetryForGroupChange(groupId);
           setPreviewGroupId(groupId);
           sdk.setCurrentChannel(null);
         }
@@ -121,6 +147,8 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
       selectedGroupId,
       session,
       t,
+      telemetryForGroupChange,
+      telemetryForGroupClear,
     ],
   );
 

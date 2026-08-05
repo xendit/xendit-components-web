@@ -239,30 +239,14 @@ export class SubmissionBehavior implements Behavior {
           default:
             paymentEntity satisfies never;
         }
-
         // telemetry for payment entity created
-        switch (paymentEntity.type) {
-          case BffPaymentEntityType.PaymentRequest:
-            this.telemetryScope = this.bb.sdk[
-              internal
-            ].telemetry.appendAndPushScope({
-              stage: "ATTEMPT_CREATED",
-              success: true,
-              payment_request_id: paymentEntity.id,
-            });
-            break;
-          case BffPaymentEntityType.PaymentToken:
-            this.telemetryScope = this.bb.sdk[
-              internal
-            ].telemetry.appendAndPushScope({
-              stage: "ATTEMPT_CREATED",
-              success: true,
-              payment_token_id: paymentEntity.id,
-            });
-            break;
-          default:
-            paymentEntity satisfies never;
-        }
+        this.telemetryScope = this.bb.sdk[
+          internal
+        ].telemetry.appendAndPushScope({
+          stage: "CHECKOUT_ATTEMPT",
+          success: true,
+          payment_token_id: paymentEntity.id,
+        });
 
         // TODO: the payment-entity-created event should be sent only after the updateWorld call but that causes a behavior tree update which would cause events to fire in the wrong order
         this.bb.dispatchEvent(
@@ -280,7 +264,7 @@ export class SubmissionBehavior implements Behavior {
 
         // telemetry for failure to create payment entity
         this.bb.sdk[internal].telemetry.append({
-          stage: "ATTEMPT_CREATED",
+          stage: "CHECKOUT_ATTEMPT",
           success: false,
         });
 

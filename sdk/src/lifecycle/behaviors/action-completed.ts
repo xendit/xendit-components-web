@@ -7,7 +7,7 @@ export class ActionCompletedBehavior implements Behavior {
 
   enter() {
     this.bb.sdk[internal].telemetry.append({
-      stage: "ACTION_TAKEN",
+      stage: "CHECKOUT_ACTION_CLOSE",
       success: true,
       payment_channel: this.bb.channel?.channel_code ?? "",
     });

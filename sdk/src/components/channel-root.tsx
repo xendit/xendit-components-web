@@ -22,6 +22,7 @@ import { InternalUpdateChannelComponentData } from "../private-event-types";
 import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
 import { CustomerDetails } from "../backend-types/customer";
 import { internal } from "../internal";
+import { changedChannelProperties } from "../utils-channel-properties";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -106,10 +107,10 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
         telemetrySentEventKeys.current.add(changedKey);
 
         sdk[internal].telemetry.append({
-          stage: "FORM_INPUTTED",
+          stage: "CHECKOUT_CHANNEL_FORM_INPUT",
           payment_channel: firstMemberChannel.channel_code,
           success: true,
-          metadata: { form_key: changedKey },
+          metadata: { field_name: changedKey },
         });
       }
     }
@@ -122,6 +123,8 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     isInitial: boolean,
   ) => {
     let cleanedProperties = channelProperties;
+
+    // special behavior for cards with installments
     if (
       firstMemberChannel.channel_code === "CARDS" &&
       channelProperties.installment_configuration
@@ -308,45 +311,5 @@ export class XenditChannelPropertiesChangedEvent extends Event {
     });
     this.channel = channel;
     this.channelProperties = channelProperties;
-  }
-}
-
-function changedChannelProperties(
-  a: ChannelProperties,
-  b: ChannelProperties,
-  out: string[],
-  path = "",
-): void {
-  for (const key of Object.keys(b)) {
-    const valA = a[key];
-    const valB = b[key];
-    const currentPath = path ? `${path}.${key}` : key;
-
-    const isValAObject =
-      typeof valA === "object" && valA !== null && !Array.isArray(valA);
-    const isValBObject =
-      typeof valB === "object" && valB !== null && !Array.isArray(valB);
-
-    if (isValBObject) {
-      if (isValAObject) {
-        // both are objects, recurse
-        changedChannelProperties(valA, valB, out, currentPath);
-      } else {
-        // b is an object and a is not, so it's changed
-        // (this should never actually happen)
-        out.push(currentPath);
-      }
-    } else if (Array.isArray(valB)) {
-      // b is an array, push all changed items
-      // (arrays cannot contain objects)
-      for (let i = 0; i < valB.length; i++) {
-        if (!Array.isArray(valA) || valA[i] !== valB[i]) {
-          out.push(`${currentPath}[${i}]`);
-        }
-      }
-    } else if (valA !== valB) {
-      // primative value is different
-      out.push(currentPath);
-    }
   }
 }

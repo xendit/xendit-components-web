@@ -394,7 +394,7 @@ export class XenditComponents extends EventTarget {
       this.behaviorTreeUpdate();
 
       this[internal].telemetry.append({
-        stage: "CHECKOUT_PAGE_VIEW",
+        stage: "CHECKOUT_LOADED",
         success: false,
       });
       return;
@@ -419,7 +419,7 @@ export class XenditComponents extends EventTarget {
         this.behaviorTreeUpdate();
 
         this[internal].telemetry.appendAndPushScope({
-          stage: "REDIRECTED_BACK_TO_OUR_HOSTED",
+          stage: "CHECKOUT_RESUME",
           success: false,
         });
         return;
@@ -453,7 +453,7 @@ export class XenditComponents extends EventTarget {
           this.behaviorTreeUpdate();
 
           this[internal].telemetry.appendAndPushScope({
-            stage: "REDIRECTED_BACK_TO_OUR_HOSTED",
+            stage: "CHECKOUT_RESUME",
             success: false,
           });
           return;
@@ -480,12 +480,12 @@ export class XenditComponents extends EventTarget {
     // telemetry for successful load
     if (resumeSession) {
       this[internal].telemetry.appendAndPushScope({
-        stage: "REDIRECTED_BACK_TO_OUR_HOSTED",
+        stage: "CHECKOUT_RESUME",
         success: true,
       });
     } else {
       this[internal].telemetry.appendAndPushScope({
-        stage: "CHECKOUT_PAGE_VIEW",
+        stage: "CHECKOUT_LOADED",
         success: true,
       });
     }
@@ -1916,7 +1916,7 @@ export class XenditComponentsTest extends XenditComponents {
     );
 
     this[internal].telemetry.appendAndPushScope({
-      stage: "CHECKOUT_PAGE_VIEW",
+      stage: "CHECKOUT_LOADED",
       success: true,
     });
   }
