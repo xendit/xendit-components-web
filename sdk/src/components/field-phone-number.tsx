@@ -135,7 +135,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = field.initial_value;
       }
-      onChange();
+      onChange(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

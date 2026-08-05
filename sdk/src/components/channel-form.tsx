@@ -3,7 +3,6 @@ import { BffSession, BffSessionType } from "../backend-types/session";
 import {
   useCallback,
   useContext,
-  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -20,10 +19,14 @@ import { getChannelPropertyValue } from "../validation";
 import { ChannelComponentData } from "../public-sdk";
 import { CARDS_SCENARIOS, Scenarios } from "../data/simulation-scenarios";
 import { useChannel, useChannelComponentData } from "./channel-root";
+import { formKvToChannelProperties } from "../utils-channel-properties";
 
 interface Props {
   form: ChannelFormField[];
-  onChannelPropertiesChanged: (channelProperties: ChannelProperties) => void;
+  onChannelPropertiesChanged: (
+    channelProperties: ChannelProperties,
+    isInitial: boolean,
+  ) => void;
 }
 export interface ChannelFormHandle {
   setAllFieldsTouched: () => void;
@@ -68,18 +71,15 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
       return formKvToChannelProperties(formData.entries());
     }, []);
 
-    const handleFieldChanged = useCallback(() => {
-      if (!formRef.current) return;
-      const channelProperties = getChannelProperties();
-      setChannelProperties(channelProperties);
-      onChannelPropertiesChanged(channelProperties);
-    }, [getChannelProperties, onChannelPropertiesChanged]);
-
-    // call onChannelPropertiesChanged once on init
-    useLayoutEffect(() => {
-      handleFieldChanged();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const handleFieldChanged = useCallback(
+      (isInitial = false) => {
+        if (!formRef.current) return;
+        const channelProperties = getChannelProperties();
+        setChannelProperties(channelProperties);
+        onChannelPropertiesChanged(channelProperties, isInitial);
+      },
+      [getChannelProperties, onChannelPropertiesChanged],
+    );
 
     const filteredForm = useFilteredFormFields(
       session,
@@ -89,13 +89,15 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
     );
 
     // trigger a field changed callback when the form changes
+    // (this also serves to initialize the channel properties on first render)
     const previousFilteredForm = usePrevious(filteredForm);
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (
         // only trigger if the form changed
         !formsAreEqual(previousFilteredForm || [], filteredForm)
       ) {
-        handleFieldChanged();
+        const isInitialUpdate = previousFilteredForm === undefined;
+        handleFieldChanged(isInitialUpdate);
       }
     }, [filteredForm, handleFieldChanged, previousFilteredForm]);
 
@@ -181,94 +183,6 @@ function groupFields(fields: ChannelFormField[]): ChannelFormField[][] {
   }
 
   return fieldGroups;
-}
-
-/**
- * Convert form key/value pairs to channel properties
- * .e.g
- * Input:
- * {
- *   "k": "v1",
- *   "a.b.c": "v2",
- *   "z.z__a.y": ["v3", "v3"],
- * }
- * Output:
- * {
- *   k: "v1",
- *   a: { b: { c: "v2", }, },
- *   z: { z: "v3", y: "v4" },
- * }
- **/
-function formKvToChannelProperties(
-  iter: IterableIterator<[string, string | Blob]>,
-): ChannelProperties {
-  const obj: ChannelProperties = {};
-
-  for (const [key, rawValue] of iter) {
-    if (rawValue instanceof Blob) {
-      continue;
-    }
-
-    // keys with __ represent multiple k/v pairs
-    // e.g. `{"a__b": ["1", "2"]}` becomes `{a: "1", b: "2"}`
-    const subkeys = key.split("__");
-
-    // if there are multiple subkeys, assume the value is a JSON array of strings
-    const valueAsArray = formValueToStringArray(subkeys, rawValue);
-
-    outer: for (const subkey of subkeys) {
-      // split key by dot, for each part, traverse the object
-      // and assign the value at the end
-      // e.g. { "branch.leaf": "value" } becomes { branch: { leaf: "value" } }
-      // cursor will be the leaf object
-      const parts = subkey.split(".");
-      let cursor = obj;
-      while (parts.length > 1) {
-        const part = parts.shift()!;
-        let selected = cursor[part];
-        if (selected === undefined) {
-          // child object doesn't exist, create it
-          selected = cursor[part] = {};
-        }
-        if (selected && typeof selected === "object") {
-          if (Array.isArray(selected)) {
-            continue outer; // should never happen
-          }
-          // traverse into child object
-          cursor = selected;
-        }
-      }
-
-      // assign next value to channel properties
-      const nextValue = valueAsArray.length ? valueAsArray.shift() : "";
-
-      // wrap in array if the subkey ends in []
-      if (parts[0].endsWith("[]")) {
-        cursor[parts[0].slice(0, -2)] = [nextValue];
-      } else {
-        cursor[parts[0]] = nextValue;
-      }
-    }
-  }
-
-  return obj;
-}
-
-/**
- * Parse a json string[] with error handling.
- */
-function formValueToStringArray(
-  subkeys: string[],
-  value: string,
-): (string | number)[] {
-  if (subkeys.length === 0) return [];
-  if (subkeys.length === 1) return [value];
-  if (value === "") return [];
-  try {
-    return JSON.parse(value);
-  } catch (_e) {
-    return [value];
-  }
 }
 
 /**

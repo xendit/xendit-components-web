@@ -4,19 +4,14 @@ import { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
 import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
-import {
-  formFieldId,
-  formFieldName,
-  getValueFromChannelProperty,
-  objectId,
-  usePrevious,
-} from "../utils";
+import { formFieldId, formFieldName, objectId, usePrevious } from "../utils";
 import { useChannel } from "./channel-root";
 import { useChannelProperties } from "./channel-form";
 import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import { BffSession } from "../backend-types/session";
 import { FunctionComponent, TargetedEvent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { getValueFromChannelProperty } from "../utils-channel-properties";
 
 export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -100,7 +95,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = value;
       }
-      onChange();
+      onChange(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

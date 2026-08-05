@@ -113,6 +113,7 @@ import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
+import { SessionTelemetry } from "./telemetry";
 
 /**
  * @internal
@@ -234,6 +235,11 @@ export class XenditComponents extends EventTarget {
     };
 
     /**
+     * For sending telemetry events.
+     */
+    telemetry: SessionTelemetry;
+
+    /**
      * The most recently created payment channel component's channel code.
      * This is used as a key into `paymentChannelComponents`.
      */
@@ -317,6 +323,7 @@ export class XenditComponents extends EventTarget {
         actionCompleted: false,
         pollImmediatelyRequested: false,
       }),
+      telemetry: new SessionTelemetry(this),
       currentChannelCode: null,
       currentDigitalWalletSubmission: null,
       eventListenersPresent: new Map(),
@@ -385,6 +392,11 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
       this.behaviorTreeUpdate();
+
+      this[internal].telemetry.append({
+        stage: "CHECKOUT_PAGE_VIEW",
+        success: false,
+      });
       return;
     }
 
@@ -405,6 +417,11 @@ export class XenditComponents extends EventTarget {
         this[internal].behaviorTree.bb.sdkFatalErrorMessage =
           "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
         this.behaviorTreeUpdate();
+
+        this[internal].telemetry.appendAndPushScope({
+          stage: "REDIRECTED_BACK_TO_OUR_HOSTED",
+          success: false,
+        });
         return;
       }
       if (bff.session.status === "ACTIVE") {
@@ -434,6 +451,11 @@ export class XenditComponents extends EventTarget {
           this[internal].behaviorTree.bb.sdkFatalErrorMessage =
             "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
           this.behaviorTreeUpdate();
+
+          this[internal].telemetry.appendAndPushScope({
+            stage: "REDIRECTED_BACK_TO_OUR_HOSTED",
+            success: false,
+          });
           return;
         }
       }
@@ -454,6 +476,19 @@ export class XenditComponents extends EventTarget {
           resumeSucceededChannel ?? bff.succeeded_channel ?? null,
       } satisfies WorldState),
     );
+
+    // telemetry for successful load
+    if (resumeSession) {
+      this[internal].telemetry.appendAndPushScope({
+        stage: "REDIRECTED_BACK_TO_OUR_HOSTED",
+        success: true,
+      });
+    } else {
+      this[internal].telemetry.appendAndPushScope({
+        stage: "CHECKOUT_PAGE_VIEW",
+        success: true,
+      });
+    }
   }
 
   /**
@@ -1879,6 +1914,11 @@ export class XenditComponentsTest extends XenditComponents {
         succeededChannel: null,
       } satisfies WorldState),
     );
+
+    this[internal].telemetry.appendAndPushScope({
+      stage: "CHECKOUT_PAGE_VIEW",
+      success: true,
+    });
   }
 
   /**

@@ -21,6 +21,7 @@ import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
 import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
 import { CustomerDetails } from "../backend-types/customer";
+import { internal } from "../internal";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -78,7 +79,48 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     resolvedChannel.requires_customer_details && !customer;
   const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
-  const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
+  const telemetrySentEventKeys = useRef(new Set<string>());
+  const lastSeenUserData = useRef<ChannelProperties>({
+    channel_properties: {},
+    should_save: false,
+    customer_details: {},
+  });
+  const telemetryForFormChange = (
+    newUserData: Partial<ChannelProperties>,
+    isInitial = false,
+  ) => {
+    const mergedNextUserData = {
+      ...lastSeenUserData.current,
+      ...newUserData,
+    };
+
+    if (!isInitial) {
+      const changedFields: string[] = [];
+      changedChannelProperties(
+        lastSeenUserData.current,
+        mergedNextUserData,
+        changedFields,
+      );
+      for (const changedKey of changedFields) {
+        if (telemetrySentEventKeys.current.has(changedKey)) continue;
+        telemetrySentEventKeys.current.add(changedKey);
+
+        sdk[internal].telemetry.append({
+          stage: "FORM_INPUTTED",
+          payment_channel: firstMemberChannel.channel_code,
+          success: true,
+          metadata: { form_key: changedKey },
+        });
+      }
+    }
+
+    lastSeenUserData.current = mergedNextUserData;
+  };
+
+  const onChannelPropertiesChanged = (
+    channelProperties: ChannelProperties,
+    isInitial: boolean,
+  ) => {
     let cleanedProperties = channelProperties;
     if (
       firstMemberChannel.channel_code === "CARDS" &&
@@ -110,6 +152,11 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
       cleanedProperties,
     );
     divRef.current?.dispatchEvent(event);
+
+    telemetryForFormChange(
+      { channel_properties: cleanedProperties },
+      isInitial,
+    );
   };
 
   const onCustomerDetailsChanged = (customerDetails: CustomerDetails) => {
@@ -118,6 +165,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
         customerDetails,
       }),
     );
+    telemetryForFormChange({ customer_details: customerDetails });
   };
 
   const shouldShowSaveCheckbox =
@@ -131,6 +179,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
         savePaymentMethod: checked,
       }),
     );
+    telemetryForFormChange({ save_payment_method: checked });
   };
 
   useLayoutEffect(() => {
@@ -259,5 +308,45 @@ export class XenditChannelPropertiesChangedEvent extends Event {
     });
     this.channel = channel;
     this.channelProperties = channelProperties;
+  }
+}
+
+function changedChannelProperties(
+  a: ChannelProperties,
+  b: ChannelProperties,
+  out: string[],
+  path = "",
+): void {
+  for (const key of Object.keys(b)) {
+    const valA = a[key];
+    const valB = b[key];
+    const currentPath = path ? `${path}.${key}` : key;
+
+    const isValAObject =
+      typeof valA === "object" && valA !== null && !Array.isArray(valA);
+    const isValBObject =
+      typeof valB === "object" && valB !== null && !Array.isArray(valB);
+
+    if (isValBObject) {
+      if (isValAObject) {
+        // both are objects, recurse
+        changedChannelProperties(valA, valB, out, currentPath);
+      } else {
+        // b is an object and a is not, so it's changed
+        // (this should never actually happen)
+        out.push(currentPath);
+      }
+    } else if (Array.isArray(valB)) {
+      // b is an array, push all changed items
+      // (arrays cannot contain objects)
+      for (let i = 0; i < valB.length; i++) {
+        if (!Array.isArray(valA) || valA[i] !== valB[i]) {
+          out.push(`${currentPath}[${i}]`);
+        }
+      }
+    } else if (valA !== valB) {
+      // primative value is different
+      out.push(currentPath);
+    }
   }
 }

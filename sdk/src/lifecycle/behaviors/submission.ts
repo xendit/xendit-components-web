@@ -43,6 +43,8 @@ import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
 import { CustomerDetails } from "../../backend-types/customer";
+import { internal } from "../../internal";
+import { SessionTelemetryScope } from "../../telemetry";
 
 export type SubmissionError = {
   text: string[];
@@ -57,6 +59,8 @@ export class SubmissionBehavior implements Behavior {
     promise: Promise<void>;
   } | null = null;
   private submissionError: Error | SubmissionError | null = null;
+
+  private telemetryScope: SessionTelemetryScope | null = null;
 
   constructor(private bb: BlackboardType) {}
 
@@ -166,6 +170,12 @@ export class SubmissionBehavior implements Behavior {
 
     // Schedule rerender (to clear the inert attribute on the active component)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
+
+    // clear telemetry event
+    if (this.telemetryScope) {
+      this.bb.sdk[internal].telemetry.popScope(this.telemetryScope);
+      this.telemetryScope = null;
+    }
   }
 
   private submit() {
@@ -214,6 +224,7 @@ export class SubmissionBehavior implements Behavior {
         // clear abort controller since the request is complete
         this.submission = null;
 
+        // events for payment entity created
         switch (paymentEntity.type) {
           case BffPaymentEntityType.PaymentRequest:
             this.bb.dispatchEvent(
@@ -224,6 +235,30 @@ export class SubmissionBehavior implements Behavior {
             this.bb.dispatchEvent(
               new XenditPaymentTokenCreatedEvent(paymentEntity.id),
             );
+            break;
+          default:
+            paymentEntity satisfies never;
+        }
+
+        // telemetry for payment entity created
+        switch (paymentEntity.type) {
+          case BffPaymentEntityType.PaymentRequest:
+            this.telemetryScope = this.bb.sdk[
+              internal
+            ].telemetry.appendAndPushScope({
+              stage: "ATTEMPT_CREATED",
+              success: true,
+              payment_request_id: paymentEntity.id,
+            });
+            break;
+          case BffPaymentEntityType.PaymentToken:
+            this.telemetryScope = this.bb.sdk[
+              internal
+            ].telemetry.appendAndPushScope({
+              stage: "ATTEMPT_CREATED",
+              success: true,
+              payment_token_id: paymentEntity.id,
+            });
             break;
           default:
             paymentEntity satisfies never;
@@ -242,6 +277,12 @@ export class SubmissionBehavior implements Behavior {
         if (isAbortError(error)) return;
 
         console.error("Submission failed:", error);
+
+        // telemetry for failure to create payment entity
+        this.bb.sdk[internal].telemetry.append({
+          stage: "ATTEMPT_CREATED",
+          success: false,
+        });
 
         // avoid dispatching an event after exit
         if (!this.exited) {

@@ -8,12 +8,12 @@ import {
   assert,
   cancellableSleep,
   formHasFieldOfType,
-  getCardNumberFromChannelProperties,
   isAbortError,
   MOCK_NETWORK_DELAY_MS,
   ParsedSdkKey,
   parseEncryptedFieldValue,
 } from "../../utils";
+import { getCardNumberFromChannelProperties } from "../../utils-channel-properties";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 

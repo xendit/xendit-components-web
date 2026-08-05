@@ -1,13 +1,10 @@
 import { BffAction } from "./backend-types/payment-entity";
-import { ChannelProperties } from "./public-sdk";
 import { makeTestBffData } from "./data/test-data";
 import {
   assert,
   camelCaseToKebabCase,
   cancellableSleep,
   errorToString,
-  getCardNumberFromChannelProperties,
-  getValueFromChannelProperty,
   isAbortError,
   mergeIgnoringUndefined,
   parseEncryptedFieldValue,
@@ -118,49 +115,6 @@ describe("utils - errorToString", () => {
     expect(errorToString(e3)).toBe(`Unknown error: ${JSON.stringify(e3)}`);
     const e4 = { nonSerializable: 0n };
     expect(errorToString(e4)).toBe("Unknown error");
-  });
-});
-
-describe("utils - getValueFromChannelProperty", () => {
-  it("should get value from channel property", () => {
-    const channelProperties: ChannelProperties = {
-      simple: "1",
-      nested: {
-        nested: {
-          nested: "2",
-        },
-      },
-    };
-    expect(getValueFromChannelProperty("simple", channelProperties)).toBe("1");
-    expect(
-      getValueFromChannelProperty("nested.nested.nested", channelProperties),
-    ).toBe("2");
-    expect(
-      getValueFromChannelProperty("nonexistent", channelProperties),
-    ).toBeUndefined();
-    expect(
-      getValueFromChannelProperty("nested.nonexistent", channelProperties),
-    ).toBeUndefined();
-  });
-  it("should return undefined for null channel properties", () => {
-    expect(getValueFromChannelProperty("any.key", null)).toBeUndefined();
-  });
-});
-
-describe("utils - getCardNunberFromChannelProperties", () => {
-  it("should get card number from channel properties", () => {
-    const channelProperties: ChannelProperties = {
-      card_details: {
-        card_number: "encrypted-string",
-      },
-    };
-    expect(getCardNumberFromChannelProperties(channelProperties)).toBe(
-      "encrypted-string",
-    );
-  });
-  it("should return null if card number not present", () => {
-    const channelProperties: ChannelProperties = {};
-    expect(getCardNumberFromChannelProperties(channelProperties)).toBeNull();
   });
 });
 

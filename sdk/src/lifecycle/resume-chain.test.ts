@@ -13,6 +13,8 @@ import {
 } from "../data/test-data-modifiers";
 import { toPaymentEntity } from "../backend-types/payment-entity";
 import { internal } from "../internal";
+import { SessionTelemetry } from "../telemetry";
+import { XenditComponents } from "../public-sdk";
 
 /**
  * Builds a blackboard that mimics the state the SDK restores on resume after a
@@ -35,7 +37,12 @@ function buildBlackboard(
   return {
     sdk: {
       t: createTFunction("en"),
-      [internal]: { options: { componentsSdkKey: makeTestSdkKey() } },
+      [internal]: {
+        options: {
+          componentsSdkKey: makeTestSdkKey(),
+        },
+        telemetry: new SessionTelemetry({} as XenditComponents),
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     mock: true,
