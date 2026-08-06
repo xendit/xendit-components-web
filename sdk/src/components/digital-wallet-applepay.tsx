@@ -5,6 +5,8 @@ import { XenditPaymentChannel } from "../public-data-types";
 import { assert } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
 import { NetworkError } from "../networking";
+import { internal } from "../internal";
+import { SessionTelemetryScope } from "../telemetry";
 
 export const APPLE_PAY_VERSION = 14;
 
@@ -62,6 +64,25 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     [sdk],
   );
 
+  const telemetryScope = useRef<SessionTelemetryScope | null>(null);
+
+  const telemetryForDigitalWalletClose = useCallback(
+    (errorCode?: string) => {
+      // telemetry for googlepay error
+      if (telemetryScope.current) {
+        sdk[internal].telemetry.append({
+          stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
+          success: false,
+          metadata: { error_code: errorCode },
+        });
+        // clear telemetry scope
+        sdk[internal].telemetry.popScope(telemetryScope.current);
+        telemetryScope.current = null;
+      }
+    },
+    [sdk],
+  );
+
   const failSubmission = useCallback(
     (errorCode: ApplePayErrorCode) => {
       if (!cardsChannel) return;
@@ -88,9 +109,13 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
         ],
       };
 
+      // telemetry for error/cancel
+      telemetryForDigitalWalletClose(errorCode);
+
+      // force error
       sdk.submitDigitalWallet("APPLE_PAY", cardsChannel, {}, submissionError);
     },
-    [cardsChannel, sdk, t],
+    [cardsChannel, sdk, t, telemetryForDigitalWalletClose],
   );
 
   const onClick = useCallback(() => {
@@ -126,6 +151,11 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
 
     applePaySession.onpaymentauthorized = (event) => {
       try {
+        // telemetry for applepay close
+        // (needs to be before submit or the event order is weird)
+        telemetryForDigitalWalletClose();
+
+        // do submit
         sdk.submitDigitalWallet("APPLE_PAY", cardsChannel, {
           apple_pay: JSON.stringify({
             billingContact: event.payment.billingContact,
@@ -145,11 +175,26 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     };
 
     applePaySession.oncancel = () => {
+      telemetryForDigitalWalletClose("USER_CANCELLED");
       // User dismissed the sheet, not an error and nothing was submitted
     };
 
+    // telemetry for begin digital wallet flow
+    telemetryScope.current = sdk[internal].telemetry.appendAndPushScope({
+      stage: "CHECKOUT_DIGITAL_WALLET_BEGIN",
+      success: true,
+      metadata: { digital_wallet: "APPLE_PAY" },
+    });
+
+    // start the flow
     applePaySession.begin();
-  }, [cardsChannel, digitalWalletsApplePay, failSubmission, sdk]);
+  }, [
+    cardsChannel,
+    digitalWalletsApplePay.apple_pay_payment_request,
+    failSubmission,
+    sdk,
+    telemetryForDigitalWalletClose,
+  ]);
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
