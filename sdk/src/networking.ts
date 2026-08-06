@@ -16,6 +16,25 @@ export class NetworkError extends Error {
   }
 }
 
+export class ConnectionError extends Error {}
+
+/**
+ * converting TypeError (a connection problem) into ConnectionError
+ */
+export async function fetchOrThrowConnectionError(
+  url: URL,
+  options: RequestInit,
+): Promise<Response> {
+  try {
+    return await fetch(url, options);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new ConnectionError(error.message);
+    }
+    throw error;
+  }
+}
+
 /**
  * Encode data for x-www-form-urlencoded content type
  */
@@ -155,7 +174,7 @@ export function endpoint(
       signal: abortSignal as AbortSignal | undefined,
     };
 
-    const response = await fetch(url, options);
+    const response = await fetchOrThrowConnectionError(url, options);
     if (!response.ok) {
       const errorData = (await response.json()) as ErrorResponse;
       if (!errorData || !errorData.error_code) {

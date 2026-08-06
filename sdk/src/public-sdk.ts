@@ -51,6 +51,7 @@ import {
   XenditChannelPropertiesChangedEvent,
 } from "./components/channel-root";
 import { fetchSessionData, pollSession, validateApplePaySession } from "./api";
+import { ConnectionError } from "./networking";
 import { resolveResumeState, getResumeParams } from "./resume";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
@@ -304,6 +305,7 @@ export class XenditComponents extends EventTarget {
         mock: this.isMock(),
         sdkStatus: "LOADING",
         sdkFatalErrorMessage: null,
+        sdkFatalErrorRetryable: false,
         channel: null,
         channelProperties: null,
         channelData: null,
@@ -384,6 +386,8 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
+      this[internal].behaviorTree.bb.sdkFatalErrorRetryable =
+        error instanceof ConnectionError;
       this.behaviorTreeUpdate();
       return;
     }
@@ -428,11 +432,13 @@ export class XenditComponents extends EventTarget {
             resumeSucceededChannel = pollResult.succeeded_channel ?? null;
             this[internal].behaviorTree.bb.resuming = true;
           }
-        } catch {
+        } catch (error) {
           // we can't read the error code here, but most likely the token_request_id is from another session
           this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
           this[internal].behaviorTree.bb.sdkFatalErrorMessage =
             "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
+          this[internal].behaviorTree.bb.sdkFatalErrorRetryable =
+            error instanceof ConnectionError;
           this.behaviorTreeUpdate();
           return;
         }

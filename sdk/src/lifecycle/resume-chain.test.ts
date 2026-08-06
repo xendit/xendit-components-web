@@ -58,6 +58,7 @@ function buildBlackboard(
     },
     sdkStatus: "ACTIVE",
     sdkFatalErrorMessage: null,
+    sdkFatalErrorRetryable: false,
     channel: null,
     channelProperties: null,
     channelData: null,

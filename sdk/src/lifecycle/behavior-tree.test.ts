@@ -22,6 +22,7 @@ import { XenditSdkOptions } from "../public-options-types";
 import { SdkActiveBehavior } from "./behaviors/sdk-active";
 import { SessionCompletedBehavior } from "./behaviors/session-completed";
 import { SdkFatalErrorBehavior } from "./behaviors/sdk-fatal-error";
+import { XenditFatalErrorEvent } from "../public-event-types";
 import { SdkLoadingBehavior } from "./behaviors/sdk-loading";
 import { SessionFailedBehavior } from "./behaviors/session-failed";
 import { SessionActiveBehavior } from "./behaviors/session-active";
@@ -63,6 +64,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
   },
   sdkStatus: "ACTIVE",
   sdkFatalErrorMessage: null,
+  sdkFatalErrorRetryable: false,
   channel: null,
   channelProperties: null,
   channelData: {
@@ -129,6 +131,43 @@ describe("Behavior Tree - SDK states", () => {
       sdkStatus: "FATAL_ERROR",
     });
     assertHasNodes(node, [SdkFatalErrorBehavior]);
+  });
+  it("should dispatch a retryable fatal-error event when the blackboard says so", () => {
+    const events: Event[] = [];
+    new SdkFatalErrorBehavior({
+      ...mockBlackboard,
+      sdkFatalErrorMessage: "Failed to fetch",
+      sdkFatalErrorRetryable: true,
+      dispatchEvent: (event) => {
+        events.push(event);
+        return true;
+      },
+    }).enter();
+
+    expect(events).toHaveLength(1);
+    const event = events[0] as XenditFatalErrorEvent;
+    expect(event.type).toBe("fatal-error");
+    expect(event.message).toBe("Failed to fetch");
+    expect(event.retryable).toBe(true);
+  });
+  it("should dispatch a non-retryable fatal-error event when the blackboard says so", () => {
+    const events: Event[] = [];
+    new SdkFatalErrorBehavior({
+      ...mockBlackboard,
+      sdkFatalErrorMessage:
+        "The resume flag is set but the expected query string parameters are missing.",
+      sdkFatalErrorRetryable: false,
+      dispatchEvent: (event) => {
+        events.push(event);
+        return true;
+      },
+    }).enter();
+
+    const event = events[0] as XenditFatalErrorEvent;
+    expect(event.message).toBe(
+      "The resume flag is set but the expected query string parameters are missing.",
+    );
+    expect(event.retryable).toBe(false);
   });
 });
 
