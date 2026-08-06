@@ -33,7 +33,7 @@ export class PaymentOptionsBehavior implements Behavior {
     this.lookupPaymentOptions();
   }
 
-  update() {
+  updatePostorder() {
     this.lookupPaymentOptions();
   }
 

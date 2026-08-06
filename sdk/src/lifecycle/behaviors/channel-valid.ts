@@ -14,7 +14,7 @@ export class ChannelValidBehavior implements Behavior {
     this.sendReadyEventIfChanged();
   }
 
-  update() {
+  updatePostorder() {
     this.sendReadyEventIfChanged();
   }
 

@@ -12,12 +12,14 @@ export type TelemetryStage =
   | "CHECKOUT_ATTEMPT" // on pr/pt response received (or error from server) (metadata: {error_code:string})
   | "CHECKOUT_ATTEMPT_DISCARD" // when an attempt fails (payment failure screen), or the user aborts an attempt (metadata: {failure_code:string,user_abort:boolean})
   | "CHECKOUT_ACTION_BEGIN" // on action screen shown
-  | "CHECKOUT_ACTION_CLOSE" // when an action closes for reason other than the session/PR/PT state changed (iframe flow ended, or user closed action screen)
+  | "CHECKOUT_ACTION_CLOSE" // when an action screen closes
+  | "CHECKOUT_DIGITAL_WALLET_BEGIN" // when a user clicks a digital wallet button
+  | "CHECKOUT_DIGITAL_WALLET_CLOSE" // when a digital wallet screen completes or is closed
   | "CHECKOUT_ACTION_COPY_TEXT" // when VA/OTC action text copy button is pressed (metadata: {field_name:string})
   | "CHECKOUT_END" // on session complete, expiry, or cancel state (metadata: {status:string})
+  | "CHECKOUT_PENDING" // on session pending (not PR/PT pending)
   | "CHECKOUT_ABANDON" // user closed page
   | "CHECKOUT_REDIRECT_AWAY"; // after redirecting to one of the session return URLs (after the countdown) (metadata: {status:string,url:string})
-
 export interface SessionTelemetryEvent {
   stage: TelemetryStage;
   success: boolean;
@@ -43,11 +45,13 @@ const TELEMETRY_INTERVAL = 2000;
 
 export class SessionTelemetry {
   queue: SessionTelemetryEventWithExtras[] = [];
-  scope: SessionTelemetryScope = {
+
+  rootScope: SessionTelemetryScope = {
     id: null,
     fromEvent: "ROOT",
     parentScope: null,
   };
+  scope = this.rootScope;
 
   timeout: number | null = 0;
   beforeUnloadHandler: (() => void) | null = null;
@@ -72,10 +76,19 @@ export class SessionTelemetry {
    * Remove the provided scope and all its decendants from the scope stack
    */
   popScope(scope: SessionTelemetryScope) {
-    if (scope.parentScope) {
-      console.log("remove scope", scope.fromEvent);
-      this.scope = scope.parentScope;
+    if (!scope.parentScope) return;
+
+    // make sure the scope is actually active
+    let checkScope = this.scope;
+    while (true) {
+      if (checkScope === scope) break; // ok, this scope is an ancestor of the current scope
+      if (checkScope.parentScope === null) return; // this scope isn't active
+      checkScope = checkScope.parentScope;
     }
+
+    // set current scope to this scope's parent
+    console.log("remove scope", scope.fromEvent);
+    this.scope = scope.parentScope;
   }
 
   /**
@@ -94,17 +107,20 @@ export class SessionTelemetry {
     return eventId;
   }
 
+  /**
+   * Install listeners to ensure the events get flushed after a while or when the page is closed or minimized.
+   */
   private setup() {
     if (!this.timeout) {
       this.timeout = window.setTimeout(() => {
-        this.end();
+        this.flush();
       }, TELEMETRY_INTERVAL);
     }
 
     if (!this.visibilityChangeHandler) {
       this.visibilityChangeHandler = () => {
         if (document.visibilityState === "hidden") {
-          this.end();
+          this.flush();
         }
       };
       document.addEventListener(
@@ -114,7 +130,7 @@ export class SessionTelemetry {
     }
   }
 
-  end() {
+  flush() {
     if (!this.queue.length) return;
 
     const sdkKey = this.sdk[internal].sdkKey;

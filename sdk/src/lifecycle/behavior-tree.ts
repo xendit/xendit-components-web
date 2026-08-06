@@ -42,7 +42,6 @@ import { SessionFailedBehavior } from "./behaviors/session-failed";
 import { SessionPendingBehavior } from "./behaviors/session-pending";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
-import { ChannelTelemetryBehavior } from "./behaviors/channel-telemetry-behavior";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
@@ -113,16 +112,13 @@ export function behaviorTreeForSession(bb: BlackboardType) {
 
   switch (bb.world.session.status) {
     case "ACTIVE": {
-      return [
-        behaviorNode(
-          SessionActiveBehavior,
-          "active",
-          bb.submissionRequested || bb.resuming
-            ? behaviorTreeForSubmission(bb)
-            : behaviorTreeForForm(bb),
-        ),
-        behaviorNode(ChannelTelemetryBehavior, bb.channel?.channel_code),
-      ];
+      return behaviorNode(
+        SessionActiveBehavior,
+        "active",
+        bb.submissionRequested || bb.resuming
+          ? behaviorTreeForSubmission(bb)
+          : behaviorTreeForForm(bb),
+      );
     }
     case "COMPLETED": {
       return behaviorNode(SessionCompletedBehavior);

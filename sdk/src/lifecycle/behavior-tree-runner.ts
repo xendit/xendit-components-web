@@ -51,9 +51,13 @@ export interface Behavior {
    */
   enter?(): void;
   /**
-   * Called when a tree is updated but this node is not changed.
+   * Called when a tree is updated but this node is not changed. (preorder traversal)
    */
-  update?(): void;
+  updatePreorder?(): void;
+  /**
+   * Called when a tree is updated but this node is not changed. (postorder traversal)
+   */
+  updatePostorder?(): void;
   /**
    * Called when exiting this behavior
    */
@@ -184,8 +188,9 @@ function updateTree<BB extends object>(
       if (prev) {
         prev.instance = undefined;
       }
+      next?.instance?.updatePreorder?.();
       updateTree(prev?.child, next?.child, bb, depth + 1);
-      next?.instance?.update?.();
+      next?.instance?.updatePostorder?.();
     }
   }
 }

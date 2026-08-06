@@ -36,7 +36,6 @@ import { ActionBarcodeBehavior } from "./behaviors/action-barcode";
 import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
 import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
 import { SessionTelemetry } from "../telemetry";
-import { ChannelTelemetryBehavior } from "./behaviors/channel-telemetry-behavior";
 import { XenditComponents } from "../public-sdk";
 
 const testData = makeTestBffData();
@@ -167,7 +166,6 @@ describe("Behavior Tree - Form validity and card info", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       ChannelValidBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
   it("should give invalid form behavior", () => {
@@ -182,7 +180,6 @@ describe("Behavior Tree - Form validity and card info", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       ChannelInvalidBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
   it("should give card info behavior", () => {
@@ -196,7 +193,6 @@ describe("Behavior Tree - Form validity and card info", () => {
       ChannelInvalidBehavior,
       CardInfoBehavior,
       PaymentOptionsBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
 });
@@ -212,7 +208,6 @@ describe("Behavior Tree - Submission", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
 });
@@ -239,7 +234,6 @@ describe("Behavior Tree - Payment Entity", () => {
       SessionActiveBehavior,
       SubmissionBehavior,
       PaymentEntityPendingBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
   it("should give paymentEntity failed behavior", () => {
@@ -263,7 +257,6 @@ describe("Behavior Tree - Payment Entity", () => {
       SessionActiveBehavior,
       SubmissionBehavior,
       PaymentEntityFailedBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
   it("should give paymentEntity pending behavior", () => {
@@ -287,7 +280,6 @@ describe("Behavior Tree - Payment Entity", () => {
       SessionActiveBehavior,
       SubmissionBehavior,
       PaymentEntityPendingBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
 });
@@ -313,7 +305,6 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
       ActionCompletedBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
   it("should give simulate payment behavior", () => {
@@ -335,7 +326,6 @@ describe("Behavior Tree - Actions (edge cases)", () => {
       PaymentEntityRequiresActionBehavior,
       ActionQrBehavior,
       SimulatePaymentBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
 });
@@ -360,7 +350,6 @@ describe("Behavior Tree - Actions", () => {
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
       ActionIframeBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
 
@@ -390,7 +379,6 @@ describe("Behavior Tree - Actions", () => {
       PaymentEntityRequiresActionBehavior,
       ActionDeepLinkBehavior,
       ActionPaylinkBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
 
@@ -413,7 +401,6 @@ describe("Behavior Tree - Actions", () => {
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
       ActionBarcodeBehavior,
-      ChannelTelemetryBehavior,
     ]);
   });
 });

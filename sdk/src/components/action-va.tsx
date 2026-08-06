@@ -12,6 +12,7 @@ import {
 import Icon from "./icon";
 import { Instructions } from "./instructions";
 import { Tooltip, TooltipContext, TooltipProvider } from "./core/tooltip";
+import { SessionTelemetry } from "../telemetry";
 
 type Props = {
   amount: number;
@@ -23,6 +24,7 @@ type Props = {
   instructions: InstructionsType;
   title: string;
   t: TFunction;
+  telemetry: SessionTelemetry;
 };
 
 export function ActionVa(props: Props) {
@@ -36,6 +38,7 @@ export function ActionVa(props: Props) {
     instructions,
     title,
     t,
+    telemetry,
   } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
@@ -84,7 +87,12 @@ export function ActionVa(props: Props) {
               </div>
               {detail.enableCopy ? (
                 <TooltipProvider>
-                  <CopyButton value={detail.value} t={t} />
+                  <CopyButton
+                    fieldName={detail.heading}
+                    telemetry={telemetry}
+                    value={detail.value}
+                    t={t}
+                  />
                   <Tooltip />
                 </TooltipProvider>
               ) : null}
@@ -110,10 +118,12 @@ export function ActionVa(props: Props) {
   );
 }
 
-const CopyButton: FunctionComponent<{ value: string; t: TFunction }> = ({
-  value,
-  t,
-}) => {
+const CopyButton: FunctionComponent<{
+  telemetry: SessionTelemetry;
+  fieldName: string;
+  value: string;
+  t: TFunction;
+}> = ({ telemetry, fieldName, value, t }) => {
   const { fire } = useContext(TooltipContext);
 
   return (
@@ -122,6 +132,13 @@ const CopyButton: FunctionComponent<{ value: string; t: TFunction }> = ({
       size={ButtonSize.SM}
       onClick={() => {
         navigator.clipboard.writeText(value);
+
+        telemetry.append({
+          stage: "CHECKOUT_ACTION_COPY_TEXT",
+          success: true,
+          metadata: { field_name: fieldName },
+        });
+
         fire(t("action_va.copied_to_clipboard"));
       }}
     >

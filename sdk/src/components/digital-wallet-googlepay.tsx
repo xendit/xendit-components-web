@@ -11,6 +11,8 @@ import { ChannelProperties } from "../backend-types/channel";
 import { XenditPaymentChannel } from "../public-data-types";
 import { assert, satisfiesMinMax } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
+import { internal } from "../internal";
+import { SessionTelemetryScope } from "../telemetry";
 
 type Props = {
   options?: DigitalWalletOptions<"GOOGLE_PAY">;
@@ -112,6 +114,8 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     });
   }, [sdk]);
 
+  const telemetryScope = useRef<SessionTelemetryScope | null>(null);
+
   const onClick = useCallback(() => {
     assert(paymentsClient.current);
 
@@ -134,6 +138,14 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       );
     }
 
+    // telemetry for begin digital wallet flow
+    telemetryScope.current = sdk[internal].telemetry.appendAndPushScope({
+      stage: "CHECKOUT_DIGITAL_WALLET_BEGIN",
+      success: true,
+      metadata: { digital_wallet: "GOOGLE_PAY" },
+    });
+
+    // begin googlepay request
     paymentsClient.current
       .loadPaymentData(googlePayConfig)
       .then(function (paymentData) {
@@ -146,6 +158,17 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           channelProperties = {
             google_pay: JSON.stringify(paymentData),
           };
+        }
+
+        // telemetry for googlepay error
+        sdk[internal].telemetry.append({
+          stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
+          success: true,
+        });
+        // also clear telemetry scope (before submitting - otherwise event order is weird)
+        if (telemetryScope.current) {
+          sdk[internal].telemetry.popScope(telemetryScope.current);
+          telemetryScope.current = null;
         }
 
         sdk.submitDigitalWallet("GOOGLE_PAY", targetChannel, channelProperties);
@@ -162,6 +185,12 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           (err.statusCode as GooglePayErrorCode) ?? "UNKNOWN_ERROR";
 
         if (statusCode === "CANCELED") {
+          // telemetry for cancel
+          sdk[internal].telemetry.append({
+            stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
+            success: false,
+            metadata: { error_code: statusCode },
+          });
           return;
         }
 
@@ -195,6 +224,13 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           firstGooglePayChannel.channel_code,
         );
 
+        // telemetry for googlepay error
+        sdk[internal].telemetry.append({
+          stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
+          success: false,
+          metadata: { error_code: statusCode },
+        });
+
         // submit and force an error
         sdk.submitDigitalWallet(
           "GOOGLE_PAY",
@@ -202,6 +238,13 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           {},
           submissionError,
         );
+      })
+      .finally(() => {
+        // clear telemetry scope
+        if (telemetryScope.current) {
+          sdk[internal].telemetry.popScope(telemetryScope.current);
+          telemetryScope.current = null;
+        }
       });
   }, [digitalWalletsGooglePay, googlePayConfig, sdk, t]);
 

@@ -391,12 +391,13 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
-      this.behaviorTreeUpdate();
 
       this[internal].telemetry.append({
         stage: "CHECKOUT_LOADED",
         success: false,
       });
+
+      this.behaviorTreeUpdate();
       return;
     }
 
@@ -416,12 +417,13 @@ export class XenditComponents extends EventTarget {
         this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
         this[internal].behaviorTree.bb.sdkFatalErrorMessage =
           "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
-        this.behaviorTreeUpdate();
 
         this[internal].telemetry.appendAndPushScope({
           stage: "CHECKOUT_RESUME",
           success: false,
         });
+
+        this.behaviorTreeUpdate();
         return;
       }
       if (bff.session.status === "ACTIVE") {
@@ -450,15 +452,29 @@ export class XenditComponents extends EventTarget {
           this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
           this[internal].behaviorTree.bb.sdkFatalErrorMessage =
             "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
-          this.behaviorTreeUpdate();
 
           this[internal].telemetry.appendAndPushScope({
             stage: "CHECKOUT_RESUME",
             success: false,
           });
+
+          this.behaviorTreeUpdate();
           return;
         }
       }
+    }
+
+    // telemetry for successful load
+    if (resumeSession) {
+      this[internal].telemetry.appendAndPushScope({
+        stage: "CHECKOUT_RESUME",
+        success: true,
+      });
+    } else {
+      this[internal].telemetry.appendAndPushScope({
+        stage: "CHECKOUT_LOADED",
+        success: true,
+      });
     }
 
     // Update world state
@@ -476,19 +492,6 @@ export class XenditComponents extends EventTarget {
           resumeSucceededChannel ?? bff.succeeded_channel ?? null,
       } satisfies WorldState),
     );
-
-    // telemetry for successful load
-    if (resumeSession) {
-      this[internal].telemetry.appendAndPushScope({
-        stage: "CHECKOUT_RESUME",
-        success: true,
-      });
-    } else {
-      this[internal].telemetry.appendAndPushScope({
-        stage: "CHECKOUT_LOADED",
-        success: true,
-      });
-    }
   }
 
   /**
@@ -1417,6 +1420,7 @@ export class XenditComponents extends EventTarget {
       ChannelInvalidBehavior,
     );
     if (channelInvalidBehavior) {
+      // TODO: telemetry for validation error
       throw new Error(
         "Unable to submit; the form for the current channel has errors. Listen to the `submission-ready` and `submission-not-ready` events, do not allow submission while in the not-ready state.",
       );
@@ -1461,6 +1465,7 @@ export class XenditComponents extends EventTarget {
       XenditSubmissionEndEvent.type,
       () => {
         this[internal].currentDigitalWalletSubmission = null;
+        this.behaviorTreeUpdate();
       },
       { once: true },
     );

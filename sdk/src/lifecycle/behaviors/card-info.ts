@@ -26,7 +26,7 @@ export class CardInfoBehavior implements Behavior {
     this.lookupCardDetails();
   }
 
-  update() {
+  updatePostorder() {
     this.lookupCardDetails();
   }
 

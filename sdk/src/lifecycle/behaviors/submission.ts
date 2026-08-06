@@ -60,6 +60,7 @@ export class SubmissionBehavior implements Behavior {
   } | null = null;
   private submissionError: Error | SubmissionError | null = null;
 
+  // telemetry scope for the begin submission event
   private telemetryScope: SessionTelemetryScope | null = null;
 
   constructor(private bb: BlackboardType) {}
@@ -89,7 +90,11 @@ export class SubmissionBehavior implements Behavior {
       this.bb.world.session.status !== "PENDING" &&
       paymentEntity
     ) {
-      discardPaymentEntity(paymentEntity, this.bb.dispatchEvent);
+      discardPaymentEntity(
+        paymentEntity,
+        this.bb.dispatchEvent,
+        this.bb.sdk[internal].telemetry,
+      );
     }
 
     // Determine reason for submission end
@@ -195,6 +200,13 @@ export class SubmissionBehavior implements Behavior {
       return;
     }
 
+    // telemetry for payment entity creation
+    this.telemetryScope = this.bb.sdk[internal].telemetry.appendAndPushScope({
+      stage: "CHECKOUT_ATTEMPT_BEGIN",
+      success: true,
+    });
+
+    // make actual request
     const shouldSendSavePaymentMethod =
       this.bb.world.session.allow_save_payment_method === "OPTIONAL" &&
       this.bb.channel?.allow_save;
@@ -240,9 +252,7 @@ export class SubmissionBehavior implements Behavior {
             paymentEntity satisfies never;
         }
         // telemetry for payment entity created
-        this.telemetryScope = this.bb.sdk[
-          internal
-        ].telemetry.appendAndPushScope({
+        this.bb.sdk[internal].telemetry.appendAndPushScope({
           stage: "CHECKOUT_ATTEMPT",
           success: true,
           payment_token_id: paymentEntity.id,
