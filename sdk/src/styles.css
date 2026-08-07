@@ -1281,28 +1281,15 @@ xendit-channel-picker[inert] {
 
 /* applepay */
 
-.xendit-apple-pay-button-wrapper {
-  cursor: pointer;
-  border-radius: 999px;
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-}
-
-.xendit-apple-pay-button-wrapper:hover {
-  opacity: 0.75;
-}
-
-.xendit-apple-pay-button-wrapper:active {
-  transform: scale(0.98);
-}
-
 .xendit-apple-pay-button {
+  display: block;
   --apple-pay-button-width: 100%;
   --apple-pay-button-height: 40px;
   --apple-pay-button-border-radius: 999px;
   --apple-pay-button-padding: 0;
   --apple-pay-button-box-sizing: border-box;
-  /* clicks are handled by the wrapper so we keep control over them */
-  pointer-events: none;
+}
+
+.xendit-apple-pay-button:hover {
+  filter: invert(1) brightness(0.74) invert(1);
 }

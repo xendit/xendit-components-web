@@ -180,21 +180,14 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
   }, [cardsChannel, onReady]);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label="Apple Pay"
-      className="xendit-apple-pay-button-wrapper"
+    <apple-pay-button
+      buttonstyle={buttonConfigWithDefaults.buttonStyle}
+      type={buttonConfigWithDefaults.buttonType}
+      locale={session.locale}
+      className="xendit-apple-pay-button"
       onClick={onClick}
       onKeyDown={onKeyDown}
-    >
-      <apple-pay-button
-        buttonstyle={buttonConfigWithDefaults.buttonStyle}
-        type={buttonConfigWithDefaults.buttonType}
-        locale={session.locale}
-        className="xendit-apple-pay-button"
-      />
-    </div>
+    />
   );
 };
 
@@ -214,8 +207,10 @@ declare module "react/jsx-runtime" {
           type?: string;
           locale?: string;
           className?: string;
+          onClick?: (e: MouseEvent) => void;
+          onKeyDown?: (e: KeyboardEvent) => void;
         },
-        HTMLElement
+        HTMLButtonElement
       >;
     }
   }
