@@ -1583,6 +1583,53 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
+   * @public
+   * Redirects the user to the Session's success_return_url or cancel_return_url, depending on the session's current state.
+   * Does not fire the `will-redirect` event.
+   *
+   * Throws an error if the session is not in an appropriate state, or if the return url is not set.
+   */
+  redirectToReturnUrl() {
+    this.assertInitialized();
+
+    const status = this[internal].worldState.session.status;
+    let url: string | undefined;
+    switch (status) {
+      case "COMPLETED": {
+        url = this[internal].worldState.session.success_return_url;
+        break;
+      }
+      case "CANCELED":
+      case "EXPIRED": {
+        url = this[internal].worldState.session.cancel_return_url;
+        break;
+      }
+      case "ACTIVE":
+      case "PENDING": {
+        throw new Error(
+          "Can't redirect to the return url until the session is completed, expired, or canceled.",
+        );
+      }
+      default: {
+        throw new Error(
+          "Invalid session status; this is a bug, please contact support.",
+        );
+      }
+    }
+
+    if (!url) {
+      throw new Error("The success_return_url is not set");
+    }
+
+    this[internal].telemetry.append({
+      stage: "CHECKOUT_REDIRECT_AWAY",
+      success: true,
+      metadata: { status },
+    });
+    window.location.href = url;
+  }
+
+  /**
    * @internal
    * TODO: remove this, it's for debugging
    */
