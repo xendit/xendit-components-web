@@ -12,6 +12,7 @@ import { XenditPaymentChannel } from "../public-data-types";
 import { assert, satisfiesMinMax } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
+import { TelemetryEvents } from "../telemetry-events";
 
 type Props = {
   options?: DigitalWalletOptions<"GOOGLE_PAY">;
@@ -138,11 +139,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     }
 
     // telemetry for begin digital wallet flow
-    telemetryScope.current = getTelemetry(sdk).appendAndPushScope({
-      stage: "CHECKOUT_DIGITAL_WALLET_BEGIN",
-      success: true,
-      metadata: { digital_wallet: "GOOGLE_PAY" },
-    });
+    telemetryScope.current = getTelemetry(sdk).appendAndPushScope(
+      TelemetryEvents.DigitalWalletBegin(true, "GOOGLE_PAY"),
+    );
 
     // begin googlepay request
     paymentsClient.current
@@ -160,10 +159,8 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         }
 
         // telemetry for googlepay error
-        getTelemetry(sdk).append({
-          stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
-          success: true,
-        });
+        getTelemetry(sdk).append(TelemetryEvents.DigitalWalletClose(true));
+
         // also clear telemetry scope (before submitting - otherwise event order is weird)
         if (telemetryScope.current) {
           getTelemetry(sdk).popScope(telemetryScope.current);
@@ -185,11 +182,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
 
         if (statusCode === "CANCELED") {
           // telemetry for cancel
-          getTelemetry(sdk).append({
-            stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
-            success: false,
-            metadata: { error_code: statusCode },
-          });
+          getTelemetry(sdk).append(
+            TelemetryEvents.DigitalWalletClose(false, statusCode),
+          );
           return;
         }
 
@@ -224,11 +219,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         );
 
         // telemetry for googlepay error
-        getTelemetry(sdk).append({
-          stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
-          success: false,
-          metadata: { error_code: statusCode },
-        });
+        getTelemetry(sdk).append(
+          TelemetryEvents.DigitalWalletClose(false, statusCode),
+        );
 
         // submit and force an error
         sdk.submitDigitalWallet(

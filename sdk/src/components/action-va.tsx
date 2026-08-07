@@ -13,6 +13,7 @@ import Icon from "./icon";
 import { Instructions } from "./instructions";
 import { Tooltip, TooltipContext, TooltipProvider } from "./core/tooltip";
 import { SessionTelemetry } from "../telemetry";
+import { TelemetryEvents } from "../telemetry-events";
 
 type Props = {
   amount: number;
@@ -133,11 +134,7 @@ const CopyButton: FunctionComponent<{
       onClick={() => {
         navigator.clipboard.writeText(value);
 
-        telemetry.append({
-          stage: "CHECKOUT_ACTION_COPY_TEXT",
-          success: true,
-          metadata: { field_name: fieldName },
-        });
+        telemetry.append(TelemetryEvents.ActionCopyText(true, fieldName));
 
         fire(t("action_va.copied_to_clipboard"));
       }}

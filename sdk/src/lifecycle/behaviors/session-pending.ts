@@ -5,6 +5,7 @@ import {
   XenditSessionNotPendingEvent,
   XenditSessionPendingEvent,
 } from "../../public-event-types";
+import { TelemetryEvents } from "../../telemetry-events";
 import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
@@ -25,10 +26,7 @@ export class SessionPendingBehavior implements Behavior {
 
   enter() {
     // telemetry for pending state
-    this.bb.telemetry.append({
-      stage: "CHECKOUT_PENDING",
-      success: true,
-    });
+    this.bb.telemetry.append(TelemetryEvents.Pending(true));
 
     // start listening for changes
     this.pollWorker.start();

@@ -23,6 +23,7 @@ import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
 import { CustomerDetails } from "../backend-types/customer";
 import { changedChannelProperties } from "../utils-channel-properties";
 import { getTelemetry } from "../telemetry";
+import { TelemetryEvents } from "../telemetry-events";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -106,12 +107,9 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
         if (telemetrySentEventKeys.current.has(changedKey)) continue;
         telemetrySentEventKeys.current.add(changedKey);
 
-        getTelemetry(sdk).append({
-          stage: "CHECKOUT_CHANNEL_FORM_INPUT",
-          payment_channel: firstMemberChannel.channel_code,
-          success: true,
-          metadata: { field_name: changedKey },
-        });
+        getTelemetry(sdk).append(
+          TelemetryEvents.ChannelFormInput(true, changedKey),
+        );
       }
     }
 

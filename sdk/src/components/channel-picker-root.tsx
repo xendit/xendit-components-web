@@ -31,6 +31,7 @@ import {
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
 import { IconName } from "./icon";
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
+import { TelemetryEvents } from "../telemetry-events";
 
 type Props = object;
 
@@ -82,11 +83,9 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   const telemetryForGroupChange = useCallback(
     (groupId: string) => {
       telemetryForGroupClear();
-      telemetryScopeForGroup.current = telemetry.appendAndPushScope({
-        stage: "CHECKOUT_CHANNEL_GROUP",
-        success: true,
-        metadata: { group_name: groupId },
-      });
+      telemetryScopeForGroup.current = telemetry.appendAndPushScope(
+        TelemetryEvents.ChannelGroup(true, groupId),
+      );
     },
     [telemetry, telemetryForGroupClear],
   );

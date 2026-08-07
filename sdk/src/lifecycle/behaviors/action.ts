@@ -5,6 +5,7 @@ import { Behavior } from "../behavior-tree-runner";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
 import { SessionTelemetryScope } from "../../telemetry";
+import { TelemetryEvents } from "../../telemetry-events";
 
 export enum DefaultActionContainerType {
   QrWithCustomArt = "qr-with-custom-art",
@@ -126,10 +127,9 @@ export abstract class ContainerActionBehavior implements Behavior {
     this.updateActionContainerBrandColor();
 
     // telemetry for start of action
-    this.telemetryScope = this.bb.telemetry.appendAndPushScope({
-      stage: "CHECKOUT_ACTION_BEGIN",
-      success: true,
-    });
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope(
+      TelemetryEvents.ActionBegin(true),
+    );
 
     render(createComponent(), container);
   }
@@ -140,10 +140,7 @@ export abstract class ContainerActionBehavior implements Behavior {
 
     // telemetry for end of action
     if (this.telemetryScope) {
-      this.bb.telemetry.append({
-        stage: "CHECKOUT_ACTION_CLOSE",
-        success: true,
-      });
+      this.bb.telemetry.append(TelemetryEvents.ActionClose(true));
       this.bb.telemetry.popScope(this.telemetryScope);
       this.telemetryScope = null;
     }

@@ -6,6 +6,7 @@ import { assert } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
 import { NetworkError } from "../networking";
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
+import { TelemetryEvents } from "../telemetry-events";
 
 export const APPLE_PAY_VERSION = 14;
 
@@ -67,13 +68,11 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
 
   const telemetryForDigitalWalletClose = useCallback(
     (errorCode?: string) => {
-      // telemetry for googlepay error
+      // telemetry for applepay error
       if (telemetryScope.current) {
-        getTelemetry(sdk).append({
-          stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
-          success: false,
-          metadata: { error_code: errorCode },
-        });
+        getTelemetry(sdk).append(
+          TelemetryEvents.DigitalWalletClose(false, errorCode),
+        );
         // clear telemetry scope
         getTelemetry(sdk).popScope(telemetryScope.current);
         telemetryScope.current = null;
@@ -179,11 +178,9 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     };
 
     // telemetry for begin digital wallet flow
-    telemetryScope.current = getTelemetry(sdk).appendAndPushScope({
-      stage: "CHECKOUT_DIGITAL_WALLET_BEGIN",
-      success: true,
-      metadata: { digital_wallet: "APPLE_PAY" },
-    });
+    telemetryScope.current = getTelemetry(sdk).appendAndPushScope(
+      TelemetryEvents.DigitalWalletBegin(true, "APPLE_PAY"),
+    );
 
     // start the flow
     applePaySession.begin();

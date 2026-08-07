@@ -30,7 +30,7 @@ export const TelemetryEvents = {
   /**
    * On initialization, after calling the get session endpoint
    */
-  CheckoutLoaded(success: boolean) {
+  Loaded(success: boolean) {
     return {
       stage: "CHECKOUT_LOADED",
       success,
@@ -40,7 +40,7 @@ export const TelemetryEvents = {
   /**
    * Emitted instead of CHECKOUT_LOADED if the user was redirected back from a partner page. Not applicable for ios/android.
    */
-  CheckoutResume(success: boolean) {
+  Resume(success: boolean) {
     return {
       stage: "CHECKOUT_RESUME",
       success,
@@ -50,7 +50,7 @@ export const TelemetryEvents = {
   /**
    * On channel group click
    */
-  CheckoutChannelGroup(success: boolean, group_name: string) {
+  ChannelGroup(success: boolean, group_name: string) {
     return {
       stage: "CHECKOUT_CHANNEL_GROUP",
       success,
@@ -63,7 +63,7 @@ export const TelemetryEvents = {
   /**
    * On current channel change
    */
-  CheckoutChannel(success: boolean, payment_channel: string) {
+  Channel(success: boolean, payment_channel: string) {
     return {
       stage: "CHECKOUT_CHANNEL",
       success,
@@ -74,7 +74,7 @@ export const TelemetryEvents = {
   /**
    * Once for each field in the form, the first time it's modified (including save payment method and customer given name)
    */
-  CheckoutChannelFormInput(success: boolean, field_name: string) {
+  ChannelFormInput(success: boolean, field_name: string) {
     return {
       stage: "CHECKOUT_CHANNEL_FORM_INPUT",
       success,
@@ -87,7 +87,7 @@ export const TelemetryEvents = {
   /**
    * On pr/pt request sent
    */
-  CheckoutAttemptBegin(success: boolean, validation_error?: string) {
+  AttemptBegin(success: boolean, validation_error?: string) {
     return {
       stage: "CHECKOUT_ATTEMPT_BEGIN",
       success,
@@ -98,9 +98,31 @@ export const TelemetryEvents = {
   },
 
   /**
-   * On pr/pt response received
+   * On pr response received
    */
-  CheckoutAttempt(success: boolean, error_code?: string) {
+  Attempt_PR(success: boolean, payment_request_id: string) {
+    return {
+      stage: "CHECKOUT_ATTEMPT",
+      success,
+      payment_request_id,
+    };
+  },
+
+  /**
+   * On pt response received
+   */
+  Attempt_PT(success: boolean, payment_token_id: string) {
+    return {
+      stage: "CHECKOUT_ATTEMPT",
+      success,
+      payment_token_id,
+    };
+  },
+
+  /**
+   * On pr/pt fail
+   */
+  Attempt_Error(success: boolean, error_code?: string) {
     return {
       stage: "CHECKOUT_ATTEMPT",
       success,
@@ -113,17 +135,12 @@ export const TelemetryEvents = {
   /**
    * When an attempt fails (payment failure screen), or the user aborts an attempt
    */
-  CheckoutAttemptDiscard(
-    success: boolean,
-    failure_code: string,
-    user_abort: boolean,
-  ) {
+  AttemptDiscard(success: boolean, failure_code?: string) {
     return {
       stage: "CHECKOUT_ATTEMPT_DISCARD",
       success,
       metadata: {
         failure_code,
-        user_abort,
       },
     };
   },
@@ -131,7 +148,7 @@ export const TelemetryEvents = {
   /**
    * On action screen shown
    */
-  CheckoutActionBegin(success: boolean) {
+  ActionBegin(success: boolean) {
     return {
       stage: "CHECKOUT_ACTION_BEGIN",
       success,
@@ -141,7 +158,7 @@ export const TelemetryEvents = {
   /**
    * When an action screen closes
    */
-  CheckoutActionClose(success: boolean) {
+  ActionClose(success: boolean) {
     return {
       stage: "CHECKOUT_ACTION_CLOSE",
       success,
@@ -151,27 +168,29 @@ export const TelemetryEvents = {
   /**
    * When a user clicks a digital wallet button
    */
-  CheckoutDigitalWalletBegin(success: boolean) {
+  DigitalWalletBegin(success: boolean, digital_wallet: string) {
     return {
       stage: "CHECKOUT_DIGITAL_WALLET_BEGIN",
       success,
+      metadata: { digital_wallet },
     };
   },
 
   /**
    * When a digital wallet screen completes or is closed
    */
-  CheckoutDigitalWalletClose(success: boolean) {
+  DigitalWalletClose(success: boolean, error_code?: string) {
     return {
       stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
       success,
+      metadata: { error_code },
     };
   },
 
   /**
    * When VA/OTC action text copy button is pressed
    */
-  CheckoutActionCopyText(success: boolean, field_name: string) {
+  ActionCopyText(success: boolean, field_name: string) {
     return {
       stage: "CHECKOUT_ACTION_COPY_TEXT",
       success,
@@ -184,7 +203,7 @@ export const TelemetryEvents = {
   /**
    * On session complete, expiry, or cancel state
    */
-  CheckoutEnd(success: boolean, status: string) {
+  End(success: boolean, status: string) {
     return {
       stage: "CHECKOUT_END",
       success,
@@ -197,7 +216,7 @@ export const TelemetryEvents = {
   /**
    * On session pending (not PR/PT pending)
    */
-  CheckoutPending(success: boolean) {
+  Pending(success: boolean) {
     return {
       stage: "CHECKOUT_PENDING",
       success,
@@ -207,7 +226,7 @@ export const TelemetryEvents = {
   /**
    * User closed page / app
    */
-  CheckoutAbandon(success: boolean) {
+  Abandon(success: boolean) {
     return {
       stage: "CHECKOUT_ABANDON",
       success,
@@ -217,13 +236,12 @@ export const TelemetryEvents = {
   /**
    * After redirecting to one of the session return URLs (after the countdown). Only for hosted checkout.
    */
-  CheckoutRedirectAway(success: boolean, status: string, url: string) {
+  RedirectAway(success: boolean, status: string) {
     return {
       stage: "CHECKOUT_REDIRECT_AWAY",
       success,
       metadata: {
         status,
-        url,
       },
     };
   },

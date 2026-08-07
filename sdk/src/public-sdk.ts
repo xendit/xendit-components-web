@@ -114,6 +114,7 @@ import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
 import { getTelemetry, SessionTelemetry } from "./telemetry";
+import { TelemetryEvents } from "./telemetry-events";
 
 /**
  * @internal
@@ -394,10 +395,7 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
 
-      getTelemetry(this).append({
-        stage: "CHECKOUT_LOADED",
-        success: false,
-      });
+      getTelemetry(this).append(TelemetryEvents.Loaded(false));
 
       this.behaviorTreeUpdate();
       return;
@@ -420,10 +418,7 @@ export class XenditComponents extends EventTarget {
         this[internal].behaviorTree.bb.sdkFatalErrorMessage =
           "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
 
-        getTelemetry(this).appendAndPushScope({
-          stage: "CHECKOUT_RESUME",
-          success: false,
-        });
+        getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(false));
 
         this.behaviorTreeUpdate();
         return;
@@ -455,10 +450,7 @@ export class XenditComponents extends EventTarget {
           this[internal].behaviorTree.bb.sdkFatalErrorMessage =
             "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
 
-          getTelemetry(this).appendAndPushScope({
-            stage: "CHECKOUT_RESUME",
-            success: false,
-          });
+          getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(false));
 
           this.behaviorTreeUpdate();
           return;
@@ -468,15 +460,9 @@ export class XenditComponents extends EventTarget {
 
     // telemetry for successful load
     if (resumeSession) {
-      getTelemetry(this).appendAndPushScope({
-        stage: "CHECKOUT_RESUME",
-        success: true,
-      });
+      getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(true));
     } else {
-      getTelemetry(this).appendAndPushScope({
-        stage: "CHECKOUT_LOADED",
-        success: true,
-      });
+      getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
     }
 
     // Update world state
@@ -1623,11 +1609,7 @@ export class XenditComponents extends EventTarget {
       throw new Error("The success_return_url is not set");
     }
 
-    getTelemetry(this).append({
-      stage: "CHECKOUT_REDIRECT_AWAY",
-      success: true,
-      metadata: { status },
-    });
+    getTelemetry(this).append(TelemetryEvents.RedirectAway(true, status));
     window.location.href = url;
   }
 
@@ -1969,10 +1951,7 @@ export class XenditComponentsTest extends XenditComponents {
       } satisfies WorldState),
     );
 
-    getTelemetry(this).appendAndPushScope({
-      stage: "CHECKOUT_LOADED",
-      success: true,
-    });
+    getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
   }
 
   /**

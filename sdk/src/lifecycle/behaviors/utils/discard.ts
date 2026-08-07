@@ -8,6 +8,7 @@ import {
   XenditPaymentTokenDiscardedEvent,
 } from "../../../public-event-types";
 import { SessionTelemetry } from "../../../telemetry";
+import { TelemetryEvents } from "../../../telemetry-events";
 import { BlackboardType } from "../../behavior-tree";
 
 export function discardPaymentEntity(
@@ -27,10 +28,9 @@ export function discardPaymentEntity(
   }
 
   // telemetry for end of payment entity lifecycle
-  telemetry.append({
-    stage: "CHECKOUT_ATTEMPT_DISCARD",
-    success: false,
-  });
+  telemetry.append(
+    TelemetryEvents.AttemptDiscard(false, paymentEntity.entity.failure_code),
+  );
 
   dispatchEvent(
     new InternalUpdateWorldState({

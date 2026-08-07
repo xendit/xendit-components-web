@@ -44,6 +44,7 @@ import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
 import { CustomerDetails } from "../../backend-types/customer";
 import { SessionTelemetryScope } from "../../telemetry";
+import { TelemetryEvents } from "../../telemetry-events";
 
 export type SubmissionError = {
   text: string[];
@@ -200,10 +201,9 @@ export class SubmissionBehavior implements Behavior {
     }
 
     // telemetry for payment entity creation
-    this.telemetryScope = this.bb.telemetry.appendAndPushScope({
-      stage: "CHECKOUT_ATTEMPT_BEGIN",
-      success: true,
-    });
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope(
+      TelemetryEvents.AttemptBegin(true),
+    );
 
     // make actual request
     const shouldSendSavePaymentMethod =
@@ -241,21 +241,21 @@ export class SubmissionBehavior implements Behavior {
             this.bb.dispatchEvent(
               new XenditPaymentRequestCreatedEvent(paymentEntity.id),
             );
+            this.bb.telemetry.appendAndPushScope(
+              TelemetryEvents.Attempt_PR(true, paymentEntity.id),
+            );
             break;
           case BffPaymentEntityType.PaymentToken:
             this.bb.dispatchEvent(
               new XenditPaymentTokenCreatedEvent(paymentEntity.id),
             );
+            this.bb.telemetry.appendAndPushScope(
+              TelemetryEvents.Attempt_PT(true, paymentEntity.id),
+            );
             break;
           default:
             paymentEntity satisfies never;
         }
-        // telemetry for payment entity created
-        this.bb.telemetry.appendAndPushScope({
-          stage: "CHECKOUT_ATTEMPT",
-          success: true,
-          payment_token_id: paymentEntity.id,
-        });
 
         // TODO: the payment-entity-created event should be sent only after the updateWorld call but that causes a behavior tree update which would cause events to fire in the wrong order
         this.bb.dispatchEvent(
@@ -272,10 +272,12 @@ export class SubmissionBehavior implements Behavior {
         console.error("Submission failed:", error);
 
         // telemetry for failure to create payment entity
-        this.bb.telemetry.append({
-          stage: "CHECKOUT_ATTEMPT",
-          success: false,
-        });
+        this.bb.telemetry.append(
+          TelemetryEvents.Attempt_Error(
+            false,
+            error?.errorResponse?.error_code,
+          ),
+        );
 
         // avoid dispatching an event after exit
         if (!this.exited) {
