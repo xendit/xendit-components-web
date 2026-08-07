@@ -64,6 +64,13 @@ xendit-payment-channel input::placeholder {
   font-family: inherit;
 }
 
+xendit-payment-channel button,
+xendit-payment-channel textarea,
+xendit-payment-channel select,
+xendit-payment-channel input {
+  color: var(--xendit-color-text);
+}
+
 xendit-payment-channel input::placeholder,
 xendit-payment-channel textarea::placeholder,
 xendit-payment-channel select::placeholder {
