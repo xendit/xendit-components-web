@@ -126,7 +126,7 @@ export abstract class ContainerActionBehavior implements Behavior {
     this.updateActionContainerBrandColor();
 
     // telemetry for start of action
-    this.telemetryScope = this.bb.sdk[internal].telemetry.appendAndPushScope({
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope({
       stage: "CHECKOUT_ACTION_BEGIN",
       success: true,
     });
@@ -140,11 +140,11 @@ export abstract class ContainerActionBehavior implements Behavior {
 
     // telemetry for end of action
     if (this.telemetryScope) {
-      this.bb.sdk[internal].telemetry.append({
+      this.bb.telemetry.append({
         stage: "CHECKOUT_ACTION_CLOSE",
         success: true,
       });
-      this.bb.sdk[internal].telemetry.popScope(this.telemetryScope);
+      this.bb.telemetry.popScope(this.telemetryScope);
       this.telemetryScope = null;
     }
   }

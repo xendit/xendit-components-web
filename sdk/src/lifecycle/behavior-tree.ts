@@ -42,6 +42,7 @@ import { SessionFailedBehavior } from "./behaviors/session-failed";
 import { SessionPendingBehavior } from "./behaviors/session-pending";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
+import { SessionTelemetry } from "../telemetry";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
@@ -50,6 +51,7 @@ export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
  */
 export type BlackboardType = {
   readonly sdk: XenditComponents;
+  readonly telemetry: SessionTelemetry;
   readonly mock: boolean;
   readonly sdkKey: ParsedSdkKey;
 

@@ -1,6 +1,5 @@
 import { BffPollResponse } from "../../backend-types/common";
 import { BffPaymentEntity } from "../../backend-types/payment-entity";
-import { internal } from "../../internal";
 import { InternalUpdateWorldState } from "../../private-event-types";
 import {
   XenditSessionNotPendingEvent,
@@ -26,7 +25,7 @@ export class SessionPendingBehavior implements Behavior {
 
   enter() {
     // telemetry for pending state
-    this.bb.sdk[internal].telemetry.append({
+    this.bb.telemetry.append({
       stage: "CHECKOUT_PENDING",
       success: true,
     });
@@ -47,7 +46,7 @@ export class SessionPendingBehavior implements Behavior {
       discardPaymentEntity(
         paymentEntity,
         this.bb.dispatchEvent,
-        this.bb.sdk[internal].telemetry,
+        this.bb.telemetry,
       );
     }
 

@@ -113,7 +113,7 @@ import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
-import { SessionTelemetry } from "./telemetry";
+import { getTelemetry, SessionTelemetry } from "./telemetry";
 
 /**
  * @internal
@@ -294,6 +294,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const sdkKey = parseSdkKey(options.componentsSdkKey);
+    const telemetry = new SessionTelemetry(this);
     this[internal] = {
       sdkKey,
       options,
@@ -306,6 +307,7 @@ export class XenditComponents extends EventTarget {
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
         sdk: this,
+        telemetry,
         sdkKey,
         mock: this.isMock(),
         sdkStatus: "LOADING",
@@ -323,7 +325,7 @@ export class XenditComponents extends EventTarget {
         actionCompleted: false,
         pollImmediatelyRequested: false,
       }),
-      telemetry: new SessionTelemetry(this),
+      telemetry,
       currentChannelCode: null,
       currentDigitalWalletSubmission: null,
       eventListenersPresent: new Map(),
@@ -392,7 +394,7 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
 
-      this[internal].telemetry.append({
+      getTelemetry(this).append({
         stage: "CHECKOUT_LOADED",
         success: false,
       });
@@ -418,7 +420,7 @@ export class XenditComponents extends EventTarget {
         this[internal].behaviorTree.bb.sdkFatalErrorMessage =
           "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
 
-        this[internal].telemetry.appendAndPushScope({
+        getTelemetry(this).appendAndPushScope({
           stage: "CHECKOUT_RESUME",
           success: false,
         });
@@ -453,7 +455,7 @@ export class XenditComponents extends EventTarget {
           this[internal].behaviorTree.bb.sdkFatalErrorMessage =
             "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
 
-          this[internal].telemetry.appendAndPushScope({
+          getTelemetry(this).appendAndPushScope({
             stage: "CHECKOUT_RESUME",
             success: false,
           });
@@ -466,12 +468,12 @@ export class XenditComponents extends EventTarget {
 
     // telemetry for successful load
     if (resumeSession) {
-      this[internal].telemetry.appendAndPushScope({
+      getTelemetry(this).appendAndPushScope({
         stage: "CHECKOUT_RESUME",
         success: true,
       });
     } else {
-      this[internal].telemetry.appendAndPushScope({
+      getTelemetry(this).appendAndPushScope({
         stage: "CHECKOUT_LOADED",
         success: true,
       });
@@ -1621,7 +1623,7 @@ export class XenditComponents extends EventTarget {
       throw new Error("The success_return_url is not set");
     }
 
-    this[internal].telemetry.append({
+    getTelemetry(this).append({
       stage: "CHECKOUT_REDIRECT_AWAY",
       success: true,
       metadata: { status },
@@ -1967,7 +1969,7 @@ export class XenditComponentsTest extends XenditComponents {
       } satisfies WorldState),
     );
 
-    this[internal].telemetry.appendAndPushScope({
+    getTelemetry(this).appendAndPushScope({
       stage: "CHECKOUT_LOADED",
       success: true,
     });

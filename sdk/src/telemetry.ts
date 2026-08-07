@@ -1,44 +1,31 @@
 import { internal } from "./internal";
 import { XenditComponents } from "./public-sdk";
+import { SessionTelemetryEvent } from "./telemetry-events";
 import { randomUUID, telemetryHostFromHostId } from "./utils";
 
-export type TelemetryStage =
-  | "CHECKOUT_LOADED" // on components/checkout UI init
-  | "CHECKOUT_RESUME" // emitted instead of CHECKOUT_LOADED if the user was redirected back from a partner page
-  | "CHECKOUT_CHANNEL_GROUP" // on channel group click (metadata: {group_name:string})
-  | "CHECKOUT_CHANNEL" // on current channel change
-  | "CHECKOUT_CHANNEL_FORM_INPUT" // once for each field in the form, the first time it's modified (including save payment method and customer given name) (metadata contains {field_name:string})
-  | "CHECKOUT_ATTEMPT_BEGIN" // on pr/pt request sent (or validation error) (metadata: {validation_error:string})
-  | "CHECKOUT_ATTEMPT" // on pr/pt response received (or error from server) (metadata: {error_code:string})
-  | "CHECKOUT_ATTEMPT_DISCARD" // when an attempt fails (payment failure screen), or the user aborts an attempt (metadata: {failure_code:string,user_abort:boolean})
-  | "CHECKOUT_ACTION_BEGIN" // on action screen shown
-  | "CHECKOUT_ACTION_CLOSE" // when an action screen closes
-  | "CHECKOUT_DIGITAL_WALLET_BEGIN" // when a user clicks a digital wallet button
-  | "CHECKOUT_DIGITAL_WALLET_CLOSE" // when a digital wallet screen completes or is closed
-  | "CHECKOUT_ACTION_COPY_TEXT" // when VA/OTC action text copy button is pressed (metadata: {field_name:string})
-  | "CHECKOUT_END" // on session complete, expiry, or cancel state (metadata: {status:string})
-  | "CHECKOUT_PENDING" // on session pending (not PR/PT pending)
-  | "CHECKOUT_ABANDON" // user closed page
-  | "CHECKOUT_REDIRECT_AWAY"; // after redirecting to one of the session return URLs (after the countdown) (metadata: {status:string,url:string})
-export interface SessionTelemetryEvent {
-  stage: TelemetryStage;
-  success: boolean;
-  payment_channel?: string;
-  payment_request_id?: string;
-  payment_token_id?: string;
-  metadata?: object;
+/**
+ * Convenience method to get telemetry
+ */
+export function getTelemetry(sdk: XenditComponents) {
+  return sdk[internal].telemetry;
 }
 
 interface SessionTelemetryEventWithExtras extends SessionTelemetryEvent {
   timestamp_micros: string;
   event_id: string;
-  parent_event_id: string | null;
+  parent_event_id?: string;
 }
 
 export type SessionTelemetryScope = {
   id: string | null;
   fromEvent: string;
   parentScope: SessionTelemetryScope | null;
+  inheritedProperties: {
+    parent_event_id?: string;
+    payment_channel?: string;
+    payment_request_id?: string;
+    payment_token_id?: string;
+  };
 };
 
 const TELEMETRY_INTERVAL = 2000;
@@ -50,6 +37,7 @@ export class SessionTelemetry {
     id: null,
     fromEvent: "ROOT",
     parentScope: null,
+    inheritedProperties: {},
   };
   scope = this.rootScope;
 
@@ -68,6 +56,19 @@ export class SessionTelemetry {
       id,
       fromEvent: event.stage,
       parentScope: this.scope,
+      inheritedProperties: {
+        ...this.scope.inheritedProperties,
+        ...{ parent_event_id: id },
+        ...(event.payment_channel
+          ? { payment_channel: event.payment_channel }
+          : undefined),
+        ...(event.payment_request_id
+          ? { payment_request_id: event.payment_request_id }
+          : undefined),
+        ...(event.payment_token_id
+          ? { payment_token_id: event.payment_token_id }
+          : undefined),
+      },
     };
     return this.scope;
   }
@@ -101,7 +102,7 @@ export class SessionTelemetry {
       ...event,
       timestamp_micros: `${Date.now() * 1000}`,
       event_id: eventId,
-      parent_event_id: this.scope.id,
+      ...this.scope.inheritedProperties,
     });
     this.setup();
     return eventId;

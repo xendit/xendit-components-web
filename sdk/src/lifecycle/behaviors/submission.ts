@@ -43,7 +43,6 @@ import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
 import { CustomerDetails } from "../../backend-types/customer";
-import { internal } from "../../internal";
 import { SessionTelemetryScope } from "../../telemetry";
 
 export type SubmissionError = {
@@ -93,7 +92,7 @@ export class SubmissionBehavior implements Behavior {
       discardPaymentEntity(
         paymentEntity,
         this.bb.dispatchEvent,
-        this.bb.sdk[internal].telemetry,
+        this.bb.telemetry,
       );
     }
 
@@ -178,7 +177,7 @@ export class SubmissionBehavior implements Behavior {
 
     // clear telemetry event
     if (this.telemetryScope) {
-      this.bb.sdk[internal].telemetry.popScope(this.telemetryScope);
+      this.bb.telemetry.popScope(this.telemetryScope);
       this.telemetryScope = null;
     }
   }
@@ -201,7 +200,7 @@ export class SubmissionBehavior implements Behavior {
     }
 
     // telemetry for payment entity creation
-    this.telemetryScope = this.bb.sdk[internal].telemetry.appendAndPushScope({
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope({
       stage: "CHECKOUT_ATTEMPT_BEGIN",
       success: true,
     });
@@ -252,7 +251,7 @@ export class SubmissionBehavior implements Behavior {
             paymentEntity satisfies never;
         }
         // telemetry for payment entity created
-        this.bb.sdk[internal].telemetry.appendAndPushScope({
+        this.bb.telemetry.appendAndPushScope({
           stage: "CHECKOUT_ATTEMPT",
           success: true,
           payment_token_id: paymentEntity.id,
@@ -273,7 +272,7 @@ export class SubmissionBehavior implements Behavior {
         console.error("Submission failed:", error);
 
         // telemetry for failure to create payment entity
-        this.bb.sdk[internal].telemetry.append({
+        this.bb.telemetry.append({
           stage: "CHECKOUT_ATTEMPT",
           success: false,
         });

@@ -1,4 +1,3 @@
-import { internal } from "../../internal";
 import { InternalNeedsRerenderEvent } from "../../private-event-types";
 import { SessionTelemetryScope } from "../../telemetry";
 import { BlackboardType } from "../behavior-tree";
@@ -16,7 +15,7 @@ export class SessionActiveBehavior implements Behavior {
     // send abandon telemetry event when user leaves the page while in active state
     // TODO: don't send this if we're executing a redirect action
     this.beforeUnloadHandler = (event: BeforeUnloadEvent) => {
-      const telemetry = this.bb.sdk[internal].telemetry;
+      const telemetry = this.bb.telemetry;
       // the visibilitychange event always fires after beforeunload, and it will flush the events
       telemetry.append({
         stage: "CHECKOUT_ABANDON",
@@ -50,7 +49,6 @@ export class SessionActiveBehavior implements Behavior {
 
   telemetryForActiveChannel() {
     // send a telemetry event for the channel if it has changed
-    const telemetry = this.bb.sdk[internal].telemetry;
     const channelCode = this.bb.channel?.channel_code ?? null;
     const key = channelCode;
     if (key === this.lastTelemetryKey) {
@@ -60,7 +58,7 @@ export class SessionActiveBehavior implements Behavior {
 
     if (channelCode) {
       // newly selected channel - send event
-      this.currentChannelTelemetryScope = telemetry.appendAndPushScope({
+      this.currentChannelTelemetryScope = this.bb.telemetry.appendAndPushScope({
         stage: "CHECKOUT_CHANNEL",
         payment_channel: channelCode,
         success: true,
@@ -68,7 +66,7 @@ export class SessionActiveBehavior implements Behavior {
       this.lastTelemetryKey = key;
     } else if (this.currentChannelTelemetryScope) {
       // unselected channel - clear scope
-      telemetry.popScope(this.currentChannelTelemetryScope);
+      this.bb.telemetry.popScope(this.currentChannelTelemetryScope);
       this.currentChannelTelemetryScope = null;
       this.lastTelemetryKey = null;
     }

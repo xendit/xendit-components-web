@@ -34,6 +34,7 @@ function buildBlackboard(
     return true;
   };
 
+  const mockTelemetry = new SessionTelemetry({} as XenditComponents);
   return {
     sdk: {
       t: createTFunction("en"),
@@ -41,10 +42,11 @@ function buildBlackboard(
         options: {
           componentsSdkKey: makeTestSdkKey(),
         },
-        telemetry: new SessionTelemetry({} as XenditComponents),
+        telemetry: mockTelemetry,
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
+    telemetry: mockTelemetry,
     mock: true,
     sdkKey: parseSdkKey(makeTestSdkKey()),
     world: {

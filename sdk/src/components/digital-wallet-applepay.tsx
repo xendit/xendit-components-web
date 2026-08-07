@@ -5,8 +5,7 @@ import { XenditPaymentChannel } from "../public-data-types";
 import { assert } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
 import { NetworkError } from "../networking";
-import { internal } from "../internal";
-import { SessionTelemetryScope } from "../telemetry";
+import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 
 export const APPLE_PAY_VERSION = 14;
 
@@ -70,13 +69,13 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     (errorCode?: string) => {
       // telemetry for googlepay error
       if (telemetryScope.current) {
-        sdk[internal].telemetry.append({
+        getTelemetry(sdk).append({
           stage: "CHECKOUT_DIGITAL_WALLET_CLOSE",
           success: false,
           metadata: { error_code: errorCode },
         });
         // clear telemetry scope
-        sdk[internal].telemetry.popScope(telemetryScope.current);
+        getTelemetry(sdk).popScope(telemetryScope.current);
         telemetryScope.current = null;
       }
     },
@@ -180,7 +179,7 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     };
 
     // telemetry for begin digital wallet flow
-    telemetryScope.current = sdk[internal].telemetry.appendAndPushScope({
+    telemetryScope.current = getTelemetry(sdk).appendAndPushScope({
       stage: "CHECKOUT_DIGITAL_WALLET_BEGIN",
       success: true,
       metadata: { digital_wallet: "APPLE_PAY" },

@@ -21,8 +21,8 @@ import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
 import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
 import { CustomerDetails } from "../backend-types/customer";
-import { internal } from "../internal";
 import { changedChannelProperties } from "../utils-channel-properties";
+import { getTelemetry } from "../telemetry";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -106,7 +106,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
         if (telemetrySentEventKeys.current.has(changedKey)) continue;
         telemetrySentEventKeys.current.add(changedKey);
 
-        sdk[internal].telemetry.append({
+        getTelemetry(sdk).append({
           stage: "CHECKOUT_CHANNEL_FORM_INPUT",
           payment_channel: firstMemberChannel.channel_code,
           success: true,

@@ -40,6 +40,7 @@ import { XenditComponents } from "../public-sdk";
 
 const testData = makeTestBffData();
 
+const mockTelemetry = new SessionTelemetry({} as XenditComponents);
 const mockBlackboard: BlackboardType & { world: object } = {
   sdk: {
     [internal]: {
@@ -47,10 +48,11 @@ const mockBlackboard: BlackboardType & { world: object } = {
         componentsSdkKey: makeTestSdkKey(),
         enablePaylinks: true,
       } satisfies XenditSdkOptions,
-      telemetry: new SessionTelemetry({} as XenditComponents),
+      telemetry: mockTelemetry,
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
+  telemetry: mockTelemetry,
   mock: true,
   sdkKey: parseSdkKey(makeTestSdkKey()),
   world: {

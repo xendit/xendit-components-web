@@ -30,14 +30,13 @@ import {
 } from "../bff-marshal";
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
 import { IconName } from "./icon";
-import { internal } from "../internal";
-import { SessionTelemetryScope } from "../telemetry";
+import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 
 type Props = object;
 
 export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   const sdk = useSdk();
-  const telemetry = sdk[internal].telemetry;
+  const telemetry = getTelemetry(sdk);
   const session = useSession();
   const channelUiGroups = useChannelUiGroups();
   const currentChannel = useCurrentChannel();

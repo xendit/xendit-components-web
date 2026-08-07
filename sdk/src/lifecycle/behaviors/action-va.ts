@@ -4,7 +4,6 @@ import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
 import { ActionVa } from "../../components/action-va";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
-import { internal } from "../../internal";
 
 export class ActionVaBehavior extends ContainerActionBehavior {
   constructor(
@@ -32,7 +31,7 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       instructions: vaAction.instructions ?? [],
       title: vaAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
-      telemetry: this.bb.sdk[internal].telemetry,
+      telemetry: this.bb.telemetry,
     };
 
     this.cleanupFn = this.ensureHasActionContainer();
