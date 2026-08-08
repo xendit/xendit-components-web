@@ -36,6 +36,7 @@ export const FormSimulationHelper: FunctionComponent<Props> = ({
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
+      e.stopPropagation();
       setOpen(false);
     };
     document.addEventListener("mousedown", onMouseDown);
