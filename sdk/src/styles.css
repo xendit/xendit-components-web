@@ -244,14 +244,7 @@ xendit-payment-channel select::placeholder {
 .xendit-digital-wallet-separator-line {
   flex-grow: 1;
   height: 1px;
-  background-color: #ededed;
-}
-
-.xendit-digital-wallet-separator-text {
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: -0.006em;
-  line-height: 20px;
+  background-color: var(--xendit-color-border);
 }
 
 /* Channel picker group */
