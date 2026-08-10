@@ -68,6 +68,7 @@ function buildBlackboard(
     resuming: true,
     simulatePaymentRequested: false,
     actionCompleted: false,
+    redirectReturnPending: false,
     pollImmediatelyRequested: false,
   } as BlackboardType;
 }

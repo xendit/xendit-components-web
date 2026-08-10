@@ -315,6 +315,7 @@ export class XenditComponents extends EventTarget {
         resuming: false,
         simulatePaymentRequested: false,
         actionCompleted: false,
+        redirectReturnPending: false,
         pollImmediatelyRequested: false,
       }),
       currentChannelCode: null,
