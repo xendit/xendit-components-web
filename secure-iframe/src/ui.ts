@@ -33,7 +33,7 @@ export function createInputElement(type: IframeFieldType) {
 
   switch (type) {
     case "credit_card_number": {
-      input.placeholder = "4000 0000 0000 0000";
+      input.placeholder = "1234 1234 1234 1234";
       input.inputMode = "numeric";
       input.autocomplete = "cc-number";
       input.maxLength = 23; // 19 digits + 4 spaces

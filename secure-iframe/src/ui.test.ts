@@ -37,7 +37,7 @@ describe("secure iframe ui - createInputElement - credit_card_number", () => {
   it("should have credit card number attributes", () => {
     const el = createInputElement("credit_card_number");
     document.body.appendChild(el);
-    expect(el).toHaveAttribute("placeholder", "4000 0000 0000 0000");
+    expect(el).toHaveAttribute("placeholder", "1234 1234 1234 1234");
     expect(el).toHaveAttribute("inputmode", "numeric");
     expect(el).toHaveAttribute("autocomplete", "cc-number");
   });
