@@ -34,24 +34,34 @@ export const ChannelPickerDigitalWalletSection: FunctionComponent = (props) => {
   }, [digitalWallets, sdk]);
 
   useLayoutEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.addEventListener(
-        InternalDigitalWalletReady.type,
-        (e) => {
-          setHasAnyDigitalWallet(true);
-        },
-      );
-    }
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onReady = () => setHasAnyDigitalWallet(true);
+    container.addEventListener(InternalDigitalWalletReady.type, onReady);
+
+    return () => {
+      container.removeEventListener(InternalDigitalWalletReady.type, onReady);
+    };
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className={
-        hasAnyDigitalWallet
-          ? "xendit-channel-picker-digital-wallet-section"
-          : undefined
-      }
-    ></div>
+    <>
+      <div
+        ref={containerRef}
+        className={
+          hasAnyDigitalWallet
+            ? "xendit-channel-picker-digital-wallet-section"
+            : undefined
+        }
+      ></div>
+      {hasAnyDigitalWallet ? (
+        <div className="xendit-digital-wallet-separator">
+          <div className="xendit-digital-wallet-separator-line" />
+          <div className="xendit-text-14">or</div>
+          <div className="xendit-digital-wallet-separator-line" />
+        </div>
+      ) : null}
+    </>
   );
 };

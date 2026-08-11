@@ -237,8 +237,21 @@ xendit-payment-channel select::placeholder {
   display: grid;
   grid-auto-flow: row;
   grid-auto-columns: 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.xendit-digital-wallet-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.xendit-digital-wallet-separator-line {
+  flex-grow: 1;
+  height: 1px;
+  background-color: var(--xendit-color-border);
 }
 
 /* Channel picker group */

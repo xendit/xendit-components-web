@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { useCallback, useLayoutEffect, useMemo, useRef } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useRef } from "preact/hooks";
 import { useDigitalWallets, useSdk, useSession } from "./session-provider";
 import { XenditPaymentChannel } from "../public-data-types";
 import { assert } from "../utils";
@@ -170,7 +170,8 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     [onClick],
   );
 
-  useLayoutEffect(() => {
+  // not use useLayoutEffect because this check is synchronous, and firing onReady before the element is attached would lose the ready event.
+  useEffect(() => {
     if (didCallReady.current) return;
     if (!cardsChannel) return;
     if (!checkApplePayAvailability()) return;
