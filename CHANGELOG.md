@@ -3,13 +3,13 @@
 ### Notable
 
 Added "or" separator below the digital wallet buttons
-Change the credit card placeholder to become more generic
 
 ### Bug Fixes
 
 - Fixed input, textarea, select, and button text color to become `--xendit-color-text`
 - Fixed Apple Pay button margins/sizing
 - Fixed bug in the Simulate Scenario popover
+- Change default credit card placeholder
 
 # 0.0.26
 
