@@ -3,6 +3,7 @@
 ### Notable
 
 Added "or" separator below the digital wallet buttons
+Change the credit card placeholder to become more generic
 
 ### Bug Fixes
 
