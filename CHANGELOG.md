@@ -1,3 +1,16 @@
+# 0.0.27
+
+### Notable
+
+Added "or" separator below the digital wallet buttons
+
+### Bug Fixes
+
+- Fixed input, textarea, select, and button text color to become `--xendit-color-text`
+- Fixed Apple Pay button margins/sizing
+- Fixed bug in the Simulate Scenario popover
+- Change default credit card placeholder
+
 # 0.0.26
 
 ### Notable
