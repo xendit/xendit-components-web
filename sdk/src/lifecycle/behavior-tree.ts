@@ -59,7 +59,6 @@ export type BlackboardType = {
   // current UI state
   sdkStatus: SdkStatus;
   sdkFatalErrorMessage: string | null;
-  sdkFatalErrorRetryable: boolean;
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;

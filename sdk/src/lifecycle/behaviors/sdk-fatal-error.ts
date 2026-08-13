@@ -9,7 +9,6 @@ export class SdkFatalErrorBehavior implements Behavior {
     this.bb.dispatchEvent(
       new XenditFatalErrorEvent(
         this.bb.sdkFatalErrorMessage ?? "Unknown error",
-        this.bb.sdkFatalErrorRetryable,
       ),
     );
   }

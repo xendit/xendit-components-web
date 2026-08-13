@@ -60,10 +60,6 @@ export class XenditFatalErrorEvent extends Event {
      * A detailed error message for developers. Don't show this to users.
      */
     public message: string,
-    /**
-     * only true when there's a connection problem
-     */
-    public retryable: boolean,
   ) {
     super(XenditFatalErrorEvent.type, {});
   }
