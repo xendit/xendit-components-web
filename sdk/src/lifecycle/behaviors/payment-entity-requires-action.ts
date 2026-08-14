@@ -36,12 +36,26 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
 
     // clear flag for next time
     this.bb.actionCompleted = false;
+    this.bb.redirectReturnPending = false;
   }
 
   onPollResult = (
     pollResponse: BffPollResponse,
     paymentEntity: BffPaymentEntity | null,
   ) => {
+    // If the buyer just returned from a redirect and the poll status is REQUIRES_ACTION, assume they abandoned it and cancel instead of waiting forever.
+    if (paymentEntity) {
+      const abandonedAfterRedirect =
+        this.bb.redirectReturnPending &&
+        paymentEntity.entity.status === "REQUIRES_ACTION";
+      this.bb.redirectReturnPending = false;
+
+      if (abandonedAfterRedirect) {
+        this.bb.submissionRequested = false;
+        this.bb.resuming = false;
+      }
+    }
+
     this.bb.dispatchEvent(
       new InternalUpdateWorldState({
         session: pollResponse.session,
