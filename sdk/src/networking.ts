@@ -1,4 +1,10 @@
-import { assert, hostFromHostId, MOCK_HOST_ID, ParsedSdkKey } from "./utils";
+import {
+  assert,
+  hostFromHostId,
+  MOCK_HOST_ID,
+  ParsedSdkKey,
+  retryLoop,
+} from "./utils";
 
 export type ErrorResponse = {
   error_code: string;
@@ -18,21 +24,26 @@ export class NetworkError extends Error {
 
 export class ConnectionError extends Error {}
 
-/**
- * converting TypeError (a connection problem) into ConnectionError
- */
-export async function fetchOrThrowConnectionError(
+/** Retries fetch on connection errors, other errors throw immediately. */
+export async function fetchWithRetry(
   url: URL,
   options: RequestInit,
+  mult: number,
+  tries: number,
 ): Promise<Response> {
-  try {
-    return await fetch(url, options);
-  } catch (error) {
-    if (error instanceof TypeError) {
-      throw new ConnectionError(error.message);
+  let lastError: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  for await (const attempt of retryLoop(mult, tries)) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      if (!(error instanceof TypeError)) {
+        throw error;
+      }
+      lastError = new ConnectionError(error.message);
     }
-    throw error;
   }
+  throw lastError;
 }
 
 /**
@@ -174,7 +185,11 @@ export function endpoint(
       signal: abortSignal as AbortSignal | undefined,
     };
 
-    const response = await fetchOrThrowConnectionError(url, options);
+    // Retry GETs on connection errors since they're safe to repeat.
+    const response =
+      method === "GET"
+        ? await fetchWithRetry(url, options, 500, 3)
+        : await fetch(url, options);
     if (!response.ok) {
       const errorData = (await response.json()) as ErrorResponse;
       if (!errorData || !errorData.error_code) {
