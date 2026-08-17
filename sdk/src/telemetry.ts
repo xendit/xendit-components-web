@@ -1,7 +1,7 @@
 import { internal } from "./internal";
 import { XenditComponents } from "./public-sdk";
 import { SessionTelemetryEvent } from "./telemetry-events";
-import { randomUUID, telemetryHostFromHostId } from "./utils";
+import { randomUUID, SLEEP_MULTIPLIER, telemetryHostFromHostId } from "./utils";
 
 /**
  * Convenience method to get telemetry
@@ -10,7 +10,7 @@ export function getTelemetry(sdk: XenditComponents) {
   return sdk[internal].telemetry;
 }
 
-interface SessionTelemetryEventWithExtras extends SessionTelemetryEvent {
+export interface SessionTelemetryEventWithExtras extends SessionTelemetryEvent {
   timestamp_micros: string;
   event_id: string;
   parent_event_id?: string;
@@ -30,7 +30,7 @@ export type SessionTelemetryScope = {
 
 const TELEMETRY_INTERVAL = 2000;
 
-export class SessionTelemetry {
+export class SessionTelemetry extends EventTarget {
   queue: SessionTelemetryEventWithExtras[] = [];
 
   rootScope: SessionTelemetryScope = {
@@ -45,7 +45,9 @@ export class SessionTelemetry {
   beforeUnloadHandler: (() => void) | null = null;
   visibilityChangeHandler: (() => void) | null = null;
 
-  constructor(private sdk: XenditComponents) {}
+  constructor(private sdk: XenditComponents) {
+    super();
+  }
 
   /**
    * Send an event, make it the parent of future events
@@ -115,7 +117,7 @@ export class SessionTelemetry {
     if (!this.timeout) {
       this.timeout = window.setTimeout(() => {
         this.flush();
-      }, TELEMETRY_INTERVAL);
+      }, TELEMETRY_INTERVAL * SLEEP_MULTIPLIER);
     }
 
     if (!this.visibilityChangeHandler) {
@@ -147,14 +149,26 @@ export class SessionTelemetry {
           events: this.queue,
         }),
       );
+      this.fireFlushEvents();
       this.queue = [];
     } else {
+      this.fireFlushEvents();
       // in mock mode, just let the events queue forever so we can see them in the debugger
     }
 
     if (this.timeout) {
       clearTimeout(this.timeout);
       this.timeout = null;
+    }
+  }
+
+  fireFlushEvents() {
+    for (const event of this.queue) {
+      this.dispatchEvent(
+        new CustomEvent<SessionTelemetryEventWithExtras>("event-flushed", {
+          detail: event,
+        }),
+      );
     }
   }
 }
