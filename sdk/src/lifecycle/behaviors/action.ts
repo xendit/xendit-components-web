@@ -113,6 +113,7 @@ export abstract class ContainerActionBehavior implements Behavior {
     const state = this.bb.sdk[internal].liveComponents;
     state.actionContainerDestroyTimer = setTimeout(() => {
       state.actionContainerDestroyTimer = null;
+      if (state.actionContainer !== container) return;
       render(null, container);
     }, MERCHANT_CONTAINER_DESTROY_DELAY_MS);
   }

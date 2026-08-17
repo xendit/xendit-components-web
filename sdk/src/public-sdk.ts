@@ -1310,10 +1310,6 @@ export class XenditComponents extends EventTarget {
     }
 
     if (this[internal].liveComponents.actionContainer === component) {
-      if (this[internal].liveComponents.actionContainerDestroyTimer !== null) {
-        clearTimeout(this[internal].liveComponents.actionContainerDestroyTimer);
-        this[internal].liveComponents.actionContainerDestroyTimer = null;
-      }
       this[internal].liveComponents.actionContainer = null;
       render(null, component);
       component.remove();
