@@ -224,6 +224,7 @@ export class XenditComponents extends EventTarget {
       channelPicker: HTMLElement | null;
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
+      actionContainerDestroyTimer: ReturnType<typeof setTimeout> | null;
       digitalWalletContainer: Map<
         XenditDigitalWalletCode,
         {
@@ -296,6 +297,7 @@ export class XenditComponents extends EventTarget {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
+        actionContainerDestroyTimer: null,
         digitalWalletContainer: new Map(),
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
@@ -1308,6 +1310,10 @@ export class XenditComponents extends EventTarget {
     }
 
     if (this[internal].liveComponents.actionContainer === component) {
+      if (this[internal].liveComponents.actionContainerDestroyTimer !== null) {
+        clearTimeout(this[internal].liveComponents.actionContainerDestroyTimer);
+        this[internal].liveComponents.actionContainerDestroyTimer = null;
+      }
       this[internal].liveComponents.actionContainer = null;
       render(null, component);
       component.remove();
