@@ -22,8 +22,6 @@ export class NetworkError extends Error {
   }
 }
 
-export class ConnectionError extends Error {}
-
 /** Retries fetch on connection errors, other errors throw immediately. */
 export async function fetchWithRetry(
   url: URL,
@@ -32,15 +30,15 @@ export async function fetchWithRetry(
   tries: number,
 ): Promise<Response> {
   let lastError: unknown;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  for await (const attempt of retryLoop(mult, tries)) {
+  for await (const _attempt of retryLoop(mult, tries)) {
     try {
       return await fetch(url, options);
     } catch (error) {
+      // AbortError from a cancelled request or an unexpected bug not worth to retry, so give up immediately.
       if (!(error instanceof TypeError)) {
         throw error;
       }
-      lastError = new ConnectionError(error.message);
+      lastError = error;
     }
   }
   throw lastError;

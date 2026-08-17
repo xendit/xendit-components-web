@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ConnectionError, fetchWithRetry } from "./networking";
+import { fetchWithRetry } from "./networking";
 
 const TEST_URL = new URL("https://gateway.example.test/api/sessions/abc");
 
@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 describe("networking - fetchWithRetry", () => {
-  it("converts a fetch TypeError into a ConnectionError and retries", async () => {
+  it("retries when the browser couldn't reach the server", async () => {
     const fetchMock = vi
       .fn()
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
@@ -21,15 +21,19 @@ describe("networking - fetchWithRetry", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("throws the last ConnectionError once all attempts are exhausted", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
-    );
+  it("throws the last error once all attempts are exhausted", async () => {
+    const lastError = new TypeError("Failed to fetch");
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockRejectedValueOnce(lastError);
+    vi.stubGlobal("fetch", fetchMock);
 
     await expect(
       fetchWithRetry(TEST_URL, { method: "GET" }, 500, 3),
-    ).rejects.toThrow(ConnectionError);
+    ).rejects.toBe(lastError);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("passes an AbortError through immediately without retrying", async () => {
