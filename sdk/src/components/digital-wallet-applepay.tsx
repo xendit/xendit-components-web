@@ -1,5 +1,5 @@
 import { FunctionComponent } from "preact";
-import { useCallback, useLayoutEffect, useMemo, useRef } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useRef } from "preact/hooks";
 import { useDigitalWallets, useSdk, useSession } from "./session-provider";
 import { XenditPaymentChannel } from "../public-data-types";
 import { assert } from "../utils";
@@ -144,6 +144,15 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
             ? "MERCHANT_VALIDATION_FAILED"
             : "NETWORK_ERROR",
         );
+
+        if (
+          (sdk.isMock() || sdk.isDevelopmentEnv()) &&
+          err instanceof NetworkError
+        ) {
+          alert(
+            "Apple Pay merchant validation failed. This usually means the device isn't signed into an Apple sandbox tester account. See https://developer.apple.com/apple-pay/sandbox-testing/",
+          );
+        }
       }
     };
 
@@ -202,7 +211,8 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     [onClick],
   );
 
-  useLayoutEffect(() => {
+  // not use useLayoutEffect because this check is synchronous, and firing onReady before the element is attached would lose the ready event.
+  useEffect(() => {
     if (didCallReady.current) return;
     if (!cardsChannel) return;
     if (!checkApplePayAvailability()) return;
@@ -212,21 +222,14 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
   }, [cardsChannel, onReady]);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label="Apple Pay"
-      className="xendit-apple-pay-button-wrapper"
+    <apple-pay-button
+      buttonstyle={buttonConfigWithDefaults.buttonStyle}
+      type={buttonConfigWithDefaults.buttonType}
+      locale={session.locale}
+      className="xendit-apple-pay-button"
       onClick={onClick}
       onKeyDown={onKeyDown}
-    >
-      <apple-pay-button
-        buttonstyle={buttonConfigWithDefaults.buttonStyle}
-        type={buttonConfigWithDefaults.buttonType}
-        locale={session.locale}
-        className="xendit-apple-pay-button"
-      />
-    </div>
+    />
   );
 };
 
@@ -246,8 +249,10 @@ declare module "react/jsx-runtime" {
           type?: string;
           locale?: string;
           className?: string;
+          onClick?: (e: MouseEvent) => void;
+          onKeyDown?: (e: KeyboardEvent) => void;
         },
-        HTMLElement
+        HTMLButtonElement
       >;
     }
   }

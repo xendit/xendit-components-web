@@ -81,6 +81,8 @@ export type BlackboardType = {
   simulatePaymentRequested: boolean;
   // if true, do not show the current action UI
   actionCompleted: boolean;
+  // if true, the buyer just returned from a redirect via the browser's back (bfcache restore)
+  redirectReturnPending: boolean;
   // if true, poll the payment entity immediately on the next update
   pollImmediatelyRequested: boolean;
   // if true, don't exit ovo's and jeniuspay's ActionEmptyListPushNotificationBehavior when the payment request status changes to pending

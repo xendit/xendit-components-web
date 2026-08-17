@@ -54,7 +54,7 @@ if (isIframe) {
           }
           window.location.href = target.toString();
         } else {
-          window.location.href = returnUrl;
+          window.location.href = fallbackUrl;
         }
       })
       .catch(() => {

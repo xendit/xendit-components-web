@@ -37,7 +37,7 @@ describe("secure iframe ui - createInputElement - credit_card_number", () => {
   it("should have credit card number attributes", () => {
     const el = createInputElement("credit_card_number");
     document.body.appendChild(el);
-    expect(el).toHaveAttribute("placeholder", "4000 0000 0000 0000");
+    expect(el).toHaveAttribute("placeholder", "1234 1234 1234 1234");
     expect(el).toHaveAttribute("inputmode", "numeric");
     expect(el).toHaveAttribute("autocomplete", "cc-number");
   });
@@ -412,7 +412,7 @@ describe("secure iframe ui - createFatalErrorComponent", () => {
     const el = createFatalErrorComponent("error code");
     document.body.appendChild(el);
     expect(el.outerHTML).toMatchInlineSnapshot(
-      `"<div style="color: red; font-family: monospace; font-size: 10px;">✕ error code</div>"`,
+      `"<div style="color: red; font-family: monospace; font-size: 10px; margin: 12px;">✕ error code</div>"`,
     );
   });
 });

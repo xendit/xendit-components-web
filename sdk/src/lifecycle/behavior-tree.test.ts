@@ -85,6 +85,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
   resuming: false,
   simulatePaymentRequested: false,
   actionCompleted: false,
+  redirectReturnPending: false,
   pollImmediatelyRequested: false,
 };
 

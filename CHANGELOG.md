@@ -1,3 +1,34 @@
+# 0.0.27
+
+### Notable
+
+Added "or" separator below the digital wallet buttons
+
+### Bug Fixes
+
+- Fixed input, textarea, select, and button text color to become `--xendit-color-text`
+- Fixed Apple Pay button margins/sizing
+- Fixed bug in the Simulate Scenario popover
+- Change default credit card placeholder
+
+# 0.0.26
+
+### Notable
+
+Added support for digital wallets. Google Pay and Apple Pay configured on the session are now rendered in the channel picker by default.
+
+Added new Components API methods for digital wallets. Call `getActiveDigitalWallets()` to see which wallets are available on the session, then `createDigitalWalletComponent()` to render one. The buttons can be styled with `GooglePayButtonOptions` or `ApplePayButtonOptions`.
+
+`enablePaylinks` is now a public option. It stays off by default, set it to `true` to opt in.
+
+Card fields now show a loading placeholder while they start up, and an error message if they fail to load.
+
+### Bug Fixes
+
+- Fixed a caching bug in the secure iframe
+- Updated the secure iframe Content-Security-Policy so `style-src` allows inline styles and `font-src` allows any `https` url
+- Installment options are no longer offered on subscription sessions
+
 # 0.0.25
 
 ### Notable
