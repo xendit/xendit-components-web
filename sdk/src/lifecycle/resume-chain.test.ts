@@ -3,7 +3,7 @@ import { BehaviorTree } from "./behavior-tree-runner";
 import { behaviorTreeForSdk, BlackboardType } from "./behavior-tree";
 import { InternalBehaviorTreeUpdateEvent } from "../private-event-types";
 import { XenditSubmissionEndEvent } from "../public-event-types";
-import { parseSdkKey } from "../utils";
+import { parseSdkKey, sleep } from "../utils";
 import { createTFunction } from "../localization";
 import { makeTestBffData } from "../data/test-data";
 import {
@@ -34,19 +34,28 @@ function buildBlackboard(
     return true;
   };
 
-  const mockTelemetry = new SessionTelemetry({} as XenditComponents);
+  class MockSdk {
+    t = createTFunction("en");
+    options: { componentsSdkKey: string };
+    [internal]: unknown;
+
+    constructor() {
+      this.options = {
+        componentsSdkKey: makeTestSdkKey(),
+      };
+      this[internal] = {
+        options: this.options,
+        sdkKey: parseSdkKey(this.options.componentsSdkKey),
+        telemetry: new SessionTelemetry(this as unknown as XenditComponents),
+      };
+    }
+  }
+
+  const mockSdk = new MockSdk() as unknown as XenditComponents;
+
   return {
-    sdk: {
-      t: createTFunction("en"),
-      [internal]: {
-        options: {
-          componentsSdkKey: makeTestSdkKey(),
-        },
-        telemetry: mockTelemetry,
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
-    telemetry: mockTelemetry,
+    sdk: mockSdk,
+    telemetry: mockSdk[internal].telemetry,
     mock: true,
     sdkKey: parseSdkKey(makeTestSdkKey()),
     world: {
@@ -83,7 +92,7 @@ function buildBlackboard(
 }
 
 describe("resume error chain (integration)", () => {
-  it("emits submission-resume then submission-end with a userErrorMessage when restored state is FAILED", () => {
+  it("emits submission-resume then submission-end with a userErrorMessage when restored state is FAILED", async () => {
     const events: Event[] = [];
     const bb = buildBlackboard(events, () => tree);
     const tree = new BehaviorTree<BlackboardType>(behaviorTreeForSdk, bb);
@@ -100,5 +109,7 @@ describe("resume error chain (integration)", () => {
     expect(endEvent).toBeDefined();
     expect(endEvent?.userErrorMessage).toBeDefined();
     expect((endEvent?.userErrorMessage ?? []).length).toBeGreaterThan(0);
+
+    await sleep(10000);
   });
 });

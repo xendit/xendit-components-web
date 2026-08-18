@@ -81,10 +81,10 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     }
   }, [telemetry]);
   const telemetryForGroupChange = useCallback(
-    (groupId: string) => {
+    (groupName: string) => {
       telemetryForGroupClear();
       telemetryScopeForGroup.current = telemetry.appendAndPushScope(
-        TelemetryEvents.ChannelGroup(true, groupId),
+        TelemetryEvents.ChannelGroup(true, groupName),
       );
     },
     [telemetry, telemetryForGroupClear],
@@ -124,12 +124,12 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
         } else if (enabledChannels === 1) {
           // one enabled channel, select it automatically
           const ch = channelsByGroup[groupId][0];
-          telemetryForGroupChange(groupId);
+          telemetryForGroupChange(newGroup.label);
           sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
           setPreviewGroupId(null);
         } else {
           // multiple enabled channels, set as previewed and clear the channel selection
-          telemetryForGroupChange(groupId);
+          telemetryForGroupChange(newGroup.label);
           setPreviewGroupId(groupId);
           sdk.setCurrentChannel(null);
         }

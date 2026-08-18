@@ -101,10 +101,10 @@ export class SessionTelemetry extends EventTarget {
     console.log("event", { name: event.stage, event, scope: this.scope });
     const eventId = randomUUID();
     this.queue.push({
-      ...event,
-      timestamp_micros: `${Date.now() * 1000}`,
       event_id: eventId,
+      timestamp_micros: `${Date.now() * 1000}`,
       ...this.scope.inheritedProperties,
+      ...event,
     });
     this.setup();
     return eventId;
@@ -134,41 +134,38 @@ export class SessionTelemetry extends EventTarget {
   }
 
   flush() {
-    if (!this.queue.length) return;
-
     const sdkKey = this.sdk[internal].sdkKey;
     const host = telemetryHostFromHostId(sdkKey.hostId);
     const sessionId = this.sdk[internal].worldState?.session.payment_session_id;
     if (host && sessionId) {
-      const url = new URL("/v1/sessions/performance", host);
-      navigator.sendBeacon(
-        url,
-        JSON.stringify({
-          payment_session_id: sessionId,
-          session_auth_id: sdkKey.sessionAuthKey,
-          events: this.queue,
-        }),
-      );
-      this.fireFlushEvents();
+      // in live mode, send a beacon request
+      if (this.queue.length) {
+        const url = new URL("/v1/sessions/performance", host);
+        navigator.sendBeacon(
+          url,
+          JSON.stringify({
+            payment_session_id: sessionId,
+            session_auth_id: sdkKey.sessionAuthKey,
+            events: this.queue,
+          }),
+        );
+      }
       this.queue = [];
     } else {
-      this.fireFlushEvents();
-      // in mock mode, just let the events queue forever so we can see them in the debugger
+      // in mock mode, just let them sit in the queue so the debugger and tests can see them
     }
 
     if (this.timeout) {
       clearTimeout(this.timeout);
       this.timeout = null;
     }
+
+    this.dispatchEvent(
+      new CustomEvent<SessionTelemetryEventWithExtras>("events-flushed"),
+    );
   }
 
-  fireFlushEvents() {
-    for (const event of this.queue) {
-      this.dispatchEvent(
-        new CustomEvent<SessionTelemetryEventWithExtras>("event-flushed", {
-          detail: event,
-        }),
-      );
-    }
+  testGetNextEvent() {
+    return this.queue.shift() ?? null;
   }
 }

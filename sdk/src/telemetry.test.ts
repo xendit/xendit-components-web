@@ -20,9 +20,13 @@ const mockSdk = {
 describe("telemetry", () => {
   it("should send events", async () => {
     const telemetry = new SessionTelemetry(mockSdk);
-    const firedEvents: SessionTelemetryEvent[] = [];
-    telemetry.addEventListener("event-flushed", (event) => {
-      firedEvents.push((event as CustomEvent<SessionTelemetryEvent>).detail);
+    const firedEvents: SessionTelemetryEventWithExtras[] = [];
+    telemetry.addEventListener("events-flushed", (event) => {
+      while (true) {
+        const next = telemetry.testGetNextEvent();
+        if (next) firedEvents.push(next);
+        else break;
+      }
     });
 
     const e0: SessionTelemetryEvent = {
@@ -56,10 +60,12 @@ describe("telemetry", () => {
   it("should push and pop scopes", async () => {
     const telemetry = new SessionTelemetry(mockSdk);
     const firedEvents: SessionTelemetryEventWithExtras[] = [];
-    telemetry.addEventListener("event-flushed", (event) => {
-      firedEvents.push(
-        (event as CustomEvent<SessionTelemetryEventWithExtras>).detail,
-      );
+    telemetry.addEventListener("events-flushed", (event) => {
+      while (true) {
+        const next = telemetry.testGetNextEvent();
+        if (next) firedEvents.push(next);
+        else break;
+      }
     });
 
     const e0: SessionTelemetryEvent = {
@@ -94,7 +100,7 @@ describe("telemetry", () => {
     };
     telemetry.append(e4);
 
-    // all 4 events should have been pushed
+    // all 5 events should have been pushed
     expect(firedEvents.length).toBe(0);
     await sleep(3000);
 

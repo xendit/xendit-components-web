@@ -53,17 +53,19 @@ export class SessionActiveBehavior implements Behavior {
       return;
     }
 
+    // clear previous scope
+    if (this.currentChannelTelemetryScope) {
+      this.bb.telemetry.popScope(this.currentChannelTelemetryScope);
+      this.currentChannelTelemetryScope = null;
+      this.lastTelemetryKey = null;
+    }
+
+    // newly selected channel - send event
     if (channelCode) {
-      // newly selected channel - send event
       this.currentChannelTelemetryScope = this.bb.telemetry.appendAndPushScope(
         TelemetryEvents.Channel(true, channelCode),
       );
       this.lastTelemetryKey = key;
-    } else if (this.currentChannelTelemetryScope) {
-      // unselected channel - clear scope
-      this.bb.telemetry.popScope(this.currentChannelTelemetryScope);
-      this.currentChannelTelemetryScope = null;
-      this.lastTelemetryKey = null;
     }
   }
 }

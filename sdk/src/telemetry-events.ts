@@ -23,7 +23,7 @@ export interface SessionTelemetryEvent {
   payment_channel?: string;
   payment_request_id?: string;
   payment_token_id?: string;
-  metadata?: object;
+  metadata?: Record<string, string | number | boolean | undefined>;
 }
 
 export const TelemetryEvents = {

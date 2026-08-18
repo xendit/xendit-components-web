@@ -18,7 +18,6 @@ import {
 import { PaymentOptionsBehavior } from "./behaviors/payment-options";
 import { internal } from "../internal";
 import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
-import { XenditSdkOptions } from "../public-options-types";
 import { SdkActiveBehavior } from "./behaviors/sdk-active";
 import { SessionCompletedBehavior } from "./behaviors/session-completed";
 import { SdkFatalErrorBehavior } from "./behaviors/sdk-fatal-error";
@@ -37,22 +36,33 @@ import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
 import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
 import { SessionTelemetry } from "../telemetry";
 import { XenditComponents } from "../public-sdk";
+import { createTFunction } from "../localization";
 
 const testData = makeTestBffData();
 
-const mockTelemetry = new SessionTelemetry({} as XenditComponents);
+class MockSdk {
+  t = createTFunction("en");
+  options: { componentsSdkKey: string; enablePaylinks: true };
+  [internal]: unknown;
+
+  constructor() {
+    this.options = {
+      componentsSdkKey: makeTestSdkKey(),
+      enablePaylinks: true,
+    };
+    this[internal] = {
+      options: this.options,
+      sdkKey: parseSdkKey(this.options.componentsSdkKey),
+      telemetry: new SessionTelemetry(this as unknown as XenditComponents),
+    };
+  }
+}
+
+const mockSdk = new MockSdk() as unknown as XenditComponents;
+
 const mockBlackboard: BlackboardType & { world: object } = {
-  sdk: {
-    [internal]: {
-      options: {
-        componentsSdkKey: makeTestSdkKey(),
-        enablePaylinks: true,
-      } satisfies XenditSdkOptions,
-      telemetry: mockTelemetry,
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any,
-  telemetry: mockTelemetry,
+  sdk: mockSdk,
+  telemetry: mockSdk[internal].telemetry,
   mock: true,
   sdkKey: parseSdkKey(makeTestSdkKey()),
   world: {
