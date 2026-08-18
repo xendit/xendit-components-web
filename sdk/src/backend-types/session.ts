@@ -50,4 +50,6 @@ export type BffSession = {
   allow_save_payment_method?: BffSessionAllowSavePaymentMethod;
   capture_method: BffSessionCaptureMethod;
   subscription?: BffSubscription;
+  success_return_url?: string | null;
+  cancel_return_url?: string | null;
 };

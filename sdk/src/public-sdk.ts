@@ -26,12 +26,14 @@ import {
   DigitalWalletOptions,
 } from "./public-options-types";
 import {
+  XenditBusiness,
   XenditCustomer,
   XenditDigitalWallet,
   XenditDigitalWalletCode,
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
+  XenditSucceededChannel,
 } from "./public-data-types";
 import { internal } from "./internal";
 import { createElement, createRef, RefObject, render } from "preact";
@@ -96,10 +98,12 @@ import {
   SubmissionError,
 } from "./lifecycle/behaviors/submission";
 import {
+  bffBusinessToPublic,
   bffChannelsToPublic,
   bffCustomerToPublic,
   bffDigitalWalletsToPublic,
   bffSessionToPublic,
+  bffSucceededChannelToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
 } from "./bff-marshal";
@@ -288,7 +292,7 @@ export class XenditComponents extends EventTarget {
       );
     }
 
-    const sdkKey = parseSdkKey(options.componentsSdkKey);
+    const sdkKey = parseSdkKey(options.componentsSdkKey, options.hostId);
     this[internal] = {
       sdkKey,
       options,
@@ -648,12 +652,34 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
-   * Retrieve the customer ascociated with the session.
+   * Retrieve the customer associated with the session.
    */
   getCustomer(): XenditCustomer | null {
     this.assertInitialized();
     if (!this[internal].worldState.customer) return null;
     return bffCustomerToPublic(this[internal].worldState.customer);
+  }
+
+  /**
+   * @public
+   * Retrieve the business associated with the session.
+   */
+  getBusiness(): XenditBusiness | null {
+    this.assertInitialized();
+    if (!this[internal].worldState.business) return null;
+    return bffBusinessToPublic(this[internal].worldState.business);
+  }
+
+  /**
+   * @public
+   * Retrieve the payment channel used to complete the session
+   */
+  getSucceededChannel(): XenditSucceededChannel | null {
+    this.assertInitialized();
+    if (!this[internal].worldState.business) return null;
+    return bffSucceededChannelToPublic(
+      this[internal].worldState.succeededChannel,
+    );
   }
 
   /**

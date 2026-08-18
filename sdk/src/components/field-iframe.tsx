@@ -191,8 +191,8 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
   // Per-session values live in the URL fragment, not the query string, so that the request URL stays stable across sessions and the iframe stays cacheable.
   const iframeHashParams = new URLSearchParams();
   iframeHashParams.set("session_id", session.payment_session_id);
-  iframeHashParams.set("pk", sdk[internal].sdkKey.publicKey);
-  iframeHashParams.set("sig", sdk[internal].sdkKey.signature);
+  iframeHashParams.set("pk", sdk[internal].sdkKey.publicKey || "");
+  iframeHashParams.set("sig", sdk[internal].sdkKey.signature || "");
   iframeUrl.hash = iframeHashParams.toString();
 
   const focusClass = focusWithin ? "xendit-field-focus" : "";

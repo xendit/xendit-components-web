@@ -27,9 +27,9 @@ export interface XenditSession {
    */
   sessionType: "PAY" | "SAVE" | "SUBSCRIPTION";
   /**
-   * The kind of session, only COMPONENT sessions can be used with the components SDK.
+   * The kind of session. CARDS_SESSION_JS sessions are not supported.
    */
-  mode: "COMPONENTS";
+  mode: "COMPONENTS" | "PAYMENT_LINK";
   /**
    * Merchant provided identifier for the session.
    */
@@ -158,6 +158,38 @@ export interface XenditSession {
     description?: string;
     metadata?: Record<string, string>;
   }[];
+  /**
+   * URL to redirect to after session succeeded
+   */
+  successReturnUrl?: string;
+  /**
+   * URL to redirect to after session canceled
+   */
+  cancelReturnUrl?: string;
+  /**
+   * Last updated date, can be used to refer to as payment date.
+   */
+  updated: Date;
+}
+
+/**
+ * @public
+ */
+export interface XenditBusiness {
+  /**
+   * Name of the business
+   */
+  name?: string;
+
+  /**
+   * Country name which the business operates in
+   */
+  countryOfOperation?: string;
+
+  /**
+   * Full URL pointing to the business profile picture asset
+   */
+  merchantProfilePictureUrl?: string;
 }
 
 /**
@@ -187,6 +219,20 @@ export interface XenditCustomer {
      */
     surname?: string;
   };
+}
+
+/**
+ * @public
+ */
+export interface XenditSucceededChannel {
+  /**
+   * The channel_code used to refer to this payment channel.
+   */
+  channelCode: string;
+  /**
+   * The logo URL of the payment channel.
+   */
+  logoUrl: string;
 }
 
 /**
