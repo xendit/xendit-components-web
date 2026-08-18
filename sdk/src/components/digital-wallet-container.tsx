@@ -34,6 +34,7 @@ export const DigitalWalletContainer: FunctionComponent<
           scriptTagRegex={sdkStatusCheckers.GOOGLE_PAY.scriptTagRegex}
           checkLoaded={sdkStatusCheckers.GOOGLE_PAY.checkLoaded}
         >
+          Ready!
           <DigitalWalletGooglepay
             onReady={onReady}
             options={digitalWalletOptions as DigitalWalletOptions<"GOOGLE_PAY">}
