@@ -45,9 +45,17 @@ export class SessionTelemetry extends EventTarget {
   beforeUnloadHandler: (() => void) | null = null;
   visibilityChangeHandler: (() => void) | null = null;
 
-  constructor(private sdk: XenditComponents) {
+  constructor(
+    private sdk: XenditComponents,
+    private logTelemetryEvents: boolean,
+  ) {
     super();
   }
+
+  /**
+   * Flag to disable some events if the user is about to be redirected to a partner site.
+   */
+  public expectingRedirectAway = false;
 
   /**
    * Send an event, make it the parent of future events
@@ -90,7 +98,9 @@ export class SessionTelemetry extends EventTarget {
     }
 
     // set current scope to this scope's parent
-    console.log("remove scope", scope.fromEvent);
+    if (this.logTelemetryEvents) {
+      console.log(`[telemetry] remove scope ${scope.fromEvent}`);
+    }
     this.scope = scope.parentScope;
   }
 
@@ -98,7 +108,12 @@ export class SessionTelemetry extends EventTarget {
    * Send an event
    */
   append(event: SessionTelemetryEvent): string {
-    console.log("event", { name: event.stage, event, scope: this.scope });
+    if (this.logTelemetryEvents) {
+      console.log(`[telemetry] add event ${event.stage}`, {
+        event,
+        scope: this.scope,
+      });
+    }
     const eventId = randomUUID();
     this.queue.push({
       event_id: eventId,

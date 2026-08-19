@@ -1,25 +1,14 @@
-import { XenditComponents } from "./public-sdk";
 import { describe, expect, it } from "vitest";
 import { SessionTelemetry, SessionTelemetryEventWithExtras } from "./telemetry";
-import { parseSdkKey, sleep } from "./utils";
+import { sleep } from "./utils";
 import { makeTestSdkKey } from "./data/test-data-modifiers";
-import { internal } from "./internal";
-import { makeTestBffData } from "./data/test-data";
 import { SessionTelemetryEvent } from "./telemetry-events";
-
-const testData = makeTestBffData();
-const mockSdk = {
-  [internal]: {
-    sdkKey: parseSdkKey(makeTestSdkKey()),
-    worldState: {
-      session: testData.session,
-    },
-  },
-} as unknown as XenditComponents;
+import { MockSdk } from "./utils-test";
 
 describe("telemetry", () => {
   it("should send events", async () => {
-    const telemetry = new SessionTelemetry(mockSdk);
+    const mockSdk = new MockSdk({ componentsSdkKey: makeTestSdkKey() });
+    const telemetry = new SessionTelemetry(mockSdk, false);
     const firedEvents: SessionTelemetryEventWithExtras[] = [];
     telemetry.addEventListener("events-flushed", (event) => {
       while (true) {
@@ -58,7 +47,8 @@ describe("telemetry", () => {
   });
 
   it("should push and pop scopes", async () => {
-    const telemetry = new SessionTelemetry(mockSdk);
+    const mockSdk = new MockSdk({ componentsSdkKey: makeTestSdkKey() });
+    const telemetry = new SessionTelemetry(mockSdk, false);
     const firedEvents: SessionTelemetryEventWithExtras[] = [];
     telemetry.addEventListener("events-flushed", (event) => {
       while (true) {

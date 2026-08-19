@@ -23,6 +23,7 @@ export class ActionRedirectBehavior implements Behavior {
   enter() {
     window.addEventListener("pageshow", this.onPageShow);
     this.bb.dispatchEvent(new XenditWillRedirectEvent());
+    this.bb.telemetry.expectingRedirectAway = true;
     window.location.href = this.url;
   }
 

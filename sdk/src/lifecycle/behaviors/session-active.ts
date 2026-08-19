@@ -13,10 +13,12 @@ export class SessionActiveBehavior implements Behavior {
   beforeUnloadHandler: EventListener | null = null;
 
   enter() {
-    // send abandon telemetry event when user leaves the page while in active state
-    // TODO: don't send this if we're executing a redirect action
     this.beforeUnloadHandler = (event: BeforeUnloadEvent) => {
-      this.bb.telemetry.append(TelemetryEvents.Abandon(false));
+      // send abandon telemetry event when user leaves the page while in active state
+      // (but not if we initiated the redirect)
+      if (!this.bb.telemetry.expectingRedirectAway) {
+        this.bb.telemetry.append(TelemetryEvents.Abandon(false));
+      }
       // we don't need to flush, the visibilitychange event always fires after beforeunload, and it will flush
     };
     window.addEventListener("beforeunload", this.beforeUnloadHandler);

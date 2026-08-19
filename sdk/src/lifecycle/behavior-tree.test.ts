@@ -34,31 +34,14 @@ import { ActionDeepLinkBehavior } from "./behaviors/action-deep-link";
 import { ActionBarcodeBehavior } from "./behaviors/action-barcode";
 import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
 import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
-import { SessionTelemetry } from "../telemetry";
-import { XenditComponents } from "../public-sdk";
-import { createTFunction } from "../localization";
+import { MockSdk } from "../utils-test";
 
 const testData = makeTestBffData();
 
-class MockSdk {
-  t = createTFunction("en");
-  options: { componentsSdkKey: string; enablePaylinks: true };
-  [internal]: unknown;
-
-  constructor() {
-    this.options = {
-      componentsSdkKey: makeTestSdkKey(),
-      enablePaylinks: true,
-    };
-    this[internal] = {
-      options: this.options,
-      sdkKey: parseSdkKey(this.options.componentsSdkKey),
-      telemetry: new SessionTelemetry(this as unknown as XenditComponents),
-    };
-  }
-}
-
-const mockSdk = new MockSdk() as unknown as XenditComponents;
+const mockSdk = new MockSdk({
+  componentsSdkKey: makeTestSdkKey(),
+  enablePaylinks: true,
+});
 
 const mockBlackboard: BlackboardType & { world: object } = {
   sdk: mockSdk,

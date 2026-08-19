@@ -4,7 +4,6 @@ import { behaviorTreeForSdk, BlackboardType } from "./behavior-tree";
 import { InternalBehaviorTreeUpdateEvent } from "../private-event-types";
 import { XenditSubmissionEndEvent } from "../public-event-types";
 import { parseSdkKey, sleep } from "../utils";
-import { createTFunction } from "../localization";
 import { makeTestBffData } from "../data/test-data";
 import {
   makeTestPaymentRequest,
@@ -13,8 +12,7 @@ import {
 } from "../data/test-data-modifiers";
 import { toPaymentEntity } from "../backend-types/payment-entity";
 import { internal } from "../internal";
-import { SessionTelemetry } from "../telemetry";
-import { XenditComponents } from "../public-sdk";
+import { MockSdk } from "../utils-test";
 
 /**
  * Builds a blackboard that mimics the state the SDK restores on resume after a
@@ -34,24 +32,9 @@ function buildBlackboard(
     return true;
   };
 
-  class MockSdk {
-    t = createTFunction("en");
-    options: { componentsSdkKey: string };
-    [internal]: unknown;
-
-    constructor() {
-      this.options = {
-        componentsSdkKey: makeTestSdkKey(),
-      };
-      this[internal] = {
-        options: this.options,
-        sdkKey: parseSdkKey(this.options.componentsSdkKey),
-        telemetry: new SessionTelemetry(this as unknown as XenditComponents),
-      };
-    }
-  }
-
-  const mockSdk = new MockSdk() as unknown as XenditComponents;
+  const mockSdk = new MockSdk({
+    componentsSdkKey: makeTestSdkKey(),
+  });
 
   return {
     sdk: mockSdk,

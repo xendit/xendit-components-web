@@ -295,7 +295,10 @@ export class XenditComponents extends EventTarget {
     }
 
     const sdkKey = parseSdkKey(options.componentsSdkKey);
-    const telemetry = new SessionTelemetry(this);
+    const telemetry = new SessionTelemetry(
+      this,
+      Boolean(options.logTelemetryEvents),
+    );
     this[internal] = {
       sdkKey,
       options,
@@ -1613,6 +1616,7 @@ export class XenditComponents extends EventTarget {
       throw new Error("The success_return_url is not set");
     }
 
+    this[internal].telemetry.expectingRedirectAway = true;
     getTelemetry(this).append(TelemetryEvents.RedirectAway(true, status));
     window.location.href = url;
   }
