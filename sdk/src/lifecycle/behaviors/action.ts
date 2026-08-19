@@ -12,6 +12,9 @@ export enum DefaultActionContainerType {
   Generic = "generic",
 }
 
+// How long a merchant-provided action container keeps its contents after the action ends.
+export const MERCHANT_CONTAINER_DESTROY_DELAY_MS = 2000;
+
 export abstract class ContainerActionBehavior implements Behavior {
   cleanupFn: ((cancelledByUser: boolean) => void) | null = null;
   defaultContainerHeight = 0;
@@ -34,6 +37,8 @@ export abstract class ContainerActionBehavior implements Behavior {
     if (this.bb.sdk[internal].liveComponents.actionContainer) {
       // user created action container already
       // TODO: validate it's in the dom and the right size
+      // clear the previous action's contents before reusing container
+      this.flushPendingContainerDestroy();
       return () => {
         this.emptyActionContainer();
       };
@@ -93,11 +98,28 @@ export abstract class ContainerActionBehavior implements Behavior {
     }
   }
 
+  // Cancels a pending delayed destroy and clears the contents.
+  flushPendingContainerDestroy() {
+    const state = this.bb.sdk[internal].liveComponents;
+    if (state.actionContainerDestroyTimer === null) return;
+
+    clearTimeout(state.actionContainerDestroyTimer);
+    state.actionContainerDestroyTimer = null;
+    if (state.actionContainer) {
+      render(null, state.actionContainer);
+    }
+  }
+
   emptyActionContainer() {
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
-    if (container) {
+    if (!container) return;
+
+    const state = this.bb.sdk[internal].liveComponents;
+    state.actionContainerDestroyTimer = setTimeout(() => {
+      state.actionContainerDestroyTimer = null;
+      if (state.actionContainer !== container) return;
       render(null, container);
-    }
+    }, MERCHANT_CONTAINER_DESTROY_DELAY_MS);
   }
 
   updateActionContainerBrandColor() {
@@ -136,7 +158,6 @@ export abstract class ContainerActionBehavior implements Behavior {
 
   exit() {
     this.cleanupActionContainer(false);
-    this.emptyActionContainer();
 
     // telemetry for end of action
     if (this.telemetryScope) {

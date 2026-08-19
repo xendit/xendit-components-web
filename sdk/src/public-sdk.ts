@@ -226,6 +226,7 @@ export class XenditComponents extends EventTarget {
       channelPicker: HTMLElement | null;
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
+      actionContainerDestroyTimer: ReturnType<typeof setTimeout> | null;
       digitalWalletContainer: Map<
         XenditDigitalWalletCode,
         {
@@ -304,6 +305,7 @@ export class XenditComponents extends EventTarget {
         channelPicker: null,
         paymentChannels: new Map(),
         actionContainer: null,
+        actionContainerDestroyTimer: null,
         digitalWalletContainer: new Map(),
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
