@@ -12,7 +12,7 @@ import {
 
 beforeEach(() => {
   defineMockGooglepay();
-  defineMockApplepay("success");
+  defineMockApplepay("do-nothing");
 });
 
 afterEach(() => {
@@ -139,7 +139,7 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
   });
 
   it("should trigger a submission after the user authorizes payment", async () => {
-    defineMockApplepay("fail");
+    defineMockApplepay("success");
 
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
@@ -158,7 +158,8 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
 
     await waitForEventSequence(sdk, [
       { name: "submission-begin" },
-      { name: "action-begin" }, // mock 3DS triggered for the CARDS channel
+      { name: "payment-request-created" },
+      { name: "session-complete" },
     ]);
   });
 

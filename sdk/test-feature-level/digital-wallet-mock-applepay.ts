@@ -1,4 +1,4 @@
-const MockApplePaySuccess = class ApplePaySession {
+const MockApplePayDoNothing = class ApplePaySession {
   static supportsVersion = (_version: number) => true;
   static canMakePayments = () => true;
   static STATUS_SUCCESS = 0;
@@ -21,7 +21,7 @@ const MockApplePaySuccess = class ApplePaySession {
   abort() {}
 };
 
-const MockApplePayFail = class ApplePaySession {
+const MockApplePaySuccess = class ApplePaySession {
   static supportsVersion = (_version: number) => true;
   static canMakePayments = () => true;
   static STATUS_SUCCESS = 0;
@@ -61,13 +61,13 @@ const MockApplePayFail = class ApplePaySession {
   abort() {}
 };
 
-export function defineMockApplepay(scenario: "success" | "fail") {
-  if (scenario === "success") {
+export function defineMockApplepay(scenario: "do-nothing" | "success") {
+  if (scenario === "do-nothing") {
     window.ApplePaySession =
-      MockApplePaySuccess as unknown as typeof ApplePaySession;
+      MockApplePayDoNothing as unknown as typeof ApplePaySession;
   } else {
     window.ApplePaySession =
-      MockApplePayFail as unknown as typeof ApplePaySession;
+      MockApplePaySuccess as unknown as typeof ApplePaySession;
   }
 
   if (!customElements.get("apple-pay-button")) {

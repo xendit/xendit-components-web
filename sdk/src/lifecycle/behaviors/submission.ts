@@ -213,7 +213,7 @@ export class SubmissionBehavior implements Behavior {
       this.bb.channel?.requires_customer_details && !this.bb.world.customer;
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
-    const mockActionType = this.bb.channel._mock_action_type;
+    const mockActionType = getMockActionType(this.bb);
     const channelProperties = this.bb.channelProperties ?? {};
     const abortController = new AbortController();
     const promise = asyncSubmit(
@@ -412,4 +412,16 @@ function isSubmissionError(
   error: Error | SubmissionError,
 ): error is SubmissionError {
   return !("message" in error) && "text" in error && "code" in error;
+}
+
+function getMockActionType(bb: BlackboardType) {
+  if (!bb.mock) return undefined;
+
+  if (bb.channelProperties?.apple_pay) {
+    // real applepay never has 3ds
+    // mock applepay would, but it wouldn't work since the applepay modal would not hide to make room for the 3ds screen
+    return undefined;
+  }
+
+  return bb.channel?._mock_action_type;
 }

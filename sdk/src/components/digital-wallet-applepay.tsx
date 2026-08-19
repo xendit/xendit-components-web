@@ -71,7 +71,10 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
       // telemetry for applepay error
       if (telemetryScope.current) {
         getTelemetry(sdk).append(
-          TelemetryEvents.DigitalWalletClose(false, errorCode),
+          TelemetryEvents.DigitalWalletClose(
+            errorCode === undefined,
+            errorCode,
+          ),
         );
         // clear telemetry scope
         getTelemetry(sdk).popScope(telemetryScope.current);
@@ -136,6 +139,7 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
         const merchantSession = await sdk.validateApplePayMerchant(
           event.validationURL,
         );
+
         applePaySession.completeMerchantValidation(merchantSession);
       } catch (err) {
         applePaySession.abort();
@@ -159,7 +163,7 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
     applePaySession.onpaymentauthorized = (event) => {
       try {
         // telemetry for applepay close
-        // (needs to be before submit or the event order is weird)
+        // (needs to be before submit or the event order is weird, even though the dialog is not actually closed until after the payment finishes)
         telemetryForDigitalWalletClose();
 
         // do submit
