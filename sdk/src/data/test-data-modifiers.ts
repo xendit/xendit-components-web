@@ -30,24 +30,40 @@ export function makeTestSdkKey() {
 export function makeTestPollResponse(
   world: WorldState,
   channel: BffChannel | null,
-  result: "SUCCESS" | "FAILURE" | "PENDING" | "PENDING_PAYMENT_ENTITY_ONLY",
+  result:
+    | "SUCCESS"
+    | "FAILURE"
+    | "PENDING"
+    | "PENDING_PAYMENT_ENTITY_ONLY"
+    | "SESSION_EXPIRED"
+    | "SESSION_COMPLETED",
 ) {
   const { session, paymentEntity } = world;
   assert(session);
-  assert(paymentEntity);
   assert(channel);
 
   switch (result) {
-    case "PENDING":
-      // make the session pending
+    // cases affecting session status
+    case "PENDING": {
       return makeTestPollResponseForPending(session);
-    case "PENDING_PAYMENT_ENTITY_ONLY":
+    }
+    case "SESSION_EXPIRED": {
+      return makeTestPollResponseForSessionExpired(session);
+    }
+    case "SESSION_COMPLETED": {
+      return makeTestPollResponseForSessionCompleted(session);
+    }
+    // cases affecting paymentEntity status
+    case "PENDING_PAYMENT_ENTITY_ONLY": {
+      assert(paymentEntity);
       // make the payment entity pending, but keep the session active
       return makeTestPollResponseForPendingPaymentEntityOnly(
         session,
         paymentEntity,
       );
+    }
     case "SUCCESS": {
+      assert(paymentEntity);
       if (channel._mock_action_type === "PENDING") {
         // channels with mock pending state (like FPX) always go to pending state when success is requested
         return makeTestPollResponseForPending(session);
@@ -55,8 +71,10 @@ export function makeTestPollResponse(
         return makeTestPollResponseForSuccess(session, paymentEntity);
       }
     }
-    case "FAILURE":
+    case "FAILURE": {
+      assert(paymentEntity);
       return makeTestPollResponseForFailure(session, paymentEntity);
+    }
   }
 }
 
@@ -67,6 +85,28 @@ export function makeTestPollResponseForPending(
     session: {
       ...session,
       status: "PENDING",
+    },
+  };
+}
+
+export function makeTestPollResponseForSessionExpired(
+  session: BffSession,
+): BffPollResponse {
+  return {
+    session: {
+      ...session,
+      status: "EXPIRED",
+    },
+  };
+}
+
+export function makeTestPollResponseForSessionCompleted(
+  session: BffSession,
+): BffPollResponse {
+  return {
+    session: {
+      ...session,
+      status: "COMPLETED",
     },
   };
 }
