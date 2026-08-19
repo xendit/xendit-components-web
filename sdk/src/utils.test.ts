@@ -9,6 +9,9 @@ import {
   mergeIgnoringUndefined,
   parseEncryptedFieldValue,
   parseSdkKey,
+  randomBits,
+  randomHexString,
+  randomUUID,
   resolvePairedChannel,
   satisfiesMinMax,
   SLEEP_MULTIPLIER,
@@ -216,5 +219,33 @@ describe("utils - parseEncryptedFieldValue", () => {
       validationError: "error_code",
       withoutValidationError: `xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT`,
     });
+  });
+});
+
+describe("utils - randomBits", () => {
+  it("should return a number less than 2^n", () => {
+    for (let i = 0; i < 100; i++) {
+      const bits = Math.floor(Math.random() * 31);
+      const result = randomBits(bits);
+      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result).toBeLessThan(2 ** bits);
+    }
+  });
+});
+
+describe("utils - randomHexString", () => {
+  it("should return a random string", () => {
+    expect(randomHexString(1)).toMatch(/^[0-9a-f]{1}$/);
+    expect(randomHexString(2)).toMatch(/^[0-9a-f]{2}$/);
+    expect(randomHexString(3)).toMatch(/^[0-9a-f]{3}$/);
+    expect(randomHexString(99)).toMatch(/^[0-9a-f]{99}$/);
+  });
+});
+
+describe("utils - randomUUID", () => {
+  it("should return a uuid", () => {
+    expect(randomUUID()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
   });
 });

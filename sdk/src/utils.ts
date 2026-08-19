@@ -351,7 +351,7 @@ export function randomUUID() {
     randomHexString(3),
     "-",
     (0b1000 | randomBits(2)).toString(16),
-    randomHexString(4),
+    randomHexString(3),
     "-",
     randomHexString(12),
   ].join("");

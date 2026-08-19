@@ -146,6 +146,26 @@ export class SessionTelemetry extends EventTarget {
         this.visibilityChangeHandler,
       );
     }
+
+    if (this.queue.length > 25) {
+      // don't let it get too big or it might fail - sendBeacon has a size limit
+      this.flush();
+    }
+  }
+
+  private teardown() {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+
+    if (this.visibilityChangeHandler) {
+      document.removeEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
+      this.visibilityChangeHandler = null;
+    }
   }
 
   flush() {
@@ -156,7 +176,7 @@ export class SessionTelemetry extends EventTarget {
       // in live mode, send a beacon request
       if (this.queue.length) {
         const url = new URL("/v1/sessions/performance", host);
-        navigator.sendBeacon(
+        const success = navigator.sendBeacon(
           url,
           JSON.stringify({
             payment_session_id: sessionId,
@@ -164,16 +184,16 @@ export class SessionTelemetry extends EventTarget {
             events: this.queue,
           }),
         );
+        if (!success) {
+          // don't retry - sendBeacon usually fails because the data is too big, requeuing will just make it continue to fail
+        }
+        this.queue = [];
       }
-      this.queue = [];
     } else {
       // in mock mode, just let them sit in the queue so the debugger and tests can see them
     }
 
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
+    this.teardown();
 
     this.dispatchEvent(
       new CustomEvent<SessionTelemetryEventWithExtras>("events-flushed"),
