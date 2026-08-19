@@ -190,7 +190,7 @@ export class XenditActionEndEvent extends Event {
 export class XenditWillRedirectEvent extends Event {
   static type = "will-redirect" as const;
 
-  constructor() {
+  constructor(public url: string) {
     super(XenditWillRedirectEvent.type, {});
   }
 }
