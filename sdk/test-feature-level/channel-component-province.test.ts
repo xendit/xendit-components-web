@@ -9,6 +9,12 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
+function dropdownItem(label: string) {
+  return screen.getByText(label, {
+    selector: ".xendit-dropdown-item-title",
+  });
+}
+
 describe("channel component state/province field test", () => {
   it("should render state/province field with initial values", async () => {
     const sdk = new XenditComponentsTest({
@@ -41,7 +47,7 @@ describe("channel component state/province field test", () => {
     const country1 = buttons[0];
     const province1 = buttons[1];
     const country2 = buttons[2];
-    const province2 = screen.getAllByRole("textbox")[0];
+    const province2 = screen.getByPlaceholderText("State / Province");
 
     expect(country1.textContent).toBe("United States");
     expect(province1.textContent).toBe("California");
@@ -68,25 +74,22 @@ describe("channel component state/province field test", () => {
     const country1 = buttons[0];
 
     await country1.click();
-    const singaporeOption = screen.getByText("Singapore");
-    await singaporeOption.click();
+    await dropdownItem("Singapore").click();
 
-    expect(screen.getAllByRole("textbox")).toHaveLength(2); // first province field should have switched to a text input
-    const province1 = screen.getAllByRole("textbox")[0];
+    expect(screen.getAllByPlaceholderText("State / Province")).toHaveLength(2);
+    const province1 = screen.getAllByPlaceholderText("State / Province")[0];
     expect(province1).toHaveValue("");
 
     // test changing text input to dropdown also clears the value
     const country2 = buttons[2];
     await country2.click();
-    const canadaOption = screen.getByText("Canada");
-    await canadaOption.click();
+    await dropdownItem("Canada").click();
     const province2 = screen.getAllByRole("button")[2]; // second province field should have switched to a dropdown
     expect(province2.textContent).toBe("State / Province");
 
     // test we can change the province
     await province2.click();
-    const ontarioOption = screen.getByText("Ontario");
-    await ontarioOption.click();
+    await dropdownItem("Ontario").click();
     expect(screen.getAllByRole("button")[2].textContent).toBe("Ontario");
   });
 });

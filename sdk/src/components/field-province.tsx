@@ -1,7 +1,14 @@
-import { useRef, useCallback, useLayoutEffect, useState } from "preact/hooks";
+import {
+  useRef,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
+import { VISUALLY_HIDDEN } from "./field-country";
 import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
 import {
@@ -29,7 +36,16 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   const [value, setValue] = useState(field.initial_value as string);
 
-  const hiddenFieldRef = useRef<HTMLInputElement>(null);
+  // the `<select>` in dropdown mode, or the visible input in free text mode
+  const hiddenFieldRef = useRef<HTMLInputElement | HTMLSelectElement | null>(
+    null,
+  );
+  const setFieldRef = useCallback(
+    (element: HTMLInputElement | HTMLSelectElement | null) => {
+      hiddenFieldRef.current = element;
+    },
+    [],
+  );
 
   const clearValue = useCallback(() => {
     setValue("");
@@ -76,6 +92,38 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
     ? options.findIndex((option) => option.value === value)
     : -1;
 
+  // the country list never changes
+  const selectOptions = useMemo(
+    () =>
+      options?.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.title}
+        </option>
+      )),
+    [options],
+  );
+
+  const handleNativeSelectChange = useCallback(
+    (event: TargetedEvent<HTMLSelectElement>) => {
+      const filledValue = event.currentTarget.value;
+
+      if (!filledValue) {
+        // browser cleared the field, so clear our copy too
+        clearValue();
+        return;
+      }
+
+      const option = options?.find((o) => o.value === filledValue);
+      if (option) {
+        onChangeDropdown(option);
+      } else if (hiddenFieldRef.current) {
+        // not a province we offer, keep our value so the UI and the form agree
+        hiddenFieldRef.current.value = value ?? "";
+      }
+    },
+    [options, onChangeDropdown, clearValue, value],
+  );
+
   // if the options list changes, clear the value,
   // but not on first render,
   // or if the current value happens to be a valid option in the new list
@@ -107,22 +155,37 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   return (
     <>
-      <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
       {options ? (
-        <Dropdown
-          key={objectId(options)}
-          id={id}
-          options={options}
-          selectedIndex={selectedOptionIndex}
-          onChange={onChangeDropdown}
-          placeholder={field.placeholder}
-          enableSearch
-          className="xendit-form-field-inner"
-        />
+        <>
+          {/* a `<select>`, not `type="hidden"` browsers only autofill what they render */}
+          <select
+            name={name}
+            ref={setFieldRef}
+            autoComplete="address-level1"
+            onChange={handleNativeSelectChange}
+            style={VISUALLY_HIDDEN}
+            tabIndex={-1}
+          >
+            <option value="" />
+            {selectOptions}
+          </select>
+          <Dropdown
+            key={objectId(options)}
+            id={id}
+            options={options}
+            selectedIndex={selectedOptionIndex}
+            onChange={onChangeDropdown}
+            placeholder={field.placeholder}
+            enableSearch
+            className="xendit-form-field-inner"
+          />
+        </>
       ) : (
         <input
           type="text"
           id={id}
+          name={name}
+          ref={setFieldRef}
           value={value}
           onChange={onChangeInput}
           placeholder={field.placeholder}
