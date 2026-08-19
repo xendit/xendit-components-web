@@ -4,6 +4,8 @@ import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
+import { ActionCardProps } from "../../components/action-card";
+import { internal } from "../../internal";
 
 export class ActionBarcodeBehavior extends ContainerActionBehavior {
   constructor(
@@ -34,9 +36,22 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
 
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+
+    let cardProps: Omit<ActionCardProps, "children"> | undefined = undefined;
+    const withCard = container?.getAttribute("data-with-card") === "true";
+    if (withCard) {
+      cardProps = {
+        actionText: barcodeAction.action_subtitle,
+        color: this.bb.channel.brand_color,
+        iconSrc: barcodeAction.action_graphic,
+      };
+    }
+
     this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainer(() =>
-      createElement(ActionBarcode, actionBarcodeProps),
+    this.populateActionContainer(
+      () => createElement(ActionBarcode, actionBarcodeProps),
+      cardProps,
     );
   }
 

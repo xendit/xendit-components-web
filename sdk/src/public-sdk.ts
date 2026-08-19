@@ -1289,6 +1289,10 @@ export class XenditComponents extends EventTarget {
     const container = document.createElement("xendit-action-container");
     container.setAttribute("translate", "no");
 
+    if (options?.withCard) {
+      container.setAttribute("data-with-card", options.withCard.toString());
+    }
+
     // Apply QR code options as data attributes if provided
     if (options?.qrCode) {
       if (options.qrCode.qrCodeOnly !== undefined) {

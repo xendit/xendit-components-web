@@ -60,6 +60,7 @@ export interface XenditGetChannelsOptions {
  * Options for configuring action containers.
  */
 export interface ActionContainerOptions {
+  withCard?: boolean;
   /**
    * QR code specific options.
    */

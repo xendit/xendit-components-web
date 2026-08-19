@@ -3,6 +3,7 @@
   --xendit-font-family: sans-serif;
   --xendit-color-primary: #1762ee;
   --xendit-color-text: #252525;
+  --xendit-color-text-inverse: #ffffff;
   --xendit-color-text-secondary: #585858;
   --xendit-color-text-placeholder: #7d7d7d;
   --xendit-color-disabled: #f7f7f7;
@@ -16,6 +17,7 @@
   --xendit-animation-duration: 0.3s;
   --xendit-animation-ease: ease-in-out;
   --xendit-radius-1: 8px;
+  --xendit-radius-2: 16px;
   --xendit-z-index-focus: 2;
   --xendit-z-index-overlay: 3;
 
@@ -127,6 +129,9 @@ xendit-payment-channel select::placeholder {
 }
 .xendit-text-secondary {
   color: var(--xendit-color-text-secondary);
+}
+.xendit-text-inverse {
+  color: var(--xendit-color-text-inverse);
 }
 
 .xendit-text-center {
@@ -1388,4 +1393,30 @@ xendit-channel-picker[inert] {
 
 .xendit-apple-pay-button:hover {
   filter: invert(1) brightness(0.74) invert(1);
+}
+
+/* action card */
+
+.xendit-action-card {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: var(--xendit-radius-2);
+  border: 1px solid var(--xendit-color-border);
+}
+.xendit-action-card-text {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.xendit-action-card-icon {
+  height: 32px;
+  width: 32px;
+}
+.xendit-action-card-inner-content {
+  background-color: var(--xendit-color-background);
+  border-radius: 12px;
+  padding: 16px 12px;
 }

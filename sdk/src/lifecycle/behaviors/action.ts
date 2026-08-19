@@ -4,6 +4,7 @@ import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
+import { ActionCard, ActionCardProps } from "../../components/action-card";
 
 export enum DefaultActionContainerType {
   QrWithCustomArt = "qr-with-custom-art",
@@ -134,7 +135,10 @@ export abstract class ContainerActionBehavior implements Behavior {
    * Populates the action container with the provided component.
    * This method handles the common logic of getting the container and rendering the component.
    */
-  populateActionContainer(createComponent: () => ComponentChildren) {
+  populateActionContainer(
+    createComponent: () => ComponentChildren,
+    cardProps?: Omit<ActionCardProps, "children">,
+  ) {
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
     if (!container) {
       throw new Error(
@@ -143,6 +147,16 @@ export abstract class ContainerActionBehavior implements Behavior {
     }
 
     this.updateActionContainerBrandColor();
+
+    if (cardProps) {
+      return render(
+        createElement(ActionCard, {
+          children: createComponent(),
+          ...cardProps,
+        }),
+        container,
+      );
+    }
 
     render(createComponent(), container);
   }
