@@ -12,6 +12,7 @@ import {
   QrArtConfig,
   timestampForFilename,
 } from "./action-qr-utils";
+import { useActionCard } from "./action-card";
 
 type Props = {
   amount: number;
@@ -115,6 +116,8 @@ export function ActionQr(props: Props) {
     [amount, businessName, channelName, currency, qrString],
   );
 
+  const inActionCard = useActionCard();
+
   if (props.hideUi) {
     return (
       <div
@@ -175,7 +178,7 @@ export function ActionQr(props: Props) {
     return (
       <>
         <QrArtComponent
-          channelLogo={channelLogo}
+          channelLogo={inActionCard ? undefined : channelLogo}
           channelName={channelName}
           merchantName={businessName}
           amountText={amountText}
@@ -197,11 +200,13 @@ export function ActionQr(props: Props) {
   } else {
     return (
       <div className="xendit-action-present-to-customer">
-        <img
-          src={channelLogo}
-          alt={t("image_alt.channel_logo", { channelName })}
-          className="xendit-action-qr-channel-logo"
-        />
+        {inActionCard ? null : (
+          <img
+            src={channelLogo}
+            alt={t("image_alt.channel_logo", { channelName })}
+            className="xendit-action-qr-channel-logo"
+          />
+        )}
         <div className="xendit-action-qr-content">
           <div className="xendit-text-16 xendit-text-center xendit-qr-merchant-info">
             <div className="xendit-text-semibold">{businessName}</div>

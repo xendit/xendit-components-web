@@ -10,7 +10,7 @@ import Icon from "./icon";
 
 export type QrArtComponentProps = {
   channelName: string;
-  channelLogo: string;
+  channelLogo?: string;
   amountText: string;
   qr: ComponentChildren;
   merchantName: string;
@@ -68,14 +68,16 @@ function QrArtQris(props: QrArtComponentProps) {
       }}
     >
       {hardcodedGraphics.closeButton({})}
-      <img
-        src={channelLogo}
-        alt={t("image_alt.channel_logo", { channelName })}
-        style={{
-          height: "64px",
-          alignSelf: "center",
-        }}
-      />
+      {channelLogo ? (
+        <img
+          src={channelLogo}
+          alt={t("image_alt.channel_logo", { channelName })}
+          style={{
+            height: "64px",
+            alignSelf: "center",
+          }}
+        />
+      ) : null}
       <div
         className="xendit-text-center xendit-text-16"
         style={{
@@ -236,15 +238,17 @@ function QrArtPaynow(props: QrArtComponentProps) {
         overflow: "hidden",
       }}
     >
-      <img
-        src={channelLogo}
-        alt={t("image_alt.channel_logo", { channelName })}
-        style={{
-          height: "56px",
-          alignSelf: "center",
-          marginBottom: "8px",
-        }}
-      />
+      {channelLogo ? (
+        <img
+          src={channelLogo}
+          alt={t("image_alt.channel_logo", { channelName })}
+          style={{
+            height: "56px",
+            alignSelf: "center",
+            marginBottom: "8px",
+          }}
+        />
+      ) : null}
       {hardcodedGraphics.closeButton({})}
       <div
         style={{
@@ -387,15 +391,17 @@ function QrArtPromptPay(props: QrArtComponentProps) {
           padding: "0 16px",
         }}
       >
-        <img
-          src={channelLogo}
-          alt={t("image_alt.channel_logo", { channelName })}
-          style={{
-            height: "56px",
-            alignSelf: "center",
-            marginTop: "16px",
-          }}
-        />
+        {channelLogo ? (
+          <img
+            src={channelLogo}
+            alt={t("image_alt.channel_logo", { channelName })}
+            style={{
+              height: "56px",
+              alignSelf: "center",
+              marginTop: "16px",
+            }}
+          />
+        ) : null}
         <div style={{ padding: "16px 42px" }}>{props.qr}</div>
         <div
           className="xendit-text-center xendit-text-semibold"
@@ -432,15 +438,17 @@ export function QrArtQrPh(props: QrArtComponentProps) {
         overflow: "hidden",
       }}
     >
-      <img
-        src={channelLogo}
-        alt={t("image_alt.channel_logo", { channelName })}
-        style={{
-          height: "48px",
-          alignSelf: "center",
-          marginBottom: "16px",
-        }}
-      />
+      {channelLogo ? (
+        <img
+          src={channelLogo}
+          alt={t("image_alt.channel_logo", { channelName })}
+          style={{
+            height: "48px",
+            alignSelf: "center",
+            marginBottom: "16px",
+          }}
+        />
+      ) : null}
       {hardcodedGraphics.closeButton({})}
       <div
         style={{

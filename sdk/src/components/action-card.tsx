@@ -16,7 +16,7 @@ const ActionCardContext = createContext(false);
 
 export function ActionCard(props: ActionCardProps) {
   return (
-    <div>
+    <div className="xendit-action-card-wrapper">
       <div className="xendit-action-channel-info">
         <img
           className="xendit-action-channel-logo"

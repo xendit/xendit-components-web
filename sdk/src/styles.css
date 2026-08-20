@@ -1403,6 +1403,11 @@ xendit-channel-picker[inert] {
 
 /* action card */
 
+.xendit-action-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 .xendit-action-channel-info {
   display: flex;
   flex-direction: column;
