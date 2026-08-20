@@ -8,10 +8,6 @@ export interface XenditSdkOptions {
    * The client key from your session.
    * Your server should retrieve this from the Xendit API and pass it directly to the
    * client without saving or logging it anywhere.
-   *
-   * You can also just provide a session ID (e.g. `session-abcdef123456`). You will also
-   * need to provide `hostId`. Note that this will also require you to provide your own
-   * fields to handle credit card details, and your system to be PCI-compliant.
    */
   componentsSdkKey: string;
   iframeFieldAppearance?: IframeAppearanceOptions;
@@ -33,7 +29,7 @@ export interface XenditSdkOptions {
   enablePaylinks?: boolean;
 
   /**
-   * When providing a session ID as `componentsSdkKey`, you need to specify the host to connect to. Otherwise, this is ignored.
+   * @internal
    */
   hostId?: string;
 }
