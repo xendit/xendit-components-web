@@ -17,7 +17,7 @@
   --xendit-animation-duration: 0.3s;
   --xendit-animation-ease: ease-in-out;
   --xendit-radius-1: 8px;
-  --xendit-radius-2: 16px;
+  --xendit-radius-2: calc(var(--xendit-radius-1) * 2);
   --xendit-z-index-focus: 2;
   --xendit-z-index-overlay: 3;
 
@@ -108,6 +108,12 @@ xendit-payment-channel select::placeholder {
   font-size: 20px;
   line-height: 28px;
   letter-spacing: -0.33px;
+}
+
+.xendit-text-24 {
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.45px;
 }
 
 .xendit-text-12,
@@ -1397,6 +1403,18 @@ xendit-channel-picker[inert] {
 
 /* action card */
 
+.xendit-action-channel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.xendit-action-channel-logo {
+  height: 24px;
+}
+.xendit-action-heading {
+  text-align: center;
+}
 .xendit-action-card {
   display: flex;
   flex-direction: column;

@@ -42,9 +42,12 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
     const withCard = container?.getAttribute("data-with-card") === "true";
     if (withCard) {
       cardProps = {
+        actionIconSrc: barcodeAction.action_graphic,
         actionText: barcodeAction.action_subtitle,
+        channelBrandLogoUrl: this.bb.channel.brand_logo_url,
+        channelBrandName: this.bb.channel.brand_name,
         color: this.bb.channel.brand_color,
-        iconSrc: barcodeAction.action_graphic,
+        title: barcodeAction.action_title,
       };
     }
 

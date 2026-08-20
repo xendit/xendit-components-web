@@ -64,10 +64,13 @@ export class ActionQrBehavior extends ContainerActionBehavior {
     const withCard = container?.getAttribute("data-with-card") === "true";
     if (withCard) {
       cardProps = {
+        actionIconSrc: qrAction.action_graphic,
         actionText: qrAction.action_subtitle,
+        channelBrandLogoUrl: this.bb.channel.brand_logo_url,
+        channelBrandName: this.bb.channel.brand_name,
         color: this.bb.channel.brand_color,
-        iconSrc: qrAction.action_graphic,
         removePadding: true,
+        title: qrAction.action_title,
       };
     }
     this.populateActionContainer(

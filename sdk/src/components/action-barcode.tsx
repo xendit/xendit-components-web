@@ -5,6 +5,7 @@ import { TFunction } from "../localization";
 import { generateBarcodeSvg } from "./action-barcode-utils";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
 import { Instructions } from "./instructions";
+import { useActionCard } from "./action-card";
 
 type Props = {
   amount: number;
@@ -33,6 +34,7 @@ export function ActionBarcode(props: Props) {
   } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
+  const inActionCard = useActionCard();
 
   const onMadePaymentClicked = useCallback(() => {
     setShowSpinner(true);
@@ -68,12 +70,16 @@ export function ActionBarcode(props: Props) {
 
   return (
     <div className="xendit-action-present-to-customer">
-      <img
-        src={channelLogo}
-        alt="Channel Logo"
-        className="xendit-action-barcode-channel-logo"
-      />
-      <div className="xendit-action-title">{title}</div>
+      {!inActionCard ? (
+        <>
+          <img
+            src={channelLogo}
+            alt="Channel Logo"
+            className="xendit-action-barcode-channel-logo"
+          />
+          <div className="xendit-action-title">{title}</div>
+        </>
+      ) : null}
       <div
         data-testid="barcode"
         className="xendit-action-barcode-barcode-container"
