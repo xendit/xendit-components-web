@@ -5,6 +5,8 @@ import { Behavior } from "../behavior-tree-runner";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
 import { ActionCard, ActionCardProps } from "../../components/action-card";
+import { Instructions } from "../../components/instructions";
+import { Instructions as InstructionsType } from "../../backend-types/instructions";
 
 export enum DefaultActionContainerType {
   QrWithCustomArt = "qr-with-custom-art",
@@ -161,7 +163,67 @@ export abstract class ContainerActionBehavior implements Behavior {
     render(createComponent(), container);
   }
 
+  /**
+   * Returns whether an external action instructions container exists.
+   */
+  hasActionInstructionsContainer(): boolean {
+    return !!this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
+  }
+
+  /**
+   * Populates the external action instructions container with the given instructions.
+   * Call this from action behaviors that have instructions data.
+   * Does nothing if no external instructions container has been created.
+   */
+  populateActionInstructionsContainer(instructions: InstructionsType) {
+    const container =
+      this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
+    if (!container) return;
+
+    // Cancel any pending destroy timer
+    this.flushPendingInstructionsContainerDestroy();
+
+    if (instructions.length === 0) {
+      // Nothing to render
+      render(null, container);
+      return;
+    }
+
+    render(createElement(Instructions, { instructions }), container);
+  }
+
+  /**
+   * Cancels a pending delayed destroy and clears the instructions container contents.
+   */
+  flushPendingInstructionsContainerDestroy() {
+    const state = this.bb.sdk[internal].liveComponents;
+    if (state.actionInstructionsContainerDestroyTimer === null) return;
+
+    clearTimeout(state.actionInstructionsContainerDestroyTimer);
+    state.actionInstructionsContainerDestroyTimer = null;
+    if (state.actionInstructionsContainer) {
+      render(null, state.actionInstructionsContainer);
+    }
+  }
+
+  /**
+   * Schedules a delayed clear of the instructions container contents (mirrors emptyActionContainer).
+   */
+  emptyActionInstructionsContainer() {
+    const container =
+      this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
+    if (!container) return;
+
+    const state = this.bb.sdk[internal].liveComponents;
+    state.actionInstructionsContainerDestroyTimer = setTimeout(() => {
+      state.actionInstructionsContainerDestroyTimer = null;
+      if (state.actionInstructionsContainer !== container) return;
+      render(null, container);
+    }, MERCHANT_CONTAINER_DESTROY_DELAY_MS);
+  }
+
   exit() {
     this.cleanupActionContainer(false);
+    this.emptyActionInstructionsContainer();
   }
 }

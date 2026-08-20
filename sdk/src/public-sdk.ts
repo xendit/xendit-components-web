@@ -229,6 +229,10 @@ export class XenditComponents extends EventTarget {
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
       actionContainerDestroyTimer: ReturnType<typeof setTimeout> | null;
+      actionInstructionsContainer: HTMLElement | null;
+      actionInstructionsContainerDestroyTimer: ReturnType<
+        typeof setTimeout
+      > | null;
       digitalWalletContainer: Map<
         XenditDigitalWalletCode,
         {
@@ -302,6 +306,8 @@ export class XenditComponents extends EventTarget {
         paymentChannels: new Map(),
         actionContainer: null,
         actionContainerDestroyTimer: null,
+        actionInstructionsContainer: null,
+        actionInstructionsContainerDestroyTimer: null,
         digitalWalletContainer: new Map(),
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
@@ -1310,6 +1316,55 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
+   * Creates a container element for rendering action instructions separately from the action UI.
+   *
+   * When this container exists, action instructions (e.g. VA payment steps, barcode payment steps)
+   * will be rendered into this container instead of inline within the action component.
+   *
+   * This is optional. If you don't create one, instructions will be rendered inline within the
+   * action container as usual.
+   *
+   * Create this before the `action-begin` event or during the `action-begin` event handler.
+   *
+   * @example
+   * ```
+   * const instructionsEl = components.createActionInstructionsComponent();
+   * myInstructionsPanel.replaceChildren(instructionsEl);
+   * ```
+   */
+  createActionInstructionsComponent(): HTMLElement {
+    this.assertInitialized();
+
+    const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
+      PaymentEntityRequiresActionBehavior,
+    );
+    if (
+      requiresActionBehavior &&
+      !requiresActionBehavior.canCreateActionContainer
+    ) {
+      throw new Error(
+        "Unable to create action instructions container; there is an action in progress. Create it before or during the `action-begin` event.",
+      );
+    }
+
+    if (this[internal].liveComponents.actionInstructionsContainer) {
+      this.destroyComponent(
+        this[internal].liveComponents.actionInstructionsContainer,
+      );
+    }
+
+    const container = document.createElement(
+      "xendit-action-instructions-container",
+    );
+    container.setAttribute("translate", "no");
+
+    this[internal].liveComponents.actionInstructionsContainer = container;
+
+    return container;
+  }
+
+  /**
+   * @public
    * Destroys a component of any type created by the SDK. Removes it from the DOM if necessary.
    * Throws if the element is not a xendit component or if it was already destroyed.
    */
@@ -1342,6 +1397,13 @@ export class XenditComponents extends EventTarget {
 
     if (this[internal].liveComponents.actionContainer === component) {
       this[internal].liveComponents.actionContainer = null;
+      render(null, component);
+      component.remove();
+      return;
+    }
+
+    if (this[internal].liveComponents.actionInstructionsContainer === component) {
+      this[internal].liveComponents.actionInstructionsContainer = null;
       render(null, component);
       component.remove();
       return;

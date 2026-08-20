@@ -37,6 +37,7 @@
 /* Set default font for root components */
 xendit-channel-picker,
 xendit-action-container,
+xendit-action-instructions-container,
 xendit-payment-channel {
   display: block;
   unicode-bidi: isolate;
