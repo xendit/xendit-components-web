@@ -17,6 +17,9 @@ export class ActionRedirectBehavior implements Behavior {
     this.bb.redirectReturnPending = true;
     this.bb.pollImmediatelyRequested = true;
 
+    // un-block telemetry events since we're back from the redirect
+    this.bb.telemetry.expectingRedirectAway = false;
+
     this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   };
 
