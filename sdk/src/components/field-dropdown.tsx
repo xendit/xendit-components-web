@@ -51,12 +51,16 @@ export const DropdownField: FunctionComponent<FieldProps> = (props) => {
   );
 
   const onChangeWrapper = useCallback(
-    (option: DropdownOption) => {
+    (
+      option: DropdownOption,
+      index: number | undefined = undefined,
+      isInitial: boolean = false,
+    ) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = option.value;
       }
       setSelectedItemValue(option.value);
-      onChange();
+      onChange(isInitial);
     },
     [onChange],
   );
@@ -68,7 +72,7 @@ export const DropdownField: FunctionComponent<FieldProps> = (props) => {
   // call onChange once on init
   useLayoutEffect(() => {
     if (field.initial_value) {
-      onChangeWrapper(dropdownItems[selectedIndex]);
+      onChangeWrapper(dropdownItems[selectedIndex], undefined, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

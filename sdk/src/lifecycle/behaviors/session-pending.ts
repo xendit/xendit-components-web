@@ -5,6 +5,7 @@ import {
   XenditSessionNotPendingEvent,
   XenditSessionPendingEvent,
 } from "../../public-event-types";
+import { TelemetryEvents } from "../../telemetry-events";
 import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
@@ -24,8 +25,11 @@ export class SessionPendingBehavior implements Behavior {
   }
 
   enter() {
-    this.pollWorker.start();
+    // telemetry for pending state
+    this.bb.telemetry.append(TelemetryEvents.Pending(true));
 
+    // start listening for changes
+    this.pollWorker.start();
     this.bb.dispatchEvent(new XenditSessionPendingEvent());
   }
 
@@ -37,7 +41,11 @@ export class SessionPendingBehavior implements Behavior {
     // discard payment entity unless session is transitioning to COMPLETE
     const paymentEntity = this.bb.world.paymentEntity;
     if (this.bb.world.session.status !== "COMPLETED" && paymentEntity) {
-      discardPaymentEntity(paymentEntity, this.bb.dispatchEvent);
+      discardPaymentEntity(
+        paymentEntity,
+        this.bb.dispatchEvent,
+        this.bb.telemetry,
+      );
     }
 
     this.bb.dispatchEvent(new XenditSessionNotPendingEvent());

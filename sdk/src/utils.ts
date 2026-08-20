@@ -1,8 +1,4 @@
-import {
-  BffChannel,
-  ChannelFormField,
-  ChannelProperties,
-} from "./backend-types/channel";
+import { BffChannel, ChannelFormField } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 import { BffSession } from "./backend-types/session";
@@ -219,6 +215,17 @@ export function hostFromHostId(hostId: string): string | null {
   return hosts[hostId] ?? null;
 }
 
+const telemetryHosts: Record<string, string | undefined> = {
+  pl: process.env.XENDIT_TELEMETRY_PROD_LIVE,
+  pd: process.env.XENDIT_TELEMETRY_PROD_DEV,
+  sl: process.env.XENDIT_TELEMETRY_STAGING_LIVE,
+  sd: process.env.XENDIT_TELEMETRY_STAGING_DEV,
+};
+
+export function telemetryHostFromHostId(hostId: string): string | null {
+  return telemetryHosts[hostId] ?? null;
+}
+
 export type ParsedSdkKey = {
   sessionAuthKey: string;
   hostId: string;
@@ -311,6 +318,14 @@ export function formFieldId(field: ChannelFormField): string {
   return `xendit-id-${obfuscatedId}`;
 }
 
+export function randomBits(n: number) {
+  let out = 0;
+  for (let i = 0; i < n; i++) {
+    out |= Math.random() < 0.5 ? 1 << i : 0;
+  }
+  return out;
+}
+
 export function randomBytes(length: number) {
   const arr = new Uint8Array(length);
   for (let i = 0; i < length; i++) {
@@ -320,21 +335,26 @@ export function randomBytes(length: number) {
 }
 
 export function randomHexString(length: number) {
-  assert(length % 2 === 0);
-  const bytes = randomBytes(length / 2);
+  const bytes = randomBytes(length);
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
+    .map((b) => (b & 0xf).toString(16))
     .join("");
 }
 
 export function randomUUID() {
   return [
     randomHexString(8),
+    "-",
     randomHexString(4),
-    randomHexString(4),
-    randomHexString(4),
+    "-",
+    "4",
+    randomHexString(3),
+    "-",
+    (0b1000 | randomBits(2)).toString(16),
+    randomHexString(3),
+    "-",
     randomHexString(12),
-  ].join("-");
+  ].join("");
 }
 
 /**
@@ -390,49 +410,6 @@ export function removeUndefinedPropertiesFromObject<T extends object>(
     }
   }
   return object;
-}
-
-export function getValueFromChannelProperty(
-  channelProperty: string | string[],
-  channelProperties: ChannelProperties | null,
-) {
-  let str = channelProperty;
-  if (!channelProperties) {
-    return undefined;
-  }
-  if (Array.isArray(str)) {
-    throw new Error(
-      "Getting values from channel property arrays is not supported.",
-    );
-  }
-
-  let cursor: ChannelProperties[string] = channelProperties;
-  while (true) {
-    if (!cursor || typeof cursor !== "object" || Array.isArray(cursor)) {
-      return undefined;
-    }
-    const dotIndex = str.indexOf(".");
-    if (dotIndex === -1) {
-      return cursor ? cursor[str] : undefined;
-    } else {
-      const key = str.slice(0, dotIndex);
-      cursor = cursor ? cursor[key] : undefined;
-      str = str.slice(dotIndex + 1);
-    }
-  }
-}
-
-export function getCardNumberFromChannelProperties(
-  channelProperties: ChannelProperties | null,
-) {
-  const cardNumber = getValueFromChannelProperty(
-    "card_details.card_number",
-    channelProperties,
-  );
-  if (typeof cardNumber !== "string") {
-    return null;
-  }
-  return cardNumber;
 }
 
 export function parseEncryptedFieldValue(str: string) {

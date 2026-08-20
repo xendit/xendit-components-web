@@ -3,11 +3,17 @@ import { ActionRedirectBehavior } from "./action-redirect";
 import { BlackboardType } from "../behavior-tree";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { XenditWillRedirectEvent } from "../../public-event-types";
+import { MockSdk } from "../../utils-test";
+import { makeTestSdkKey } from "../../data/test-data-modifiers";
+import { internal } from "../../internal";
 
 const HASH_URL = "#mock-redirect-target";
 
 function buildBlackboard(events: Event[]): BlackboardType {
+  const sdk = new MockSdk({ componentsSdkKey: makeTestSdkKey() });
   return {
+    sdk,
+    telemetry: sdk[internal].telemetry,
     redirectReturnPending: false,
     pollImmediatelyRequested: false,
     dispatchEvent: (event: Event) => {

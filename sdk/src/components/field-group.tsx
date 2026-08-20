@@ -35,7 +35,7 @@ const CSS_CLASSES = {
 interface Props {
   fieldGroup: ChannelFormField[];
   groupIndex: number;
-  handleFieldChanged: () => void;
+  handleFieldChanged: (isInitial?: boolean) => void;
   channelProperties: ChannelProperties | null;
   simulationScenarios?: Scenarios | null;
 }

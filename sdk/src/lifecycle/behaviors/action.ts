@@ -4,6 +4,8 @@ import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
+import { SessionTelemetryScope } from "../../telemetry";
+import { TelemetryEvents } from "../../telemetry-events";
 
 export enum DefaultActionContainerType {
   QrWithCustomArt = "qr-with-custom-art",
@@ -18,6 +20,8 @@ export abstract class ContainerActionBehavior implements Behavior {
   defaultContainerHeight = 0;
   defaultContainerWidth = 400;
   title = "Complete your payment";
+
+  telemetryScope: SessionTelemetryScope | null = null;
 
   constructor(protected bb: BlackboardType) {}
 
@@ -144,10 +148,22 @@ export abstract class ContainerActionBehavior implements Behavior {
 
     this.updateActionContainerBrandColor();
 
+    // telemetry for start of action
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope(
+      TelemetryEvents.ActionBegin(true),
+    );
+
     render(createComponent(), container);
   }
 
   exit() {
     this.cleanupActionContainer(false);
+
+    // telemetry for end of action
+    if (this.telemetryScope) {
+      this.bb.telemetry.append(TelemetryEvents.ActionClose(true));
+      this.bb.telemetry.popScope(this.telemetryScope);
+      this.telemetryScope = null;
+    }
   }
 }

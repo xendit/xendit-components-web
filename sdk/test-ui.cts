@@ -105,6 +105,10 @@ const createActionContainer = document.createElement("button");
 createActionContainer.textContent = "Create Action Container";
 controlsDiv.appendChild(createActionContainer);
 
+const abandonButton = document.createElement("button");
+abandonButton.textContent = "Abandon";
+controlsDiv.appendChild(abandonButton);
+
 // const { XenditComponents, XenditComponentsTest } = (
 //   window as unknown as { Xendit: typeof import("./src/public-sdk") }
 // ).Xendit;
@@ -134,11 +138,13 @@ if (savedKey) {
     iframeFieldAppearance,
     enablePaylinks: true,
     resume: savedResume,
+    logTelemetryEvents: true,
   });
 } else {
   components = new XenditComponentsTest({
     iframeFieldAppearance,
     enablePaylinks: true,
+    logTelemetryEvents: true,
   });
 }
 
@@ -254,4 +260,8 @@ createActionContainer.addEventListener("click", () => {
   element.style.minHeight = "10px";
   element.style.border = "2px solid black";
   controlsDiv.appendChild(element);
+});
+
+abandonButton.addEventListener("click", () => {
+  window.location.href = "https://www.spacejam.com/1996/";
 });

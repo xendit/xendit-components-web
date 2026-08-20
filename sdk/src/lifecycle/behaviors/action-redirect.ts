@@ -17,12 +17,16 @@ export class ActionRedirectBehavior implements Behavior {
     this.bb.redirectReturnPending = true;
     this.bb.pollImmediatelyRequested = true;
 
+    // un-block telemetry events since we're back from the redirect
+    this.bb.telemetry.expectingRedirectAway = false;
+
     this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   };
 
   enter() {
     window.addEventListener("pageshow", this.onPageShow);
     this.bb.dispatchEvent(new XenditWillRedirectEvent());
+    this.bb.telemetry.expectingRedirectAway = true;
     window.location.href = this.url;
   }
 

@@ -113,6 +113,8 @@ import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
+import { getTelemetry, SessionTelemetry } from "./telemetry";
+import { TelemetryEvents } from "./telemetry-events";
 
 /**
  * @internal
@@ -235,6 +237,11 @@ export class XenditComponents extends EventTarget {
     };
 
     /**
+     * For sending telemetry events.
+     */
+    telemetry: SessionTelemetry;
+
+    /**
      * The most recently created payment channel component's channel code.
      * This is used as a key into `paymentChannelComponents`.
      */
@@ -289,6 +296,10 @@ export class XenditComponents extends EventTarget {
     }
 
     const sdkKey = parseSdkKey(options.componentsSdkKey);
+    const telemetry = new SessionTelemetry(
+      this,
+      Boolean(options.logTelemetryEvents),
+    );
     this[internal] = {
       sdkKey,
       options,
@@ -302,6 +313,7 @@ export class XenditComponents extends EventTarget {
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
         sdk: this,
+        telemetry,
         sdkKey,
         mock: this.isMock(),
         sdkStatus: "LOADING",
@@ -320,6 +332,7 @@ export class XenditComponents extends EventTarget {
         redirectReturnPending: false,
         pollImmediatelyRequested: false,
       }),
+      telemetry,
       currentChannelCode: null,
       currentDigitalWalletSubmission: null,
       eventListenersPresent: new Map(),
@@ -387,6 +400,9 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
+
+      getTelemetry(this).append(TelemetryEvents.Loaded(false));
+
       this.behaviorTreeUpdate();
       return;
     }
@@ -407,6 +423,9 @@ export class XenditComponents extends EventTarget {
         this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
         this[internal].behaviorTree.bb.sdkFatalErrorMessage =
           "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
+
+        getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(false));
+
         this.behaviorTreeUpdate();
         return;
       }
@@ -436,10 +455,20 @@ export class XenditComponents extends EventTarget {
           this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
           this[internal].behaviorTree.bb.sdkFatalErrorMessage =
             "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
+
+          getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(false));
+
           this.behaviorTreeUpdate();
           return;
         }
       }
+    }
+
+    // telemetry for successful load
+    if (resumeSession) {
+      getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(true));
+    } else {
+      getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
     }
 
     // Update world state
@@ -1388,6 +1417,7 @@ export class XenditComponents extends EventTarget {
       ChannelInvalidBehavior,
     );
     if (channelInvalidBehavior) {
+      // TODO: telemetry for validation error
       throw new Error(
         "Unable to submit; the form for the current channel has errors. Listen to the `submission-ready` and `submission-not-ready` events, do not allow submission while in the not-ready state.",
       );
@@ -1432,6 +1462,7 @@ export class XenditComponents extends EventTarget {
       XenditSubmissionEndEvent.type,
       () => {
         this[internal].currentDigitalWalletSubmission = null;
+        this.behaviorTreeUpdate();
       },
       { once: true },
     );
@@ -1546,6 +1577,52 @@ export class XenditComponents extends EventTarget {
 
     this[internal].behaviorTree.bb.pollImmediatelyRequested = true;
     this.behaviorTreeUpdate();
+  }
+
+  /**
+   * @public
+   * Redirects the user to the Session's success_return_url or cancel_return_url, depending on the session's current state.
+   * Does not fire the `will-redirect` event.
+   *
+   * Throws an error if the session is not in an appropriate state, or if the return url is not set.
+   */
+  redirectToReturnUrl() {
+    this.assertInitialized();
+
+    const status = this[internal].worldState.session.status;
+    let url: string | undefined;
+    switch (status) {
+      case "COMPLETED": {
+        url = this[internal].worldState.session.success_return_url;
+        if (!url) {
+          throw new Error("The success_return_url property is not set");
+        }
+        break;
+      }
+      case "CANCELED":
+      case "EXPIRED": {
+        url = this[internal].worldState.session.cancel_return_url;
+        if (!url) {
+          throw new Error("The cancel_return_url property is not set");
+        }
+        break;
+      }
+      case "ACTIVE":
+      case "PENDING": {
+        throw new Error(
+          "Can't redirect to the return url until the session is completed, expired, or canceled.",
+        );
+      }
+      default: {
+        throw new Error(
+          "Invalid session status; this is a bug, please contact support.",
+        );
+      }
+    }
+
+    this[internal].telemetry.expectingRedirectAway = true;
+    getTelemetry(this).append(TelemetryEvents.RedirectAway(true, status));
+    window.location.href = url;
   }
 
   /**
@@ -1885,6 +1962,8 @@ export class XenditComponentsTest extends XenditComponents {
         succeededChannel: null,
       } satisfies WorldState),
     );
+
+    getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
   }
 
   /**

@@ -70,7 +70,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = selectedCountry || "";
       }
-      onChange();
+      onChange(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

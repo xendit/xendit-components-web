@@ -66,6 +66,14 @@ export interface XenditSession {
    */
   status: "ACTIVE" | "PENDING" | "CANCELED" | "EXPIRED" | "COMPLETED";
   /**
+   * The URL to redirect to on completed session. This is not automatically used unless you call `redirectToReturnUrl`.
+   */
+  successReturnUrl?: string;
+  /**
+   * The URL to redirect to on canceled or expired session. This is not automatically used unless you call `redirectToReturnUrl`.
+   */
+  cancelReturnUrl?: string;
+  /**
    * Indicates whether the customer is allowed to save their payment method during this session.
    *
    * DISABLED means users do not have the option to save a payment method.

@@ -1,17 +1,17 @@
 import { BffAction } from "./backend-types/payment-entity";
-import { ChannelProperties } from "./public-sdk";
 import { makeTestBffData } from "./data/test-data";
 import {
   assert,
   camelCaseToKebabCase,
   cancellableSleep,
   errorToString,
-  getCardNumberFromChannelProperties,
-  getValueFromChannelProperty,
   isAbortError,
   mergeIgnoringUndefined,
   parseEncryptedFieldValue,
   parseSdkKey,
+  randomBits,
+  randomHexString,
+  randomUUID,
   resolvePairedChannel,
   satisfiesMinMax,
   SLEEP_MULTIPLIER,
@@ -121,49 +121,6 @@ describe("utils - errorToString", () => {
   });
 });
 
-describe("utils - getValueFromChannelProperty", () => {
-  it("should get value from channel property", () => {
-    const channelProperties: ChannelProperties = {
-      simple: "1",
-      nested: {
-        nested: {
-          nested: "2",
-        },
-      },
-    };
-    expect(getValueFromChannelProperty("simple", channelProperties)).toBe("1");
-    expect(
-      getValueFromChannelProperty("nested.nested.nested", channelProperties),
-    ).toBe("2");
-    expect(
-      getValueFromChannelProperty("nonexistent", channelProperties),
-    ).toBeUndefined();
-    expect(
-      getValueFromChannelProperty("nested.nonexistent", channelProperties),
-    ).toBeUndefined();
-  });
-  it("should return undefined for null channel properties", () => {
-    expect(getValueFromChannelProperty("any.key", null)).toBeUndefined();
-  });
-});
-
-describe("utils - getCardNunberFromChannelProperties", () => {
-  it("should get card number from channel properties", () => {
-    const channelProperties: ChannelProperties = {
-      card_details: {
-        card_number: "encrypted-string",
-      },
-    };
-    expect(getCardNumberFromChannelProperties(channelProperties)).toBe(
-      "encrypted-string",
-    );
-  });
-  it("should return null if card number not present", () => {
-    const channelProperties: ChannelProperties = {};
-    expect(getCardNumberFromChannelProperties(channelProperties)).toBeNull();
-  });
-});
-
 describe("utils - resolvePairedChannel", () => {
   it("should resolve paired channels", () => {
     const nonpair = makeTestBffData().channels.find(
@@ -262,5 +219,33 @@ describe("utils - parseEncryptedFieldValue", () => {
       validationError: "error_code",
       withoutValidationError: `xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT`,
     });
+  });
+});
+
+describe("utils - randomBits", () => {
+  it("should return a number less than 2^n", () => {
+    for (let i = 0; i < 100; i++) {
+      const bits = Math.floor(Math.random() * 31);
+      const result = randomBits(bits);
+      expect(result).toBeGreaterThanOrEqual(0);
+      expect(result).toBeLessThan(2 ** bits);
+    }
+  });
+});
+
+describe("utils - randomHexString", () => {
+  it("should return a random string", () => {
+    expect(randomHexString(1)).toMatch(/^[0-9a-f]{1}$/);
+    expect(randomHexString(2)).toMatch(/^[0-9a-f]{2}$/);
+    expect(randomHexString(3)).toMatch(/^[0-9a-f]{3}$/);
+    expect(randomHexString(99)).toMatch(/^[0-9a-f]{99}$/);
+  });
+});
+
+describe("utils - randomUUID", () => {
+  it("should return a uuid", () => {
+    expect(randomUUID()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
   });
 });
