@@ -1594,11 +1594,17 @@ export class XenditComponents extends EventTarget {
     switch (status) {
       case "COMPLETED": {
         url = this[internal].worldState.session.success_return_url;
+        if (!url) {
+          throw new Error("The success_return_url property is not set");
+        }
         break;
       }
       case "CANCELED":
       case "EXPIRED": {
         url = this[internal].worldState.session.cancel_return_url;
+        if (!url) {
+          throw new Error("The cancel_return_url property is not set");
+        }
         break;
       }
       case "ACTIVE":
@@ -1612,10 +1618,6 @@ export class XenditComponents extends EventTarget {
           "Invalid session status; this is a bug, please contact support.",
         );
       }
-    }
-
-    if (!url) {
-      throw new Error("The success_return_url is not set");
     }
 
     this[internal].telemetry.expectingRedirectAway = true;
