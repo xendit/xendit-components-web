@@ -36,21 +36,21 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   const [value, setValue] = useState(field.initial_value as string);
 
-  // the `<select>` in dropdown mode, or the visible input in free text mode
-  const hiddenFieldRef = useRef<HTMLInputElement | HTMLSelectElement | null>(
+  // carries a `<select>` or `<input>` depending on mode, so a callback ref is used since one ref object can't be typed to both.
+  const valueFieldRef = useRef<HTMLInputElement | HTMLSelectElement | null>(
     null,
   );
   const setFieldRef = useCallback(
     (element: HTMLInputElement | HTMLSelectElement | null) => {
-      hiddenFieldRef.current = element;
+      valueFieldRef.current = element;
     },
     [],
   );
 
   const clearValue = useCallback(() => {
     setValue("");
-    if (hiddenFieldRef.current) {
-      hiddenFieldRef.current.value = "";
+    if (valueFieldRef.current) {
+      valueFieldRef.current.value = "";
     }
     onChange();
   }, [onChange]);
@@ -58,11 +58,11 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const onChangeDropdown = useCallback(
     (option: DropdownOption) => {
       setValue(option.value);
-      if (hiddenFieldRef.current) {
-        hiddenFieldRef.current.value = option.value;
+      if (valueFieldRef.current) {
+        valueFieldRef.current.value = option.value;
       }
       onChange();
-      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
+      valueFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     },
     [onChange],
   );
@@ -70,11 +70,11 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const onChangeInput = useCallback(
     (e: TargetedEvent<HTMLInputElement>) => {
       setValue(e.currentTarget.value);
-      if (hiddenFieldRef.current) {
-        hiddenFieldRef.current.value = (e.target as HTMLInputElement).value;
+      if (valueFieldRef.current) {
+        valueFieldRef.current.value = (e.target as HTMLInputElement).value;
       }
       onChange();
-      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
+      valueFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     },
     [onChange],
   );
@@ -116,9 +116,9 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
       const option = options?.find((o) => o.value === filledValue);
       if (option) {
         onChangeDropdown(option);
-      } else if (hiddenFieldRef.current) {
+      } else if (valueFieldRef.current) {
         // not a province we offer, keep our value so the UI and the form agree
-        hiddenFieldRef.current.value = value ?? "";
+        valueFieldRef.current.value = value ?? "";
       }
     },
     [options, onChangeDropdown, clearValue, value],
@@ -137,16 +137,21 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
     // if options list changes, clear the selected value
     if (options !== previousOptions) {
-      if (selectedOptionIndex !== -1) return; // ok, this is still valid
+      if (selectedOptionIndex !== -1) {
+        if (valueFieldRef.current) {
+          valueFieldRef.current.value = value;
+        }
+        return;
+      }
       clearValue();
     }
-  }, [clearValue, options, previousOptions, selectedOptionIndex]);
+  }, [clearValue, options, previousOptions, selectedOptionIndex, value]);
 
   // on first render, populate hidden field and notify parent of initial value
   useLayoutEffect(() => {
     if (field.initial_value) {
-      if (hiddenFieldRef.current) {
-        hiddenFieldRef.current.value = value;
+      if (valueFieldRef.current) {
+        valueFieldRef.current.value = value;
       }
       onChange();
     }
