@@ -154,7 +154,7 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
           err instanceof NetworkError
         ) {
           alert(
-            "Apple Pay merchant validation failed. This usually means the device isn't signed into an Apple sandbox tester account. See https://developer.apple.com/apple-pay/sandbox-testing/",
+            "Apple Pay merchant validation failed. In test mode, Apple Pay only works on domains that have been onboarded with Xendit, and on devices signed into an Apple sandbox account, and in countries supported by the Apple Pay sandbox.",
           );
         }
       }
