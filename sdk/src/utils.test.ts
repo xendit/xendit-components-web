@@ -2,6 +2,7 @@ import { BffAction } from "./backend-types/payment-entity";
 import { makeTestBffData } from "./data/test-data";
 import {
   assert,
+  BLOCKED_CHANNELS,
   camelCaseToKebabCase,
   cancellableSleep,
   errorToString,
@@ -12,6 +13,7 @@ import {
   randomBits,
   randomHexString,
   randomUUID,
+  removeBlockedChannels,
   resolvePairedChannel,
   satisfiesMinMax,
   SLEEP_MULTIPLIER,
@@ -140,6 +142,33 @@ describe("utils - resolvePairedChannel", () => {
     expect(resolvePairedChannel([nonpair], false)).toBe(nonpair);
     expect(resolvePairedChannel([pair1, pair2], true)).toBe(pair2);
     expect(resolvePairedChannel([pair1, pair2], false)).toBe(pair1);
+  });
+});
+
+describe("utils - removeBlockedChannels", () => {
+  it("should pass through channels that are not in the blacklist", () => {
+    const channels = makeTestBffData().channels;
+    expect(removeBlockedChannels(channels)).toEqual(channels);
+  });
+
+  it("should filter out channels present in the blacklist", () => {
+    const channels = makeTestBffData().channels;
+    const blockedCode = channels[0].channel_code;
+    const previousValue = BLOCKED_CHANNELS[blockedCode];
+    BLOCKED_CHANNELS[blockedCode] = true;
+    try {
+      const result = removeBlockedChannels(channels);
+      expect(
+        result.find((ch) => ch.channel_code === blockedCode),
+      ).toBeUndefined();
+      expect(result.length).toBe(channels.length - 1);
+    } finally {
+      if (previousValue === undefined) {
+        delete BLOCKED_CHANNELS[blockedCode];
+      } else {
+        BLOCKED_CHANNELS[blockedCode] = previousValue;
+      }
+    }
   });
 });
 
