@@ -213,6 +213,7 @@ export function makeTestBffData(): BffResponse {
             type: {
               name: "text",
               max_length: 255,
+              autocomplete: "given-name",
             },
             channel_property: "billing_information.first_name",
             span: 1,
@@ -227,6 +228,7 @@ export function makeTestBffData(): BffResponse {
             type: {
               name: "text",
               max_length: 255,
+              autocomplete: "family-name",
             },
             channel_property: "billing_information.last_name",
             span: 1,
@@ -242,6 +244,7 @@ export function makeTestBffData(): BffResponse {
             type: {
               name: "text",
               max_length: 255,
+              autocomplete: "email",
             },
             channel_property: "billing_information.email",
             span: 2,
@@ -285,6 +288,7 @@ export function makeTestBffData(): BffResponse {
             type: {
               name: "text",
               max_length: 255,
+              autocomplete: "address-level2",
             },
             channel_property: "billing_information.city",
             span: 2,
@@ -300,6 +304,7 @@ export function makeTestBffData(): BffResponse {
             type: {
               name: "text",
               max_length: 255,
+              autocomplete: "address-line1",
             },
             channel_property: "billing_information.street_line1",
             span: 2,
@@ -315,6 +320,7 @@ export function makeTestBffData(): BffResponse {
             type: {
               name: "text",
               max_length: 255,
+              autocomplete: "address-line2",
             },
             channel_property: "billing_information.street_line2",
             span: 2,

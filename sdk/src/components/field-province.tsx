@@ -92,7 +92,7 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
     ? options.findIndex((option) => option.value === value)
     : -1;
 
-  // the country list never changes
+  // rebuild only when the province list changes
   const selectOptions = useMemo(
     () =>
       options?.map((option) => (
