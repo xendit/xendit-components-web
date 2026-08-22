@@ -1,9 +1,15 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode, getCountries } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
 import { formFieldId, formFieldName, usePrevious } from "../utils";
-import { FunctionComponent } from "preact";
+import { FunctionComponent, TargetedEvent } from "preact";
 import { useChannelComponentData } from "./channel-root";
 
 type FlagIconProps = {
@@ -42,7 +48,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     (option) => option.value === selectedCountry,
   );
 
-  const hiddenFieldRef = useRef<HTMLInputElement>(null);
+  const hiddenFieldRef = useRef<HTMLSelectElement>(null);
 
   useOnCardCountryChange((newCountry: CountryCode) => {
     if (hiddenFieldRef.current) {
@@ -75,9 +81,55 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleNativeSelectChange = useCallback(
+    (event: TargetedEvent<HTMLSelectElement>) => {
+      const filledValue = event.currentTarget.value;
+
+      if (!filledValue) {
+        // browser cleared the field, so clear our copy too
+        setSelectedCountry(undefined);
+        onChange();
+        return;
+      }
+
+      const option = COUNTRIES_AS_DROPDOWN_OPTIONS.find(
+        (o) => o.value === filledValue,
+      );
+      if (option) {
+        onChangeWrapper(option);
+      } else if (hiddenFieldRef.current) {
+        // not a country we offer
+        hiddenFieldRef.current.value = selectedCountry ?? "";
+      }
+    },
+    [onChange, onChangeWrapper, selectedCountry],
+  );
+
+  // the country list never changes
+  const selectOptions = useMemo(
+    () =>
+      COUNTRIES_AS_DROPDOWN_OPTIONS.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.title}
+        </option>
+      )),
+    [],
+  );
+
   return (
     <div>
-      <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
+      {/* a `<select>`, not `type="hidden"` browsers only autofill what they render */}
+      <select
+        name={name}
+        ref={hiddenFieldRef}
+        autoComplete="country"
+        onChange={handleNativeSelectChange}
+        style={VISUALLY_HIDDEN}
+        tabIndex={-1}
+      >
+        <option value="" />
+        {selectOptions}
+      </select>
       <Dropdown
         id={id}
         options={COUNTRIES_AS_DROPDOWN_OPTIONS}
@@ -89,6 +141,20 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
       />
     </div>
   );
+};
+
+/** Hidden from sight but still rendered, so browser autofill can reach it. */
+export const VISUALLY_HIDDEN = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  margin: "0",
+  padding: "0",
+  border: "0",
+  overflow: "hidden",
+  clipPath: "inset(50%)",
+  whiteSpace: "nowrap",
+  pointerEvents: "none",
 };
 
 export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()

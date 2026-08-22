@@ -1,7 +1,14 @@
-import { useRef, useCallback, useLayoutEffect, useState } from "preact/hooks";
+import {
+  useRef,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "preact/hooks";
 import { FieldProps } from "./field";
 import { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
+import { VISUALLY_HIDDEN } from "./field-country";
 import { useSession } from "./session-provider";
 import { PROVINCES_CA, PROVINCES_GB, PROVINCES_US } from "../data/provinces";
 import { formFieldId, formFieldName, objectId, usePrevious } from "../utils";
@@ -24,12 +31,21 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   const [value, setValue] = useState(field.initial_value as string);
 
-  const hiddenFieldRef = useRef<HTMLInputElement>(null);
+  // carries a `<select>` or `<input>` depending on mode, so a callback ref is used since one ref object can't be typed to both.
+  const valueFieldRef = useRef<HTMLInputElement | HTMLSelectElement | null>(
+    null,
+  );
+  const setFieldRef = useCallback(
+    (element: HTMLInputElement | HTMLSelectElement | null) => {
+      valueFieldRef.current = element;
+    },
+    [],
+  );
 
   const clearValue = useCallback(() => {
     setValue("");
-    if (hiddenFieldRef.current) {
-      hiddenFieldRef.current.value = "";
+    if (valueFieldRef.current) {
+      valueFieldRef.current.value = "";
     }
     onChange();
   }, [onChange]);
@@ -37,11 +53,11 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const onChangeDropdown = useCallback(
     (option: DropdownOption) => {
       setValue(option.value);
-      if (hiddenFieldRef.current) {
-        hiddenFieldRef.current.value = option.value;
+      if (valueFieldRef.current) {
+        valueFieldRef.current.value = option.value;
       }
       onChange();
-      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
+      valueFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     },
     [onChange],
   );
@@ -49,11 +65,11 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
   const onChangeInput = useCallback(
     (e: TargetedEvent<HTMLInputElement>) => {
       setValue(e.currentTarget.value);
-      if (hiddenFieldRef.current) {
-        hiddenFieldRef.current.value = (e.target as HTMLInputElement).value;
+      if (valueFieldRef.current) {
+        valueFieldRef.current.value = (e.target as HTMLInputElement).value;
       }
       onChange();
-      hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
+      valueFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     },
     [onChange],
   );
@@ -71,6 +87,38 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
     ? options.findIndex((option) => option.value === value)
     : -1;
 
+  // rebuild only when the province list changes
+  const selectOptions = useMemo(
+    () =>
+      options?.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.title}
+        </option>
+      )),
+    [options],
+  );
+
+  const handleNativeSelectChange = useCallback(
+    (event: TargetedEvent<HTMLSelectElement>) => {
+      const filledValue = event.currentTarget.value;
+
+      if (!filledValue) {
+        // browser cleared the field, so clear our copy too
+        clearValue();
+        return;
+      }
+
+      const option = options?.find((o) => o.value === filledValue);
+      if (option) {
+        onChangeDropdown(option);
+      } else if (valueFieldRef.current) {
+        // not a province we offer, keep our value so the UI and the form agree
+        valueFieldRef.current.value = value ?? "";
+      }
+    },
+    [options, onChangeDropdown, clearValue, value],
+  );
+
   // if the options list changes, clear the value,
   // but not on first render,
   // or if the current value happens to be a valid option in the new list
@@ -84,16 +132,21 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
     // if options list changes, clear the selected value
     if (options !== previousOptions) {
-      if (selectedOptionIndex !== -1) return; // ok, this is still valid
+      if (selectedOptionIndex !== -1) {
+        if (valueFieldRef.current) {
+          valueFieldRef.current.value = value;
+        }
+        return;
+      }
       clearValue();
     }
-  }, [clearValue, options, previousOptions, selectedOptionIndex]);
+  }, [clearValue, options, previousOptions, selectedOptionIndex, value]);
 
   // on first render, populate hidden field and notify parent of initial value
   useLayoutEffect(() => {
     if (field.initial_value) {
-      if (hiddenFieldRef.current) {
-        hiddenFieldRef.current.value = value;
+      if (valueFieldRef.current) {
+        valueFieldRef.current.value = value;
       }
       onChange(true);
     }
@@ -102,22 +155,37 @@ export const ProvinceField: FunctionComponent<FieldProps> = (props) => {
 
   return (
     <>
-      <input type="hidden" name={name} defaultValue="" ref={hiddenFieldRef} />
       {options ? (
-        <Dropdown
-          key={objectId(options)}
-          id={id}
-          options={options}
-          selectedIndex={selectedOptionIndex}
-          onChange={onChangeDropdown}
-          placeholder={field.placeholder}
-          enableSearch
-          className="xendit-form-field-inner"
-        />
+        <>
+          {/* a `<select>`, not `type="hidden"` browsers only autofill what they render */}
+          <select
+            name={name}
+            ref={setFieldRef}
+            autoComplete="address-level1"
+            onChange={handleNativeSelectChange}
+            style={VISUALLY_HIDDEN}
+            tabIndex={-1}
+          >
+            <option value="" />
+            {selectOptions}
+          </select>
+          <Dropdown
+            key={objectId(options)}
+            id={id}
+            options={options}
+            selectedIndex={selectedOptionIndex}
+            onChange={onChangeDropdown}
+            placeholder={field.placeholder}
+            enableSearch
+            className="xendit-form-field-inner"
+          />
+        </>
       ) : (
         <input
           type="text"
           id={id}
+          name={name}
+          ref={setFieldRef}
           value={value}
           onChange={onChangeInput}
           placeholder={field.placeholder}

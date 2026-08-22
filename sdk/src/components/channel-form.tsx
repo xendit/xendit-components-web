@@ -48,7 +48,10 @@ const ChannelForm = forwardRef<ChannelFormHandle, Props>(
         const form = formRef.current;
         if (!form) return;
         Array.from(form.elements)
-          .filter((el) => el instanceof HTMLInputElement)
+          .filter(
+            (el) =>
+              el instanceof HTMLInputElement || el instanceof HTMLSelectElement,
+          )
           .forEach((input) => {
             if (!input.name) {
               // only mark named fields as touched
