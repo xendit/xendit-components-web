@@ -108,6 +108,11 @@ function rollupConfig(
             banner: bannerComment,
             entryFileNames: "[name].mjs",
             chunkFileNames: "[name].mjs",
+            manualChunks(id) {
+              if (id.includes("libphonenumber-js")) {
+                return "libphonenumber";
+              }
+            },
           },
         ]
       : [
