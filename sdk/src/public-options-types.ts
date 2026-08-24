@@ -10,6 +10,10 @@ export interface XenditSdkOptions {
    * client without saving or logging it anywhere.
    */
   componentsSdkKey: string;
+
+  /**
+   * Configuration for styling the content inside iframe fields.
+   */
   iframeFieldAppearance?: IframeAppearanceOptions;
 
   /**
@@ -32,6 +36,8 @@ export interface XenditSdkOptions {
    * @internal
    */
   hostId?: string;
+
+  logTelemetryEvents?: boolean;
 }
 
 /**

@@ -43,6 +43,8 @@ import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
 import { CustomerDetails } from "../../backend-types/customer";
+import { SessionTelemetryScope } from "../../telemetry";
+import { TelemetryEvents } from "../../telemetry-events";
 
 export type SubmissionError = {
   text: string[];
@@ -57,6 +59,9 @@ export class SubmissionBehavior implements Behavior {
     promise: Promise<void>;
   } | null = null;
   private submissionError: Error | SubmissionError | null = null;
+
+  // telemetry scope for the begin submission event
+  private telemetryScope: SessionTelemetryScope | null = null;
 
   constructor(private bb: BlackboardType) {}
 
@@ -85,7 +90,11 @@ export class SubmissionBehavior implements Behavior {
       this.bb.world.session.status !== "PENDING" &&
       paymentEntity
     ) {
-      discardPaymentEntity(paymentEntity, this.bb.dispatchEvent);
+      discardPaymentEntity(
+        paymentEntity,
+        this.bb.dispatchEvent,
+        this.bb.telemetry,
+      );
     }
 
     // Determine reason for submission end
@@ -166,6 +175,12 @@ export class SubmissionBehavior implements Behavior {
 
     // Schedule rerender (to clear the inert attribute on the active component)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
+
+    // clear telemetry event
+    if (this.telemetryScope) {
+      this.bb.telemetry.popScope(this.telemetryScope);
+      this.telemetryScope = null;
+    }
   }
 
   private submit() {
@@ -185,6 +200,12 @@ export class SubmissionBehavior implements Behavior {
       return;
     }
 
+    // telemetry for payment entity creation
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope(
+      TelemetryEvents.AttemptBegin(true),
+    );
+
+    // make actual request
     const shouldSendSavePaymentMethod =
       this.bb.world.session.allow_save_payment_method === "OPTIONAL" &&
       this.bb.channel?.allow_save;
@@ -192,7 +213,7 @@ export class SubmissionBehavior implements Behavior {
       this.bb.channel?.requires_customer_details && !this.bb.world.customer;
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
-    const mockActionType = this.bb.channel._mock_action_type;
+    const mockActionType = getMockActionType(this.bb);
     const channelProperties = this.bb.channelProperties ?? {};
     const abortController = new AbortController();
     const promise = asyncSubmit(
@@ -214,15 +235,22 @@ export class SubmissionBehavior implements Behavior {
         // clear abort controller since the request is complete
         this.submission = null;
 
+        // events for payment entity created
         switch (paymentEntity.type) {
           case BffPaymentEntityType.PaymentRequest:
             this.bb.dispatchEvent(
               new XenditPaymentRequestCreatedEvent(paymentEntity.id),
             );
+            this.bb.telemetry.appendAndPushScope(
+              TelemetryEvents.Attempt_PR(true, paymentEntity.id),
+            );
             break;
           case BffPaymentEntityType.PaymentToken:
             this.bb.dispatchEvent(
               new XenditPaymentTokenCreatedEvent(paymentEntity.id),
+            );
+            this.bb.telemetry.appendAndPushScope(
+              TelemetryEvents.Attempt_PT(true, paymentEntity.id),
             );
             break;
           default:
@@ -242,6 +270,14 @@ export class SubmissionBehavior implements Behavior {
         if (isAbortError(error)) return;
 
         console.error("Submission failed:", error);
+
+        // telemetry for failure to create payment entity
+        this.bb.telemetry.append(
+          TelemetryEvents.Attempt_Error(
+            false,
+            error?.errorResponse?.error_code,
+          ),
+        );
 
         // avoid dispatching an event after exit
         if (!this.exited) {
@@ -376,4 +412,16 @@ function isSubmissionError(
   error: Error | SubmissionError,
 ): error is SubmissionError {
   return !("message" in error) && "text" in error && "code" in error;
+}
+
+function getMockActionType(bb: BlackboardType) {
+  if (!bb.mock) return undefined;
+
+  if (bb.channelProperties?.apple_pay) {
+    // real applepay never has 3ds
+    // mock applepay would, but it wouldn't work since the applepay modal would not hide to make room for the 3ds screen
+    return undefined;
+  }
+
+  return bb.channel?._mock_action_type;
 }

@@ -1,4 +1,10 @@
-import { assert, hostFromHostId, MOCK_HOST_ID, ParsedSdkKey } from "./utils";
+import {
+  assert,
+  hostFromHostId,
+  MOCK_HOST_ID,
+  ParsedSdkKey,
+  retryLoop,
+} from "./utils";
 
 export type ErrorResponse = {
   error_code: string;
@@ -14,6 +20,28 @@ export class NetworkError extends Error {
   constructor(public errorResponse: ErrorResponse) {
     super(errorResponse.message);
   }
+}
+
+/** Retries fetch on connection errors, other errors throw immediately. */
+export async function fetchWithRetry(
+  url: URL,
+  options: RequestInit,
+  mult: number,
+  tries: number,
+): Promise<Response> {
+  let lastError: unknown;
+  for await (const _attempt of retryLoop(mult, tries)) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      // AbortError from a cancelled request or an unexpected bug not worth to retry, so give up immediately.
+      if (!(error instanceof TypeError)) {
+        throw error;
+      }
+      lastError = error;
+    }
+  }
+  throw lastError;
 }
 
 /**
@@ -155,7 +183,11 @@ export function endpoint(
       signal: abortSignal as AbortSignal | undefined,
     };
 
-    const response = await fetch(url, options);
+    // Retry GETs on connection errors since they're safe to repeat.
+    const response =
+      method === "GET"
+        ? await fetchWithRetry(url, options, 500, 3)
+        : await fetch(url, options);
     if (!response.ok) {
       const errorData = (await response.json()) as ErrorResponse;
       if (!errorData || !errorData.error_code) {

@@ -17,7 +17,7 @@ let i = 1;
 // behavier that counts its enter/update/exit calls
 class TestBehavior {
   enterCalled: number | null = null;
-  updateCalled: number | null = null;
+  updatePostorderCalled: number | null = null;
   exitCalled: number | null = null;
 
   constructor(
@@ -29,8 +29,8 @@ class TestBehavior {
     this.enterCalled = i++;
   }
 
-  update() {
-    this.updateCalled = i++;
+  updatePostorder() {
+    this.updatePostorderCalled = i++;
   }
 
   exit() {
@@ -102,7 +102,7 @@ describe("Behavior Tree Runner", () => {
     node = tree.findBehavior(TestBehavior);
     assert(node);
     expect(node.enterCalled).toBeTruthy();
-    expect(node.updateCalled).toBeNull();
+    expect(node.updatePostorderCalled).toBeNull();
     expect(node.exitCalled).toBeNull();
 
     tree.bb.testCase = "NESTED";
@@ -110,7 +110,7 @@ describe("Behavior Tree Runner", () => {
     node = tree.findBehavior(TestBehavior2);
     assert(node);
     expect(node.enterCalled).toBeTruthy();
-    expect(node.updateCalled).toBeNull();
+    expect(node.updatePostorderCalled).toBeNull();
     expect(node.exitCalled).toBeNull();
   });
 
@@ -125,7 +125,7 @@ describe("Behavior Tree Runner", () => {
     tree.bb.testCase = "SINGLE2";
     tree.update(); // change TestBehavior to TestBehavior2
     expect(node.enterCalled).toBeTruthy();
-    expect(node.updateCalled).toBeNull();
+    expect(node.updatePostorderCalled).toBeNull();
     expect(node.exitCalled).toBeTruthy();
   });
 
@@ -164,19 +164,23 @@ describe("Behavior Tree Runner", () => {
     assert(node2);
     assert(node3);
 
-    expect(node.updateCalled).toBeNull();
-    expect(node2.updateCalled).toBeNull();
-    expect(node3.updateCalled).toBeNull();
+    expect(node.updatePostorderCalled).toBeNull();
+    expect(node2.updatePostorderCalled).toBeNull();
+    expect(node3.updatePostorderCalled).toBeNull();
 
     tree.update(); // both nodes are unchanged, should call update
 
-    expect(node.updateCalled).toBeTruthy();
-    expect(node2.updateCalled).toBeTruthy();
-    expect(node3.updateCalled).toBeTruthy();
+    expect(node.updatePostorderCalled).toBeTruthy();
+    expect(node2.updatePostorderCalled).toBeTruthy();
+    expect(node3.updatePostorderCalled).toBeTruthy();
 
     // parent node update should be called after child node update
-    expect(node.updateCalled).toBeGreaterThan(node2.updateCalled ?? 0);
-    expect(node2.updateCalled).toBeGreaterThan(node3.updateCalled ?? 0);
+    expect(node.updatePostorderCalled).toBeGreaterThan(
+      node2.updatePostorderCalled ?? 0,
+    );
+    expect(node2.updatePostorderCalled).toBeGreaterThan(
+      node3.updatePostorderCalled ?? 0,
+    );
   });
 
   it("should update nodes in an array", () => {

@@ -1,115 +1,22 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { XenditComponentsTest } from "../src";
 import { waitForEvent, waitForEventSequence } from "./utils";
 import { screen } from "@testing-library/dom";
 import { NetworkError } from "../src/networking";
+import { defineMockApplepay } from "./digital-wallet-mock-applepay";
+import {
+  defineMockGooglepay,
+  mockGooglepayError,
+  setMockGooglepayNextResponse,
+} from "./digital-wallet-mock-googlepay";
 
-function errorWithStatusCode(
-  message: string,
-  statusCode: string,
-): Error & { statusCode: string } {
-  const error = new Error(message) as Error & { statusCode: string };
-  error.statusCode = statusCode;
-  return error;
-}
-
-// googlepay mock responses
-let mockGooglePayResponse:
-  | { paymentData: google.payments.api.PaymentData }
-  | { error: Error & { statusCode: string } } = {
-  error: errorWithStatusCode("Googlepay error", "DEVELOPER_ERROR"),
-};
-
-// mock googlepay
-window.google = {
-  payments: {
-    api: {
-      PaymentsClient: class {
-        async prefetchPaymentData() {}
-        createButton(options: google.payments.api.ButtonOptions) {
-          const button = document.createElement("button");
-          button.textContent = "Google Pay";
-          button.addEventListener("click", options.onClick);
-          return button;
-        }
-        async isReadyToPay() {
-          return { result: true };
-        }
-        async loadPaymentData() {
-          if ("error" in mockGooglePayResponse)
-            throw mockGooglePayResponse.error;
-          else return mockGooglePayResponse.paymentData;
-        }
-      },
-    },
-  },
-};
-
-// mock applepay
-window.ApplePaySession = class {
-  static supportsVersion(_version: number) {
-    return true;
-  }
-  static canMakePayments() {
-    return true;
-  }
-  static STATUS_SUCCESS = 0;
-
-  onvalidatemerchant:
-    | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
-    | null = null;
-  onpaymentauthorized:
-    | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
-    | null = null;
-  oncancel: ((event: Event) => void) | null = null;
-
-  begin() {
-    Promise.resolve().then(() => {
-      this.onvalidatemerchant?.({
-        validationURL: "https://apple-pay-gateway.apple.com/validate",
-      } as ApplePayJS.ApplePayValidateMerchantEvent);
-    });
-  }
-
-  completeMerchantValidation(_merchantSession: unknown) {}
-
-  completePayment(_status: number) {}
-
-  abort() {}
-} as unknown as typeof ApplePaySession;
-
-if (!customElements.get("apple-pay-button")) {
-  customElements.define("apple-pay-button", class extends HTMLElement {});
-}
+beforeEach(() => {
+  defineMockGooglepay();
+  defineMockApplepay("do-nothing");
+});
 
 afterEach(() => {
   document.body.replaceChildren();
-  window.ApplePaySession = class {
-    static supportsVersion(_version: number) {
-      return true;
-    }
-    static canMakePayments() {
-      return true;
-    }
-    static STATUS_SUCCESS = 0;
-    onvalidatemerchant:
-      | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
-      | null = null;
-    onpaymentauthorized:
-      | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
-      | null = null;
-    oncancel: ((event: Event) => void) | null = null;
-    begin() {
-      Promise.resolve().then(() => {
-        this.onvalidatemerchant?.({
-          validationURL: "https://apple-pay-gateway.apple.com/validate",
-        } as ApplePayJS.ApplePayValidateMerchantEvent);
-      });
-    }
-    completeMerchantValidation(_merchantSession: unknown) {}
-    completePayment(_status: number) {}
-    abort() {}
-  } as unknown as typeof ApplePaySession;
 });
 
 describe("channel picker digital wallet section - Google Pay", async () => {
@@ -141,7 +48,7 @@ describe("channel picker digital wallet section - Google Pay", async () => {
 
     await waitForEvent(sdk, "init");
 
-    mockGooglePayResponse = {
+    setMockGooglepayNextResponse({
       paymentData: {
         apiVersion: 2,
         apiVersionMinor: 0,
@@ -158,7 +65,7 @@ describe("channel picker digital wallet section - Google Pay", async () => {
           },
         },
       },
-    };
+    });
 
     const button = await screen.findByRole("button", { name: "Google Pay" });
     button.click();
@@ -181,9 +88,9 @@ describe("channel picker digital wallet section - Google Pay", async () => {
 
     await waitForEvent(sdk, "init");
 
-    mockGooglePayResponse = {
-      error: errorWithStatusCode("Googlepay error", "BUYER_ACCOUNT_ERROR"),
-    };
+    setMockGooglepayNextResponse({
+      error: mockGooglepayError("Googlepay error", "BUYER_ACCOUNT_ERROR"),
+    });
 
     const button = await screen.findByRole("button", { name: "Google Pay" });
     button.click();
@@ -232,53 +139,7 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
   });
 
   it("should trigger a submission after the user authorizes payment", async () => {
-    window.ApplePaySession = class {
-      static supportsVersion(_version: number) {
-        return true;
-      }
-      static canMakePayments() {
-        return true;
-      }
-      static STATUS_SUCCESS = 0;
-
-      onvalidatemerchant:
-        | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
-        | null = null;
-      onpaymentauthorized:
-        | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
-        | null = null;
-      oncancel: ((event: Event) => void) | null = null;
-
-      begin() {
-        Promise.resolve().then(() => {
-          this.onvalidatemerchant?.({
-            validationURL: "https://apple-pay-gateway.apple.com/validate",
-          } as ApplePayJS.ApplePayValidateMerchantEvent);
-        });
-
-        Promise.resolve().then(() => {
-          this.onpaymentauthorized?.({
-            payment: {
-              token: {
-                paymentMethod: {
-                  displayName: "Visa 1234",
-                  network: "Visa",
-                  type: "debit",
-                },
-                transactionIdentifier: "txn-abc",
-                paymentData: {},
-              },
-              billingContact: {},
-              shippingContact: {},
-            },
-          } as unknown as ApplePayJS.ApplePayPaymentAuthorizedEvent);
-        });
-      }
-
-      completeMerchantValidation(_merchantSession: unknown) {}
-      completePayment(_status: number) {}
-      abort() {}
-    } as unknown as typeof ApplePaySession;
+    defineMockApplepay("success");
 
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
@@ -297,7 +158,8 @@ describe("channel picker digital wallet section - Apple Pay", async () => {
 
     await waitForEventSequence(sdk, [
       { name: "submission-begin" },
-      { name: "action-begin" }, // mock 3DS triggered for the CARDS channel
+      { name: "payment-request-created" },
+      { name: "session-complete" },
     ]);
   });
 

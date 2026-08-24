@@ -18,7 +18,6 @@ import {
 import { PaymentOptionsBehavior } from "./behaviors/payment-options";
 import { internal } from "../internal";
 import { ActionPaylinkBehavior } from "./behaviors/action-paylink";
-import { XenditSdkOptions } from "../public-options-types";
 import { SdkActiveBehavior } from "./behaviors/sdk-active";
 import { SessionCompletedBehavior } from "./behaviors/session-completed";
 import { SdkFatalErrorBehavior } from "./behaviors/sdk-fatal-error";
@@ -35,19 +34,18 @@ import { ActionDeepLinkBehavior } from "./behaviors/action-deep-link";
 import { ActionBarcodeBehavior } from "./behaviors/action-barcode";
 import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
 import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
+import { MockSdk } from "../utils-test";
 
 const testData = makeTestBffData();
 
+const mockSdk = new MockSdk({
+  componentsSdkKey: makeTestSdkKey(),
+  enablePaylinks: true,
+});
+
 const mockBlackboard: BlackboardType & { world: object } = {
-  sdk: {
-    [internal]: {
-      options: {
-        componentsSdkKey: makeTestSdkKey(),
-        enablePaylinks: true,
-      } satisfies XenditSdkOptions,
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any,
+  sdk: mockSdk,
+  telemetry: mockSdk[internal].telemetry,
   mock: true,
   sdkKey: parseSdkKey(makeTestSdkKey()),
   world: {

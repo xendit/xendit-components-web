@@ -29,21 +29,39 @@ export const TextField: FunctionComponent<FieldProps> = (props) => {
       id={id}
       name={name}
       ref={inputRef}
-      type="text"
       placeholder={field.placeholder}
       className={`xendit-form-field-inner xendit-text-14`}
       value={value}
       onBlur={handleBlur}
       onChange={handleChange}
-      minLength={isTextField(field) ? field.type.min_length : undefined}
-      maxLength={isTextField(field) ? field.type.max_length : undefined}
-      autoComplete={isTextField(field) ? field.type.autocomplete : undefined}
+      {...inputAttributesFor(field)}
     />
   );
 };
 
-function isTextField(field: ChannelFormField): field is ChannelFormField & {
-  type: { name: "text" };
-} {
-  return field.type.name === "text";
+type TypeDerivedInputAttributes = {
+  type: "text" | "email";
+  minLength?: number;
+  maxLength?: number;
+  autoComplete?: string;
+};
+
+function inputAttributesFor(
+  field: ChannelFormField,
+): TypeDerivedInputAttributes {
+  switch (field.type.name) {
+    case "email":
+      return { type: "email", autoComplete: "email" };
+    case "postal_code":
+      return { type: "text", autoComplete: "postal-code" };
+    case "text":
+      return {
+        type: "text",
+        minLength: field.type.min_length,
+        maxLength: field.type.max_length,
+        autoComplete: field.type.autocomplete,
+      };
+    default:
+      return { type: "text" };
+  }
 }

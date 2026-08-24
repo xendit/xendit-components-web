@@ -10,7 +10,7 @@ import { FieldInstallmentPlan } from "./field-installment-plan";
 
 export interface FieldProps {
   field: ChannelFormField;
-  onChange: () => void;
+  onChange: (isInitial?: boolean) => void;
   className?: string;
 }
 

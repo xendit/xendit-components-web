@@ -3,8 +3,7 @@ import { BehaviorTree } from "./behavior-tree-runner";
 import { behaviorTreeForSdk, BlackboardType } from "./behavior-tree";
 import { InternalBehaviorTreeUpdateEvent } from "../private-event-types";
 import { XenditSubmissionEndEvent } from "../public-event-types";
-import { parseSdkKey } from "../utils";
-import { createTFunction } from "../localization";
+import { parseSdkKey, sleep } from "../utils";
 import { makeTestBffData } from "../data/test-data";
 import {
   makeTestPaymentRequest,
@@ -13,6 +12,7 @@ import {
 } from "../data/test-data-modifiers";
 import { toPaymentEntity } from "../backend-types/payment-entity";
 import { internal } from "../internal";
+import { MockSdk } from "../utils-test";
 
 /**
  * Builds a blackboard that mimics the state the SDK restores on resume after a
@@ -32,12 +32,13 @@ function buildBlackboard(
     return true;
   };
 
+  const mockSdk = new MockSdk({
+    componentsSdkKey: makeTestSdkKey(),
+  });
+
   return {
-    sdk: {
-      t: createTFunction("en"),
-      [internal]: { options: { componentsSdkKey: makeTestSdkKey() } },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
+    sdk: mockSdk,
+    telemetry: mockSdk[internal].telemetry,
     mock: true,
     sdkKey: parseSdkKey(makeTestSdkKey()),
     world: {
@@ -74,7 +75,7 @@ function buildBlackboard(
 }
 
 describe("resume error chain (integration)", () => {
-  it("emits submission-resume then submission-end with a userErrorMessage when restored state is FAILED", () => {
+  it("emits submission-resume then submission-end with a userErrorMessage when restored state is FAILED", async () => {
     const events: Event[] = [];
     const bb = buildBlackboard(events, () => tree);
     const tree = new BehaviorTree<BlackboardType>(behaviorTreeForSdk, bb);
@@ -91,5 +92,7 @@ describe("resume error chain (integration)", () => {
     expect(endEvent).toBeDefined();
     expect(endEvent?.userErrorMessage).toBeDefined();
     expect((endEvent?.userErrorMessage ?? []).length).toBeGreaterThan(0);
+
+    await sleep(10000);
   });
 });

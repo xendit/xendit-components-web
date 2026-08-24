@@ -8,6 +8,8 @@ import { ActionCard, ActionCardProps } from "../../components/action-card";
 import { Instructions } from "../../components/instructions";
 import { Instructions as InstructionsType } from "../../backend-types/instructions";
 import { createPortal } from "preact/compat";
+import { SessionTelemetryScope } from "../../telemetry";
+import { TelemetryEvents } from "../../telemetry-events";
 
 export enum DefaultActionContainerType {
   QrWithCustomArt = "qr-with-custom-art",
@@ -22,6 +24,8 @@ export abstract class ContainerActionBehavior implements Behavior {
   defaultContainerHeight = 0;
   defaultContainerWidth = 400;
   title = "Complete your payment";
+
+  telemetryScope: SessionTelemetryScope | null = null;
 
   constructor(protected bb: BlackboardType) {}
 
@@ -161,6 +165,11 @@ export abstract class ContainerActionBehavior implements Behavior {
       );
     }
 
+    // telemetry for start of action
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope(
+      TelemetryEvents.ActionBegin(true),
+    );
+
     render(createComponent(), container);
   }
 
@@ -223,5 +232,12 @@ export abstract class ContainerActionBehavior implements Behavior {
   exit() {
     this.cleanupActionContainer(false);
     this.emptyActionInstructionsContainer();
+
+    // telemetry for end of action
+    if (this.telemetryScope) {
+      this.bb.telemetry.append(TelemetryEvents.ActionClose(true));
+      this.bb.telemetry.popScope(this.telemetryScope);
+      this.telemetryScope = null;
+    }
   }
 }

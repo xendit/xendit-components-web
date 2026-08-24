@@ -21,6 +21,9 @@ import { ChannelComponentData } from "../public-sdk";
 import { InternalUpdateChannelComponentData } from "../private-event-types";
 import { CustomerDetailsFormHandle, CustomerForm } from "./customer-form";
 import { CustomerDetails } from "../backend-types/customer";
+import { changedChannelProperties } from "../utils-channel-properties";
+import { getTelemetry } from "../telemetry";
+import { TelemetryEvents } from "../telemetry-events";
 
 const ChannelContext = createContext<BffChannel | null>(null);
 
@@ -78,8 +81,48 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
     resolvedChannel.requires_customer_details && !customer;
   const instructions = instructionsAsTuple(resolvedChannel.instructions);
 
-  const onChannelPropertiesChanged = (channelProperties: ChannelProperties) => {
+  const telemetrySentEventKeys = useRef(new Set<string>());
+  const lastSeenUserData = useRef<ChannelProperties>({
+    channel_properties: {},
+    should_save: false,
+    customer_details: {},
+  });
+  const telemetryForFormChange = (
+    newUserData: Partial<ChannelProperties>,
+    isInitial = false,
+  ) => {
+    const mergedNextUserData = {
+      ...lastSeenUserData.current,
+      ...newUserData,
+    };
+
+    if (!isInitial) {
+      const changedFields: string[] = [];
+      changedChannelProperties(
+        lastSeenUserData.current,
+        mergedNextUserData,
+        changedFields,
+      );
+      for (const changedKey of changedFields) {
+        if (telemetrySentEventKeys.current.has(changedKey)) continue;
+        telemetrySentEventKeys.current.add(changedKey);
+
+        getTelemetry(sdk).append(
+          TelemetryEvents.ChannelFormInput(true, changedKey),
+        );
+      }
+    }
+
+    lastSeenUserData.current = mergedNextUserData;
+  };
+
+  const onChannelPropertiesChanged = (
+    channelProperties: ChannelProperties,
+    isInitial: boolean,
+  ) => {
     let cleanedProperties = channelProperties;
+
+    // special behavior for cards with installments
     if (
       firstMemberChannel.channel_code === "CARDS" &&
       channelProperties.installment_configuration
@@ -110,6 +153,11 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
       cleanedProperties,
     );
     divRef.current?.dispatchEvent(event);
+
+    telemetryForFormChange(
+      { channel_properties: cleanedProperties },
+      isInitial,
+    );
   };
 
   const onCustomerDetailsChanged = (customerDetails: CustomerDetails) => {
@@ -118,6 +166,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
         customerDetails,
       }),
     );
+    telemetryForFormChange({ customer_details: customerDetails });
   };
 
   const shouldShowSaveCheckbox =
@@ -131,6 +180,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
         savePaymentMethod: checked,
       }),
     );
+    telemetryForFormChange({ save_payment_method: checked });
   };
 
   useLayoutEffect(() => {

@@ -1,8 +1,4 @@
-import {
-  BffChannel,
-  ChannelFormField,
-  ChannelProperties,
-} from "./backend-types/channel";
+import { BffChannel, ChannelFormField } from "./backend-types/channel";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { BffAction } from "./backend-types/payment-entity";
 import { BffSession } from "./backend-types/session";
@@ -220,6 +216,17 @@ export function hostFromHostId(hostId: string): string | null {
   return hosts[hostId] ?? null;
 }
 
+const telemetryHosts: Record<string, string | undefined> = {
+  pl: process.env.XENDIT_TELEMETRY_PROD_LIVE,
+  pd: process.env.XENDIT_TELEMETRY_PROD_DEV,
+  sl: process.env.XENDIT_TELEMETRY_STAGING_LIVE,
+  sd: process.env.XENDIT_TELEMETRY_STAGING_DEV,
+};
+
+export function telemetryHostFromHostId(hostId: string): string | null {
+  return telemetryHosts[hostId] ?? null;
+}
+
 export type ParsedSdkKey = {
   sessionAuthKey: string;
   hostId: string;
@@ -324,6 +331,14 @@ export function formFieldId(field: ChannelFormField): string {
   return `xendit-id-${obfuscatedId}`;
 }
 
+export function randomBits(n: number) {
+  let out = 0;
+  for (let i = 0; i < n; i++) {
+    out |= Math.random() < 0.5 ? 1 << i : 0;
+  }
+  return out;
+}
+
 export function randomBytes(length: number) {
   const arr = new Uint8Array(length);
   for (let i = 0; i < length; i++) {
@@ -333,21 +348,26 @@ export function randomBytes(length: number) {
 }
 
 export function randomHexString(length: number) {
-  assert(length % 2 === 0);
-  const bytes = randomBytes(length / 2);
+  const bytes = randomBytes(length);
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
+    .map((b) => (b & 0xf).toString(16))
     .join("");
 }
 
 export function randomUUID() {
   return [
     randomHexString(8),
+    "-",
     randomHexString(4),
-    randomHexString(4),
-    randomHexString(4),
+    "-",
+    "4",
+    randomHexString(3),
+    "-",
+    (0b1000 | randomBits(2)).toString(16),
+    randomHexString(3),
+    "-",
     randomHexString(12),
-  ].join("-");
+  ].join("");
 }
 
 /**
@@ -403,49 +423,6 @@ export function removeUndefinedPropertiesFromObject<T extends object>(
     }
   }
   return object;
-}
-
-export function getValueFromChannelProperty(
-  channelProperty: string | string[],
-  channelProperties: ChannelProperties | null,
-) {
-  let str = channelProperty;
-  if (!channelProperties) {
-    return undefined;
-  }
-  if (Array.isArray(str)) {
-    throw new Error(
-      "Getting values from channel property arrays is not supported.",
-    );
-  }
-
-  let cursor: ChannelProperties[string] = channelProperties;
-  while (true) {
-    if (!cursor || typeof cursor !== "object" || Array.isArray(cursor)) {
-      return undefined;
-    }
-    const dotIndex = str.indexOf(".");
-    if (dotIndex === -1) {
-      return cursor ? cursor[str] : undefined;
-    } else {
-      const key = str.slice(0, dotIndex);
-      cursor = cursor ? cursor[key] : undefined;
-      str = str.slice(dotIndex + 1);
-    }
-  }
-}
-
-export function getCardNumberFromChannelProperties(
-  channelProperties: ChannelProperties | null,
-) {
-  const cardNumber = getValueFromChannelProperty(
-    "card_details.card_number",
-    channelProperties,
-  );
-  if (typeof cardNumber !== "string") {
-    return null;
-  }
-  return cardNumber;
 }
 
 export function parseEncryptedFieldValue(str: string) {
@@ -550,145 +527,13 @@ export function lockDownInteralProperty(obj: { [internal]: unknown }) {
   });
 }
 
-const RELEASED_CHANNELS: Record<string, boolean> = {
-  AFFIN_FPX: true,
-  AFFIN_FPX_BUSINESS: true,
-  AGRO_FPX: true,
-  AGRO_FPX_BUSINESS: true,
-  ALIPAY: true,
-  ALLIANCE_FPX: true,
-  ALLIANCE_FPX_BUSINESS: true,
-  AMBANK_FPX: true,
-  AMBANK_FPX_BUSINESS: true,
-  APPOTA: true,
-  ASTRAPAY: true,
-  BAY_CARD_INSTALLMENT: true,
-  BAY_GBW_DIRECT_DEBIT: true,
-  BAY_GBW_MOBILE_BANKING: true,
-  BBL_CARD_INSTALLMENT: true,
-  BBL_DIRECT_DEBIT: true,
-  BBL_GBW_DIRECT_DEBIT: true,
-  BBL_GBW_MOBILE_BANKING: true,
-  BBL_MOBILE_BANKING: true,
-  BDO_DIRECT_DEBIT: true,
-  BDO_EPAY: true,
-  BDO_ONLINE_BANKING: true,
-  BNP_FPX_BUSINESS: true,
-  BOC_FPX: true,
-  BOC_ONLINE_BANKING: true,
-  BPI_DIRECT_DEBIT: true,
-  BPI_ONLINE_BANKING: true,
-  BPI_RECURRING: true,
-  BSN_FPX: true,
-  CARDS: true,
-  CHINABANK_DIRECT_DEBIT: true,
-  CHINABANK_ONLINE_BANKING: true,
-  CIMB_DIRECT_DEBIT: true,
-  CIMB_FPX: true,
-  CIMB_FPX_BUSINESS: true,
-  CITIBANK_FPX_BUSINESS: true,
-  DANA: true,
-  DEUTSCHE_FPX_BUSINESS: true,
-  DUITNOW_PAY: true,
-  GCASH: true,
-  GCASH_LINK_AND_PAY: true,
-  GOPAY: true,
-  GOPAY_RECURRING: true,
-  GRABPAY: true,
-  HLB_FPX: true,
-  HLB_FPX_BUSINESS: true,
-  HSBC_FPX: true,
-  HSBC_FPX_BUSINESS: true,
-  INSTAPAY_ONLINE_BANKING: true,
-  ISLAM_FPX: true,
-  ISLAM_FPX_BUSINESS: true,
-  JENIUSPAY: true,
-  KBANK_CARD_INSTALLMENT: true,
-  KBANK_GBW_MOBILE_BANKING: true,
-  KBANK_MOBILE_BANKING: true,
-  KFH_FPX: true,
-  KFH_FPX_BUSINESS: true,
-  KRUNGSRI_DIRECT_DEBIT: true,
-  KRUNGSRI_MOBILE_BANKING: true,
-  KTB_CARD_INSTALLMENT: true,
-  KTB_DIRECT_DEBIT: true,
-  KTB_GBW_DIRECT_DEBIT: true,
-  KTB_GBW_MOBILE_BANKING: true,
-  KTB_MOBILE_BANKING: true,
-  LANDBANK_ONLINE_BANKING: true,
-  LINEPAY: true,
-  LINKAJA: true,
-  MANDIRI_DIRECT_DEBIT: true,
-  MAYB2E_FPX: true,
-  MAYB2E_FPX_BUSINESS: true,
-  MAYB2U_FPX: true,
-  MAYBANK_ONLINE_BANKING: true,
-  METROBANK_ONLINE_BANKING: true,
-  MOMO: true,
-  MUAMALAT_FPX: true,
-  MUAMALAT_FPX_BUSINESS: true,
-  NEXCASH: true,
-  OCBC_FPX: true,
-  OCBC_FPX_BUSINESS: true,
-  OVO: true,
-  PAYMAYA: true,
-  PESONET_ONLINE_BANKING: true,
-  PNB_ONLINE_BANKING: true,
-  PROMPTPAY: true,
-  PSBANK_ONLINE_BANKING: true,
-  PUBLIC_FPX: true,
-  PUBLIC_FPX_BUSINESS: true,
-  QR_PH: true,
-  QRIS: true,
-  RAKYAT_FPX: true,
-  RAKYAT_FPX_BUSINESS: true,
-  RCBC_DIRECT_DEBIT: true,
-  RCBC_ONLINE_BANKING: true,
-  RHB_FPX: true,
-  RHB_FPX_BUSINESS: true,
-  ROBINSONS_BANK_ONLINE_BANKING: true,
-  SCB_CARD_INSTALLMENT: true,
-  SCB_DIRECT_DEBIT: true,
-  SCB_GBW_DIRECT_DEBIT: true,
-  SCB_GBW_MOBILE_BANKING: true,
-  SCB_MOBILE_BANKING: true,
-  SCH_FPX: true,
-  SCH_FPX_BUSINESS: true,
-  SECURITY_BANK_ONLINE_BANKING: true,
-  SGQR: true,
-  SHOPEEPAY: true,
-  TOUCHNGO: true,
-  TRUEMONEY: true,
-  TTB_CARD_INSTALLMENT: true,
-  UBP_DIRECT_DEBIT: true,
-  UBP_EADA: true,
-  UNIONBANK_ONLINE_BANKING: true,
-  UOB_FPX: true,
-  UOB_FPX_BUSINESS: true,
-  VIETTELPAY: true,
-  VNPTWALLET: true,
-  WECHATPAY: true,
-  ZALOPAY: true,
-  // OTC
-  "7ELEVEN": true,
-  "7ELEVEN_CLIQQ": true,
-  CEBUANA: true,
-  ECPAY: true,
-  PALAWAN: true,
-  MLHUILLIER: true,
-  ECPAY_DRAGONLOAN: true,
-  LBC: true,
-  ECPAY_SCHOOL: true,
-  USSC: true,
-  SM_BILLS_PAYMENT: true,
-  ROBINSONS_BILLS_PAYMENT: true,
-  ALFAMART: true,
-  INDOMARET: true,
+export const BLOCKED_CHANNELS: Record<string, boolean> = {
+  BRI_DIRECT_DEBIT: true,
 };
 
 // filter out channels not supported by this SDK version
-export function removeUnreleasedChannels(channels: BffChannel[]): BffChannel[] {
-  return channels.filter((channel) => RELEASED_CHANNELS[channel.channel_code]);
+export function removeBlockedChannels(channels: BffChannel[]): BffChannel[] {
+  return channels.filter((channel) => !BLOCKED_CHANNELS[channel.channel_code]);
 }
 
 /**

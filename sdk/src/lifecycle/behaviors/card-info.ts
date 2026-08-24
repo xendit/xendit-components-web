@@ -3,10 +3,10 @@ import { InternalUpdateChannelComponentData } from "../../private-event-types";
 import {
   AbortError,
   cancellableSleep,
-  getCardNumberFromChannelProperties,
   isAbortError,
   parseEncryptedFieldValue,
 } from "../../utils";
+import { getCardNumberFromChannelProperties } from "../../utils-channel-properties";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 
@@ -26,7 +26,7 @@ export class CardInfoBehavior implements Behavior {
     this.lookupCardDetails();
   }
 
-  update() {
+  updatePostorder() {
     this.lookupCardDetails();
   }
 

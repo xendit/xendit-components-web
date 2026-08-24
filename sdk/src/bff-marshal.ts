@@ -43,9 +43,10 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
     locale: bffSession.locale,
     status: bffSession.status,
     updated: new Date(bffSession.updated),
-    successReturnUrl: bffSession.success_return_url || undefined,
-    cancelReturnUrl: bffSession.cancel_return_url || undefined,
-
+    successReturnUrl: bffSession.success_return_url,
+    cancelReturnUrl: bffSession.cancel_return_url,
+    captureMethod: bffSession.capture_method,
+    allowSavePaymentMethod: bffSession.allow_save_payment_method,
     subscription: bffSession.subscription
       ? {
           immediatePayment: bffSession.subscription.immediate_payment,

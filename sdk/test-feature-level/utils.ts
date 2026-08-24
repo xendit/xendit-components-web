@@ -1,5 +1,8 @@
 import { expect } from "vitest";
 import { XenditEventMap, XenditComponents } from "../src";
+import { getTelemetry, SessionTelemetry } from "../src/telemetry";
+import { TelemetryStage } from "../src/telemetry-events";
+import { sleep } from "../src/utils";
 
 /* v8 ignore start */
 
@@ -110,3 +113,59 @@ export function findEvent(arr: ReturnType<typeof watchEvents>, name: string) {
 export type Writable<T> = {
   -readonly [K in keyof T]: T[K];
 };
+
+function waitForMoreTelemetryEvents(telemetry: SessionTelemetry) {
+  return new Promise<true>((resolve) => {
+    function handler(event: Event) {
+      resolve(true);
+    }
+    telemetry.addEventListener("events-flushed", handler, { once: true });
+  });
+}
+
+/**
+ * Resolves when a telemetry event is flushed.
+ * Removes the event from the queue and all events before it.
+ */
+export async function waitForTelemetryEvent(
+  sdk: XenditComponents,
+  name: TelemetryStage,
+  success: boolean,
+) {
+  const telemetry = getTelemetry(sdk);
+
+  while (true) {
+    const next = telemetry.testGetNextEvent();
+
+    if (next) {
+      // is this our event?
+      if (next.stage === name) {
+        if (next.success === success) {
+          // found it
+          return next;
+        } else {
+          // found event with wrong success value
+          throw new Error(
+            `got telemetry event with wrong success value, expected ${success}, got ${next.success}`,
+          );
+        }
+      } else {
+        // not the event we want, ignore
+      }
+    } else {
+      // no events left, sleep til there are more
+      const result = await Promise.race([
+        waitForMoreTelemetryEvents(telemetry),
+        sleep(30000),
+      ]);
+      if (result) {
+        // ok, keep looping
+      } else {
+        // timeout
+        throw new Error(`timed out while waiting for telemetry event ${name}`);
+      }
+    }
+  }
+
+  throw new Error("unreachable");
+}

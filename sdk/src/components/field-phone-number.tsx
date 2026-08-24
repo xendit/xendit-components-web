@@ -118,6 +118,17 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   function formatForUser(_country = country, _localNumber = localNumber) {
     const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
     if (phoneNumber) {
+      // sync the dropdown if the number is from a different country
+      if (phoneNumber.country && phoneNumber.country !== _country.value) {
+        const matchedCountry =
+          COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
+            (option) => option.value === phoneNumber.country,
+          );
+        if (matchedCountry) {
+          setCountryCode(matchedCountry.value as string);
+          _country = matchedCountry;
+        }
+      }
       const international = phoneNumber.formatInternational();
       // remove country dial code from displayed local number
       setLocalNumber(
@@ -135,7 +146,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = field.initial_value;
       }
-      onChange();
+      onChange(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

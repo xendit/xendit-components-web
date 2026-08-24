@@ -261,6 +261,16 @@ components.pollImmediately();
 
 Immediately poll for the status of a submission. Only applicable while a submission is ongoing. Useful for handling payment affirmation (e.g. I have made the payment) by the user.
 
+### `redirectToReturnUrl`
+
+```typescript
+components.redirectToReturnUrl();
+```
+
+If the Session is completed, expired, or canceled, redirect to the corresponding return URL.
+
+You generally won't need to use this in single page apps.
+
 ## Events
 
 ### `init`

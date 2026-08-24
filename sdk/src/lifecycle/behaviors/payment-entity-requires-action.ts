@@ -23,7 +23,7 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
     this.pollWorker?.start();
   }
 
-  update() {
+  updatePostorder() {
     if (this.bb.pollImmediatelyRequested) {
       this.bb.pollImmediatelyRequested = false;
       this.resetPolling();

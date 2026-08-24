@@ -36,6 +36,7 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       ),
       title: vaAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
+      telemetry: this.bb.telemetry,
     };
 
     this.cleanupFn = this.ensureHasActionContainer();
