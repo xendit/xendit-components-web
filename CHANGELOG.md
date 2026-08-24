@@ -1,3 +1,26 @@
+# 0.0.28
+
+### Notable
+
+Enabled VA channels.
+
+Added support for recovering from a page being restored from the bfcache (i.e. when we redirect to a partner but the user clicks the browser "back" button).
+
+Action container contents are now destroyed after a delay to allow for fade out animations.
+
+Added automatic retry for GET requests.
+
+Added metrics gathering for merchant insights on the Xendit dashboard.
+
+Improved browser autofill behavior.
+
+Added new public method `redirectToReturnUrl()` to automatically redirect to the session's configured return URLs depending on the session status.
+
+### Bug Fixes
+
+- Fixed fallback redirect URL
+- Fixed some confusing error messages
+
 # 0.0.27
 
 ### Notable
