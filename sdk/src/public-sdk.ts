@@ -417,6 +417,16 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
+    // If the session mode is not COMPONENTS, the SDK must be initialized on a first-party host.
+    if (
+      bff.session.mode === "PAYMENT_LINK" &&
+      !bff.allow_payment_link_mode_embed
+    ) {
+      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+        "The session mode is not COMPONENTS";
+    }
+
     // If asked to resume (user landed on return_url after a redirect payment),
     // read token_request_id from the URL and poll that attempt. When no token_request_id is present, this is a normal first checkout.
     // When one is present but cannot be resolved to a payment (e.g. the SDK was re-initialized with a different session than the token_request_id belongs to), there is nothing to resume that is a fatal misconfiguration.
