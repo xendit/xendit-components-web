@@ -36,13 +36,46 @@ describe("telemetry", () => {
     };
     telemetry.append(e2);
 
-    // both events should have been sent
+    // both events should have been sent only after the delay
     expect(firedEvents.length).toBe(0);
     await sleep(3000);
     expect(firedEvents).toEqual([
       expect.objectContaining(e0),
       expect.objectContaining(e1),
       expect.objectContaining(e2),
+    ]);
+  });
+
+  it("should send events with metadata", async () => {
+    const mockSdk = new MockSdk({ componentsSdkKey: makeTestSdkKey() });
+    const telemetry = new SessionTelemetry(mockSdk, false);
+    const firedEvents: SessionTelemetryEventWithExtras[] = [];
+    telemetry.addEventListener("events-flushed", (event) => {
+      while (true) {
+        const next = telemetry.testGetNextEvent();
+        if (next) firedEvents.push(next);
+        else break;
+      }
+    });
+
+    const e0: SessionTelemetryEvent = {
+      stage: "CHECKOUT_LOADED",
+      success: true,
+      metadata: { test_metadata: "test" },
+    };
+    telemetry.append(e0);
+
+    const e1: SessionTelemetryEvent = {
+      stage: "CHECKOUT_LOADED",
+      success: true,
+      metadata: {},
+    };
+    telemetry.append(e1);
+
+    await sleep(3000);
+    expect(firedEvents.map((event) => event.metadata)).toEqual([
+      { test_metadata: "test" },
+      undefined, // empty object should get converted to null
     ]);
   });
 
