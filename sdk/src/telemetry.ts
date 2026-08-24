@@ -120,6 +120,7 @@ export class SessionTelemetry extends EventTarget {
       timestamp_micros: `${Date.now() * 1000}`,
       ...this.scope.inheritedProperties,
       ...event,
+      metadata: sanitizeMetadata(event.metadata),
     });
     this.setup();
     return eventId;
@@ -203,4 +204,16 @@ export class SessionTelemetry extends EventTarget {
   testGetNextEvent() {
     return this.queue.shift() ?? null;
   }
+}
+
+// copy the object with undefined keys removed, then return it, unless it is empty then return undefined
+function sanitizeMetadata(
+  obj: Record<string, string | number | boolean | undefined> | undefined,
+) {
+  if (!obj) return undefined;
+
+  const entries = Object.entries(obj).filter((entry) => entry[1] !== undefined);
+  if (entries.length === 0) return undefined;
+
+  return Object.fromEntries(entries);
 }
