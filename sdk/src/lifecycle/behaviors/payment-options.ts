@@ -14,6 +14,7 @@ import {
   parseEncryptedFieldValue,
 } from "../../utils";
 import { getCardNumberFromChannelProperties } from "../../utils-channel-properties";
+import { validatePlaintextCardNumber } from "../../validation";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 
@@ -68,6 +69,11 @@ export class PaymentOptionsBehavior implements Behavior {
         return;
       }
 
+      if (!this.bb.sdkKey.publicKey) {
+        // the card number is plaintext, so remove spaces before looking up payment options
+        cardNumber = cardNumber?.replace(/\s/g, "");
+      }
+
       // don't look up the payment options if a request is in flight for the same card number
       if (this.paymentOptionsRequest?.cardNumber === cardNumber) {
         return;
@@ -82,9 +88,16 @@ export class PaymentOptionsBehavior implements Behavior {
 
       // don't look up payment options if the card number is invalid
       if (cardNumber) {
-        const parsed = parseEncryptedFieldValue(cardNumber);
-        if (!parsed.valid) {
-          return;
+        if (this.bb.sdkKey.publicKey) {
+          const parsed = parseEncryptedFieldValue(cardNumber);
+          if (!parsed.valid) {
+            return;
+          }
+        } else {
+          const validationError = validatePlaintextCardNumber(cardNumber);
+          if (validationError) {
+            return;
+          }
         }
       }
     } else {

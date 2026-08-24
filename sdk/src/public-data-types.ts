@@ -167,14 +167,6 @@ export interface XenditSession {
     metadata?: Record<string, string>;
   }[];
   /**
-   * URL to redirect to after session succeeded
-   */
-  successReturnUrl?: string;
-  /**
-   * URL to redirect to after session canceled
-   */
-  cancelReturnUrl?: string;
-  /**
    * Last updated date, can be used to refer to as payment date.
    */
   updated: Date;

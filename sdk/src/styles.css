@@ -493,6 +493,17 @@ xendit-channel-picker[inert] {
   padding: 12px;
 }
 
+.xendit-channel-form-field .xendit-credit-card-input {
+  display: flex;
+  overflow: hidden;
+}
+.xendit-channel-form-field .xendit-credit-card-input input {
+  flex: 1;
+  border: none;
+  padding: 12px;
+  outline: none;
+}
+
 .xendit-channel-form-field .xendit-iframe-container {
   display: flex;
   height: 40px;

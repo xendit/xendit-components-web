@@ -32,6 +32,97 @@ export function validateEncryptedCardField(
   );
 }
 
+function luhnCheck(value: string): boolean {
+  let sum = 0;
+  let alternate = false;
+  for (let i = value.length - 1; i >= 0; i--) {
+    let n = parseInt(value[i], 10);
+    if (alternate) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+    alternate = !alternate;
+  }
+  return sum % 10 === 0;
+}
+
+export function validatePlaintextCardNumber(
+  value: string,
+): LocaleKey | undefined {
+  // strip spaces from formatted value
+  value = value.replace(/\s/g, "");
+
+  if (!/^\d*$/.test(value)) {
+    return { localeKey: "validation.card_number_invalid" };
+  }
+  if (value.length < 12 || value.length > 19) {
+    return { localeKey: "validation.card_number_invalid" };
+  }
+  if (!luhnCheck(value)) {
+    return { localeKey: "validation.card_number_invalid" };
+  }
+  return undefined;
+}
+
+export function validatePlaintextCardExpiry(
+  value: string,
+): LocaleKey | undefined {
+  // value is a JSON array ["MM", "YY"]
+  let month: number;
+  let yearStr: string;
+  try {
+    const parts = JSON.parse(value) as string[];
+    if (!Array.isArray(parts) || parts.length !== 2) {
+      return { localeKey: "validation.card_expiry_invalid" };
+    }
+    month = parseInt(parts[0], 10);
+    yearStr = parts[1];
+  } catch {
+    return { localeKey: "validation.card_expiry_invalid" };
+  }
+
+  const year =
+    yearStr.length === 2 ? 2000 + parseInt(yearStr, 10) : parseInt(yearStr, 10);
+
+  const isValidMonth = month >= 1 && month <= 12;
+  const isValidYear = year >= 2000 && year <= 2099;
+
+  if (!isValidMonth || !isValidYear) {
+    return { localeKey: "validation.card_expiry_invalid" };
+  }
+
+  const now = new Date();
+  const expiry = new Date(year, month - 1);
+  const currentMonth = new Date(now.getFullYear(), now.getMonth());
+  if (expiry < currentMonth) {
+    return { localeKey: "validation.card_expiry_invalid" };
+  }
+
+  return undefined;
+}
+
+export function validatePlaintextCardCvn(value: string): LocaleKey | undefined {
+  if (!/^\d*$/.test(value)) {
+    return { localeKey: "validation.card_cvn_invalid" };
+  }
+  if (value.length < 3) {
+    return { localeKey: "validation.text_too_short" };
+  }
+  if (value.length > 4) {
+    return { localeKey: "validation.text_too_long" };
+  }
+  return undefined;
+}
+
+/**
+ * Returns true if the value looks like an encrypted field (xendit-encrypted-...).
+ * Used to determine which validation path to take for card fields.
+ */
+function isEncryptedFieldValue(value: string): boolean {
+  return value.startsWith("xendit-encrypted-");
+}
+
 export const validateEmail = (value: string): LocaleKey | undefined => {
   // Allows letters, numbers, dots, underscores, hyphens before the @
   // Domain must be letters, numbers, hyphens (no leading/trailing hyphen)
@@ -116,7 +207,19 @@ export function validate(
     case "credit_card_number":
     case "credit_card_expiry":
     case "credit_card_cvn": {
-      return validateEncryptedCardField(value);
+      if (isEncryptedFieldValue(value)) {
+        return validateEncryptedCardField(value);
+      }
+      // Plaintext card field (no publicKey/signature available)
+      switch (input.type.name) {
+        case "credit_card_number":
+          return validatePlaintextCardNumber(value);
+        case "credit_card_expiry":
+          return undefined;
+        case "credit_card_cvn":
+          return validatePlaintextCardCvn(value);
+      }
+      break;
     }
     case "phone_number":
       return validatePhoneNumber(value);
@@ -185,6 +288,29 @@ export function channelPropertyFieldValidate(
   field: ChannelFormField,
   channelProperties: ChannelProperties,
 ) {
+  if (field.type.name === "credit_card_expiry") {
+    const month = getChannelPropertyValue(
+      channelProperties,
+      field.channel_property[0],
+    );
+    const year = getChannelPropertyValue(
+      channelProperties,
+      field.channel_property[1],
+    );
+
+    // special validation for unencrypted credit card expiry
+    if (
+      !isEncryptedFieldValue(month as string) &&
+      !isEncryptedFieldValue(year as string)
+    ) {
+      const value = JSON.stringify([month, year]);
+      const error = validatePlaintextCardExpiry(value);
+      if (error) {
+        return error;
+      }
+    }
+  }
+
   const channelPropertyKeys = Array.isArray(field.channel_property)
     ? field.channel_property
     : [field.channel_property];

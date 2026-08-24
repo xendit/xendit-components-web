@@ -123,13 +123,13 @@ describe("validation", () => {
       localeKey: "validation.card_expiry_invalid",
     });
 
-    // unexpected format (wrong prefix)
+    // non-encrypted format (treated as plaintext card number, fails validation)
     const props3 = {
       encrypted_field: `junk`,
     };
-    expect(() =>
-      channelPropertyFieldValidate(encryptedField, props3),
-    ).toThrow();
+    expect(channelPropertyFieldValidate(encryptedField, props3)).toEqual({
+      localeKey: "validation.card_number_invalid",
+    });
 
     // unexpected formats (wrong number of parts)
     const props4 = {
