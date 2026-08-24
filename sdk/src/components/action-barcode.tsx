@@ -1,11 +1,10 @@
+import { ComponentChildren } from "preact";
 import { useCallback, useMemo, useState } from "preact/hooks";
 import { amountFormat } from "../amount-format";
-import { Instructions as InstructionsType } from "../backend-types/instructions";
 import { TFunction } from "../localization";
 import { generateBarcodeSvg } from "./action-barcode-utils";
-import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
-import { Instructions } from "./instructions";
 import { useActionCard } from "./action-card";
+import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
 
 type Props = {
   amount: number;
@@ -15,7 +14,7 @@ type Props = {
   barcodeContent: string;
   merchantName: string;
   paymentCode: string;
-  instructions: InstructionsType;
+  renderInstructions: () => ComponentChildren;
   title: string;
   t: TFunction;
 };
@@ -28,7 +27,7 @@ export function ActionBarcode(props: Props) {
     onAffirm,
     barcodeContent,
     merchantName,
-    instructions,
+    renderInstructions,
     title,
     t,
   } = props;
@@ -121,7 +120,7 @@ export function ActionBarcode(props: Props) {
           {t("action.payment_confirmation_instructions")}
         </div>
       </div>
-      <Instructions instructions={instructions} />
+      {renderInstructions()}
     </div>
   );
 }

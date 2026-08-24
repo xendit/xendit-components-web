@@ -1,7 +1,6 @@
-import { FunctionComponent } from "preact";
+import { ComponentChildren, FunctionComponent } from "preact";
 import { useCallback, useContext, useState } from "preact/hooks";
 import { amountFormat } from "../amount-format";
-import { Instructions as InstructionsType } from "../backend-types/instructions";
 import { TFunction } from "../localization";
 import {
   Button,
@@ -9,9 +8,8 @@ import {
   ButtonSize,
   ButtonVariant,
 } from "./core/button";
-import Icon from "./icon";
-import { Instructions } from "./instructions";
 import { Tooltip, TooltipContext, TooltipProvider } from "./core/tooltip";
+import Icon from "./icon";
 
 type Props = {
   amount: number;
@@ -20,7 +18,7 @@ type Props = {
   onAffirm: () => void;
   vaNumber: string;
   merchantName: string;
-  instructions: InstructionsType;
+  renderInstructions: () => ComponentChildren;
   title: string;
   t: TFunction;
 };
@@ -33,7 +31,7 @@ export function ActionVa(props: Props) {
     onAffirm,
     vaNumber,
     merchantName,
-    instructions,
+    renderInstructions,
     title,
     t,
   } = props;
@@ -105,7 +103,7 @@ export function ActionVa(props: Props) {
           {t("action.payment_confirmation_instructions")}
         </div>
       </div>
-      <Instructions instructions={instructions} />
+      {renderInstructions()}
     </div>
   );
 }

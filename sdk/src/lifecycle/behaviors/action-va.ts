@@ -21,7 +21,6 @@ export class ActionVaBehavior extends ContainerActionBehavior {
     assert(this.bb.world);
     assert(this.bb.channel);
 
-    const hasExternalInstructions = this.hasActionInstructionsContainer();
     const instructions = vaAction.instructions ?? [];
 
     const actionVaProps = {
@@ -31,17 +30,16 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       onAffirm: this.affirmPayment.bind(this),
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
-      instructions: hasExternalInstructions ? [] : instructions,
+      renderInstructions: this.renderActionInstructions.bind(
+        this,
+        instructions ?? [],
+      ),
       title: vaAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
 
     this.cleanupFn = this.ensureHasActionContainer();
     this.populateActionContainer(() => createElement(ActionVa, actionVaProps));
-
-    if (hasExternalInstructions) {
-      this.populateActionInstructionsContainer(instructions);
-    }
   }
 
   /**

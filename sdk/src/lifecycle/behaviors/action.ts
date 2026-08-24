@@ -7,6 +7,7 @@ import DefaultActionContainer from "../../components/default-action-container";
 import { ActionCard, ActionCardProps } from "../../components/action-card";
 import { Instructions } from "../../components/instructions";
 import { Instructions as InstructionsType } from "../../backend-types/instructions";
+import { createPortal } from "preact/compat";
 
 export enum DefaultActionContainerType {
   QrWithCustomArt = "qr-with-custom-art",
@@ -171,25 +172,22 @@ export abstract class ContainerActionBehavior implements Behavior {
   }
 
   /**
-   * Populates the external action instructions container with the given instructions.
-   * Call this from action behaviors that have instructions data.
-   * Does nothing if no external instructions container has been created.
+   * Renders the provided instructions in the action instructions container if it exists, otherwise renders them inline.
+   * This method handles the common logic of getting the container and rendering the instructions.
+   * If the instructions container exists, it will be populated with the instructions and a portal will be created to render them in the container.
    */
-  populateActionInstructionsContainer(instructions: InstructionsType) {
-    const container =
-      this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
-    if (!container) return;
+  renderActionInstructions(instructions: InstructionsType) {
+    const hasExternalInstructions = this.hasActionInstructionsContainer();
 
-    // Cancel any pending destroy timer
-    this.flushPendingInstructionsContainerDestroy();
-
-    if (instructions.length === 0) {
-      // Nothing to render
-      render(null, container);
-      return;
+    if (hasExternalInstructions) {
+      return createPortal(
+        createElement(Instructions, { instructions }),
+        document.getElementsByTagName(
+          "xendit-action-instructions-container",
+        )[0],
+      );
     }
-
-    render(createElement(Instructions, { instructions }), container);
+    return createElement(Instructions, { instructions });
   }
 
   /**

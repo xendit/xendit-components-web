@@ -1,11 +1,11 @@
 import { createElement } from "preact";
 import { ActionBarcode } from "../../components/action-barcode";
+import { ActionCardProps } from "../../components/action-card";
+import { internal } from "../../internal";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
-import { ActionCardProps } from "../../components/action-card";
-import { internal } from "../../internal";
 
 export class ActionBarcodeBehavior extends ContainerActionBehavior {
   constructor(
@@ -23,9 +23,6 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
     assert(this.bb.world);
     assert(this.bb.channel);
 
-    const hasExternalInstructions = this.hasActionInstructionsContainer();
-    const instructions = barcodeAction.instructions ?? [];
-
     const actionBarcodeProps = {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
@@ -34,7 +31,10 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
       barcodeContent: barcodeAction.value,
       merchantName: this.bb.world.business.name ?? "",
       paymentCode: barcodeAction.value,
-      instructions: hasExternalInstructions ? [] : instructions,
+      renderInstructions: this.renderActionInstructions.bind(
+        this,
+        barcodeAction.instructions ?? [],
+      ),
       title: barcodeAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
@@ -59,10 +59,6 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
       () => createElement(ActionBarcode, actionBarcodeProps),
       cardProps,
     );
-
-    if (hasExternalInstructions) {
-      this.populateActionInstructionsContainer(instructions);
-    }
   }
 
   /**
