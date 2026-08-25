@@ -186,14 +186,13 @@ export abstract class ContainerActionBehavior implements Behavior {
    * If the instructions container exists, it will be populated with the instructions and a portal will be created to render them in the container.
    */
   renderActionInstructions(instructions: InstructionsType) {
-    const hasExternalInstructions = this.hasActionInstructionsContainer();
+    const container =
+      this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
 
-    if (hasExternalInstructions) {
+    if (container) {
       return createPortal(
         createElement(Instructions, { instructions }),
-        document.getElementsByTagName(
-          "xendit-action-instructions-container",
-        )[0],
+        container,
       );
     }
     return createElement(Instructions, { instructions });
