@@ -12,6 +12,7 @@ import { Tooltip, TooltipContext, TooltipProvider } from "./core/tooltip";
 import Icon from "./icon";
 import { SessionTelemetry } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
+import { useActionCard } from "./action-card";
 
 type Props = {
   amount: number;
@@ -41,6 +42,7 @@ export function ActionVa(props: Props) {
   } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
+  const inActionCard = useActionCard();
 
   const onMadePaymentClicked = useCallback(() => {
     setShowSpinner(true);
@@ -66,12 +68,16 @@ export function ActionVa(props: Props) {
 
   return (
     <div className="xendit-action-present-to-customer">
-      <img
-        src={channelLogo}
-        alt="Channel Logo"
-        className="xendit-action-qr-channel-logo"
-      />
-      <div className="xendit-action-title">{title}</div>
+      {!inActionCard ? (
+        <>
+          <img
+            src={channelLogo}
+            alt="Channel Logo"
+            className="xendit-action-qr-channel-logo"
+          />
+          <div className="xendit-action-title">{title}</div>
+        </>
+      ) : null}
       <div className="xendit-action-va-content">
         <div className="xendit-action-va-details">
           {vaDetails.map((detail, index) => (
