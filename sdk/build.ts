@@ -107,12 +107,10 @@ function rollupConfig(
             inlineDynamicImports: false,
             banner: bannerComment,
             entryFileNames: "[name].mjs",
-            chunkFileNames: "[name].mjs",
-            manualChunks(id) {
-              if (id.includes("libphonenumber-js")) {
-                return "libphonenumber";
-              }
-            },
+            chunkFileNames: (chunk) =>
+              chunk.facadeModuleId?.includes("libphonenumber-js")
+                ? "libphonenumber.mjs"
+                : "[name].mjs",
           },
         ]
       : [

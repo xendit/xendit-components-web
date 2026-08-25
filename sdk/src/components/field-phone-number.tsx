@@ -1,19 +1,18 @@
 import { FieldProps } from "./field";
 import { Dropdown, DropdownOption } from "./core/dropdown";
-import { CountryCode, getCountryCallingCode } from "libphonenumber-js/min";
+import type { CountryCode } from "libphonenumber-js";
+import type { PhoneNumber } from "libphonenumber-js";
 import {
-  COUNTRIES_AS_DROPDOWN_OPTIONS,
+  useCountriesAsDropdownOptions,
   useOnCardCountryChange,
 } from "./field-country";
-import parsePhoneNumberFromString, {
-  getExampleNumber,
-  PhoneNumber,
-} from "libphonenumber-js";
+import { getLoadedLibphonenumber } from "../libphonenumber-loader";
 import examples from "libphonenumber-js/mobile/examples";
 import { useSession } from "./session-provider";
 import { formFieldId, formFieldName } from "../utils";
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -21,6 +20,22 @@ import {
 } from "preact/hooks";
 import { FunctionComponent, TargetedEvent, TargetedFocusEvent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
+
+type DropdownOptionWithDial = DropdownOption & { dial: string };
+
+const sanitizePhoneNumber = (
+  country: DropdownOptionWithDial,
+  phoneNumber: string,
+): PhoneNumber | null => {
+  const lib = getLoadedLibphonenumber();
+  if (!lib) return null;
+  const parsed = lib.parsePhoneNumberFromString(
+    phoneNumber,
+    country.value as CountryCode,
+  );
+  if (parsed && parsed.isPossible()) return parsed;
+  return null;
+};
 
 export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -31,6 +46,53 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
 
   const hiddenFieldRef = useRef<HTMLInputElement>(null);
 
+  const countriesAsDropdownOptions = useCountriesAsDropdownOptions();
+
+  const isLibraryLoaded = countriesAsDropdownOptions.length > 0;
+
+  const countriesWithDialCodesAsDropdownOptions = useMemo(() => {
+    const lib = getLoadedLibphonenumber();
+    if (!lib) return [];
+    return countriesAsDropdownOptions
+      .map<DropdownOptionWithDial | null>((country) => {
+        const dial = lib.getCountryCallingCode(country.value as CountryCode);
+        if (!dial) return null;
+        return {
+          ...country,
+          shortTitle: `+${dial}`,
+          title: `${country.title} (+${dial})`,
+          dial,
+        };
+      })
+      .filter((c): c is DropdownOptionWithDial => Boolean(c));
+  }, [countriesAsDropdownOptions]);
+
+  function initialValues(initial: string | undefined, sessionCountry: string) {
+    const defaultInitial = {
+      country: sessionCountry,
+      localNumber: "",
+    };
+    if (!initial) return defaultInitial;
+    const lib = getLoadedLibphonenumber();
+    if (!lib) return defaultInitial;
+    const parsed = lib.parsePhoneNumberFromString(initial);
+    if (!parsed) return defaultInitial;
+    const countryOption = countriesWithDialCodesAsDropdownOptions.find(
+      (option) => option.value === parsed.country,
+    );
+    if (!countryOption) return defaultInitial;
+    const sanitized = sanitizePhoneNumber(countryOption, parsed.nationalNumber);
+    if (!sanitized) return defaultInitial;
+    const international = parsed.formatInternational();
+    const countryCode = lib.getCountryCallingCode(
+      countryOption.value as CountryCode,
+    );
+    return {
+      country: countryOption.value as string,
+      localNumber: international.replace(`+${countryCode} `, ""),
+    };
+  }
+
   const initial = useMemo(
     () => initialValues(field.initial_value, session.country),
     [field.initial_value, session.country],
@@ -38,26 +100,31 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
 
   const [countryCode, setCountryCode] = useState(initial.country);
   const countryCodeIndex = useMemo(() => {
-    const index = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.findIndex(
+    const index = countriesWithDialCodesAsDropdownOptions.findIndex(
       (r) => r.value === countryCode,
     );
     if (index === -1) return 0;
     return index;
-  }, [countryCode]);
-  const country =
-    COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS[countryCodeIndex];
+  }, [countryCode, countriesWithDialCodesAsDropdownOptions]);
+  const country = countriesWithDialCodesAsDropdownOptions[countryCodeIndex];
 
   const [localNumber, setLocalNumber] = useState(initial.localNumber);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // re-sync display once the library finishes loading
+  useEffect(() => {
+    if (!isLibraryLoaded || !field.initial_value) return;
+    const recomputed = initialValues(field.initial_value, session.country);
+    setCountryCode(recomputed.country);
+    setLocalNumber(recomputed.localNumber);
+  }, [isLibraryLoaded]);
 
   const formatPhoneNumber = useCallback(
     (country: DropdownOptionWithDial, localNumber: string) => {
       const phoneNumber = sanitizePhoneNumber(country, localNumber);
       if (phoneNumber) {
-        // use parsed format if parsing was successful
         return phoneNumber.number;
       } else {
-        // else just concat the dial code and local number
         return `+${country.dial}${localNumber}`;
       }
     },
@@ -76,7 +143,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   function handleLocalChange(event: TargetedEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
     setLocalNumber(nextLocal);
-    updateHiddenField(country, nextLocal);
+    if (country) updateHiddenField(country, nextLocal);
     onChange();
   }
 
@@ -96,7 +163,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
 
   // when the user inputs a card number, update the phone number field to match
   useOnCardCountryChange((newCountry: CountryCode) => {
-    const newOption = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
+    const newOption = countriesWithDialCodesAsDropdownOptions.find(
       (option) => option.value === newCountry,
     );
     if (newOption && newOption.value !== countryCode && !localNumber) {
@@ -105,25 +172,29 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   });
 
   function getExampleLocalNumber() {
+    const lib = getLoadedLibphonenumber();
+    if (!lib || !country) return "";
     return (
-      getExampleNumber(country.value as CountryCode, examples)
+      lib
+        .getExampleNumber(country.value as CountryCode, examples)
         ?.formatInternational()
         ?.replace(
-          `+${getCountryCallingCode(country.value as CountryCode)} `,
+          `+${lib.getCountryCallingCode(country.value as CountryCode)} `,
           "",
         ) || ""
     );
   }
 
   function formatForUser(_country = country, _localNumber = localNumber) {
+    const lib = getLoadedLibphonenumber();
+    if (!lib || !_country) return;
     const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
     if (phoneNumber) {
       // sync the dropdown if the number is from a different country
       if (phoneNumber.country && phoneNumber.country !== _country.value) {
-        const matchedCountry =
-          COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
-            (option) => option.value === phoneNumber.country,
-          );
+        const matchedCountry = countriesWithDialCodesAsDropdownOptions.find(
+          (option) => option.value === phoneNumber.country,
+        );
         if (matchedCountry) {
           setCountryCode(matchedCountry.value as string);
           _country = matchedCountry;
@@ -133,34 +204,36 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
       // remove country dial code from displayed local number
       setLocalNumber(
         international.replace(
-          `+${getCountryCallingCode(_country.value as CountryCode)} `,
+          `+${lib.getCountryCallingCode(_country.value as CountryCode)} `,
           "",
         ),
       );
     }
   }
 
-  // on first render, populate hidden input and notify parent component of initial value
+  // wait for the library so validation never runs against an unparsed value;
+  // useLayoutEffect keeps this synchronous once isLibraryLoaded is already true
   useLayoutEffect(() => {
+    if (!isLibraryLoaded) return;
     if (field.initial_value) {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = field.initial_value;
       }
       onChange(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLibraryLoaded]);
 
   return (
     <div className="xendit-input-phone">
       <Dropdown
-        options={COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS}
+        options={countriesWithDialCodesAsDropdownOptions}
         selectedIndex={countryCodeIndex}
         onChange={handleCountryChange}
         fixedOverlayWidth={300}
         enableSearch
         noOverflow
         className="xendit-form-field-inner"
+        disabled={!isLibraryLoaded}
       />
       <input
         id={id}
@@ -173,60 +246,9 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         onChange={handleLocalChange}
         value={localNumber}
         autoComplete="tel"
+        disabled={!isLibraryLoaded}
       />
       <input type="hidden" name={name} ref={hiddenFieldRef} />
     </div>
   );
 };
-
-type DropdownOptionWithDial = DropdownOption & { dial: string };
-const COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS =
-  COUNTRIES_AS_DROPDOWN_OPTIONS.map<DropdownOptionWithDial | null>(
-    (country) => {
-      const dial = getCountryCallingCode(country.value as CountryCode);
-      if (!dial) return null;
-      return {
-        ...country,
-        shortTitle: `+${dial}`,
-        title: `${country.title} (+${dial})`,
-        dial,
-      };
-    },
-  ).filter((country): country is DropdownOptionWithDial => {
-    return Boolean(country);
-  });
-
-const sanitizePhoneNumber = (
-  country: DropdownOptionWithDial,
-  phoneNumber: string,
-): PhoneNumber | null => {
-  const parsed = parsePhoneNumberFromString(
-    phoneNumber,
-    country.value as CountryCode,
-  );
-  if (parsed && parsed.isPossible()) return parsed;
-
-  return null;
-};
-
-function initialValues(initial: string | undefined, sessionCountry: string) {
-  const defaultInitial = {
-    country: sessionCountry,
-    localNumber: "",
-  };
-  if (!initial) return defaultInitial;
-  const parsed = parsePhoneNumberFromString(initial);
-  if (!parsed) return defaultInitial;
-  const countryOption = COUNTRIES_WITH_DIAL_CODES_AS_DROPDOWN_OPTIONS.find(
-    (option) => option.value === parsed.country,
-  );
-  if (!countryOption) return defaultInitial;
-  const sanitized = sanitizePhoneNumber(countryOption, parsed.nationalNumber);
-  if (!sanitized) return defaultInitial;
-  const international = parsed.formatInternational();
-  const countryCode = getCountryCallingCode(countryOption.value as CountryCode);
-  return {
-    country: countryOption.value as string,
-    localNumber: international.replace(`+${countryCode} `, ""),
-  };
-}

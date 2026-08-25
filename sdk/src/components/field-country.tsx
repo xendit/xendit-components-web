@@ -1,13 +1,18 @@
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "preact/hooks";
 import { FieldProps } from "./field";
-import { CountryCode, getCountries } from "libphonenumber-js";
+import type { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
+import {
+  getLibphonenumber,
+  getLoadedLibphonenumber,
+} from "../libphonenumber-loader";
 import { formFieldId, formFieldName, usePrevious } from "../utils";
 import { FunctionComponent, TargetedEvent } from "preact";
 import { useChannelComponentData } from "./channel-root";
@@ -35,16 +40,58 @@ const FlagIcon: FunctionComponent<FlagIconProps> = ({
   );
 };
 
+function buildCountryOptions(
+  getCountries: () => CountryCode[],
+): DropdownOption[] {
+  return getCountries()
+    .map((countryCode) => {
+      const country = new Intl.DisplayNames(["en"], {
+        type: "region",
+      }).of(countryCode);
+      return {
+        title: country,
+        value: countryCode,
+        leadingAsset: <FlagIcon countryCode={countryCode} />,
+      } as DropdownOption;
+    })
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+export function useCountriesAsDropdownOptions(): DropdownOption[] {
+  const [options, setOptions] = useState<DropdownOption[]>(() => {
+    const lib = getLoadedLibphonenumber();
+    return lib ? buildCountryOptions(lib.getCountries) : [];
+  });
+
+  useEffect(() => {
+    if (options.length > 0) return;
+
+    let cancelled = false;
+    getLibphonenumber().then((lib) => {
+      if (cancelled) return;
+      setOptions(buildCountryOptions(lib.getCountries));
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return options;
+}
+
 export const CountryField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
   const id = formFieldId(field);
   const name = formFieldName(field);
 
+  const countriesAsDropdownOptions = useCountriesAsDropdownOptions();
+
   const [selectedCountry, setSelectedCountry] = useState<
     CountryCode | undefined
   >(field.initial_value as CountryCode | undefined);
 
-  const selectedCountryIndex = COUNTRIES_AS_DROPDOWN_OPTIONS.findIndex(
+  const selectedCountryIndex = countriesAsDropdownOptions.findIndex(
     (option) => option.value === selectedCountry,
   );
 
@@ -52,7 +99,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
 
   useOnCardCountryChange((newCountry: CountryCode) => {
     if (hiddenFieldRef.current) {
-      const newOption = COUNTRIES_AS_DROPDOWN_OPTIONS.find((option) => {
+      const newOption = countriesAsDropdownOptions.find((option) => {
         return option.value === newCountry;
       });
       if (newOption) onChangeWrapper(newOption);
@@ -70,7 +117,6 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     [onChange],
   );
 
-  // on first render populate hidden field with initial value and notify parent of change
   useLayoutEffect(() => {
     if (field.initial_value) {
       if (hiddenFieldRef.current) {
@@ -80,6 +126,18 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (
+      countriesAsDropdownOptions.length > 0 &&
+      selectedCountry &&
+      hiddenFieldRef.current &&
+      hiddenFieldRef.current.value !== selectedCountry
+    ) {
+      hiddenFieldRef.current.value = selectedCountry;
+      onChange(true);
+    }
+  }, [countriesAsDropdownOptions]);
 
   const handleNativeSelectChange = useCallback(
     (event: TargetedEvent<HTMLSelectElement>) => {
@@ -92,7 +150,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
         return;
       }
 
-      const option = COUNTRIES_AS_DROPDOWN_OPTIONS.find(
+      const option = countriesAsDropdownOptions.find(
         (o) => o.value === filledValue,
       );
       if (option) {
@@ -102,22 +160,22 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
         hiddenFieldRef.current.value = selectedCountry ?? "";
       }
     },
-    [onChange, onChangeWrapper, selectedCountry],
+    [onChange, onChangeWrapper, selectedCountry, countriesAsDropdownOptions],
   );
 
-  // the country list never changes
+  // the country list never changes after it loads
   const selectOptions = useMemo(
     () =>
-      COUNTRIES_AS_DROPDOWN_OPTIONS.map((option) => (
+      countriesAsDropdownOptions.map((option) => (
         <option key={option.value} value={option.value}>
           {option.title}
         </option>
       )),
-    [],
+    [countriesAsDropdownOptions],
   );
 
   return (
-    <div>
+    <div className="xendit-input-country">
       {/* a `<select>`, not `type="hidden"` browsers only autofill what they render */}
       <select
         name={name}
@@ -132,12 +190,13 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
       </select>
       <Dropdown
         id={id}
-        options={COUNTRIES_AS_DROPDOWN_OPTIONS}
+        options={countriesAsDropdownOptions}
         onChange={onChangeWrapper}
         placeholder={field.placeholder}
         selectedIndex={selectedCountryIndex}
         enableSearch
         className="xendit-form-field-inner"
+        disabled={countriesAsDropdownOptions.length === 0}
       />
     </div>
   );
@@ -156,20 +215,6 @@ export const VISUALLY_HIDDEN = {
   whiteSpace: "nowrap",
   pointerEvents: "none",
 };
-
-export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
-  .map((countryCode) => {
-    const country = new Intl.DisplayNames(["en"], {
-      type: "region",
-    }).of(countryCode);
-
-    return {
-      title: country,
-      value: countryCode,
-      leadingAsset: <FlagIcon countryCode={countryCode} />,
-    } as DropdownOption;
-  })
-  .sort((a, b) => a.title.localeCompare(b.title));
 
 export function useOnCardCountryChange(fn: (newCountry: CountryCode) => void) {
   const cardDetails = useChannelComponentData()?.cardDetails;
