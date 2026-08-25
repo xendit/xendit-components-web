@@ -164,6 +164,7 @@ export type WorldState = {
   paymentEntity: BffPaymentEntity | null;
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
+  experiments: Record<string, unknown>;
 };
 
 /**
@@ -504,6 +505,7 @@ export class XenditComponents extends EventTarget {
         sessionTokenRequestId: resumeSessionTokenRequestId,
         succeededChannel:
           resumeSucceededChannel ?? bff.succeeded_channel ?? null,
+        experiments: bff.experiments,
       } satisfies WorldState),
     );
   }
@@ -706,7 +708,7 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
-   * @public
+   * @internal
    * Retrieve the business associated with the session.
    */
   getBusiness(): XenditBusiness | null {
@@ -716,7 +718,7 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
-   * @public
+   * @internal
    * Retrieve the payment channel used to complete the session
    */
   getSucceededChannel(): XenditSucceededChannel | null {
@@ -725,6 +727,15 @@ export class XenditComponents extends EventTarget {
     return bffSucceededChannelToPublic(
       this[internal].worldState.succeededChannel,
     );
+  }
+
+  /**
+   * @internal
+   * Retrieve experiment flags.
+   */
+  getExperiments(): Record<string, unknown> {
+    this.assertInitialized();
+    return this[internal].worldState.experiments;
   }
 
   /**
@@ -1746,6 +1757,14 @@ export class XenditComponents extends EventTarget {
   }
 
   /**
+   * @internal
+   * Returns the current world state.
+   */
+  getInternalState() {
+    return this[internal].worldState;
+  }
+
+  /**
    * @public
    * The `init` event lets you know when the session data has been loaded.
    *
@@ -2064,6 +2083,7 @@ export class XenditComponentsTest extends XenditComponents {
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
+        experiments: bff.experiments,
       } satisfies WorldState),
     );
 
