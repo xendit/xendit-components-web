@@ -422,9 +422,9 @@ export class XenditComponents extends EventTarget {
       bff.session.mode === "PAYMENT_LINK" &&
       !bff.allow_payment_link_mode_embed
     ) {
-      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
-      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
-        "The session mode is not COMPONENTS";
+      // this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      // this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+      //   "The session mode is not COMPONENTS";
     }
 
     // If asked to resume (user landed on return_url after a redirect payment),
