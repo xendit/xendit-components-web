@@ -104,6 +104,9 @@ controlsDiv.appendChild(simulateButton);
 const createActionContainer = document.createElement("button");
 createActionContainer.textContent = "Create Action Container";
 controlsDiv.appendChild(createActionContainer);
+const createActionInstructionsContainer = document.createElement("button");
+createActionInstructionsContainer.textContent = "Create Instructions Container";
+controlsDiv.appendChild(createActionInstructionsContainer);
 
 const abandonButton = document.createElement("button");
 abandonButton.textContent = "Abandon";
@@ -135,6 +138,7 @@ if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     componentsSdkKey: savedKey,
+    hostId: "sd",
     iframeFieldAppearance,
     enablePaylinks: true,
     resume: savedResume,
@@ -252,10 +256,18 @@ simulateButton.addEventListener("click", () => {
 
 createActionContainer.addEventListener("click", () => {
   const element = components.createActionContainerComponent({
+    // withCard: true,
     qrCode: {
       // qrCodeOnly: true,
     },
   });
+  element.style.width = "400px";
+  element.style.minHeight = "10px";
+  element.style.border = "2px solid black";
+  controlsDiv.appendChild(element);
+});
+createActionInstructionsContainer.addEventListener("click", () => {
+  const element = components.createActionInstructionsComponent();
   element.style.width = "400px";
   element.style.minHeight = "10px";
   element.style.border = "2px solid black";
