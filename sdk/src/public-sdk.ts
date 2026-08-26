@@ -1,6 +1,7 @@
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
+  XenditCardBinChangedEvent,
   XenditFatalErrorEvent,
   XenditEventListener,
   XenditEventMap,
@@ -135,6 +136,7 @@ type CachedChannelComponent = {
  */
 export type ChannelComponentData = {
   savePaymentMethod: boolean;
+  cardBin: string | null;
   cardDetails: {
     cardNumber: string;
     details: BffCardDetails | null;
@@ -578,6 +580,16 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
+    if (
+      newData.cardBin !== undefined &&
+      newData.cardBin !== null &&
+      newData.cardBin !== component.data.cardBin
+    ) {
+      this.dispatchEvent(
+        new XenditCardBinChangedEvent(channelCode, newData.cardBin),
+      );
+    }
+
     component.data = mergeIgnoringUndefined(component.data, newData);
     this.behaviorTreeUpdate();
 
@@ -894,6 +906,7 @@ export class XenditComponents extends EventTarget {
         customerDetailsFormRef: customerDetailsFormRef,
         data: {
           savePaymentMethod: false,
+          cardBin: null,
           cardDetails: null,
           paymentOptions: null,
           customerDetails: channel[internal][0].requires_customer_details
@@ -1841,6 +1854,16 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "fatal-error",
     listener: XenditEventListener<XenditFatalErrorEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Fired when the BIN of the card number becomes known for a card field.
+   */
+  addEventListener(
+    name: "card-bin-changed",
+    listener: XenditEventListener<XenditCardBinChangedEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 

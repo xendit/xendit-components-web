@@ -27,6 +27,8 @@ export type XenditEventMap = {
   "payment-token-discarded": XenditPaymentTokenDiscardedEvent;
 
   "fatal-error": XenditFatalErrorEvent;
+
+  "card-bin-changed": XenditCardBinChangedEvent;
 };
 
 /**
@@ -258,6 +260,21 @@ export class XenditPaymentRequestCreatedEvent extends Event {
 
   constructor(public paymentRequestId: string) {
     super(XenditPaymentRequestCreatedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Fired once the customer has typed enough of the card number for its BIN to be known, and again whenever that BIN changes.
+ */
+export class XenditCardBinChangedEvent extends Event {
+  static type = "card-bin-changed" as const;
+
+  constructor(
+    public channelCode: string,
+    public bin: string,
+  ) {
+    super(XenditCardBinChangedEvent.type, {});
   }
 }
 

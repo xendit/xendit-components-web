@@ -92,6 +92,7 @@ function channelWithBrands(brandNames: string[]): BffChannel {
 function channelDataWithSchemes(schemes: string[]): ChannelComponentData {
   return {
     savePaymentMethod: false,
+    cardBin: null,
     cardDetails: {
       cardNumber: "xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT",
       details: {

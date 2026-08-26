@@ -114,6 +114,64 @@ describe("secure iframe ui - main - basics", () => {
     await validateEncryptedText(readyEvent, changeEvent, ["4111111111111111"]);
   });
 
+  it("should include the bin once 8 digits are entered for card number field", async () => {
+    await expectPostMessage({ type: "xendit-iframe-ready" }, async () => {
+      await main();
+    });
+    const changeEvent = await expectPostMessage(
+      { type: "xendit-iframe-change" },
+      async () => {
+        const input = document.querySelector("input");
+        assert(input);
+        await userEvent.click(input);
+        await userEvent.paste("4111 1111 1111 1111");
+      },
+    );
+
+    expect(changeEvent.bin).toBe("41111111");
+  });
+
+  it("should include a 6 digit bin when 6 or 7 digits are entered", async () => {
+    await expectPostMessage({ type: "xendit-iframe-ready" }, async () => {
+      await main();
+    });
+    const sixDigits = await expectPostMessage(
+      { type: "xendit-iframe-change" },
+      async () => {
+        const input = document.querySelector("input");
+        assert(input);
+        await userEvent.click(input);
+        await userEvent.paste("411111");
+      },
+    );
+    expect(sixDigits.bin).toBe("411111");
+
+    const sevenDigits = await expectPostMessage(
+      { type: "xendit-iframe-change" },
+      async () => {
+        await userEvent.paste("1");
+      },
+    );
+    expect(sevenDigits.bin).toBe("411111");
+  });
+
+  it("should not include a bin when fewer than 6 digits have been entered", async () => {
+    await expectPostMessage({ type: "xendit-iframe-ready" }, async () => {
+      await main();
+    });
+    const changeEvent = await expectPostMessage(
+      { type: "xendit-iframe-change" },
+      async () => {
+        const input = document.querySelector("input");
+        assert(input);
+        await userEvent.click(input);
+        await userEvent.paste("41111");
+      },
+    );
+
+    expect(changeEvent.bin).toBeUndefined();
+  });
+
   it("should send change event for card expiry field", async () => {
     await setQueryParams({ input_type: "credit_card_expiry" });
     const readyEvent = await expectPostMessage(
@@ -148,6 +206,7 @@ describe("secure iframe ui - main - basics", () => {
     );
 
     await validateEncryptedText(readyEvent, changeEvent, ["12", "2034"]);
+    expect(changeEvent.bin).toBeUndefined();
   });
 
   it("should send change event for card cvn field", async () => {
@@ -180,6 +239,7 @@ describe("secure iframe ui - main - basics", () => {
     );
 
     await validateEncryptedText(readyEvent, changeEvent, ["123"]);
+    expect(changeEvent.bin).toBeUndefined();
   });
 });
 
