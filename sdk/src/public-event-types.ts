@@ -1,3 +1,5 @@
+import { XenditUserError } from "./public-data-types";
+
 /**
  * @public
  */
@@ -60,6 +62,11 @@ export class XenditFatalErrorEvent extends Event {
      * A detailed error message for developers. Don't show this to users.
      */
     public message: string,
+
+    /**
+     * An error message to show to the user. A title and 1-2 lines of localized text.
+     */
+    public userMessage?: XenditUserError,
   ) {
     super(XenditFatalErrorEvent.type, {});
   }

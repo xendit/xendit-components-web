@@ -43,6 +43,7 @@ import { SessionPendingBehavior } from "./behaviors/session-pending";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
 import { SessionTelemetry } from "../telemetry";
+import { BffErrorContent } from "../backend-types/common";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
@@ -61,6 +62,7 @@ export type BlackboardType = {
   // current UI state
   sdkStatus: SdkStatus;
   sdkFatalErrorMessage: string | null;
+  sdkFatalErrorUserMessage: BffErrorContent | null;
   channel: BffChannel | null;
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;

@@ -119,6 +119,7 @@ import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
 import { getTelemetry, SessionTelemetry } from "./telemetry";
 import { TelemetryEvents } from "./telemetry-events";
+import { NetworkError } from "./networking";
 
 /**
  * @internal
@@ -329,6 +330,7 @@ export class XenditComponents extends EventTarget {
         mock: this.isMock(),
         sdkStatus: "LOADING",
         sdkFatalErrorMessage: null,
+        sdkFatalErrorUserMessage: null,
         channel: null,
         channelProperties: null,
         channelData: null,
@@ -411,7 +413,10 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
-
+      if (error instanceof NetworkError) {
+        this[internal].behaviorTree.bb.sdkFatalErrorUserMessage =
+          error.errorResponse.error_content ?? null;
+      }
       getTelemetry(this).append(TelemetryEvents.Loaded(false));
 
       this.behaviorTreeUpdate();

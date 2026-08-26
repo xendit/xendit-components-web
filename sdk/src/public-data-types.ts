@@ -330,3 +330,21 @@ export type XenditDigitalWallet = {
    */
   [internal]: true;
 };
+
+/**
+ * @public
+ */
+export type XenditUserError = {
+  /**
+   * The title of the error message.
+   */
+  title: string;
+  /**
+   * The first line of the error message.
+   */
+  message1: string;
+  /**
+   * The second line of the error message.
+   */
+  message2?: string;
+};

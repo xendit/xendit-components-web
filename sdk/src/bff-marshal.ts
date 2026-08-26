@@ -1,6 +1,6 @@
 import { BffBusiness } from "./backend-types/business";
 import { BffChannel, BffChannelUiGroup } from "./backend-types/channel";
-import { BffSucceededChannel } from "./backend-types/common";
+import { BffErrorContent, BffSucceededChannel } from "./backend-types/common";
 import { BffCustomer } from "./backend-types/customer";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { BffSession } from "./backend-types/session";
@@ -13,6 +13,7 @@ import {
   XenditPaymentChannelGroup,
   XenditSession,
   XenditSucceededChannel,
+  XenditUserError,
 } from "./public-data-types";
 import {
   assert,
@@ -468,4 +469,17 @@ export function bffDigitalWalletsToPublic(
   }
 
   return out;
+}
+
+export function bffErrorContentToPublic(
+  bffErrorContent: BffErrorContent | null,
+): XenditUserError | null {
+  if (!bffErrorContent) {
+    return null;
+  }
+  return {
+    title: bffErrorContent.title,
+    message1: bffErrorContent.message_1,
+    message2: bffErrorContent.message_2 ?? undefined,
+  };
 }
