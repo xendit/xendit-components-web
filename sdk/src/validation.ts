@@ -298,6 +298,11 @@ export function channelPropertyFieldValidate(
       field.channel_property[1],
     );
 
+    if (!month || !year) {
+      if (field.required) {
+        return { localeKey: "validation.required" } as LocaleKey;
+      }
+    }
     // special validation for unencrypted credit card expiry
     if (
       !isEncryptedFieldValue(month as string) &&

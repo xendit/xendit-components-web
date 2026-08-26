@@ -73,7 +73,7 @@ export function ActionBarcode(props: Props) {
         <>
           <img
             src={channelLogo}
-            alt="Channel Logo"
+            alt={t("image_alt.channel_logo", { channelName: title })}
             className="xendit-action-barcode-channel-logo"
           />
           <div className="xendit-action-title">{title}</div>

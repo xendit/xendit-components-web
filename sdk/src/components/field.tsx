@@ -24,18 +24,20 @@ export interface FieldProps {
 const Field: FunctionComponent<FieldProps> = (props) => {
   const { field, className } = props;
   const sdk = useSdk();
-  const hasPublicKey = !!sdk[internal].sdkKey.publicKey;
+  const canUseSecureIframe = Boolean(
+    sdk[internal].sdkKey.publicKey && sdk[internal].sdkKey.signature,
+  );
 
   function renderInner() {
     switch (field.type.name) {
       case "credit_card_number":
-        if (hasPublicKey) return <IframeField {...props} />;
+        if (canUseSecureIframe) return <IframeField {...props} />;
         return <CreditCardNumberField {...props} />;
       case "credit_card_expiry":
-        if (hasPublicKey) return <IframeField {...props} />;
+        if (canUseSecureIframe) return <IframeField {...props} />;
         return <CreditCardExpiryField {...props} />;
       case "credit_card_cvn":
-        if (hasPublicKey) return <IframeField {...props} />;
+        if (canUseSecureIframe) return <IframeField {...props} />;
         return <CreditCardCvnField {...props} />;
       case "phone_number":
         return <PhoneNumberField {...props} />;

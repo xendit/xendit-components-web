@@ -43,6 +43,7 @@ export abstract class ContainerActionBehavior implements Behavior {
       // TODO: validate it's in the dom and the right size
       // clear the previous action's contents before reusing container
       this.flushPendingContainerDestroy();
+      this.flushPendingInstructionsContainerDestroy();
       return () => {
         this.emptyActionContainer();
       };
@@ -155,6 +156,11 @@ export abstract class ContainerActionBehavior implements Behavior {
 
     this.updateActionContainerBrandColor();
 
+    // telemetry for start of action
+    this.telemetryScope = this.bb.telemetry.appendAndPushScope(
+      TelemetryEvents.ActionBegin(true),
+    );
+
     if (cardProps) {
       return render(
         createElement(ActionCard, {
@@ -164,11 +170,6 @@ export abstract class ContainerActionBehavior implements Behavior {
         container,
       );
     }
-
-    // telemetry for start of action
-    this.telemetryScope = this.bb.telemetry.appendAndPushScope(
-      TelemetryEvents.ActionBegin(true),
-    );
 
     render(createComponent(), container);
   }

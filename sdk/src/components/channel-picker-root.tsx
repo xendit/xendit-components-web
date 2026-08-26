@@ -185,6 +185,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
               enabledChannelsStats.firstDisabledChannelReason;
 
             const channelLogos = resolveChannelLogosForGroup(
+              session,
               channelsByGroup[group.id],
             );
 
@@ -241,17 +242,19 @@ function groupEnabledChannelStats(
 }
 
 function resolveChannelLogosForGroup(
+  session: BffSession,
   channels: BffChannel[],
 ): { src: string; alt: string; enabled: boolean }[] {
   const logos: { src: string; alt: string; enabled: boolean }[] = [];
   for (const channel of channels) {
+    const enabled = satisfiesMinMax(session, channel);
     if (channel.card?.brands) {
       // use card logos if available
       for (const brand of channel.card.brands) {
         logos.push({
           src: brand.logo_url,
           alt: brand.name,
-          enabled: true,
+          enabled,
         });
       }
     } else {
@@ -259,7 +262,7 @@ function resolveChannelLogosForGroup(
       logos.push({
         src: channel.brand_logo_url,
         alt: channel.brand_name,
-        enabled: true,
+        enabled,
       });
     }
   }
