@@ -302,6 +302,8 @@ export function channelPropertyFieldValidate(
       if (field.required) {
         return { localeKey: "validation.required" } as LocaleKey;
       }
+      // not required and empty, skip further validation
+      return undefined;
     }
     // special validation for unencrypted credit card expiry
     if (
