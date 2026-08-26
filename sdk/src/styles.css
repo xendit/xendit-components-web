@@ -8,7 +8,7 @@
   --xendit-color-text-placeholder: #7d7d7d;
   --xendit-color-disabled: #f7f7f7;
   --xendit-color-danger: #d1414d;
-  --xendit-color-border: #f3f3f3;
+  --xendit-color-border: #ededed;
   --xendit-color-background: #ffffff;
   --xendit-focus-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
@@ -20,6 +20,9 @@
   --xendit-radius-2: calc(var(--xendit-radius-1) * 2);
   --xendit-z-index-focus: 2;
   --xendit-z-index-overlay: 3;
+  --xendit-font-weight-regular: 400;
+  --xendit-font-weight-semibold: 600;
+  --xendit-font-weight-bold: 700;
 
   /* Browser-specific border collapse margins */
   --xendit-border-collapse-offset: -0.5px; /* Default for Chrome/Edge */
@@ -120,15 +123,15 @@ xendit-payment-channel select::placeholder {
 .xendit-text-12,
 .xendit-text-14,
 .xendit-text-16 {
-  font-weight: 400;
+  font-weight: var(--xendit-font-weight-regular);
 }
 
 .xendit-text-semibold {
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
 }
 
 .xendit-text-bold {
-  font-weight: 700;
+  font-weight: var(--xendit-font-weight-bold);
 }
 
 .xendit-text-link {
@@ -178,7 +181,7 @@ xendit-payment-channel select::placeholder {
   grid-gap: 16px;
   align-items: center;
   cursor: pointer;
-  padding: 24px 16px;
+  padding: 16px;
   color: var(--xendit-color-text);
   border-radius: 8px;
 }
@@ -194,27 +197,34 @@ xendit-payment-channel select::placeholder {
   gap: 8px;
 }
 
+.xendit-accordion-item-logos {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.xendit-accordion-item-logo-container {
+  height: 24px;
+  width: 32px;
+  border-radius: 2px;
+  border: 1px solid var(--xendit-color-border);
+  background-color: var(--xendit-color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.xendit-accordion-item-logo-image {
+  max-height: 16px;
+  max-width: 24px;
+  object-fit: contain;
+}
+.xendit-accordion-item-logo-image-disabled {
+  filter: grayscale(100%) opacity(0.5);
+}
+
 .xendit-accordion-item-disabled .xendit-accordion-item-header-title,
-.xendit-accordion-item-disabled .xendit-accordion-item-header-icon {
+.xendit-accordion-item-disabled {
   opacity: 0.5;
-}
-
-.xendit-accordion-item.xendit-accordion-item-open
-  .xendit-accordion-item-header {
-  color: var(--xendit-color-primary);
-}
-
-.xendit-accordion-item-chevron {
-  color: var(--xendit-color-text);
-}
-
-.xendit-accordion-item-disabled .xendit-accordion-item-chevron {
-  display: none;
-}
-
-.xendit-accordion-item-chevron g {
-  transition: transform var(--xendit-animation-duration)
-    var(--xendit-animation-ease);
 }
 
 .xendit-accordion-item-header:focus-visible {

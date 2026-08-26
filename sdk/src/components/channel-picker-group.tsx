@@ -195,7 +195,10 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
     <div className="xendit-channel-picker-group">
       {hideDropdown ? null : (
         <div className="xendit-channel-form-field-group">
-          <label htmlFor={dropdownId} className="xendit-text-14">
+          <label
+            htmlFor={dropdownId}
+            className="xendit-text-12 xendit-text-semibold"
+          >
             {sessionType === "SAVE"
               ? t("payment_methods.add_payment_method", {
                   groupName: group.label ?? "",
