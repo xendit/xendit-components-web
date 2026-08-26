@@ -395,6 +395,9 @@ The following variables are available:
 | --xendit-z-index-focus | Z-index applied to focused fields |
 | --xendit-qr-foreground-color | The color used for QR codes (the black pixels). |
 | --xendit-qr-background-color | The color used as the background of QR codes (the white pixels). |
+| --xendit-font-weight-regular | Regular font weight |
+| --xendit-font-weight-semibold | Semibold font weight, for labels and buttons |
+| --xendit-font-weight-bold | Bold font weight, for headings |
 
 Additionally, the following variables are set at component scope, where applicable:
 | Variable | Description |

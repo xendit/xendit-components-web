@@ -23,7 +23,7 @@ export function ActionCard(props: ActionCardProps) {
           src={props.channelBrandLogoUrl}
           alt=""
         />
-        <div className="xendit-action-heading xendit-text-24 xendit-text-semibold">
+        <div className="xendit-action-heading xendit-text-24 xendit-text-bold">
           {props.title || props.channelBrandName}
         </div>
       </div>

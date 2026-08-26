@@ -850,7 +850,7 @@ xendit-channel-picker[inert] {
   padding: 12px 16px;
   font-family: var(--xendit-font-family);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 16px;
   letter-spacing: -0.09px;
   cursor: pointer;
@@ -1104,7 +1104,7 @@ xendit-channel-picker[inert] {
   border-radius: var(--xendit-radius-1);
   white-space: nowrap;
   z-index: 1000;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   font-size: 14px;
   line-height: 16px;
   animation: xendit-tooltip-fade-in var(--xendit-animation-duration)
@@ -1124,7 +1124,7 @@ xendit-channel-picker[inert] {
 /* Instructions */
 
 .xendit-instructions-bold {
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
 }
 .xendit-instructions-bullet-list {
   display: flex;
@@ -1139,7 +1139,7 @@ xendit-channel-picker[inert] {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  border-radius: var(--xendit-radius-3);
+  border-radius: var(--xendit-radius-1);
   border: 1px solid var(--xendit-color-border);
   gap: 4px;
   width: 321px;
@@ -1153,7 +1153,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-form-field-label {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 16px;
   color: var(--xendit-color-text-secondary);
 }
@@ -1164,7 +1164,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-form-heading {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 20px;
   margin: 4px 0;
 }
@@ -1180,7 +1180,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-single-tab-heading {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 20px;
   margin-bottom: 16px;
 }
@@ -1212,7 +1212,7 @@ xendit-channel-picker[inert] {
 .xendit-instructions-active-tab {
   border-bottom-color: var(--xendit-color-primary);
   color: var(--xendit-color-primary);
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
 }
 .xendit-instructions-tab-list {
   display: flex;
@@ -1232,7 +1232,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-table-header {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 16px;
   padding: 4px;
   border: 1px solid black;
@@ -1247,6 +1247,7 @@ xendit-channel-picker[inert] {
 }
 
 .xendit-action-title {
+  font-weight: var(--xendit-font-weight-semibold);
   font-weight: 600;
   font-size: 20px;
   line-height: 28px;
@@ -1463,6 +1464,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-action-card-inner-content {
   background-color: var(--xendit-color-background);
-  border-radius: var(--xendit-radius-3);
+  border-radius: calc(var(--xendit-radius-3) - 4px);
   padding: 16px 12px;
+  overflow: hidden;
 }
