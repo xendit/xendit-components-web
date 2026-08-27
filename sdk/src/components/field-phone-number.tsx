@@ -12,7 +12,6 @@ import { useSession } from "./session-provider";
 import { formFieldId, formFieldName } from "../utils";
 import {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -27,8 +26,7 @@ const sanitizePhoneNumber = (
   country: DropdownOptionWithDial,
   phoneNumber: string,
 ): PhoneNumber | null => {
-  const lib = getLoadedLibphonenumber();
-  if (!lib) return null;
+  const lib = getLoadedLibphonenumber()!;
   const parsed = lib.parsePhoneNumberFromString(
     phoneNumber,
     country.value as CountryCode,
@@ -48,11 +46,8 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
 
   const countriesAsDropdownOptions = useCountriesAsDropdownOptions();
 
-  const isLibraryLoaded = countriesAsDropdownOptions.length > 0;
-
   const countriesWithDialCodesAsDropdownOptions = useMemo(() => {
-    const lib = getLoadedLibphonenumber();
-    if (!lib) return [];
+    const lib = getLoadedLibphonenumber()!;
     return countriesAsDropdownOptions
       .map<DropdownOptionWithDial | null>((country) => {
         const dial = lib.getCountryCallingCode(country.value as CountryCode);
@@ -73,8 +68,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
       localNumber: "",
     };
     if (!initial) return defaultInitial;
-    const lib = getLoadedLibphonenumber();
-    if (!lib) return defaultInitial;
+    const lib = getLoadedLibphonenumber()!;
     const parsed = lib.parsePhoneNumberFromString(initial);
     if (!parsed) return defaultInitial;
     const countryOption = countriesWithDialCodesAsDropdownOptions.find(
@@ -111,14 +105,6 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   const [localNumber, setLocalNumber] = useState(initial.localNumber);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // re-sync display once the library finishes loading
-  useEffect(() => {
-    if (!isLibraryLoaded || !field.initial_value) return;
-    const recomputed = initialValues(field.initial_value, session.country);
-    setCountryCode(recomputed.country);
-    setLocalNumber(recomputed.localNumber);
-  }, [isLibraryLoaded]);
-
   const formatPhoneNumber = useCallback(
     (country: DropdownOptionWithDial, localNumber: string) => {
       const phoneNumber = sanitizePhoneNumber(country, localNumber);
@@ -143,7 +129,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   function handleLocalChange(event: TargetedEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
     setLocalNumber(nextLocal);
-    if (country) updateHiddenField(country, nextLocal);
+    updateHiddenField(country, nextLocal);
     onChange();
   }
 
@@ -172,8 +158,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   });
 
   function getExampleLocalNumber() {
-    const lib = getLoadedLibphonenumber();
-    if (!lib || !country) return "";
+    const lib = getLoadedLibphonenumber()!;
     return (
       lib
         .getExampleNumber(country.value as CountryCode, examples)
@@ -186,8 +171,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   }
 
   function formatForUser(_country = country, _localNumber = localNumber) {
-    const lib = getLoadedLibphonenumber();
-    if (!lib || !_country) return;
+    const lib = getLoadedLibphonenumber()!;
     const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
     if (phoneNumber) {
       // sync the dropdown if the number is from a different country
@@ -211,17 +195,16 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
     }
   }
 
-  // wait for the library so validation never runs against an unparsed value;
-  // useLayoutEffect keeps this synchronous once isLibraryLoaded is already true
+  // on first render, populate hidden input and notify parent component of initial value
   useLayoutEffect(() => {
-    if (!isLibraryLoaded) return;
     if (field.initial_value) {
       if (hiddenFieldRef.current) {
         hiddenFieldRef.current.value = field.initial_value;
       }
       onChange(true);
     }
-  }, [isLibraryLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="xendit-input-phone">
@@ -233,7 +216,6 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         enableSearch
         noOverflow
         className="xendit-form-field-inner"
-        disabled={!isLibraryLoaded}
       />
       <input
         id={id}
@@ -246,7 +228,6 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         onChange={handleLocalChange}
         value={localNumber}
         autoComplete="tel"
-        disabled={!isLibraryLoaded}
       />
       <input type="hidden" name={name} ref={hiddenFieldRef} />
     </div>

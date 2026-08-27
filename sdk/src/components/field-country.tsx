@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -9,10 +8,7 @@ import {
 import { FieldProps } from "./field";
 import type { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
-import {
-  getLibphonenumber,
-  getLoadedLibphonenumber,
-} from "../libphonenumber-loader";
+import { getLoadedLibphonenumber } from "../libphonenumber-loader";
 import { formFieldId, formFieldName, usePrevious } from "../utils";
 import { FunctionComponent, TargetedEvent } from "preact";
 import { useChannelComponentData } from "./channel-root";
@@ -40,44 +36,26 @@ const FlagIcon: FunctionComponent<FlagIconProps> = ({
   );
 };
 
-function buildCountryOptions(
-  getCountries: () => CountryCode[],
-): DropdownOption[] {
-  return getCountries()
-    .map((countryCode) => {
-      const country = new Intl.DisplayNames(["en"], {
-        type: "region",
-      }).of(countryCode);
-      return {
-        title: country,
-        value: countryCode,
-        leadingAsset: <FlagIcon countryCode={countryCode} />,
-      } as DropdownOption;
-    })
-    .sort((a, b) => a.title.localeCompare(b.title));
-}
-
+// the country list never changes
 export function useCountriesAsDropdownOptions(): DropdownOption[] {
-  const [options, setOptions] = useState<DropdownOption[]>(() => {
-    const lib = getLoadedLibphonenumber();
-    return lib ? buildCountryOptions(lib.getCountries) : [];
-  });
+  return useMemo(
+    () =>
+      getLoadedLibphonenumber()!
+        .getCountries()
+        .map((countryCode) => {
+          const country = new Intl.DisplayNames(["en"], {
+            type: "region",
+          }).of(countryCode);
 
-  useEffect(() => {
-    if (options.length > 0) return;
-
-    let cancelled = false;
-    getLibphonenumber().then((lib) => {
-      if (cancelled) return;
-      setOptions(buildCountryOptions(lib.getCountries));
-    });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return options;
+          return {
+            title: country,
+            value: countryCode,
+            leadingAsset: <FlagIcon countryCode={countryCode} />,
+          } as DropdownOption;
+        })
+        .sort((a, b) => a.title.localeCompare(b.title)),
+    [],
+  );
 }
 
 export const CountryField: FunctionComponent<FieldProps> = (props) => {
@@ -117,6 +95,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     [onChange],
   );
 
+  // on first render populate hidden field with initial value and notify parent of change
   useLayoutEffect(() => {
     if (field.initial_value) {
       if (hiddenFieldRef.current) {
@@ -126,18 +105,6 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (
-      countriesAsDropdownOptions.length > 0 &&
-      selectedCountry &&
-      hiddenFieldRef.current &&
-      hiddenFieldRef.current.value !== selectedCountry
-    ) {
-      hiddenFieldRef.current.value = selectedCountry;
-      onChange(true);
-    }
-  }, [countriesAsDropdownOptions]);
 
   const handleNativeSelectChange = useCallback(
     (event: TargetedEvent<HTMLSelectElement>) => {
@@ -163,7 +130,6 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
     [onChange, onChangeWrapper, selectedCountry, countriesAsDropdownOptions],
   );
 
-  // the country list never changes after it loads
   const selectOptions = useMemo(
     () =>
       countriesAsDropdownOptions.map((option) => (
@@ -175,7 +141,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
   );
 
   return (
-    <div className="xendit-input-country">
+    <div>
       {/* a `<select>`, not `type="hidden"` browsers only autofill what they render */}
       <select
         name={name}
@@ -196,7 +162,6 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
         selectedIndex={selectedCountryIndex}
         enableSearch
         className="xendit-form-field-inner"
-        disabled={countriesAsDropdownOptions.length === 0}
       />
     </div>
   );

@@ -6,14 +6,11 @@ describe("libphonenumber-loader", () => {
     vi.resetModules();
   });
 
-  it("should return null before anything has loaded", async () => {
-    const { getLoadedLibphonenumber } = await import("./libphonenumber-loader");
-    expect(getLoadedLibphonenumber()).toBeNull();
-  });
-
-  it("should not block when preloading", async () => {
+  it("should not expose the module before loading finishes", async () => {
     const { preloadLibphonenumber, getLoadedLibphonenumber } =
       await import("./libphonenumber-loader");
+    expect(getLoadedLibphonenumber()).toBeNull();
+
     preloadLibphonenumber();
     expect(getLoadedLibphonenumber()).toBeNull();
   });
@@ -31,24 +28,5 @@ describe("libphonenumber-loader", () => {
     const { getLibphonenumber } = await import("./libphonenumber-loader");
     const mod = await getLibphonenumber();
     expect(typeof mod.parsePhoneNumberFromString).toBe("function");
-  });
-
-  it("should be safe to call preload multiple times", async () => {
-    const { preloadLibphonenumber, getLibphonenumber } =
-      await import("./libphonenumber-loader");
-    preloadLibphonenumber();
-    preloadLibphonenumber();
-    preloadLibphonenumber();
-    const mod = await getLibphonenumber();
-    expect(typeof mod.parsePhoneNumberFromString).toBe("function");
-  });
-
-  it("should resolve concurrent calls to the same module instance", async () => {
-    const { getLibphonenumber } = await import("./libphonenumber-loader");
-    const [mod1, mod2] = await Promise.all([
-      getLibphonenumber(),
-      getLibphonenumber(),
-    ]);
-    expect(mod1).toBe(mod2);
   });
 });

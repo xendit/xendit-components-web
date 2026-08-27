@@ -115,7 +115,10 @@ import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
 import { getTelemetry, SessionTelemetry } from "./telemetry";
 import { TelemetryEvents } from "./telemetry-events";
-import { preloadLibphonenumber } from "./libphonenumber-loader";
+import {
+  getLibphonenumber,
+  preloadLibphonenumber,
+} from "./libphonenumber-loader";
 
 /**
  * @internal
@@ -465,6 +468,20 @@ export class XenditComponents extends EventTarget {
           return;
         }
       }
+    }
+
+    // Wait for libphonenumber-js
+    try {
+      await getLibphonenumber();
+    } catch (error) {
+      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+        errorToString(error);
+
+      getTelemetry(this).append(TelemetryEvents.Loaded(false));
+
+      this.behaviorTreeUpdate();
+      return;
     }
 
     // telemetry for successful load
@@ -1953,6 +1970,9 @@ export class XenditComponentsTest extends XenditComponents {
 
     // Always use test data for this class
     const bff = (await import("./data/test-data")).makeTestBffData();
+
+    // Wait for libphonenumber-js so fields can assume it's already loaded
+    await getLibphonenumber();
 
     // Update internal data
     this.dispatchEvent(

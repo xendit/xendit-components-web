@@ -883,10 +883,7 @@ xendit-channel-picker[inert] {
   }
 }
 
-.xendit-shimmer,
-.xendit-input-phone .xendit-phone-number-input:disabled,
-.xendit-input-phone .xendit-dropdown:disabled,
-.xendit-input-country .xendit-dropdown:disabled {
+.xendit-shimmer {
   background: linear-gradient(
     90deg,
     var(--xendit-color-disabled) 25%,
@@ -897,16 +894,8 @@ xendit-channel-picker[inert] {
   animation: xendit-shimmer-sweep 1.5s ease-in-out infinite;
 }
 
-.xendit-input-phone .xendit-dropdown:disabled > *,
-.xendit-input-country .xendit-dropdown:disabled > * {
-  visibility: hidden;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .xendit-shimmer,
-  .xendit-input-phone .xendit-phone-number-input:disabled,
-  .xendit-input-phone .xendit-dropdown:disabled,
-  .xendit-input-country .xendit-dropdown:disabled {
+  .xendit-shimmer {
     animation: none;
   }
 }
