@@ -1,3 +1,5 @@
+import { assert } from "./utils";
+
 // The in-flight/resolved Promise, null means loading hasn't started yet.
 let libphonenumberPromise: Promise<typeof import("libphonenumber-js")> | null =
   null;
@@ -23,8 +25,7 @@ export async function getLibphonenumber(): Promise<
 }
 
 // Synchronous check: returns the module once loaded, otherwise null.
-export function getLoadedLibphonenumber():
-  | typeof import("libphonenumber-js")
-  | null {
+export function getLoadedLibphonenumber(): typeof import("libphonenumber-js") {
+  assert(libphonenumberModule);
   return libphonenumberModule;
 }

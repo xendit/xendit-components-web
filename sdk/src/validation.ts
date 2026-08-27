@@ -47,7 +47,7 @@ export const validateEmail = (value: string): LocaleKey | undefined => {
 };
 
 export const validatePhoneNumber = (value: string): LocaleKey | undefined => {
-  const lib = getLoadedLibphonenumber()!;
+  const lib = getLoadedLibphonenumber();
   const phone = lib.parsePhoneNumberFromString(value);
   if (!phone || !phone.isValid()) {
     return {

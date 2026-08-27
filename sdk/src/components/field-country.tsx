@@ -40,7 +40,7 @@ const FlagIcon: FunctionComponent<FlagIconProps> = ({
 export function useCountriesAsDropdownOptions(): DropdownOption[] {
   return useMemo(
     () =>
-      getLoadedLibphonenumber()!
+      getLoadedLibphonenumber()
         .getCountries()
         .map((countryCode) => {
           const country = new Intl.DisplayNames(["en"], {

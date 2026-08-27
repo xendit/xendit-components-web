@@ -9,10 +9,10 @@ describe("libphonenumber-loader", () => {
   it("should not expose the module before loading finishes", async () => {
     const { preloadLibphonenumber, getLoadedLibphonenumber } =
       await import("./libphonenumber-loader");
-    expect(getLoadedLibphonenumber()).toBeNull();
+    expect(() => getLoadedLibphonenumber()).toThrowError();
 
     preloadLibphonenumber();
-    expect(getLoadedLibphonenumber()).toBeNull();
+    expect(() => getLoadedLibphonenumber()).toThrowError();
   });
 
   it("should resolve to the real module and expose it synchronously afterwards", async () => {

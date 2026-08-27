@@ -26,7 +26,7 @@ const sanitizePhoneNumber = (
   country: DropdownOptionWithDial,
   phoneNumber: string,
 ): PhoneNumber | null => {
-  const lib = getLoadedLibphonenumber()!;
+  const lib = getLoadedLibphonenumber();
   const parsed = lib.parsePhoneNumberFromString(
     phoneNumber,
     country.value as CountryCode,
@@ -47,7 +47,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   const countriesAsDropdownOptions = useCountriesAsDropdownOptions();
 
   const countriesWithDialCodesAsDropdownOptions = useMemo(() => {
-    const lib = getLoadedLibphonenumber()!;
+    const lib = getLoadedLibphonenumber();
     return countriesAsDropdownOptions
       .map<DropdownOptionWithDial | null>((country) => {
         const dial = lib.getCountryCallingCode(country.value as CountryCode);
@@ -68,7 +68,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
       localNumber: "",
     };
     if (!initial) return defaultInitial;
-    const lib = getLoadedLibphonenumber()!;
+    const lib = getLoadedLibphonenumber();
     const parsed = lib.parsePhoneNumberFromString(initial);
     if (!parsed) return defaultInitial;
     const countryOption = countriesWithDialCodesAsDropdownOptions.find(
@@ -158,7 +158,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   });
 
   function getExampleLocalNumber() {
-    const lib = getLoadedLibphonenumber()!;
+    const lib = getLoadedLibphonenumber();
     return (
       lib
         .getExampleNumber(country.value as CountryCode, examples)
@@ -171,7 +171,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   }
 
   function formatForUser(_country = country, _localNumber = localNumber) {
-    const lib = getLoadedLibphonenumber()!;
+    const lib = getLoadedLibphonenumber();
     const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
     if (phoneNumber) {
       // sync the dropdown if the number is from a different country
