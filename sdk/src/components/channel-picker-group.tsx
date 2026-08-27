@@ -185,8 +185,14 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
     });
     if (i2 !== -1) return i2;
 
-    // if there's only one option, pretend it's always selected
-    if (channelOptions.length === 1) return 0;
+    // if there's exactly one enabled option, pretend it's always selected.
+    // this keeps the button's selected channel (and its logo) stable even when
+    // currentChannel is transiently null, like while the group collapses during
+    // its close animation.
+    const enabledIndices = channelOptions
+      .map((option, index) => ({ option, index }))
+      .filter(({ option }) => !option.disabled);
+    if (enabledIndices.length === 1) return enabledIndices[0].index;
 
     return -1;
   }
