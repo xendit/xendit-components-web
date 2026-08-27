@@ -73,7 +73,7 @@ export const AccordionItem: FunctionComponent<Props> = (props) => {
         <div className="xendit-accordion-item-header-title xendit-text-14">
           {title}
           {subtitle ? (
-            <div className="xendit-accordion-item-header-subtitle xendit-text-14">
+            <div className="xendit-accordion-item-header-subtitle xendit-text-12">
               {subtitle}
             </div>
           ) : null}

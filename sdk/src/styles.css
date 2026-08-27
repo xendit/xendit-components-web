@@ -195,7 +195,7 @@ xendit-payment-channel select::placeholder {
 .xendit-accordion-item-header-title {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .xendit-accordion-item-logos {
@@ -221,11 +221,6 @@ xendit-payment-channel select::placeholder {
 }
 .xendit-accordion-item-logo-image-disabled {
   filter: grayscale(100%) opacity(0.5);
-}
-
-.xendit-accordion-item-disabled .xendit-accordion-item-header-title,
-.xendit-accordion-item-disabled {
-  opacity: 0.5;
 }
 
 .xendit-accordion-item-header:focus-visible {
@@ -1435,6 +1430,7 @@ xendit-channel-picker[inert] {
 .xendit-action-channel-info {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
