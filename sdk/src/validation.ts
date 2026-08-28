@@ -4,7 +4,7 @@ import {
   ChannelProperties,
   ChannelPropertyPrimative,
 } from "./backend-types/channel";
-import parsePhoneNumberFromString from "libphonenumber-js/min";
+import { getLoadedLibphonenumber } from "./libphonenumber-loader";
 import { filterFormFields } from "./components/channel-form";
 import { BffSessionType } from "./backend-types/session";
 import { LocaleKey, LocalizedString } from "./localization";
@@ -138,7 +138,8 @@ export const validateEmail = (value: string): LocaleKey | undefined => {
 };
 
 export const validatePhoneNumber = (value: string): LocaleKey | undefined => {
-  const phone = parsePhoneNumberFromString(value);
+  const lib = getLoadedLibphonenumber();
+  const phone = lib.parsePhoneNumberFromString(value);
   if (!phone || !phone.isValid()) {
     return {
       localeKey: "validation.generic_invalid",

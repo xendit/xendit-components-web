@@ -1,10 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import * as libphonenumber from "libphonenumber-js";
 import { BffChannel, ChannelFormField } from "./backend-types/channel";
 import {
   channelPropertiesAreValid,
   channelPropertyFieldValidate,
 } from "./validation";
 import { ChannelComponentData } from "./public-sdk";
+
+// Make the loader return the real libphonenumber-js module synchronously.
+vi.mock("./libphonenumber-loader", () => ({
+  getLoadedLibphonenumber: () => libphonenumber,
+}));
 
 function makeField(
   channelProperty: string,

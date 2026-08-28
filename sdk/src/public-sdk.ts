@@ -120,6 +120,10 @@ import { CustomerDetailsFormHandle } from "./components/customer-form";
 import { getTelemetry, SessionTelemetry } from "./telemetry";
 import { TelemetryEvents } from "./telemetry-events";
 import { NetworkError } from "./networking";
+import {
+  getLibphonenumber,
+  preloadLibphonenumber,
+} from "./libphonenumber-loader";
 
 /**
  * @internal
@@ -401,6 +405,8 @@ export class XenditComponents extends EventTarget {
    * Initialize session data asynchronously
    */
   protected async initializeAsync(): Promise<void> {
+    // Start loading libphonenumber-js in the background
+    preloadLibphonenumber();
     let bff: BffResponse;
     try {
       // Fetch session data from the server
@@ -488,6 +494,20 @@ export class XenditComponents extends EventTarget {
           return;
         }
       }
+    }
+
+    // Wait for libphonenumber-js
+    try {
+      await getLibphonenumber();
+    } catch (error) {
+      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+        errorToString(error);
+
+      getTelemetry(this).append(TelemetryEvents.Loaded(false));
+
+      this.behaviorTreeUpdate();
+      return;
     }
 
     // telemetry for successful load
@@ -2070,11 +2090,17 @@ export class XenditComponentsTest extends XenditComponents {
    * Override to use test data instead of making API calls
    */
   protected async initializeAsync(): Promise<void> {
+    // Start loading libphonenumber-js in the background (same as the real initializeAsync)
+    preloadLibphonenumber();
+
     // Simulate network delay and prevent firing the init event before the constructor returns
     await sleep(MOCK_NETWORK_DELAY_MS);
 
     // Always use test data for this class
     const bff = (await import("./data/test-data")).makeTestBffData();
+
+    // Wait for libphonenumber-js so fields can assume it's already loaded
+    await getLibphonenumber();
 
     // Update internal data
     this.dispatchEvent(
