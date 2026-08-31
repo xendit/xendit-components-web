@@ -6,8 +6,9 @@ import {
   useState,
 } from "preact/hooks";
 import { FieldProps } from "./field";
-import { CountryCode, getCountries } from "libphonenumber-js";
+import type { CountryCode } from "libphonenumber-js";
 import { Dropdown, DropdownOption } from "./core/dropdown";
+import { getLoadedLibphonenumber } from "../libphonenumber-loader";
 import { formFieldId, formFieldName, usePrevious } from "../utils";
 import { FunctionComponent, TargetedEvent } from "preact";
 import { useChannelComponentData } from "./channel-root";
@@ -35,16 +36,40 @@ const FlagIcon: FunctionComponent<FlagIconProps> = ({
   );
 };
 
+// the country list never changes
+export function useCountriesAsDropdownOptions(): DropdownOption[] {
+  return useMemo(
+    () =>
+      getLoadedLibphonenumber()
+        .getCountries()
+        .map((countryCode) => {
+          const country = new Intl.DisplayNames(["en"], {
+            type: "region",
+          }).of(countryCode);
+
+          return {
+            title: country,
+            value: countryCode,
+            leadingAsset: <FlagIcon countryCode={countryCode} />,
+          } as DropdownOption;
+        })
+        .sort((a, b) => a.title.localeCompare(b.title)),
+    [],
+  );
+}
+
 export const CountryField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
   const id = formFieldId(field);
   const name = formFieldName(field);
 
+  const countriesAsDropdownOptions = useCountriesAsDropdownOptions();
+
   const [selectedCountry, setSelectedCountry] = useState<
     CountryCode | undefined
   >(field.initial_value as CountryCode | undefined);
 
-  const selectedCountryIndex = COUNTRIES_AS_DROPDOWN_OPTIONS.findIndex(
+  const selectedCountryIndex = countriesAsDropdownOptions.findIndex(
     (option) => option.value === selectedCountry,
   );
 
@@ -52,7 +77,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
 
   useOnCardCountryChange((newCountry: CountryCode) => {
     if (hiddenFieldRef.current) {
-      const newOption = COUNTRIES_AS_DROPDOWN_OPTIONS.find((option) => {
+      const newOption = countriesAsDropdownOptions.find((option) => {
         return option.value === newCountry;
       });
       if (newOption) onChangeWrapper(newOption);
@@ -92,7 +117,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
         return;
       }
 
-      const option = COUNTRIES_AS_DROPDOWN_OPTIONS.find(
+      const option = countriesAsDropdownOptions.find(
         (o) => o.value === filledValue,
       );
       if (option) {
@@ -102,18 +127,17 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
         hiddenFieldRef.current.value = selectedCountry ?? "";
       }
     },
-    [onChange, onChangeWrapper, selectedCountry],
+    [onChange, onChangeWrapper, selectedCountry, countriesAsDropdownOptions],
   );
 
-  // the country list never changes
   const selectOptions = useMemo(
     () =>
-      COUNTRIES_AS_DROPDOWN_OPTIONS.map((option) => (
+      countriesAsDropdownOptions.map((option) => (
         <option key={option.value} value={option.value}>
           {option.title}
         </option>
       )),
-    [],
+    [countriesAsDropdownOptions],
   );
 
   return (
@@ -132,7 +156,7 @@ export const CountryField: FunctionComponent<FieldProps> = (props) => {
       </select>
       <Dropdown
         id={id}
-        options={COUNTRIES_AS_DROPDOWN_OPTIONS}
+        options={countriesAsDropdownOptions}
         onChange={onChangeWrapper}
         placeholder={field.placeholder}
         selectedIndex={selectedCountryIndex}
@@ -156,20 +180,6 @@ export const VISUALLY_HIDDEN = {
   whiteSpace: "nowrap",
   pointerEvents: "none",
 };
-
-export const COUNTRIES_AS_DROPDOWN_OPTIONS = getCountries()
-  .map((countryCode) => {
-    const country = new Intl.DisplayNames(["en"], {
-      type: "region",
-    }).of(countryCode);
-
-    return {
-      title: country,
-      value: countryCode,
-      leadingAsset: <FlagIcon countryCode={countryCode} />,
-    } as DropdownOption;
-  })
-  .sort((a, b) => a.title.localeCompare(b.title));
 
 export function useOnCardCountryChange(fn: (newCountry: CountryCode) => void) {
   const cardDetails = useChannelComponentData()?.cardDetails;
