@@ -26,7 +26,7 @@ describe("channel component save", () => {
 
     // save checkbox should exist
     const checkbox = screen.getByLabelText(
-      "Save this payment method for recurring payments",
+      "Save this payment method for future payments",
     );
     expect(checkbox).toBeInTheDocument();
     expect(checkbox).toBeInstanceOf(HTMLInputElement);
@@ -58,7 +58,7 @@ describe("channel component save", () => {
     expect(getRealValueOfSaveCheckbox()).toBe(false);
 
     const checkbox = screen.getByLabelText(
-      "Save this payment method for recurring payments",
+      "Save this payment method for future payments",
     );
     await userEvent.click(checkbox);
 

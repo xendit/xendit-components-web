@@ -16,6 +16,10 @@ const localeMap: {
   es: es.session,
 };
 
+export type InterceptLocaleStringsFn = (
+  strings: Partial<(typeof localeMap)["en"]>,
+) => Partial<(typeof localeMap)["en"]>;
+
 type InterpolationOptions = Record<string, string | number>;
 
 /**
@@ -42,8 +46,13 @@ export interface TFunction {
 /**
  * Generate a TFunction for a locale.
  */
-export function createTFunction(locale: string): TFunction {
-  const localeData = localeMap[locale];
+export function createTFunction(
+  locale: string,
+  interceptLocaleStrings: InterceptLocaleStringsFn | undefined,
+): TFunction {
+  const localeData = interceptLocaleStrings
+    ? interceptLocaleStrings(localeMap[locale])
+    : localeMap[locale];
   const tFn: TFunction = function (...args: unknown[]) {
     let key: keyof typeof en.session;
     let fallback: string | undefined;

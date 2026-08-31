@@ -395,7 +395,10 @@ export class XenditComponents extends EventTarget {
         this[internal].sdkKey,
         this[internal].sdkKey.sessionAuthKey,
       );
-      bff.channels = removeBlockedChannels(bff.channels);
+      const interceptChannelsFn =
+        this[internal].options.interceptChannelConfig ??
+        ((channels) => channels);
+      bff.channels = interceptChannelsFn(removeBlockedChannels(bff.channels));
     } catch (error) {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
@@ -557,7 +560,10 @@ export class XenditComponents extends EventTarget {
 
     // update locale
     const locale = this[internal].worldState.session.locale;
-    this.t = createTFunction(locale);
+    this.t = createTFunction(
+      locale,
+      this[internal].options.interceptLocaleStrings,
+    );
 
     // update everything
     this.behaviorTreeUpdate();
@@ -1947,6 +1953,9 @@ export class XenditComponentsTest extends XenditComponents {
 
     // Always use test data for this class
     const bff = (await import("./data/test-data")).makeTestBffData();
+    const interceptChannelsFn =
+      this[internal].options.interceptChannelConfig ?? ((channels) => channels);
+    bff.channels = interceptChannelsFn(removeBlockedChannels(bff.channels));
 
     // Update internal data
     this.dispatchEvent(

@@ -76,7 +76,7 @@
     "image_alt.channel_logo": "{{channelName}} logo",
     "installment_plan.pay_in_full": "Pay in full — {{amount}}",
     "installment_plan.pay_in_installments": "{{installments}}x Installments — {{amount}}",
-    "payment.save_checkbox_label": "Save this payment method for recurring payments",
+    "payment.save_checkbox_label": "Save this payment method for future payments",
     "payment_methods.add_payment_method": "Add payment method",
     "payment_methods.channel_disabled_amount_too_large": "The payment amount is above the max. transaction limit",
     "payment_methods.channel_disabled_amount_too_small": "The payment amount is below the min. transaction limit",
