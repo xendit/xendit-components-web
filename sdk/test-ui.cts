@@ -200,6 +200,8 @@ components.addEventListener("payment-token-discarded", logEvent);
 
 components.addEventListener("fatal-error", logEvent);
 
+components.addEventListener("channel-properties-changed", logEvent);
+
 setInterval(() => {
   const internalState = components.getState();
   const { world, channel, dispatchEvent, sdk, ...bbFlags } =
