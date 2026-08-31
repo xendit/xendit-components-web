@@ -1,4 +1,4 @@
-import { BffChannel } from "./backend-types/channel";
+import { BffChannel, BffChannelUiGroup } from "./backend-types/channel";
 import { InterceptLocaleStringsFn } from "./localization";
 import { XenditDigitalWalletCode } from "./public-data-types";
 
@@ -50,7 +50,10 @@ export interface XenditSdkOptions {
    * @internal
    * Called before initialization, can modify channel config. Use with caution.
    */
-  interceptChannelConfig?: (strings: BffChannel[]) => BffChannel[];
+  interceptChannelConfig?: (config: {
+    channels: BffChannel[];
+    channel_ui_groups: BffChannelUiGroup[];
+  }) => { channels: BffChannel[]; channel_ui_groups: BffChannelUiGroup[] };
 }
 
 /**

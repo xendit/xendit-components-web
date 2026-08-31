@@ -10,8 +10,10 @@ describe("sdk intercept options", () => {
   describe("interceptChannelConfig", () => {
     it("should allow filtering channels via interceptChannelConfig", async () => {
       const sdk = new XenditComponentsTest({
-        interceptChannelConfig: (channels) =>
-          channels.filter((ch) => ch.channel_code === "CARDS"),
+        interceptChannelConfig: ({ channels, channel_ui_groups }) => ({
+          channels: channels.filter((ch) => ch.channel_code === "CARDS"),
+          channel_ui_groups,
+        }),
       });
 
       await waitForEvent(sdk, "init");
@@ -23,11 +25,13 @@ describe("sdk intercept options", () => {
 
     it("should allow modifying channel properties via interceptChannelConfig", async () => {
       const sdk = new XenditComponentsTest({
-        interceptChannelConfig: (channels) =>
-          channels.map((ch) => ({
+        interceptChannelConfig: ({ channels, channel_ui_groups }) => ({
+          channels: channels.map((ch) => ({
             ...ch,
             brand_name: `Modified: ${ch.brand_name}`,
           })),
+          channel_ui_groups,
+        }),
       });
 
       await waitForEvent(sdk, "init");
@@ -52,9 +56,9 @@ describe("sdk intercept options", () => {
     it("should receive channels after removeBlockedChannels is applied", async () => {
       let receivedChannels: unknown[] = [];
       const sdk = new XenditComponentsTest({
-        interceptChannelConfig: (channels) => {
+        interceptChannelConfig: ({ channels, channel_ui_groups }) => {
           receivedChannels = channels;
-          return channels;
+          return { channels, channel_ui_groups };
         },
       });
 
@@ -62,6 +66,25 @@ describe("sdk intercept options", () => {
 
       // The interceptor receives channels after removeBlockedChannels is applied
       expect(receivedChannels.length).toBeGreaterThan(0);
+    });
+
+    it("should allow modifying channel_ui_groups via interceptChannelConfig", async () => {
+      const sdk = new XenditComponentsTest({
+        interceptChannelConfig: ({ channels, channel_ui_groups }) => ({
+          channels,
+          channel_ui_groups: channel_ui_groups.map((g) => ({
+            ...g,
+            label: `Custom: ${g.label}`,
+          })),
+        }),
+      });
+
+      await waitForEvent(sdk, "init");
+
+      const groups = sdk.getActiveChannelGroups();
+      groups.forEach((group) => {
+        expect(group.label).toMatch(/^Custom: /);
+      });
     });
   });
 
@@ -139,8 +162,10 @@ describe("sdk intercept options", () => {
   describe("combined intercept options", () => {
     it("should support both interceptChannelConfig and interceptLocaleStrings together", async () => {
       const sdk = new XenditComponentsTest({
-        interceptChannelConfig: (channels) =>
-          channels.filter((ch) => ch.channel_code === "CARDS"),
+        interceptChannelConfig: ({ channels, channel_ui_groups }) => ({
+          channels: channels.filter((ch) => ch.channel_code === "CARDS"),
+          channel_ui_groups,
+        }),
         interceptLocaleStrings: (strings) => ({
           ...strings,
           "validation.card_cvn_invalid": "Custom CVN message",

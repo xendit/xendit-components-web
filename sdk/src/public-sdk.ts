@@ -396,9 +396,13 @@ export class XenditComponents extends EventTarget {
         this[internal].sdkKey.sessionAuthKey,
       );
       const interceptChannelsFn =
-        this[internal].options.interceptChannelConfig ??
-        ((channels) => channels);
-      bff.channels = interceptChannelsFn(removeBlockedChannels(bff.channels));
+        this[internal].options.interceptChannelConfig ?? ((config) => config);
+      const intercepted = interceptChannelsFn({
+        channels: removeBlockedChannels(bff.channels),
+        channel_ui_groups: bff.channel_ui_groups,
+      });
+      bff.channels = intercepted.channels;
+      bff.channel_ui_groups = intercepted.channel_ui_groups;
     } catch (error) {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
@@ -1954,8 +1958,13 @@ export class XenditComponentsTest extends XenditComponents {
     // Always use test data for this class
     const bff = (await import("./data/test-data")).makeTestBffData();
     const interceptChannelsFn =
-      this[internal].options.interceptChannelConfig ?? ((channels) => channels);
-    bff.channels = interceptChannelsFn(removeBlockedChannels(bff.channels));
+      this[internal].options.interceptChannelConfig ?? ((config) => config);
+    const intercepted = interceptChannelsFn({
+      channels: removeBlockedChannels(bff.channels),
+      channel_ui_groups: bff.channel_ui_groups,
+    });
+    bff.channels = intercepted.channels;
+    bff.channel_ui_groups = intercepted.channel_ui_groups;
 
     // Update internal data
     this.dispatchEvent(
