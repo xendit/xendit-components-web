@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { createTFunction, getLocalizedErrorMessage } from "./localization";
+import {
+  createTFunction,
+  getLocalizedErrorMessage,
+  InterceptLocaleStringsFn,
+} from "./localization";
 import { ChannelFormField } from "./backend-types/channel";
 
-const t = createTFunction("en");
+const t = createTFunction("en", undefined);
 
 describe("t", () => {
   it("returns localized string for a valid key", () => {
@@ -24,6 +28,62 @@ describe("t", () => {
         interpolation: 1,
       }),
     ).toBe("Fallback with 1");
+  });
+});
+
+describe("createTFunction with interceptLocaleStrings", () => {
+  it("returns original locale string when interceptor is undefined", () => {
+    const tFn = createTFunction("en", undefined);
+    expect(tFn("validation.card_cvn_invalid")).toBe("CVN is not valid");
+  });
+
+  it("allows interceptor to override locale strings", () => {
+    const interceptor: InterceptLocaleStringsFn = (strings) => ({
+      ...strings,
+      "validation.card_cvn_invalid": "Custom CVN error message",
+    });
+    const tFn = createTFunction("en", interceptor);
+    expect(tFn("validation.card_cvn_invalid")).toBe("Custom CVN error message");
+  });
+
+  it("preserves unmodified strings when interceptor overrides specific keys", () => {
+    const interceptor: InterceptLocaleStringsFn = (strings) => ({
+      ...strings,
+      "validation.card_cvn_invalid": "Custom CVN error",
+    });
+    const tFn = createTFunction("en", interceptor);
+    // Check that a different key still uses the original string
+    expect(tFn("validation.required", { field: "Email" })).toBe(
+      "Email is required.",
+    );
+  });
+
+  it("supports interpolation with intercepted strings", () => {
+    const interceptor: InterceptLocaleStringsFn = (strings) => ({
+      ...strings,
+      "validation.required": "{{field}} cannot be empty",
+    });
+    const tFn = createTFunction("en", interceptor);
+    expect(tFn("validation.required", { field: "Name" })).toBe(
+      "Name cannot be empty",
+    );
+  });
+
+  it("works with non-English locales", () => {
+    const interceptor: InterceptLocaleStringsFn = (strings) => ({
+      ...strings,
+      "validation.card_cvn_invalid": "CVN tidak valid (custom)",
+    });
+    const tFn = createTFunction("id", interceptor);
+    expect(tFn("validation.card_cvn_invalid")).toBe("CVN tidak valid (custom)");
+  });
+
+  it("allows interceptor to return completely new locale data", () => {
+    const interceptor: InterceptLocaleStringsFn = () => ({
+      "validation.card_cvn_invalid": "Completely new message",
+    });
+    const tFn = createTFunction("en", interceptor);
+    expect(tFn("validation.card_cvn_invalid")).toBe("Completely new message");
   });
 });
 

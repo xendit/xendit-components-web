@@ -1,0 +1,22 @@
+- pipeline: "Trigger Lokalise PR"
+  trigger_mode: "MANUAL"
+  ref_name: "main"
+  ref_type: "BRANCH"
+  priority: "NORMAL"
+  always_from_scratch: true
+  trigger_condition: "ALWAYS"
+  actions:
+    - action: "Trigger Lokalise PR"
+      type: "BUILD"
+      working_directory: "/buddy/xendit-components-web"
+      docker_image_name: "library/alpine"
+      docker_image_tag: "latest"
+      execute_commands:
+        - "./trigger-lokalise-pr.sh"
+      volume_mappings:
+        - "/:/buddy/xendit-components-web"
+      shell: "SH"
+      variables:
+        - key: "LOKALISE_API_TOKEN"
+          value: "$LOKALISE_API_TOKEN"
+          encrypted: true

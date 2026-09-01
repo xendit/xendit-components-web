@@ -1,3 +1,5 @@
+import { BffChannel, BffChannelUiGroup } from "./backend-types/channel";
+import { InterceptLocaleStringsFn } from "./localization";
 import { XenditDigitalWalletCode } from "./public-data-types";
 
 /**
@@ -34,6 +36,7 @@ export interface XenditSdkOptions {
 
   /**
    * @internal
+   * Print telemetry events to console.
    */
   hostId?: string;
 
@@ -42,6 +45,21 @@ export interface XenditSdkOptions {
    * Print telemetry events to console.
    */
   logTelemetryEvents?: boolean;
+
+  /**
+   * @internal
+   * Called before initialization, can modify locale strings. Use with caution.
+   */
+  interceptLocaleStrings?: InterceptLocaleStringsFn;
+
+  /**
+   * @internal
+   * Called before initialization, can modify channel config. Use with caution.
+   */
+  interceptChannelConfig?: (config: {
+    channels: BffChannel[];
+    channel_ui_groups: BffChannelUiGroup[];
+  }) => { channels: BffChannel[]; channel_ui_groups: BffChannelUiGroup[] };
 }
 
 /**
