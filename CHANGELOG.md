@@ -1,3 +1,13 @@
+# 0.0.29
+
+### Notable
+
+Added new init options to modify locale data and channel config
+
+Added support for first-party checkout
+
+Added new event `channel-properties-changed` when channel properties change
+
 # 0.0.28
 
 ### Notable
