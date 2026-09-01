@@ -47,7 +47,7 @@ import {
   ChannelProperties,
   ChannelPropertyPrimative,
 } from "./backend-types/channel";
-import { changedChannelProperties } from "./utils-channel-properties";
+import { channelPropertiesChanged } from "./utils-channel-properties";
 import {
   ChannelRoot,
   InternalChannelPropertiesChangedEvent,
@@ -1212,20 +1212,13 @@ export class XenditComponents extends EventTarget {
         const previousChannelProperties = component.channelProperties;
         component.channelProperties = event.channelProperties;
 
-        // the internal event can re-fire with identical data, so diff by value.
-        // each call only walks its 2nd argument's keys, so it takes both directions to see added and removed fields
-        const changedKeys: string[] = [];
-        changedChannelProperties(
-          previousChannelProperties ?? {},
-          event.channelProperties,
-          changedKeys,
-        );
-        changedChannelProperties(
-          event.channelProperties,
-          previousChannelProperties ?? {},
-          changedKeys,
-        );
-        if (changedKeys.length > 0) {
+        // the internal event can re-fire with identical data, so only forward it to merchants when something actually changed
+        if (
+          channelPropertiesChanged(
+            previousChannelProperties ?? {},
+            event.channelProperties,
+          )
+        ) {
           this.dispatchEvent(
             new XenditChannelPropertiesChangedEvent(
               channelCode,
