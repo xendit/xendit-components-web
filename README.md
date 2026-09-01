@@ -389,10 +389,15 @@ The following variables are available:
 | --xendit-focus-shadow | Box-shadow applied to elements with focus |
 | --xendit-animation-duration | Duration of animations (affects the channel picker accordion) |
 | --xendit-animation-ease | Ease function of animations |
-| --xendit-radius-1 | Border radius applied to some components |
+| --xendit-radius-1 | Border radius applied to the channel picker, buttons and others |
+| --xendit-radius-2 | Border radius applied to dropdowns and inputs |
+| --xendit-radius-3 | Border radius applied to action cards |
 | --xendit-z-index-focus | Z-index applied to focused fields |
 | --xendit-qr-foreground-color | The color used for QR codes (the black pixels). |
 | --xendit-qr-background-color | The color used as the background of QR codes (the white pixels). |
+| --xendit-font-weight-regular | Regular font weight |
+| --xendit-font-weight-semibold | Semibold font weight, for labels and buttons |
+| --xendit-font-weight-bold | Bold font weight, for headings |
 
 Additionally, the following variables are set at component scope, where applicable:
 | Variable | Description |

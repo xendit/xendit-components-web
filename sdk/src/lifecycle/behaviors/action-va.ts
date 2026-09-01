@@ -4,6 +4,8 @@ import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
 import { ActionVa } from "../../components/action-va";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import { ActionCardProps } from "../../components/action-card";
+import { internal } from "../../internal";
 
 export class ActionVaBehavior extends ContainerActionBehavior {
   constructor(
@@ -21,6 +23,8 @@ export class ActionVaBehavior extends ContainerActionBehavior {
     assert(this.bb.world);
     assert(this.bb.channel);
 
+    const instructions = vaAction.instructions ?? [];
+
     const actionVaProps = {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
@@ -28,14 +32,35 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       onAffirm: this.affirmPayment.bind(this),
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
-      instructions: vaAction.instructions ?? [],
+      renderInstructions: this.renderActionInstructions.bind(
+        this,
+        instructions ?? [],
+      ),
       title: vaAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
       telemetry: this.bb.telemetry,
     };
 
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+
+    let cardProps: Omit<ActionCardProps, "children"> | undefined = undefined;
+    const withCard = container?.getAttribute("data-with-card") === "true";
+    if (withCard) {
+      cardProps = {
+        actionIconSrc: vaAction.action_graphic,
+        actionText: vaAction.action_subtitle,
+        channelBrandLogoUrl: this.bb.channel.brand_logo_url,
+        channelBrandName: this.bb.channel.brand_name,
+        color: this.bb.channel.brand_color,
+        title: vaAction.action_title,
+      };
+    }
+
     this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainer(() => createElement(ActionVa, actionVaProps));
+    this.populateActionContainer(
+      () => createElement(ActionVa, actionVaProps),
+      cardProps,
+    );
   }
 
   /**

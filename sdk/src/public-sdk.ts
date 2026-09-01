@@ -26,12 +26,14 @@ import {
   DigitalWalletOptions,
 } from "./public-options-types";
 import {
+  XenditBusiness,
   XenditCustomer,
   XenditDigitalWallet,
   XenditDigitalWalletCode,
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
+  XenditSucceededChannel,
 } from "./public-data-types";
 import { internal } from "./internal";
 import { createElement, createRef, RefObject, render } from "preact";
@@ -96,10 +98,12 @@ import {
   SubmissionError,
 } from "./lifecycle/behaviors/submission";
 import {
+  bffBusinessToPublic,
   bffChannelsToPublic,
   bffCustomerToPublic,
   bffDigitalWalletsToPublic,
   bffSessionToPublic,
+  bffSucceededChannelToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
 } from "./bff-marshal";
@@ -115,6 +119,7 @@ import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
 import { getTelemetry, SessionTelemetry } from "./telemetry";
 import { TelemetryEvents } from "./telemetry-events";
+import { NetworkError } from "./networking";
 import {
   getLibphonenumber,
   preloadLibphonenumber,
@@ -164,6 +169,7 @@ export type WorldState = {
   paymentEntity: BffPaymentEntity | null;
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
+  experiments: Record<string, unknown>;
 };
 
 /**
@@ -231,6 +237,10 @@ export class XenditComponents extends EventTarget {
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
       actionContainerDestroyTimer: ReturnType<typeof setTimeout> | null;
+      actionInstructionsContainer: HTMLElement | null;
+      actionInstructionsContainerDestroyTimer: ReturnType<
+        typeof setTimeout
+      > | null;
       digitalWalletContainer: Map<
         XenditDigitalWalletCode,
         {
@@ -299,7 +309,7 @@ export class XenditComponents extends EventTarget {
       );
     }
 
-    const sdkKey = parseSdkKey(options.componentsSdkKey);
+    const sdkKey = parseSdkKey(options.componentsSdkKey, options.hostId);
     const telemetry = new SessionTelemetry(
       this,
       Boolean(options.logTelemetryEvents),
@@ -313,6 +323,8 @@ export class XenditComponents extends EventTarget {
         paymentChannels: new Map(),
         actionContainer: null,
         actionContainerDestroyTimer: null,
+        actionInstructionsContainer: null,
+        actionInstructionsContainerDestroyTimer: null,
         digitalWalletContainer: new Map(),
       },
       behaviorTree: new BehaviorTree<BlackboardType>(behaviorTreeForSdk, {
@@ -322,6 +334,7 @@ export class XenditComponents extends EventTarget {
         mock: this.isMock(),
         sdkStatus: "LOADING",
         sdkFatalErrorMessage: null,
+        sdkFatalErrorUserMessage: null,
         channel: null,
         channelProperties: null,
         channelData: null,
@@ -413,11 +426,24 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
-
+      if (error instanceof NetworkError) {
+        this[internal].behaviorTree.bb.sdkFatalErrorUserMessage =
+          error.errorResponse.error_content ?? null;
+      }
       getTelemetry(this).append(TelemetryEvents.Loaded(false));
 
       this.behaviorTreeUpdate();
       return;
+    }
+
+    // If the session mode is not COMPONENTS, the SDK must be initialized on a first-party host.
+    if (
+      bff.session.mode === "PAYMENT_LINK" &&
+      !bff.allow_payment_link_mode_embed
+    ) {
+      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+        "The session mode is not COMPONENTS";
     }
 
     // If asked to resume (user landed on return_url after a redirect payment),
@@ -511,6 +537,7 @@ export class XenditComponents extends EventTarget {
         sessionTokenRequestId: resumeSessionTokenRequestId,
         succeededChannel:
           resumeSucceededChannel ?? bff.succeeded_channel ?? null,
+        experiments: bff.experiments,
       } satisfies WorldState),
     );
   }
@@ -707,12 +734,43 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
-   * Retrieve the customer ascociated with the session.
+   * Retrieve the customer associated with the session.
    */
   getCustomer(): XenditCustomer | null {
     this.assertInitialized();
     if (!this[internal].worldState.customer) return null;
     return bffCustomerToPublic(this[internal].worldState.customer);
+  }
+
+  /**
+   * @internal
+   * Retrieve the business associated with the session.
+   */
+  getBusiness(): XenditBusiness | null {
+    this.assertInitialized();
+    if (!this[internal].worldState.business) return null;
+    return bffBusinessToPublic(this[internal].worldState.business);
+  }
+
+  /**
+   * @internal
+   * Retrieve the payment channel used to complete the session
+   */
+  getSucceededChannel(): XenditSucceededChannel | null {
+    this.assertInitialized();
+    if (!this[internal].worldState.business) return null;
+    return bffSucceededChannelToPublic(
+      this[internal].worldState.succeededChannel,
+    );
+  }
+
+  /**
+   * @internal
+   * Retrieve experiment flags.
+   */
+  getExperiments(): Record<string, unknown> {
+    this.assertInitialized();
+    return this[internal].worldState.experiments;
   }
 
   /**
@@ -1322,6 +1380,10 @@ export class XenditComponents extends EventTarget {
     const container = document.createElement("xendit-action-container");
     container.setAttribute("translate", "no");
 
+    if (options?.withCard) {
+      container.setAttribute("data-with-card", options.withCard.toString());
+    }
+
     // Apply QR code options as data attributes if provided
     if (options?.qrCode) {
       if (options.qrCode.qrCodeOnly !== undefined) {
@@ -1333,6 +1395,55 @@ export class XenditComponents extends EventTarget {
     }
 
     this[internal].liveComponents.actionContainer = container;
+
+    return container;
+  }
+
+  /**
+   * @public
+   * Creates a container element for rendering action instructions separately from the action UI.
+   *
+   * When this container exists, action instructions (e.g. VA payment steps, barcode payment steps)
+   * will be rendered into this container instead of inline within the action component.
+   *
+   * This is optional. If you don't create one, instructions will be rendered inline within the
+   * action container as usual.
+   *
+   * Create this before the `action-begin` event or during the `action-begin` event handler.
+   *
+   * @example
+   * ```
+   * const instructionsEl = components.createActionInstructionsComponent();
+   * myInstructionsPanel.replaceChildren(instructionsEl);
+   * ```
+   */
+  createActionInstructionsComponent(): HTMLElement {
+    this.assertInitialized();
+
+    const requiresActionBehavior = this[internal].behaviorTree.findBehavior(
+      PaymentEntityRequiresActionBehavior,
+    );
+    if (
+      requiresActionBehavior &&
+      !requiresActionBehavior.canCreateActionContainer
+    ) {
+      throw new Error(
+        "Unable to create action instructions container; there is an action in progress. Create it before or during the `action-begin` event.",
+      );
+    }
+
+    if (this[internal].liveComponents.actionInstructionsContainer) {
+      this.destroyComponent(
+        this[internal].liveComponents.actionInstructionsContainer,
+      );
+    }
+
+    const container = document.createElement(
+      "xendit-action-instructions-container",
+    );
+    container.setAttribute("translate", "no");
+
+    this[internal].liveComponents.actionInstructionsContainer = container;
 
     return container;
   }
@@ -1371,6 +1482,15 @@ export class XenditComponents extends EventTarget {
 
     if (this[internal].liveComponents.actionContainer === component) {
       this[internal].liveComponents.actionContainer = null;
+      render(null, component);
+      component.remove();
+      return;
+    }
+
+    if (
+      this[internal].liveComponents.actionInstructionsContainer === component
+    ) {
+      this[internal].liveComponents.actionInstructionsContainer = null;
       render(null, component);
       component.remove();
       return;
@@ -1669,6 +1789,14 @@ export class XenditComponents extends EventTarget {
       channelProperties: component?.channelProperties || null,
       behaviorTree: this[internal].behaviorTree,
     };
+  }
+
+  /**
+   * @internal
+   * Returns the current world state.
+   */
+  getInternalState() {
+    return this[internal].worldState;
   }
 
   /**
@@ -2004,6 +2132,7 @@ export class XenditComponentsTest extends XenditComponents {
         paymentEntity: null,
         sessionTokenRequestId: null,
         succeededChannel: null,
+        experiments: bff.experiments,
       } satisfies WorldState),
     );
 

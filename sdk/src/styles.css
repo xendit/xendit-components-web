@@ -3,11 +3,12 @@
   --xendit-font-family: sans-serif;
   --xendit-color-primary: #1762ee;
   --xendit-color-text: #252525;
+  --xendit-color-text-inverse: #ffffff;
   --xendit-color-text-secondary: #585858;
   --xendit-color-text-placeholder: #7d7d7d;
   --xendit-color-disabled: #f7f7f7;
   --xendit-color-danger: #d1414d;
-  --xendit-color-border: #f3f3f3;
+  --xendit-color-border: #ededed;
   --xendit-color-background: #ffffff;
   --xendit-focus-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
@@ -16,8 +17,13 @@
   --xendit-animation-duration: 0.3s;
   --xendit-animation-ease: ease-in-out;
   --xendit-radius-1: 8px;
+  --xendit-radius-2: 8px;
+  --xendit-radius-3: 16px;
   --xendit-z-index-focus: 2;
   --xendit-z-index-overlay: 3;
+  --xendit-font-weight-regular: 400;
+  --xendit-font-weight-semibold: 600;
+  --xendit-font-weight-bold: 700;
 
   /* Browser-specific border collapse margins */
   --xendit-border-collapse-offset: -0.5px; /* Default for Chrome/Edge */
@@ -35,6 +41,7 @@
 /* Set default font for root components */
 xendit-channel-picker,
 xendit-action-container,
+xendit-action-instructions-container,
 xendit-payment-channel {
   display: block;
   unicode-bidi: isolate;
@@ -108,18 +115,24 @@ xendit-payment-channel select::placeholder {
   letter-spacing: -0.33px;
 }
 
+.xendit-text-24 {
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.45px;
+}
+
 .xendit-text-12,
 .xendit-text-14,
 .xendit-text-16 {
-  font-weight: 400;
+  font-weight: var(--xendit-font-weight-regular);
 }
 
 .xendit-text-semibold {
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
 }
 
 .xendit-text-bold {
-  font-weight: 700;
+  font-weight: var(--xendit-font-weight-bold);
 }
 
 .xendit-text-link {
@@ -127,6 +140,9 @@ xendit-payment-channel select::placeholder {
 }
 .xendit-text-secondary {
   color: var(--xendit-color-text-secondary);
+}
+.xendit-text-inverse {
+  color: var(--xendit-color-text-inverse);
 }
 
 .xendit-text-center {
@@ -166,9 +182,9 @@ xendit-payment-channel select::placeholder {
   grid-gap: 16px;
   align-items: center;
   cursor: pointer;
-  padding: 24px 16px;
+  padding: 16px;
   color: var(--xendit-color-text);
-  border-radius: 8px;
+  border-radius: var(--xendit-radius-1);
 }
 
 .xendit-accordion-item-disabled .xendit-accordion-item-header {
@@ -179,34 +195,36 @@ xendit-payment-channel select::placeholder {
 .xendit-accordion-item-header-title {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.xendit-accordion-item-disabled .xendit-accordion-item-header-title,
-.xendit-accordion-item-disabled .xendit-accordion-item-header-icon {
-  opacity: 0.5;
+.xendit-accordion-item-logos {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-
-.xendit-accordion-item.xendit-accordion-item-open
-  .xendit-accordion-item-header {
-  color: var(--xendit-color-primary);
+.xendit-accordion-item-logo-container {
+  height: 24px;
+  width: 32px;
+  border-radius: 2px;
+  border: 1px solid var(--xendit-color-border);
+  background-color: var(--xendit-color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
 }
-
-.xendit-accordion-item-chevron {
-  color: var(--xendit-color-text);
+.xendit-accordion-item-logo-image {
+  max-height: 16px;
+  max-width: 24px;
+  object-fit: contain;
 }
-
-.xendit-accordion-item-disabled .xendit-accordion-item-chevron {
-  display: none;
-}
-
-.xendit-accordion-item-chevron g {
-  transition: transform var(--xendit-animation-duration)
-    var(--xendit-animation-ease);
+.xendit-accordion-item-logo-image-disabled {
+  filter: grayscale(100%) opacity(0.5);
 }
 
 .xendit-accordion-item-header:focus-visible {
-  border-radius: 8px;
+  border-radius: var(--xendit-radius-1);
   box-shadow: var(--xendit-focus-shadow);
   outline: none;
 }
@@ -264,7 +282,7 @@ xendit-payment-channel select::placeholder {
 
 .xendit-channel-picker-group select {
   border: 1px solid var(--xendit-color-border);
-  border-radius: 8px;
+  border-radius: var(--xendit-radius-2);
   padding: 12px;
   appearance: none;
   outline: none;
@@ -377,7 +395,7 @@ xendit-channel-picker[inert] {
 .xendit-channel-form-field .xendit-form-field-inner {
   border: 1px solid var(--xendit-color-border);
   background: var(--xendit-color-background);
-  border-radius: 8px;
+  border-radius: var(--xendit-radius-2);
   appearance: none;
 }
 
@@ -481,6 +499,17 @@ xendit-channel-picker[inert] {
   padding: 12px;
 }
 
+.xendit-channel-form-field .xendit-credit-card-input {
+  display: flex;
+  overflow: hidden;
+}
+.xendit-channel-form-field .xendit-credit-card-input input {
+  flex: 1;
+  border: none;
+  padding: 12px;
+  outline: none;
+}
+
 .xendit-channel-form-field .xendit-iframe-container {
   display: flex;
   height: 40px;
@@ -543,7 +572,7 @@ xendit-channel-picker[inert] {
   width: 16px;
   height: 16px;
   border: 1px solid var(--xendit-color-border);
-  border-radius: 4px;
+  border-radius: var(--xendit-radius-2);
   box-sizing: border-box;
   color: transparent;
 }
@@ -651,7 +680,7 @@ xendit-channel-picker[inert] {
   text-align: left;
   background-color: var(--xendit-color-background);
   border: 1px solid var(--xendit-color-border);
-  border-radius: var(--xendit-radius-1);
+  border-radius: var(--xendit-radius-2);
   justify-content: space-between;
   cursor: pointer;
   padding: 0;
@@ -736,7 +765,7 @@ xendit-channel-picker[inert] {
   width: 100%;
   padding: 8px;
   border: 1px solid var(--xendit-color-border);
-  border-radius: var(--xendit-radius-1);
+  border-radius: var(--xendit-radius-2);
   box-sizing: border-box;
   outline: none;
 }
@@ -752,7 +781,7 @@ xendit-channel-picker[inert] {
   align-items: center;
   gap: 8px;
   padding: 8px 12px 8px 4px;
-  border-radius: var(--xendit-radius-1);
+  border-radius: var(--xendit-radius-2);
   cursor: pointer;
   z-index: 0;
   --xendit-dropdown-item-hover-color: var(--xendit-color-background);
@@ -816,7 +845,7 @@ xendit-channel-picker[inert] {
   padding: 12px 16px;
   font-family: var(--xendit-font-family);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 16px;
   letter-spacing: -0.09px;
   cursor: pointer;
@@ -905,7 +934,69 @@ xendit-channel-picker[inert] {
   margin: 6px 12px;
   inset: 0;
   z-index: 1;
-  border-radius: 4px;
+  border-radius: var(--xendit-radius-2);
+}
+
+.xendit-channel-form-field .xendit-iframe-hidden {
+  opacity: 0;
+}
+
+/* Loading shimmer ends */
+
+/* Iframe field load failure */
+.xendit-channel-form-field .xendit-iframe-field-error {
+  position: absolute;
+  margin: 6px 12px;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  font-family: monospace;
+  font-size: 10px;
+  box-sizing: border-box;
+}
+
+.xendit-channel-form-field .xendit-iframe-field-error > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Iframe field load failure ends */
+
+/* Loading shimmer */
+@keyframes xendit-shimmer-sweep {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.xendit-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--xendit-color-disabled) 25%,
+    color-mix(in srgb, var(--xendit-color-disabled), white 40%) 50%,
+    var(--xendit-color-disabled) 75%
+  );
+  background-size: 200% 100%;
+  animation: xendit-shimmer-sweep 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xendit-shimmer {
+    animation: none;
+  }
+}
+
+.xendit-channel-form-field .xendit-iframe-shimmer {
+  position: absolute;
+  margin: 6px 12px;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--xendit-radius-2);
 }
 
 .xendit-channel-form-field .xendit-iframe-hidden {
@@ -952,7 +1043,7 @@ xendit-channel-picker[inert] {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-radius: 4px;
+  border-radius: var(--xendit-radius-2);
   padding: 12px;
   border: 1px solid var(--xendit-color-border);
   background: var(--xendit-color-background);
@@ -1008,7 +1099,7 @@ xendit-channel-picker[inert] {
   border-radius: var(--xendit-radius-1);
   white-space: nowrap;
   z-index: 1000;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   font-size: 14px;
   line-height: 16px;
   animation: xendit-tooltip-fade-in var(--xendit-animation-duration)
@@ -1028,7 +1119,7 @@ xendit-channel-picker[inert] {
 /* Instructions */
 
 .xendit-instructions-bold {
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
 }
 .xendit-instructions-bullet-list {
   display: flex;
@@ -1043,7 +1134,7 @@ xendit-channel-picker[inert] {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: var(--xendit-radius-1);
   border: 1px solid var(--xendit-color-border);
   gap: 4px;
   width: 321px;
@@ -1057,7 +1148,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-form-field-label {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 16px;
   color: var(--xendit-color-text-secondary);
 }
@@ -1068,7 +1159,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-form-heading {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 20px;
   margin: 4px 0;
 }
@@ -1084,7 +1175,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-single-tab-heading {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 20px;
   margin-bottom: 16px;
 }
@@ -1116,7 +1207,7 @@ xendit-channel-picker[inert] {
 .xendit-instructions-active-tab {
   border-bottom-color: var(--xendit-color-primary);
   color: var(--xendit-color-primary);
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
 }
 .xendit-instructions-tab-list {
   display: flex;
@@ -1136,7 +1227,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-instructions-table-header {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--xendit-font-weight-semibold);
   line-height: 16px;
   padding: 4px;
   border: 1px solid black;
@@ -1151,6 +1242,7 @@ xendit-channel-picker[inert] {
 }
 
 .xendit-action-title {
+  font-weight: var(--xendit-font-weight-semibold);
   font-weight: 600;
   font-size: 20px;
   line-height: 28px;
@@ -1326,4 +1418,49 @@ xendit-channel-picker[inert] {
 
 .xendit-apple-pay-button:hover {
   filter: invert(1) brightness(0.74) invert(1);
+}
+
+/* action card */
+
+.xendit-action-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.xendit-action-channel-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.xendit-action-channel-logo {
+  height: 24px;
+}
+.xendit-action-heading {
+  text-align: center;
+}
+.xendit-action-card {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: var(--xendit-radius-3);
+  border: 1px solid var(--xendit-color-border);
+}
+.xendit-action-card-text {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.xendit-action-card-icon {
+  height: 32px;
+  width: 32px;
+}
+.xendit-action-card-inner-content {
+  background-color: var(--xendit-color-background);
+  border-radius: calc(var(--xendit-radius-3) - 4px);
+  padding: 16px 12px;
+  overflow: hidden;
 }

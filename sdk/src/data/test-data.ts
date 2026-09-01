@@ -1472,5 +1472,6 @@ export function makeTestBffData(): BffResponse {
         },
       },
     },
+    experiments: {},
   };
 }

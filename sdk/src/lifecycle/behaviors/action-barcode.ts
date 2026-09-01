@@ -1,5 +1,7 @@
 import { createElement } from "preact";
 import { ActionBarcode } from "../../components/action-barcode";
+import { ActionCardProps } from "../../components/action-card";
+import { internal } from "../../internal";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
@@ -29,14 +31,33 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
       barcodeContent: barcodeAction.value,
       merchantName: this.bb.world.business.name ?? "",
       paymentCode: barcodeAction.value,
-      instructions: barcodeAction.instructions ?? [],
+      renderInstructions: this.renderActionInstructions.bind(
+        this,
+        barcodeAction.instructions ?? [],
+      ),
       title: barcodeAction.action_title,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
 
+    const container = this.bb.sdk[internal].liveComponents.actionContainer;
+
+    let cardProps: Omit<ActionCardProps, "children"> | undefined = undefined;
+    const withCard = container?.getAttribute("data-with-card") === "true";
+    if (withCard) {
+      cardProps = {
+        actionIconSrc: barcodeAction.action_graphic,
+        actionText: barcodeAction.action_subtitle,
+        channelBrandLogoUrl: this.bb.channel.brand_logo_url,
+        channelBrandName: this.bb.channel.brand_name,
+        color: this.bb.channel.brand_color,
+        title: barcodeAction.action_title,
+      };
+    }
+
     this.cleanupFn = this.ensureHasActionContainer();
-    this.populateActionContainer(() =>
-      createElement(ActionBarcode, actionBarcodeProps),
+    this.populateActionContainer(
+      () => createElement(ActionBarcode, actionBarcodeProps),
+      cardProps,
     );
   }
 

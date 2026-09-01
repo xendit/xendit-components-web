@@ -38,6 +38,12 @@ export interface XenditSdkOptions {
    * @internal
    * Print telemetry events to console.
    */
+  hostId?: string;
+
+  /**
+   * @internal
+   * Print telemetry events to console.
+   */
   logTelemetryEvents?: boolean;
 
   /**
@@ -78,6 +84,7 @@ export interface XenditGetChannelsOptions {
  * Options for configuring action containers.
  */
 export interface ActionContainerOptions {
+  withCard?: boolean;
   /**
    * QR code specific options.
    */

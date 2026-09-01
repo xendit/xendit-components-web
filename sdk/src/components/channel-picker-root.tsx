@@ -29,7 +29,6 @@ import {
   singleBffChannelToPublic,
 } from "../bff-marshal";
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
-import { IconName } from "./icon";
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
 
@@ -185,19 +184,21 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
             const disabledReason =
               enabledChannelsStats.firstDisabledChannelReason;
 
+            const channelLogos = resolveChannelLogosForGroup(
+              session,
+              channelsByGroup[group.id],
+            );
+
             return (
               <AccordionItem
                 key={group.id}
                 id={group.id}
                 title={group.label}
-                iconName={iconName(
-                  selectedGroupId === group.id ? currentChannel : null,
-                  channelsByGroup[group.id],
-                )}
                 subtitle={disabledReason ?? undefined}
                 open={open}
                 disabled={disabled}
                 onClick={handleSelectChannelGroup}
+                channelLogos={channelLogos}
               >
                 <ChannelPickerGroup group={group} open={open} />
               </AccordionItem>
@@ -240,35 +241,32 @@ function groupEnabledChannelStats(
   };
 }
 
-const ICONS_BY_PM_TYPE: Record<string, IconName> = {
-  CARDS: "card",
-  QR_CODE: "qr",
-  OVER_THE_COUNTER: "otc",
-  EWALLET: "ewallet",
-  BANK_TRANSFER: "bank_transfer",
-  DIRECT_DEBIT: "bank_transfer",
-  VIRTUAL_ACCOUNT: "bank_transfer",
-  ONLINE_BANKING: "online_banking",
-};
-
-function iconName(
-  currentChannel: BffChannel | null,
-  channelsInGroup: BffChannel[],
-): IconName {
-  if (
-    currentChannel &&
-    currentChannel.pm_type &&
-    ICONS_BY_PM_TYPE[currentChannel.pm_type]
-  ) {
-    return ICONS_BY_PM_TYPE[currentChannel.pm_type];
-  } else {
-    for (const channel of channelsInGroup) {
-      if (channel.pm_type && ICONS_BY_PM_TYPE[channel.pm_type]) {
-        return ICONS_BY_PM_TYPE[channel.pm_type];
+function resolveChannelLogosForGroup(
+  session: BffSession,
+  channels: BffChannel[],
+): { src: string; alt: string; enabled: boolean }[] {
+  const logos: { src: string; alt: string; enabled: boolean }[] = [];
+  for (const channel of channels) {
+    const enabled = satisfiesMinMax(session, channel);
+    if (channel.card?.brands) {
+      // use card logos if available
+      for (const brand of channel.card.brands) {
+        logos.push({
+          src: brand.logo_url,
+          alt: brand.name,
+          enabled,
+        });
       }
+    } else {
+      // else use channel brand logo
+      logos.push({
+        src: channel.brand_logo_url,
+        alt: channel.brand_name,
+        enabled,
+      });
     }
   }
-  return "dummy";
+  return logos;
 }
 
 export class XenditClearCurrentChannelEvent extends Event {

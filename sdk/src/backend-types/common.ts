@@ -24,6 +24,8 @@ export type BffResponse = {
   session: BffSession;
   digital_wallets?: BffDigitalWallets;
   succeeded_channel?: BffSucceededChannel;
+  allow_payment_link_mode_embed?: boolean;
+  experiments: Record<string, unknown>;
 };
 
 export type BffPollResponse = {

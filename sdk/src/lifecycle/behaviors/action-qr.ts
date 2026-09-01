@@ -6,6 +6,7 @@ import { ContainerActionBehavior, DefaultActionContainerType } from "./action";
 import { ActionQr } from "../../components/action-qr";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { hasCustomQrArt } from "../../components/action-qr-custom-art";
+import { ActionCardProps } from "../../components/action-card";
 
 export class ActionQrBehavior extends ContainerActionBehavior {
   constructor(
@@ -58,7 +59,24 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       ? DefaultActionContainerType.QrWithCustomArt
       : DefaultActionContainerType.Generic;
     this.cleanupFn = this.ensureHasActionContainer(defaultActionContainerType);
-    this.populateActionContainer(() => createElement(ActionQr, actionQrProps));
+
+    let cardProps: Omit<ActionCardProps, "children"> | undefined = undefined;
+    const withCard = container?.getAttribute("data-with-card") === "true";
+    if (withCard) {
+      cardProps = {
+        actionIconSrc: qrAction.action_graphic,
+        actionText: qrAction.action_subtitle,
+        channelBrandLogoUrl: this.bb.channel.brand_logo_url,
+        channelBrandName: this.bb.channel.brand_name,
+        color: this.bb.channel.brand_color,
+        removePadding: true,
+        title: qrAction.action_title,
+      };
+    }
+    this.populateActionContainer(
+      () => createElement(ActionQr, actionQrProps),
+      cardProps,
+    );
   }
 
   /**
