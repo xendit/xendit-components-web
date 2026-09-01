@@ -2,6 +2,7 @@ import classNames from "classnames";
 import {
   ComponentChildren,
   FunctionComponent,
+  GenericEventHandler,
   TargetedKeyboardEvent,
 } from "preact";
 import { useCallback } from "preact/hooks";
@@ -137,7 +138,7 @@ export const GroupLogos = (props: GroupLogosProps) => {
         key={logoIndex++}
         src={logo.src}
         alt={logo.alt}
-        // onError={hideOnError}
+        onError={hideOnError}
         className={classNames("xendit-accordion-item-logo-image", {
           "xendit-accordion-item-logo-image-disabled": !logo.enabled,
         })}
@@ -164,4 +165,9 @@ export const GroupLogos = (props: GroupLogosProps) => {
       ))}
     </div>
   );
+};
+
+// to hide broken image icons when the image fails to load
+const hideOnError: GenericEventHandler<HTMLImageElement> = (event) => {
+  (event.target as HTMLImageElement).style.display = "none";
 };
