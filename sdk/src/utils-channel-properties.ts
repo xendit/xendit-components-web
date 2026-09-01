@@ -179,3 +179,19 @@ export function changedChannelProperties(
     }
   }
 }
+
+/**
+ * True if any value differs between the two objects, run both ways because `changedChannelProperties` only walks its second argument's keys.
+ */
+export function channelPropertiesChanged(
+  a: ChannelProperties,
+  b: ChannelProperties,
+): boolean {
+  const changed: string[] = [];
+  changedChannelProperties(a, b, changed);
+  if (changed.length > 0) {
+    return true;
+  }
+  changedChannelProperties(b, a, changed);
+  return changed.length > 0;
+}

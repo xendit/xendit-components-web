@@ -1,3 +1,5 @@
+import { ChannelProperties } from "./backend-types/channel";
+
 /**
  * @public
  */
@@ -27,6 +29,8 @@ export type XenditEventMap = {
   "payment-token-discarded": XenditPaymentTokenDiscardedEvent;
 
   "fatal-error": XenditFatalErrorEvent;
+
+  "channel-properties-changed": XenditChannelPropertiesChangedEvent;
 };
 
 /**
@@ -66,6 +70,21 @@ export class XenditFatalErrorEvent extends Event {
     public userErrorMessage?: string[],
   ) {
     super(XenditFatalErrorEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Fired whenever the channel's properties change.
+ */
+export class XenditChannelPropertiesChangedEvent extends Event {
+  static type = "channel-properties-changed" as const;
+
+  constructor(
+    public channelCode: string,
+    public channelProperties: ChannelProperties,
+  ) {
+    super(XenditChannelPropertiesChangedEvent.type, {});
   }
 }
 

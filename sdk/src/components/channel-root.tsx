@@ -148,7 +148,7 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
       }
     }
 
-    const event = new XenditChannelPropertiesChangedEvent(
+    const event = new InternalChannelPropertiesChangedEvent(
       firstMemberChannel.channel_code,
       cleanedProperties,
     );
@@ -297,13 +297,13 @@ function instructionsAsTuple(
   return null;
 }
 
-export class XenditChannelPropertiesChangedEvent extends Event {
+export class InternalChannelPropertiesChangedEvent extends Event {
   static readonly type = "xendit-channel-properties-changed" as const;
   channel: string;
   channelProperties: ChannelProperties;
 
   constructor(channel: string, channelProperties: ChannelProperties) {
-    super(XenditChannelPropertiesChangedEvent.type, {
+    super(InternalChannelPropertiesChangedEvent.type, {
       bubbles: true,
       composed: true,
     });

@@ -1,6 +1,7 @@
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
+  XenditChannelPropertiesChangedEvent,
   XenditFatalErrorEvent,
   XenditEventListener,
   XenditEventMap,
@@ -48,9 +49,10 @@ import {
   ChannelProperties,
   ChannelPropertyPrimative,
 } from "./backend-types/channel";
+import { channelPropertiesChanged } from "./utils-channel-properties";
 import {
   ChannelRoot,
-  XenditChannelPropertiesChangedEvent,
+  InternalChannelPropertiesChangedEvent,
 } from "./components/channel-root";
 import { fetchSessionData, pollSession, validateApplePaySession } from "./api";
 import { resolveResumeState, getResumeParams } from "./resume";
@@ -1265,9 +1267,9 @@ export class XenditComponents extends EventTarget {
   private setupUiEventsForPaymentChannel(container: HTMLElement): void {
     // update per-channel channel properties
     container.addEventListener(
-      XenditChannelPropertiesChangedEvent.type,
+      InternalChannelPropertiesChangedEvent.type,
       (_event) => {
-        const event = _event as XenditChannelPropertiesChangedEvent;
+        const event = _event as InternalChannelPropertiesChangedEvent;
         const channelCode = event.channel;
         const component =
           this[internal].liveComponents.paymentChannels.get(channelCode);
@@ -1275,7 +1277,23 @@ export class XenditComponents extends EventTarget {
           return;
         }
 
+        const previousChannelProperties = component.channelProperties;
         component.channelProperties = event.channelProperties;
+
+        // the internal event can re-fire with identical data, so only forward it to merchants when something actually changed
+        if (
+          channelPropertiesChanged(
+            previousChannelProperties ?? {},
+            event.channelProperties,
+          )
+        ) {
+          this.dispatchEvent(
+            new XenditChannelPropertiesChangedEvent(
+              channelCode,
+              event.channelProperties,
+            ),
+          );
+        }
 
         // update behavior tree (form validity may have changed)
         this.behaviorTreeUpdate();
@@ -1999,6 +2017,16 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "fatal-error",
     listener: XenditEventListener<XenditFatalErrorEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Fired whenever the channel's properties change.
+   */
+  addEventListener(
+    name: "channel-properties-changed",
+    listener: XenditEventListener<XenditChannelPropertiesChangedEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
