@@ -37,6 +37,10 @@ export interface XenditSdkOptions {
    */
   hostId?: string;
 
+  /**
+   * @internal
+   * Print telemetry events to console.
+   */
   logTelemetryEvents?: boolean;
 }
 

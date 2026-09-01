@@ -167,13 +167,13 @@ export interface XenditSession {
     metadata?: Record<string, string>;
   }[];
   /**
-   * Last updated date, can be used to refer to as payment date.
+   * Last updated date. If the session is completed, expired, or canceled, then this timestamp is when that status change happened.
    */
   updated: Date;
 }
 
 /**
- * @public
+ * @internal
  */
 export interface XenditBusiness {
   /**
@@ -222,7 +222,7 @@ export interface XenditCustomer {
 }
 
 /**
- * @public
+ * @internal
  */
 export interface XenditSucceededChannel {
   /**
