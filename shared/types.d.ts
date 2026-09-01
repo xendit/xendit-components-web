@@ -9,7 +9,6 @@ type IframeChangeEvent = {
   empty: boolean;
   valid: boolean;
   validationErrorCodes: LocaleKey[];
-  bin?: string;
 };
 
 type IframeReadyEvent = {

@@ -131,7 +131,6 @@ export async function main() {
   // event handlers
   async function handleChangeEvent(value: string) {
     const inputValue = value;
-    const bin = cardBin(queryInputs.inputType, inputValue);
     const validationResult = validate(queryInputs.inputType, inputValue);
 
     let extractedInputValues: string[];
@@ -187,7 +186,6 @@ export async function main() {
       empty: value.length === 0,
       valid: validationResult.valid,
       validationErrorCodes: validationResult.errorCodes,
-      bin,
     });
   }
 
@@ -236,16 +234,6 @@ export async function main() {
       input.dispatchEvent(new Event("change", { bubbles: true }));
     }
   });
-}
-
-function cardBin(
-  inputType: IframeFieldType,
-  value: string,
-): string | undefined {
-  if (inputType !== "credit_card_number") return undefined;
-  if (value.length >= 8) return value.slice(0, 8);
-  if (value.length >= 6) return value.slice(0, 6);
-  return undefined;
 }
 
 export function fatalError(err: Error) {

@@ -13,10 +13,7 @@ import { XenditFormAssociatedFocusTrap } from "./core/form-ascociated-focus-trap
 import { internal } from "../internal";
 import { assert, cancellableSleep, formFieldId, formFieldName } from "../utils";
 import { FunctionComponent } from "preact";
-import {
-  InternalSetFieldTouchedEvent,
-  InternalUpdateChannelComponentData,
-} from "../private-event-types";
+import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { IframeRegistryContext } from "./iframe-registry";
 
 // read iframe data from environment variable
@@ -50,7 +47,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
 
   const [focusWithin, setFocusWithin] = useState(false);
 
-  const { card, channel_code: channelCode } = useChannel() ?? {};
+  const { card } = useChannel() ?? {};
 
   const channelData = useChannelComponentData();
   const schemes = channelData?.cardDetails?.details?.schemes;
@@ -117,18 +114,6 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
           // fields expecting a single value are normal strings, fields expecting multiple values are json arrays
           hiddenFieldRef.current.value =
             resultData.length > 1 ? JSON.stringify(resultData) : resultData[0];
-
-          if (field.type.name === "credit_card_number") {
-            const nextCardBin = data.bin ?? null;
-            if (channelCode && nextCardBin !== (channelData?.cardBin ?? null)) {
-              sdk.dispatchEvent(
-                new InternalUpdateChannelComponentData(channelCode, {
-                  cardBin: nextCardBin,
-                }),
-              );
-            }
-          }
-
           onChange?.();
           break;
         }
@@ -155,15 +140,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
         }
       }
     },
-    [
-      field.channel_property,
-      field.type.name,
-      iframeEcdhPublicKey,
-      onChange,
-      sdk,
-      channelCode,
-      channelData?.cardBin,
-    ],
+    [field.channel_property, iframeEcdhPublicKey, onChange],
   );
 
   const giveFocusToIframe = useCallback(() => {
