@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-- Normalize card number and expiry formatting for non-iframe implementation
+- Bug fix for an unreleased feature
 
 # 0.0.29
 
