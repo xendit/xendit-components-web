@@ -10,6 +10,7 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
   const id = formFieldId(field);
   const name = formFieldName(field);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hiddenRef = useRef<HTMLInputElement>(null);
   const [displayValue, setDisplayValue] = useState("");
   const [focusWithin, setFocusWithin] = useState(false);
 
@@ -98,6 +99,11 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
     input.value = newValue;
     setDisplayValue(newValue);
 
+    // store the unformatted (digits-only) value for form submission
+    if (hiddenRef.current) {
+      hiddenRef.current.value = newValue.replace(/\s/g, "");
+    }
+
     if (hasCollapsedSelection) {
       newCursorPosition = Math.min(newCursorPosition, newValue.length);
       input.setSelectionRange(newCursorPosition, newCursorPosition);
@@ -121,7 +127,6 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
     >
       <input
         id={id}
-        name={name}
         ref={inputRef}
         type="text"
         inputMode="numeric"
@@ -135,6 +140,7 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
         onFocus={() => setFocusWithin(true)}
         onBlur={handleBlur}
       />
+      <input type="hidden" name={name} ref={hiddenRef} />
       {field.type.name === "credit_card_number" && card && (
         <CardBrands
           cardsBrandList={card.brands}
@@ -227,7 +233,12 @@ export const CreditCardExpiryField: FunctionComponent<FieldProps> = (props) => {
 
       const parts = formatted.split("/");
       const month = parts[0] ?? "";
-      const year = parts[1] ?? "";
+      let year = parts[1] ?? "";
+
+      // normalize the year to YYYY format (e.g. "34" -> "2034")
+      if (year.length === 2) {
+        year = `20${year}`;
+      }
 
       if (month && year) {
         hiddenRef.current.value = JSON.stringify([month, year]);
