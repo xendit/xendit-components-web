@@ -1,3 +1,9 @@
+# 0.0.30
+
+### Bug Fixes
+
+- Normalize card number and expiry formatting for non-iframe implementation
+
 # 0.0.29
 
 ### Notable
