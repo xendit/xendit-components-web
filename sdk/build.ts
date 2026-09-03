@@ -108,7 +108,7 @@ function rollupConfig(
             banner: bannerComment,
             entryFileNames: "[name].mjs",
             chunkFileNames: (chunk) =>
-              chunk.facadeModuleId?.includes("libphonenumber-js")
+              chunk.facadeModuleId?.includes("libphonenumber-facade")
                 ? "libphonenumber.mjs"
                 : "[name].mjs",
           },
