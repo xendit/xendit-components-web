@@ -265,7 +265,7 @@ export class XenditPaymentRequestCreatedEvent extends Event {
 
 /**
  * @public
- * Fired once the customer has typed enough of the card number for its BIN to be known, and again whenever that BIN changes.
+ * Fired when the card's BIN becomes known, and again whenever it changes.
  */
 export class XenditCardBinChangedEvent extends Event {
   static type = "card-bin-changed" as const;
@@ -273,6 +273,8 @@ export class XenditCardBinChangedEvent extends Event {
   constructor(
     public channelCode: string,
     public bin: string,
+    public schemes: string[],
+    public countryCodes: string[],
   ) {
     super(XenditCardBinChangedEvent.type, {});
   }

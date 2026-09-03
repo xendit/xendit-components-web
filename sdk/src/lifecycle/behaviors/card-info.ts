@@ -80,6 +80,7 @@ export class CardInfoBehavior implements Behavior {
             schemes: ["VISA"],
             country_codes: ["ID"],
             require_billing_information: false,
+            bin: 400000,
           };
         } else {
           // remove encoded validation error -
@@ -106,6 +107,8 @@ export class CardInfoBehavior implements Behavior {
               cardNumber,
               details: response,
             },
+            // cardBin here is what makes updateChannelComponentData fire card-bin-changed
+            ...(response?.bin ? { cardBin: response.bin } : {}),
           }),
         );
       })

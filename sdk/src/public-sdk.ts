@@ -585,8 +585,16 @@ export class XenditComponents extends EventTarget {
       newData.cardBin !== null &&
       newData.cardBin !== component.data.cardBin
     ) {
+      // schemes/countryCodes come from the same card_info response as this bin
+      const details =
+        newData.cardDetails?.details ?? component.data.cardDetails?.details;
       this.dispatchEvent(
-        new XenditCardBinChangedEvent(channelCode, newData.cardBin),
+        new XenditCardBinChangedEvent(
+          channelCode,
+          newData.cardBin,
+          details?.schemes ?? [],
+          details?.country_codes ?? [],
+        ),
       );
     }
 
@@ -1859,7 +1867,7 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
-   * Fired when the BIN of the card number becomes known for a card field.
+   * Fired when the card's BIN becomes known, and again whenever it changes.
    */
   addEventListener(
     name: "card-bin-changed",

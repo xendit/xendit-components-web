@@ -99,6 +99,7 @@ function channelDataWithSchemes(schemes: string[]): ChannelComponentData {
         schemes,
         country_codes: ["ID"],
         require_billing_information: false,
+        bin: null,
       },
     },
     paymentOptions: null,
