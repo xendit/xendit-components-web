@@ -2050,7 +2050,7 @@ export class XenditComponents extends EventTarget {
     listener: XenditEventListener<XenditCardBinChangedEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
-  
+
   /**
    * @public
    * Fired whenever the channel's properties change.
@@ -2062,7 +2062,7 @@ export class XenditComponents extends EventTarget {
   ): void;
 
   /**
-   * @public  
+   * @public
    * Fallback overload.
    */
   addEventListener<K extends keyof XenditEventMap>(
