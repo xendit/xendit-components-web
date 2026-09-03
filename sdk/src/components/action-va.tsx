@@ -1,7 +1,6 @@
-import { FunctionComponent } from "preact";
+import { ComponentChildren, FunctionComponent } from "preact";
 import { useCallback, useContext, useState } from "preact/hooks";
 import { amountFormat } from "../amount-format";
-import { Instructions as InstructionsType } from "../backend-types/instructions";
 import { TFunction } from "../localization";
 import {
   Button,
@@ -9,11 +8,11 @@ import {
   ButtonSize,
   ButtonVariant,
 } from "./core/button";
-import Icon from "./icon";
-import { Instructions } from "./instructions";
 import { Tooltip, TooltipContext, TooltipProvider } from "./core/tooltip";
+import Icon from "./icon";
 import { SessionTelemetry } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
+import { useActionCard } from "./action-card";
 
 type Props = {
   amount: number;
@@ -22,7 +21,7 @@ type Props = {
   onAffirm: () => void;
   vaNumber: string;
   merchantName: string;
-  instructions: InstructionsType;
+  renderInstructions: () => ComponentChildren;
   title: string;
   t: TFunction;
   telemetry: SessionTelemetry;
@@ -36,13 +35,14 @@ export function ActionVa(props: Props) {
     onAffirm,
     vaNumber,
     merchantName,
-    instructions,
+    renderInstructions,
     title,
     t,
     telemetry,
   } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
+  const inActionCard = useActionCard();
 
   const onMadePaymentClicked = useCallback(() => {
     setShowSpinner(true);
@@ -68,12 +68,16 @@ export function ActionVa(props: Props) {
 
   return (
     <div className="xendit-action-present-to-customer">
-      <img
-        src={channelLogo}
-        alt="Channel Logo"
-        className="xendit-action-qr-channel-logo"
-      />
-      <div className="xendit-action-title">{title}</div>
+      {!inActionCard ? (
+        <>
+          <img
+            src={channelLogo}
+            alt="Channel Logo"
+            className="xendit-action-qr-channel-logo"
+          />
+          <div className="xendit-action-title">{title}</div>
+        </>
+      ) : null}
       <div className="xendit-action-va-content">
         <div className="xendit-action-va-details">
           {vaDetails.map((detail, index) => (
@@ -114,7 +118,7 @@ export function ActionVa(props: Props) {
           {t("action.payment_confirmation_instructions")}
         </div>
       </div>
-      <Instructions instructions={instructions} />
+      {renderInstructions()}
     </div>
   );
 }

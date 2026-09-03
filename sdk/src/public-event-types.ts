@@ -1,3 +1,5 @@
+import { ChannelProperties } from "./backend-types/channel";
+
 /**
  * @public
  */
@@ -29,6 +31,7 @@ export type XenditEventMap = {
   "fatal-error": XenditFatalErrorEvent;
 
   "card-bin-changed": XenditCardBinChangedEvent;
+  "channel-properties-changed": XenditChannelPropertiesChangedEvent;
 };
 
 /**
@@ -62,8 +65,27 @@ export class XenditFatalErrorEvent extends Event {
      * A detailed error message for developers. Don't show this to users.
      */
     public message: string,
+    /**
+     * An error message to show to the user. A title and 1-2 lines of localized text.
+     */
+    public userErrorMessage?: string[],
   ) {
     super(XenditFatalErrorEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Fired whenever the channel's properties change.
+ */
+export class XenditChannelPropertiesChangedEvent extends Event {
+  static type = "channel-properties-changed" as const;
+
+  constructor(
+    public channelCode: string,
+    public channelProperties: ChannelProperties,
+  ) {
+    super(XenditChannelPropertiesChangedEvent.type, {});
   }
 }
 
@@ -192,7 +214,7 @@ export class XenditActionEndEvent extends Event {
 export class XenditWillRedirectEvent extends Event {
   static type = "will-redirect" as const;
 
-  constructor() {
+  constructor(public url: string) {
     super(XenditWillRedirectEvent.type, {});
   }
 }

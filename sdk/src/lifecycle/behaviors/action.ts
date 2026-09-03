@@ -4,6 +4,10 @@ import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { internal } from "../../internal";
 import DefaultActionContainer from "../../components/default-action-container";
+import { ActionCard, ActionCardProps } from "../../components/action-card";
+import { Instructions } from "../../components/instructions";
+import { Instructions as InstructionsType } from "../../backend-types/instructions";
+import { createPortal } from "preact/compat";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
 
@@ -39,6 +43,7 @@ export abstract class ContainerActionBehavior implements Behavior {
       // TODO: validate it's in the dom and the right size
       // clear the previous action's contents before reusing container
       this.flushPendingContainerDestroy();
+      this.flushPendingInstructionsContainerDestroy();
       return () => {
         this.emptyActionContainer();
       };
@@ -138,7 +143,10 @@ export abstract class ContainerActionBehavior implements Behavior {
    * Populates the action container with the provided component.
    * This method handles the common logic of getting the container and rendering the component.
    */
-  populateActionContainer(createComponent: () => ComponentChildren) {
+  populateActionContainer(
+    createComponent: () => ComponentChildren,
+    cardProps?: Omit<ActionCardProps, "children">,
+  ) {
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
     if (!container) {
       throw new Error(
@@ -153,11 +161,77 @@ export abstract class ContainerActionBehavior implements Behavior {
       TelemetryEvents.ActionBegin(true),
     );
 
+    if (cardProps) {
+      return render(
+        createElement(ActionCard, {
+          children: createComponent(),
+          ...cardProps,
+        }),
+        container,
+      );
+    }
+
     render(createComponent(), container);
+  }
+
+  /**
+   * Returns whether an external action instructions container exists.
+   */
+  hasActionInstructionsContainer(): boolean {
+    return !!this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
+  }
+
+  /**
+   * Renders the provided instructions in the action instructions container if it exists, otherwise renders them inline.
+   * This method handles the common logic of getting the container and rendering the instructions.
+   * If the instructions container exists, it will be populated with the instructions and a portal will be created to render them in the container.
+   */
+  renderActionInstructions(instructions: InstructionsType) {
+    const container =
+      this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
+
+    if (container) {
+      return createPortal(
+        createElement(Instructions, { instructions }),
+        container,
+      );
+    }
+    return createElement(Instructions, { instructions });
+  }
+
+  /**
+   * Cancels a pending delayed destroy and clears the instructions container contents.
+   */
+  flushPendingInstructionsContainerDestroy() {
+    const state = this.bb.sdk[internal].liveComponents;
+    if (state.actionInstructionsContainerDestroyTimer === null) return;
+
+    clearTimeout(state.actionInstructionsContainerDestroyTimer);
+    state.actionInstructionsContainerDestroyTimer = null;
+    if (state.actionInstructionsContainer) {
+      render(null, state.actionInstructionsContainer);
+    }
+  }
+
+  /**
+   * Schedules a delayed clear of the instructions container contents (mirrors emptyActionContainer).
+   */
+  emptyActionInstructionsContainer() {
+    const container =
+      this.bb.sdk[internal].liveComponents.actionInstructionsContainer;
+    if (!container) return;
+
+    const state = this.bb.sdk[internal].liveComponents;
+    state.actionInstructionsContainerDestroyTimer = setTimeout(() => {
+      state.actionInstructionsContainerDestroyTimer = null;
+      if (state.actionInstructionsContainer !== container) return;
+      render(null, container);
+    }, MERCHANT_CONTAINER_DESTROY_DELAY_MS);
   }
 
   exit() {
     this.cleanupActionContainer(false);
+    this.emptyActionInstructionsContainer();
 
     // telemetry for end of action
     if (this.telemetryScope) {

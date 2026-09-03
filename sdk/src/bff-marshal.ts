@@ -1,14 +1,18 @@
+import { BffBusiness } from "./backend-types/business";
 import { BffChannel, BffChannelUiGroup } from "./backend-types/channel";
+import { BffSucceededChannel } from "./backend-types/common";
 import { BffCustomer } from "./backend-types/customer";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { BffSession } from "./backend-types/session";
 import { internal } from "./internal";
 import {
+  XenditBusiness,
   XenditCustomer,
   XenditDigitalWallet,
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
+  XenditSucceededChannel,
 } from "./public-data-types";
 import {
   assert,
@@ -23,7 +27,7 @@ type XenditItem = NonNullable<XenditSession["items"]>[number];
 
 export function bffSessionToPublic(bffSession: BffSession): XenditSession {
   assertNotEquals(bffSession.session_type, "AUTHORIZATION");
-  assertEquals(bffSession.mode, "COMPONENTS");
+  assertNotEquals(bffSession.mode, "CARDS_SESSION_JS");
 
   return removeUndefinedPropertiesFromObject<XenditSession>({
     id: bffSession.payment_session_id,
@@ -38,6 +42,7 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
     expiresAt: new Date(bffSession.expires_at),
     locale: bffSession.locale,
     status: bffSession.status,
+    updated: new Date(bffSession.updated),
     successReturnUrl: bffSession.success_return_url,
     cancelReturnUrl: bffSession.cancel_return_url,
     captureMethod: bffSession.capture_method,
@@ -76,6 +81,20 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
   });
 }
 
+export function bffBusinessToPublic(
+  bffBusiness: BffBusiness | null,
+): XenditBusiness | null {
+  if (!bffBusiness) {
+    return null;
+  }
+  return {
+    name: bffBusiness.name ?? undefined,
+    countryOfOperation: bffBusiness.country_of_operation ?? undefined,
+    merchantProfilePictureUrl:
+      bffBusiness.merchant_profile_picture_url ?? undefined,
+  };
+}
+
 export function bffCustomerToPublic(
   bffCustomer: BffCustomer | null,
 ): XenditCustomer | null {
@@ -93,6 +112,18 @@ export function bffCustomerToPublic(
       givenNames: bffCustomer.individual_detail.given_names ?? undefined,
       surname: bffCustomer.individual_detail.surname ?? undefined,
     },
+  };
+}
+
+export function bffSucceededChannelToPublic(
+  bffSucceededChannel: BffSucceededChannel | null,
+): XenditSucceededChannel | null {
+  if (!bffSucceededChannel) {
+    return null;
+  }
+  return {
+    channelCode: bffSucceededChannel.channel_code,
+    logoUrl: bffSucceededChannel.logo_url,
   };
 }
 

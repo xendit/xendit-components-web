@@ -203,6 +203,7 @@ function isAndroidOrIos() {
 }
 
 export const MOCK_HOST_ID = "mock";
+export const CUSTOM_HOST_ID = "custom";
 
 const hosts: Record<string, string | undefined> = {
   pl: process.env.XENDIT_CHECKOUT_UI_GATEWAY_PROD_LIVE,
@@ -229,17 +230,29 @@ export function telemetryHostFromHostId(hostId: string): string | null {
 export type ParsedSdkKey = {
   sessionAuthKey: string;
   hostId: string;
-  publicKey: string;
-  signature: string;
+  publicKey?: string;
+  signature?: string;
 };
 
-export function parseSdkKey(componentsSdkKey: string): ParsedSdkKey {
+export function parseSdkKey(
+  componentsSdkKey: string,
+  hostId?: string,
+): ParsedSdkKey {
   if (!componentsSdkKey) {
     throw new Error(
       "The componentsSdkKey option is missing; check the constructor parameters.",
     );
   }
   const parts = componentsSdkKey.split("-");
+
+  if (parts.length === 2 && hostId) {
+    // checkout-ui workaround
+    return {
+      sessionAuthKey: [parts[0], parts[1]].join("-"),
+      hostId,
+    };
+  }
+
   if (
     parts.length < 4 ||
     (parts[2] !== MOCK_HOST_ID && hostFromHostId(parts[2]) === null)

@@ -9,7 +9,7 @@ import { parseSdkKey } from "./utils";
  * Simple mock sdk class for behavior tree and telemetry tests.
  */
 export const MockSdk = class MockSdk {
-  t = createTFunction("en");
+  t = createTFunction("en", (strings) => strings);
   [internal]: unknown;
 
   constructor(

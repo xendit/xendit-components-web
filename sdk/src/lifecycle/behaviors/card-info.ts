@@ -67,12 +67,15 @@ export class CardInfoBehavior implements Behavior {
     const promise = cancellableSleep(300, abortController.signal) // debounce
       .then(() => {
         if (this.bb.mock) {
-          // in mock mode, if the ciphertext is actually a base64-encoded JSON string, then use that as the mock response
-          const encodedError = parseEncryptedFieldValue(cardNumber).cipherText;
-          try {
-            return JSON.parse(atob(encodedError));
-          } catch {
-            // not json, ignore
+          if (this.bb.sdkKey.publicKey) {
+            // in mock mode, if the ciphertext is actually a base64-encoded JSON string, then use that as the mock response
+            const encodedError =
+              parseEncryptedFieldValue(cardNumber).cipherText;
+            try {
+              return JSON.parse(atob(encodedError));
+            } catch {
+              // not json, ignore
+            }
           }
 
           // otherwise, return a fixed mock response
@@ -83,10 +86,11 @@ export class CardInfoBehavior implements Behavior {
             bin: 400000,
           };
         } else {
-          // remove encoded validation error -
-          // normally, an invalid card number would have some other stuff appended to the end, but we still want to look up the card details even if the user hasn't finished typing
-          const cleanedCardNumber =
-            parseEncryptedFieldValue(cardNumber).withoutValidationError;
+          const cleanedCardNumber = this.bb.sdkKey.publicKey
+            ? // remove encoded validation error -
+              // normally, an invalid card number would have some other stuff appended to the end, but we still want to look up the card details even if the user hasn't finished typing
+              parseEncryptedFieldValue(cardNumber).withoutValidationError
+            : cardNumber.replace(/\s/g, ""); // the card number is plaintext, so remove spaces
 
           // real card details
           return lookupCardDetails(
