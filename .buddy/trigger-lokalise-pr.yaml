@@ -12,6 +12,7 @@
       docker_image_name: "library/alpine"
       docker_image_tag: "latest"
       execute_commands:
+        - "apk add --no-cache curl"
         - "./trigger-lokalise-pr.sh"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
