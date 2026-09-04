@@ -1,3 +1,9 @@
+# 0.0.31
+
+### Bug Fixes
+
+- Fix the `Content-Type` of the deployed SDK files
+
 # 0.0.30
 
 ### Bug Fixes
