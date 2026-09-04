@@ -9,6 +9,7 @@ export type TelemetryStage =
   | "CHECKOUT_ATTEMPT_DISCARD"
   | "CHECKOUT_ACTION_BEGIN"
   | "CHECKOUT_ACTION_CLOSE"
+  | "CHECKOUT_DIGITAL_WALLET_LOADED"
   | "CHECKOUT_DIGITAL_WALLET_BEGIN"
   | "CHECKOUT_DIGITAL_WALLET_CLOSE"
   | "CHECKOUT_ACTION_COPY_TEXT"
@@ -162,6 +163,17 @@ export const TelemetryEvents = {
     return {
       stage: "CHECKOUT_ACTION_CLOSE",
       success,
+    };
+  },
+
+  /**
+   * When a digital wallet component has loaded and is ready
+   */
+  DigitalWalletLoaded(success: boolean, digital_wallet: string) {
+    return {
+      stage: "CHECKOUT_DIGITAL_WALLET_LOADED",
+      success,
+      metadata: { digital_wallet },
     };
   },
 

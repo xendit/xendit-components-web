@@ -12,9 +12,32 @@ import { NetworkError } from "../src/networking";
 
 beforeEach(() => {
   defineMockGooglepay();
+  document.body.replaceChildren();
 });
 
 describe("digital wallets - googlepay - telemetry", () => {
+  it("should fire a CHECKOUT_DIGITAL_WALLET_LOADED event when googlepay component is ready", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    await waitForEvent(sdk, "init");
+
+    document.body.appendChild(sdk.createDigitalWalletComponent("GOOGLE_PAY"));
+
+    // should have fired the loaded event when the component is ready
+    const e1 = await waitForTelemetryEvent(
+      sdk,
+      "CHECKOUT_DIGITAL_WALLET_LOADED",
+      true,
+    );
+    expect(e1.metadata?.digital_wallet).toBe("GOOGLE_PAY");
+
+    // the button should be visible
+    const button = await screen.findByRole("button", { name: "Google Pay" });
+    expect(button).toBeInTheDocument();
+  });
+
   it("should render fire a DIGITAL_WALLET_BEGIN event when googlepay is opened and CHECKOUT_DIGITAL_WALLET_CLOSE when closed", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
@@ -23,6 +46,9 @@ describe("digital wallets - googlepay - telemetry", () => {
     await waitForEvent(sdk, "init");
 
     document.body.appendChild(sdk.createDigitalWalletComponent("GOOGLE_PAY"));
+
+    // consume the loaded event first
+    await waitForTelemetryEvent(sdk, "CHECKOUT_DIGITAL_WALLET_LOADED", true);
 
     const button = await screen.findByRole("button", { name: "Google Pay" }); // <- this needs to be async because isReadyToPay is async
     expect(button).toBeInTheDocument();
@@ -86,6 +112,32 @@ describe("digital wallets - googlepay - telemetry", () => {
 });
 
 describe("digital wallets - applepay - telemetry", () => {
+  it("should fire a CHECKOUT_DIGITAL_WALLET_LOADED event when applepay component is ready", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    defineMockApplepay("success");
+
+    await waitForEvent(sdk, "init");
+
+    document.body.appendChild(sdk.createDigitalWalletComponent("APPLE_PAY"));
+
+    // should have fired the loaded event when the component is ready
+    const e1 = await waitForTelemetryEvent(
+      sdk,
+      "CHECKOUT_DIGITAL_WALLET_LOADED",
+      true,
+    );
+    expect(e1.metadata?.digital_wallet).toBe("APPLE_PAY");
+
+    // the button should be visible
+    const button = document.querySelector(
+      "apple-pay-button",
+    ) as HTMLButtonElement;
+    expect(button).toBeInTheDocument();
+  });
+
   it("should render fire a DIGITAL_WALLET_BEGIN event when googlepay is opened and CHECKOUT_DIGITAL_WALLET_CLOSE when closed", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
@@ -103,6 +155,9 @@ describe("digital wallets - applepay - telemetry", () => {
     await waitForEvent(sdk, "init");
 
     document.body.appendChild(sdk.createDigitalWalletComponent("APPLE_PAY"));
+
+    // consume the loaded event first
+    await waitForTelemetryEvent(sdk, "CHECKOUT_DIGITAL_WALLET_LOADED", true);
 
     const button = document.querySelector(
       "apple-pay-button",
