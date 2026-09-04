@@ -205,17 +205,26 @@ export class SubmissionBehavior implements Behavior {
       TelemetryEvents.AttemptBegin(true),
     );
 
-    // make actual request
-    const shouldSendSavePaymentMethod =
-      this.bb.world.session.allow_save_payment_method === "OPTIONAL" &&
-      this.bb.channel?.allow_save;
-    const shouldSendCustomerDetails =
-      this.bb.channel?.requires_customer_details && !this.bb.world.customer;
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
     const mockActionType = getMockActionType(this.bb);
     const channelProperties = this.bb.channelProperties ?? {};
     const abortController = new AbortController();
+
+    // save if session allows it, channel allows it, and user opted in
+    const savePaymentMethod =
+      (this.bb.world.session.allow_save_payment_method === "OPTIONAL" ||
+        this.bb.world.session.allow_save_payment_method === "FORCED") &&
+      this.bb.channel?.allow_save &&
+      this.bb.channelData?.savePaymentMethod;
+
+    // send customer details if channel wants it, and merchant did NOT already give us a customer
+    const customerDetails =
+      this.bb.channel?.requires_customer_details && !this.bb.world.customer
+        ? (this.bb.channelData?.customerDetails ?? { given_names: "" })
+        : undefined;
+
+    // make actual request
     const promise = asyncSubmit(
       this.bb.sdkKey,
       this.bb.mock,
@@ -224,12 +233,8 @@ export class SubmissionBehavior implements Behavior {
       mockActionType,
       channelProperties,
       abortController,
-      shouldSendSavePaymentMethod
-        ? (this.bb.channelData?.savePaymentMethod ?? false)
-        : undefined,
-      shouldSendCustomerDetails
-        ? (this.bb.channelData?.customerDetails ?? { given_names: "" })
-        : undefined,
+      savePaymentMethod,
+      customerDetails,
     )
       .then((paymentEntity: BffPaymentEntity) => {
         // clear abort controller since the request is complete

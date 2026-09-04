@@ -270,6 +270,7 @@ export class XenditComponents extends EventTarget {
       digitalWalletCode: XenditDigitalWalletCode;
       channelCode: string;
       channelProperties: ChannelProperties;
+      channelData: ChannelComponentData;
       instantSubmissionError: SubmissionError | null;
     } | null;
 
@@ -664,7 +665,8 @@ export class XenditComponents extends EventTarget {
       );
       bb.channelProperties =
         this[internal].currentDigitalWalletSubmission.channelProperties;
-      bb.channelData = null;
+      bb.channelData =
+        this[internal].currentDigitalWalletSubmission.channelData;
       bb.channelIsDigitalWallet = true;
       bb.instantSubmissionError =
         this[internal].currentDigitalWalletSubmission.instantSubmissionError;
@@ -1613,6 +1615,7 @@ export class XenditComponents extends EventTarget {
     digitalWalletCode: XenditDigitalWalletCode,
     channel: XenditPaymentChannel,
     channelProperties: ChannelProperties,
+    savePaymentMethod: boolean,
     instantSubmissionError: SubmissionError | null = null,
   ) {
     this.assertInitialized();
@@ -1623,6 +1626,12 @@ export class XenditComponents extends EventTarget {
       digitalWalletCode,
       channelCode: channel[internal][0].channel_code,
       channelProperties,
+      channelData: {
+        savePaymentMethod,
+        cardDetails: null,
+        paymentOptions: null,
+        customerDetails: null,
+      },
       instantSubmissionError,
     };
 
