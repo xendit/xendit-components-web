@@ -21,9 +21,14 @@ describe("sdk submit digital wallet", () => {
 
     // start submission and wait for completion
     setTimeout(() => {
-      sdk.submitDigitalWallet("GOOGLE_PAY", ch, {
-        google_pay: "...",
-      });
+      sdk.submitDigitalWallet(
+        "GOOGLE_PAY",
+        ch,
+        {
+          google_pay: "...",
+        },
+        true,
+      );
     });
     await waitForEventSequence(sdk, [
       { name: "submission-begin" },
@@ -49,15 +54,10 @@ describe("sdk submit digital wallet", () => {
 
     // start submission wait for completion
     setTimeout(() => {
-      sdk.submitDigitalWallet(
-        "GOOGLE_PAY",
-        ch,
-        {},
-        {
-          text: ["Payment failed"],
-          code: "GOOGLE_PAY_ERROR",
-        },
-      );
+      sdk.submitDigitalWallet("GOOGLE_PAY", ch, {}, true, {
+        text: ["Payment failed"],
+        code: "GOOGLE_PAY_ERROR",
+      });
     });
     await waitForEventSequence(sdk, [
       { name: "submission-begin" },
