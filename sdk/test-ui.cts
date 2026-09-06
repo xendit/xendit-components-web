@@ -204,6 +204,7 @@ components.addEventListener("payment-token-discarded", logEvent);
 
 components.addEventListener("fatal-error", logEvent);
 
+components.addEventListener("card-bin-changed", logEvent);
 components.addEventListener("channel-properties-changed", logEvent);
 
 setInterval(() => {
