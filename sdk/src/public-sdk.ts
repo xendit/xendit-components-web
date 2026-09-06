@@ -639,11 +639,7 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
-    if (
-      newData.cardBin !== undefined &&
-      newData.cardBin !== null &&
-      newData.cardBin !== component.data.cardBin
-    ) {
+    if (newData.cardBin && newData.cardBin !== component.data.cardBin) {
       // schemes/countryCodes come from the same card_info response as this bin
       const details =
         newData.cardDetails?.details ?? component.data.cardDetails?.details;
@@ -2043,7 +2039,7 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
-   * Fired when the card's BIN becomes known, and again whenever it changes.
+   * If using CARDS, fired whenever the BIN changes. This will be either a 6 or 8 digit string depending on the detected card brand.
    */
   addEventListener(
     name: "card-bin-changed",

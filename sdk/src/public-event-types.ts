@@ -287,7 +287,7 @@ export class XenditPaymentRequestCreatedEvent extends Event {
 
 /**
  * @public
- * Fired when the card's BIN becomes known, and again whenever it changes.
+ * If using CARDS, fired whenever the BIN changes. This will be either a 6 or 8 digit string depending on the detected card brand.
  */
 export class XenditCardBinChangedEvent extends Event {
   static type = "card-bin-changed" as const;

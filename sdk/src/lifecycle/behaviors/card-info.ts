@@ -83,7 +83,7 @@ export class CardInfoBehavior implements Behavior {
             schemes: ["VISA"],
             country_codes: ["ID"],
             require_billing_information: false,
-            bin: 400000,
+            bin: null,
           };
         } else {
           const cleanedCardNumber = this.bb.sdkKey.publicKey
