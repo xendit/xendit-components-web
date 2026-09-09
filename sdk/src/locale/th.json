@@ -21,7 +21,7 @@
     "apple_pay_errors.merchant_validation_failed.title": "มีบางอย่างผิดพลาดเกิดขึ้น",
     "apple_pay_errors.network_error.message": "เกิดข้อผิดพลาดของเครือข่ายขณะประมวลผล Apple Pay กรุณาลองใหม่อีกครั้งหรือใช้วิธีชำระเงินอื่น",
     "apple_pay_errors.network_error.title": "มีบางอย่างผิดพลาดเกิดขึ้น",
-    "apple_pay_errors.payment_failed.message": "",
+    "apple_pay_errors.payment_failed.message": "ไม่สามารถดำเนินการชำระเงินผ่าน Apple Pay ได้ โปรดลองอีกครั้งหรือใช้วิธีการชำระเงินอื่น",
     "apple_pay_errors.payment_failed.title": "มีบางอย่างผิดพลาดเกิดขึ้น",
     "apple_pay_errors.unknown_error.message": "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุกับ Apple Pay กรุณาลองใหม่อีกครั้งหรือใช้วิธีชำระเงินอื่น",
     "apple_pay_errors.unknown_error.title": "มีบางอย่างผิดพลาดเกิดขึ้น",
