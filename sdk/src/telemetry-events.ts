@@ -24,17 +24,20 @@ export interface SessionTelemetryEvent {
   payment_channel?: string;
   payment_request_id?: string;
   payment_token_id?: string;
-  metadata?: Record<string, string | number | boolean | undefined>;
+  metadata?: Record<string, string | number | boolean | string[] | undefined>;
 }
 
 export const TelemetryEvents = {
   /**
    * On initialization, after calling the get session endpoint
    */
-  Loaded(success: boolean) {
+  Loaded(success: boolean, channels?: string[]) {
     return {
       stage: "CHECKOUT_LOADED",
       success,
+      metadata: {
+        channels,
+      },
     };
   },
 
@@ -51,12 +54,13 @@ export const TelemetryEvents = {
   /**
    * On channel group click
    */
-  ChannelGroup(success: boolean, group_name: string) {
+  ChannelGroup(success: boolean, group_name: string, channels: string[]) {
     return {
       stage: "CHECKOUT_CHANNEL_GROUP",
       success,
       metadata: {
         group_name,
+        channels,
       },
     };
   },

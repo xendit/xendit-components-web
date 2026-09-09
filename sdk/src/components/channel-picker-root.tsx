@@ -25,6 +25,7 @@ import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { TFunction } from "../localization";
 import {
   findChannelPairs,
+  getChannelCodesForTelemetry,
   makeChannelsByGroupId,
   singleBffChannelToPublic,
 } from "../bff-marshal";
@@ -80,13 +81,18 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     }
   }, [telemetry]);
   const telemetryForGroupChange = useCallback(
-    (groupName: string) => {
+    (groupName: string, groupId: string) => {
       telemetryForGroupClear();
+      const channelList = getChannelCodesForTelemetry(
+        session,
+        channels,
+        groupId,
+      );
       telemetryScopeForGroup.current = telemetry.appendAndPushScope(
-        TelemetryEvents.ChannelGroup(true, groupName),
+        TelemetryEvents.ChannelGroup(true, groupName, channelList),
       );
     },
-    [telemetry, telemetryForGroupClear],
+    [telemetry, telemetryForGroupClear, session, channels],
   );
 
   const handleSelectChannelGroup = useCallback(
@@ -123,12 +129,12 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
         } else if (enabledChannels === 1) {
           // one enabled channel, select it automatically
           const ch = channelsByGroup[groupId][0];
-          telemetryForGroupChange(newGroup.label);
+          telemetryForGroupChange(newGroup.label, groupId);
           sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
           setPreviewGroupId(null);
         } else {
           // multiple enabled channels, set as previewed and clear the channel selection
-          telemetryForGroupChange(newGroup.label);
+          telemetryForGroupChange(newGroup.label, groupId);
           setPreviewGroupId(groupId);
           sdk.setCurrentChannel(null);
         }

@@ -284,6 +284,34 @@ function makeGroupsByGroupId(
 }
 
 /**
+ * Returns the visible channel list for a telemetry event.
+ */
+export function getChannelCodesForTelemetry(
+  session: BffSession,
+  channels: BffChannel[],
+  uiGroup: string | null,
+) {
+  const marshalConfig: ChannelMarshalConfig = {
+    pairChannels: {
+      pairs: {},
+      paired: {},
+    },
+    options: {
+      filterMinMax: true,
+    },
+    session,
+  };
+
+  return channels
+    .filter((channel) => channelFilterFn(channel, marshalConfig))
+    .filter((channel) => {
+      if (uiGroup === null) return true;
+      return channel.ui_group === uiGroup;
+    })
+    .map((channel) => channel.channel_code);
+}
+
+/**
  * Return true if the channel passes the filter criteria.
  */
 export function channelFilterFn(

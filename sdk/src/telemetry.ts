@@ -208,7 +208,9 @@ export class SessionTelemetry extends EventTarget {
 
 // copy the object with undefined keys removed, then return it, unless it is empty then return undefined
 function sanitizeMetadata(
-  obj: Record<string, string | number | boolean | undefined> | undefined,
+  obj:
+    | Record<string, string | number | boolean | string[] | undefined>
+    | undefined,
 ) {
   if (!obj) return undefined;
 
