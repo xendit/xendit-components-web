@@ -2156,6 +2156,16 @@ export class XenditComponentsTest extends XenditComponents {
     // Wait for libphonenumber-js so fields can assume it's already loaded
     await getLibphonenumber();
 
+    // telemetry
+    const availableChannels = getChannelCodesForTelemetry(
+      bff.session,
+      bff.channels,
+      null,
+    );
+    getTelemetry(this).appendAndPushScope(
+      TelemetryEvents.Loaded(true, availableChannels),
+    );
+
     // Update internal data
     this.dispatchEvent(
       new InternalUpdateWorldState({
@@ -2170,15 +2180,6 @@ export class XenditComponentsTest extends XenditComponents {
         succeededChannel: null,
         experiments: bff.experiments,
       } satisfies WorldState),
-    );
-
-    const availableChannels = getChannelCodesForTelemetry(
-      bff.session,
-      bff.channels,
-      null,
-    );
-    getTelemetry(this).appendAndPushScope(
-      TelemetryEvents.Loaded(true, availableChannels),
     );
   }
 
