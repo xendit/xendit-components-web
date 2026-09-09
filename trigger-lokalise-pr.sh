@@ -10,7 +10,7 @@ if [ -z "${LOKALISE_API_TOKEN:-}" ]; then
   exit 1
 fi
 
-curl --request POST \
+curl --fail --request POST \
   --url "${API_URL}" \
   --header "Accept: application/json" \
   --header "Content-Type: application/json" \

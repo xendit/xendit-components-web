@@ -13,6 +13,7 @@
       docker_image_tag: "latest"
       execute_commands:
         - "apk add --no-cache curl"
+        - "export LOKALISE_API_TOKEN"
         - "./trigger-lokalise-pr.sh"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
