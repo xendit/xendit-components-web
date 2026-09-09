@@ -10,7 +10,12 @@ if [ -z "${LOKALISE_API_TOKEN:-}" ]; then
   exit 1
 fi
 
-curl --fail --request POST \
+# Trim whitespace/newlines that may be added by CI variable handling
+LOKALISE_API_TOKEN=$(printf '%s' "${LOKALISE_API_TOKEN}" | tr -d '[:space:]')
+
+echo "Using token: $(echo "${LOKALISE_API_TOKEN}" | cut -c1-4)... (length: ${#LOKALISE_API_TOKEN})"
+
+curl --fail-with-body --request POST \
   --url "${API_URL}" \
   --header "Accept: application/json" \
   --header "Content-Type: application/json" \
