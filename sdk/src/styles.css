@@ -572,7 +572,7 @@ xendit-channel-picker[inert] {
   width: 16px;
   height: 16px;
   border: 1px solid var(--xendit-color-border);
-  border-radius: var(--xendit-radius-2);
+  border-radius: 4px;
   box-sizing: border-box;
   color: transparent;
 }
