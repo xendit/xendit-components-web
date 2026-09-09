@@ -215,8 +215,8 @@ xendit-payment-channel select::placeholder {
   font-size: 12px;
 }
 .xendit-accordion-item-logo-image {
-  max-height: 16px;
-  max-width: 24px;
+  max-height: 20px;
+  aspect-ratio: 1.4;
   object-fit: contain;
 }
 .xendit-accordion-item-logo-image-disabled {
