@@ -108,7 +108,7 @@ describe("secure iframe ui - main - basics", () => {
         assert(input);
         await userEvent.click(input);
         await userEvent.paste("4111 1111 1111 1111");
-        await sleep(1000); // webcrypto is async
+        await sleep(1000); // wait for async webcrypto calls
       },
     );
 
@@ -145,7 +145,7 @@ describe("secure iframe ui - main - basics", () => {
         assert(input);
         await userEvent.click(input);
         await userEvent.paste("1234");
-        await sleep(1000); // webcrypto is async
+        await sleep(1000); // wait for async webcrypto calls
       },
     );
 
@@ -178,7 +178,7 @@ describe("secure iframe ui - main - basics", () => {
         assert(input);
         await userEvent.click(input);
         await userEvent.paste("123");
-        await sleep(1000); // webcrypto is async
+        await sleep(1000); // wait for async webcrypto calls
       },
     );
 
