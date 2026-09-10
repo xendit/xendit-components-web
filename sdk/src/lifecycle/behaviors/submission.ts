@@ -200,7 +200,7 @@ export class SubmissionBehavior implements Behavior {
       this.submission = null;
     }
 
-    // Ensure submit flags is reset
+    // Ensure submit flag is reset
     this.bb.submissionRequested = false;
 
     // Schedule rerender (to clear the inert attribute on the active component)

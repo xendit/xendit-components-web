@@ -4,16 +4,14 @@ import {
   useSdk,
   useSession,
 } from "./session-provider";
-import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
-import { BffSession } from "../backend-types/session";
-import { assert, satisfiesMinMax } from "../utils";
+import { BffChannelUiGroup } from "../backend-types/channel";
+import { assert } from "../utils";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import {
   channelFilterFn,
   findChannelPairs,
   singleBffChannelToPublic,
 } from "../bff-marshal";
-import { TFunction } from "../localization";
 import { FunctionComponent } from "preact";
 
 interface ChannelPickerOneclickProps {
@@ -115,19 +113,3 @@ export const ChannelPickerOneclick: FunctionComponent<
     </div>
   );
 };
-
-export function getChannelDisabledReason(
-  t: TFunction,
-  session: BffSession,
-  channel: BffChannel,
-): string | null {
-  if (satisfiesMinMax(session, channel)) {
-    return null;
-  }
-
-  if (channel.min_amount && session.amount < channel.min_amount) {
-    return t("payment_methods.channel_disabled_amount_too_small");
-  } else {
-    return t("payment_methods.channel_disabled_amount_too_large");
-  }
-}
