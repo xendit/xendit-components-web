@@ -31,6 +31,7 @@ import {
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
+import { ChannelPickerOneclick } from "./channel-picker-oneclick";
 
 type Props = object;
 
@@ -189,6 +190,11 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
               channelsByGroup[group.id],
             );
 
+            const enableOneclick = enableOneclickForGroup(
+              session,
+              channelsByGroup[group.id],
+            );
+
             return (
               <AccordionItem
                 key={group.id}
@@ -200,7 +206,11 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
                 onClick={handleSelectChannelGroup}
                 channelLogos={channelLogos}
               >
-                <ChannelPickerGroup group={group} open={open} />
+                {enableOneclick ? (
+                  <ChannelPickerOneclick group={group} open={open} />
+                ) : (
+                  <ChannelPickerGroup group={group} open={open} />
+                )}
               </AccordionItem>
             );
           })}
@@ -267,6 +277,14 @@ function resolveChannelLogosForGroup(
     }
   }
   return logos;
+}
+
+function enableOneclickForGroup(session: BffSession, channels: BffChannel[]) {
+  return (
+    channels.length === 1 &&
+    channels[0].pm_type === "QR_CODE" &&
+    channels[0].form.length === 0
+  );
 }
 
 export class XenditClearCurrentChannelEvent extends Event {
