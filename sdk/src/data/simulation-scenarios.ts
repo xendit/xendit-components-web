@@ -12,6 +12,76 @@ export type Scenarios = {
   docsLink?: string;
 };
 
+/**
+ * The concrete card values for each simulation scenario, keyed by scenario name.
+ *
+ * For secure iframe fields, this mapping lives inside the iframe
+ * (secure-iframe/src/simulation.ts) and the SDK only knows scenario names. For
+ * non-iframe fields there is no iframe to resolve the values, so the SDK needs
+ * its own copy to populate the fields directly.
+ *
+ * Keep this in sync with secure-iframe/src/simulation.ts.
+ */
+type SimulationFieldType =
+  | "credit_card_number"
+  | "credit_card_expiry"
+  | "credit_card_cvn";
+
+const SIMULATION_SCENARIO_VALUES: Record<
+  string,
+  Record<SimulationFieldType, string>
+> = {
+  "3_ds_challenge_authentication_is_successful_if_otp_is_correct_visa": {
+    credit_card_number: "4000000000002503",
+    credit_card_expiry: "12/99",
+    credit_card_cvn: "123",
+  },
+  "3_ds_frictionless_authentication_is_successful_visa": {
+    credit_card_number: "4000000000001000",
+    credit_card_expiry: "12/99",
+    credit_card_cvn: "123",
+  },
+  "3_ds_challenge_authentication_is_successful_if_otp_is_correct_mastercard": {
+    credit_card_number: "5200000000002151",
+    credit_card_expiry: "12/99",
+    credit_card_cvn: "123",
+  },
+  "3_ds_frictionless_authentication_is_successful_mastercard": {
+    credit_card_number: "5200000000001005",
+    credit_card_expiry: "12/99",
+    credit_card_cvn: "123",
+  },
+  "3_ds_frictionless_authentication_successful_use_a_4_digit_cvn": {
+    credit_card_number: "378282246310005",
+    credit_card_expiry: "12/99",
+    credit_card_cvn: "1234",
+  },
+  "3_ds_challenge_use_a_4_digit_cvn": {
+    credit_card_number: "340000000002534",
+    credit_card_expiry: "12/99",
+    credit_card_cvn: "1234",
+  },
+};
+
+/**
+ * Resolve the concrete value for a non-iframe credit card field, given a
+ * simulation scenario name and the field type. Returns null if the scenario or
+ * field type is unknown.
+ */
+export function resolveSimulationFieldValue(
+  scenarioName: string,
+  fieldTypeName: string,
+): string | null {
+  if (
+    fieldTypeName !== "credit_card_number" &&
+    fieldTypeName !== "credit_card_expiry" &&
+    fieldTypeName !== "credit_card_cvn"
+  ) {
+    return null;
+  }
+  return SIMULATION_SCENARIO_VALUES[scenarioName]?.[fieldTypeName] ?? null;
+}
+
 export const CARDS_SCENARIOS: Scenarios = {
   scenarios: [
     {
