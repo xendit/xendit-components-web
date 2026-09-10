@@ -1,5 +1,5 @@
 import { Accordion } from "./core/accordion";
-import { AccordionItem, CardsGroupLogo } from "./core/accordion-item";
+import { AccordionItem } from "./core/accordion-item";
 import {
   useCurrentChannel,
   useChannelUiGroups,
@@ -14,7 +14,7 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { ComponentChildren, FunctionComponent } from "preact";
+import { FunctionComponent } from "preact";
 import {
   ChannelPickerGroup,
   getChannelDisabledReason,
@@ -244,16 +244,17 @@ function groupEnabledChannelStats(
 function resolveChannelLogosForGroup(
   session: BffSession,
   channels: BffChannel[],
-): ({ src: string; alt: string; enabled: boolean } | ComponentChildren)[] {
-  const logos: (
-    | { src: string; alt: string; enabled: boolean }
-    | ComponentChildren
-  )[] = [];
+): { src: string; alt: string; enabled: boolean }[] {
+  const logos: { src: string; alt: string; enabled: boolean }[] = [];
   for (const channel of channels) {
     const enabled = satisfiesMinMax(session, channel);
     if (channel.card) {
       // use generic card icon
-      logos.push(<CardsGroupLogo enabled={enabled} />);
+      logos.push({
+        src: "https://assets.xendit.co/payment-session/logos/CARDS.svg",
+        alt: channel.brand_name,
+        enabled,
+      });
     } else {
       // else use channel brand logo
       logos.push({

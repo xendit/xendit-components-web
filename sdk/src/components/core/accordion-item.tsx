@@ -6,7 +6,6 @@ import {
   TargetedKeyboardEvent,
 } from "preact";
 import { useCallback } from "preact/hooks";
-import Icon from "../icon";
 
 interface Props {
   id: string;
@@ -16,14 +15,11 @@ interface Props {
   open: boolean;
   onClick: (id: string) => void;
   children: ComponentChildren;
-  channelLogos: (
-    | {
-        src: string;
-        alt: string;
-        enabled: boolean;
-      }
-    | ComponentChildren
-  )[];
+  channelLogos: {
+    src: string;
+    alt: string;
+    enabled: boolean;
+  }[];
 }
 
 export const AccordionItem: FunctionComponent<Props> = (props) => {
@@ -121,14 +117,11 @@ const RadioButtonGraphic = (props: RadioButtonGraphicProps) => {
 const MAX_LOGO_COUNT = 4; // Maximum logos to display before showing a count
 
 type GroupLogosProps = {
-  logos: (
-    | {
-        src: string;
-        alt: string;
-        enabled: boolean;
-      }
-    | ComponentChildren
-  )[];
+  logos: {
+    src: string;
+    alt: string;
+    enabled: boolean;
+  }[];
 };
 
 export const GroupLogos = (props: GroupLogosProps) => {
@@ -139,23 +132,17 @@ export const GroupLogos = (props: GroupLogosProps) => {
   let logoIndex = 1;
 
   for (const logo of logos) {
-    if (typeof logo === "object" && logo !== null && "src" in logo) {
-      // If the logo is an object with a src property, render it as an image
-      logoNodes.push(
-        <img
-          key={logoIndex++}
-          src={logo.src}
-          alt={logo.alt}
-          onError={hideOnError}
-          className={classNames("xendit-accordion-item-logo-image", {
-            "xendit-accordion-item-logo-image-disabled": !logo.enabled,
-          })}
-        />,
-      );
-    } else {
-      // If the logo is a ComponentChildren, render it directly
-      logoNodes.push(logo);
-    }
+    logoNodes.push(
+      <img
+        key={logoIndex++}
+        src={logo.src}
+        alt={logo.alt}
+        onError={hideOnError}
+        className={classNames("xendit-accordion-item-logo-image", {
+          "xendit-accordion-item-logo-image-disabled": !logo.enabled,
+        })}
+      />,
+    );
   }
 
   // Truncate logos list if they exceed the maximum count
@@ -182,18 +169,4 @@ export const GroupLogos = (props: GroupLogosProps) => {
 // to hide broken image icons when the image fails to load
 const hideOnError: GenericEventHandler<HTMLImageElement> = (event) => {
   (event.target as HTMLImageElement).style.display = "none";
-};
-
-export const CardsGroupLogo: FunctionComponent<{ enabled: boolean }> = ({
-  enabled,
-}) => {
-  return (
-    <Icon
-      name="card"
-      size={20}
-      className={classNames("xendit-accordion-item-logo-image", {
-        "xendit-accordion-item-logo-image-disabled": !enabled,
-      })}
-    />
-  );
 };
