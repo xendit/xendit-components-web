@@ -62,34 +62,40 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
       .filter((c): c is DropdownOptionWithDial => Boolean(c));
   }, [countriesAsDropdownOptions]);
 
-  function initialValues(initial: string | undefined, sessionCountry: string) {
-    const defaultInitial = {
-      country: sessionCountry,
-      localNumber: "",
-    };
-    if (!initial) return defaultInitial;
-    const lib = getLoadedLibphonenumber();
-    const parsed = lib.parsePhoneNumberFromString(initial);
-    if (!parsed) return defaultInitial;
-    const countryOption = countriesWithDialCodesAsDropdownOptions.find(
-      (option) => option.value === parsed.country,
-    );
-    if (!countryOption) return defaultInitial;
-    const sanitized = sanitizePhoneNumber(countryOption, parsed.nationalNumber);
-    if (!sanitized) return defaultInitial;
-    const international = parsed.formatInternational();
-    const countryCode = lib.getCountryCallingCode(
-      countryOption.value as CountryCode,
-    );
-    return {
-      country: countryOption.value as string,
-      localNumber: international.replace(`+${countryCode} `, ""),
-    };
-  }
+  const initialValues = useCallback(
+    (initial: string | undefined, sessionCountry: string) => {
+      const defaultInitial = {
+        country: sessionCountry,
+        localNumber: "",
+      };
+      if (!initial) return defaultInitial;
+      const lib = getLoadedLibphonenumber();
+      const parsed = lib.parsePhoneNumberFromString(initial);
+      if (!parsed) return defaultInitial;
+      const countryOption = countriesWithDialCodesAsDropdownOptions.find(
+        (option) => option.value === parsed.country,
+      );
+      if (!countryOption) return defaultInitial;
+      const sanitized = sanitizePhoneNumber(
+        countryOption,
+        parsed.nationalNumber,
+      );
+      if (!sanitized) return defaultInitial;
+      const international = parsed.formatInternational();
+      const countryCode = lib.getCountryCallingCode(
+        countryOption.value as CountryCode,
+      );
+      return {
+        country: countryOption.value as string,
+        localNumber: international.replace(`+${countryCode} `, ""),
+      };
+    },
+    [countriesWithDialCodesAsDropdownOptions],
+  );
 
   const initial = useMemo(
     () => initialValues(field.initial_value, session.country),
-    [field.initial_value, session.country],
+    [field.initial_value, initialValues, session.country],
   );
 
   const [countryCode, setCountryCode] = useState(initial.country);
