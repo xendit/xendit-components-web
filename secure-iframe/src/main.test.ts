@@ -108,6 +108,7 @@ describe("secure iframe ui - main - basics", () => {
         assert(input);
         await userEvent.click(input);
         await userEvent.paste("4111 1111 1111 1111");
+        await sleep(1000); // webcrypto is async
       },
     );
 
@@ -144,6 +145,7 @@ describe("secure iframe ui - main - basics", () => {
         assert(input);
         await userEvent.click(input);
         await userEvent.paste("1234");
+        await sleep(1000); // webcrypto is async
       },
     );
 
@@ -176,6 +178,7 @@ describe("secure iframe ui - main - basics", () => {
         assert(input);
         await userEvent.click(input);
         await userEvent.paste("123");
+        await sleep(1000); // webcrypto is async
       },
     );
 
@@ -240,16 +243,16 @@ async function setQueryParams(params: Record<string, string>) {
 
 /**
  * Expect that calling fn results in a specific postMessage call.
+ *
+ * Call postMessage within fn, it must be called before returning.
  */
 async function expectPostMessage(message: object, fn: () => void) {
   const eventHandler = vitest.fn();
   window.parent.addEventListener("message", eventHandler);
   await fn();
 
-  // postMessage has "global task" priority, same as setTimeout
-  // so as long as the work is all synchronous we should only need sleep(0)
-  // but the WebCrypto stuff is async :(
-  await sleep(1000);
+  // postMessage has a setTimeout(0) so we need to do it here too
+  await sleep(0);
 
   expect(eventHandler).toHaveBeenCalled();
 
