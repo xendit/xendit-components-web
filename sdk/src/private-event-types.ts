@@ -98,3 +98,22 @@ export class InternalScheduleMockUpdateEvent extends Event {
     super(InternalScheduleMockUpdateEvent.type, {});
   }
 }
+
+/**
+ * @internal
+ * Populate a non-iframe credit card field with a value for simulation.
+ *
+ * This is the non-iframe counterpart to the "xendit-iframe-populate-for-simulation"
+ * message that is posted to secure iframe fields. The field component listens for
+ * this event on its input and applies the value through its normal formatting path.
+ *
+ * Fire this on the field's input element.
+ * Safe to fire from within a react render.
+ */
+export class InternalPopulateFieldForSimulationEvent extends Event {
+  static type = "xendit-internal-populate-field-for-simulation" as const;
+
+  constructor(public value: string) {
+    super(InternalPopulateFieldForSimulationEvent.type, { bubbles: false });
+  }
+}

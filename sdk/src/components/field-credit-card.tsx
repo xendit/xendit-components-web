@@ -1,6 +1,9 @@
 import { FunctionComponent } from "preact";
-import { useCallback, useRef, useState } from "preact/hooks";
-import { InternalSetFieldTouchedEvent } from "../private-event-types";
+import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
+import {
+  InternalPopulateFieldForSimulationEvent,
+  InternalSetFieldTouchedEvent,
+} from "../private-event-types";
 import { formFieldId, formFieldName } from "../utils";
 import { useChannel, useChannelComponentData } from "./channel-root";
 import { FieldProps } from "./field";
@@ -111,6 +114,30 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
 
     onChange();
   }, [onChange]);
+
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    function listener(event: Event) {
+      const target = inputRef.current;
+      if (!target) return;
+      if (!(event instanceof InternalPopulateFieldForSimulationEvent)) return;
+      // set the raw value and run the normal formatting path, which updates the
+      // display value, the hidden (submitted) value, and calls onChange
+      target.value = event.value;
+      formatAndUpdate();
+    }
+    input.addEventListener(
+      InternalPopulateFieldForSimulationEvent.type,
+      listener,
+    );
+    return () => {
+      input.removeEventListener(
+        InternalPopulateFieldForSimulationEvent.type,
+        listener,
+      );
+    };
+  }, [formatAndUpdate]);
 
   const handleBlur = useCallback(() => {
     setFocusWithin(false);
@@ -291,6 +318,30 @@ export const CreditCardExpiryField: FunctionComponent<FieldProps> = (props) => {
     updateHiddenValue(newValue);
   }, [updateHiddenValue]);
 
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    function listener(event: Event) {
+      const target = inputRef.current;
+      if (!target) return;
+      if (!(event instanceof InternalPopulateFieldForSimulationEvent)) return;
+      // set the raw MM/YY value and run the normal formatting path, which
+      // updates the display value, the hidden (submitted) value, and calls onChange
+      target.value = event.value;
+      formatAndUpdate();
+    }
+    input.addEventListener(
+      InternalPopulateFieldForSimulationEvent.type,
+      listener,
+    );
+    return () => {
+      input.removeEventListener(
+        InternalPopulateFieldForSimulationEvent.type,
+        listener,
+      );
+    };
+  }, [formatAndUpdate]);
+
   const handleBlur = useCallback(() => {
     setFocusWithin(false);
     if (hiddenRef.current?.value) {
@@ -343,6 +394,28 @@ export const CreditCardCvnField: FunctionComponent<FieldProps> = (props) => {
     setValue(input.value);
     onChange();
   }, [onChange]);
+
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    function listener(event: Event) {
+      const target = inputRef.current;
+      if (!target) return;
+      if (!(event instanceof InternalPopulateFieldForSimulationEvent)) return;
+      target.value = event.value;
+      handleInput();
+    }
+    input.addEventListener(
+      InternalPopulateFieldForSimulationEvent.type,
+      listener,
+    );
+    return () => {
+      input.removeEventListener(
+        InternalPopulateFieldForSimulationEvent.type,
+        listener,
+      );
+    };
+  }, [handleInput]);
 
   const handleBlur = useCallback(() => {
     setFocusWithin(false);
