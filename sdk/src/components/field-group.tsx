@@ -3,11 +3,18 @@ import { ChannelFormField, ChannelProperties } from "../backend-types/channel";
 import Field from "./field";
 import classNames from "classnames";
 import { formFieldId, formFieldName } from "../utils";
+import { internal } from "../internal";
 import { useSdk } from "./session-provider";
 import { getLocalizedErrorMessage } from "../localization";
 import { channelPropertyFieldValidate } from "../validation";
-import { InternalSetFieldTouchedEvent } from "../private-event-types";
-import { Scenarios } from "../data/simulation-scenarios";
+import {
+  InternalPopulateFieldForSimulationEvent,
+  InternalSetFieldTouchedEvent,
+} from "../private-event-types";
+import {
+  resolveSimulationFieldValue,
+  Scenarios,
+} from "../data/simulation-scenarios";
 import {
   FormSimulationHelper,
   FormSimulationHelperPopover,
@@ -213,7 +220,12 @@ const FormSimulationHelperWrapper: FunctionComponent<{
   fieldGroup: ChannelFormField[];
 }> = ({ simulationScenarios, fieldGroup }) => {
   const iframeRegistry = useContext(IframeRegistryContext);
-  const { t } = useSdk();
+  const sdk = useSdk();
+  const { t } = sdk;
+
+  const canUseSecureIframe = Boolean(
+    sdk[internal].sdkKey.publicKey && sdk[internal].sdkKey.signature,
+  );
 
   return (
     <FormSimulationHelper
@@ -227,19 +239,34 @@ const FormSimulationHelperWrapper: FunctionComponent<{
         // when a scenario is selected, set the values of the scenario to the fields
         for (const [fieldName, value] of Object.entries(scenario.values)) {
           const field = fieldGroup.find((f) => formFieldName(f) === fieldName);
-          if (field) {
-            if (
-              field.type.name === "credit_card_number" ||
-              field.type.name === "credit_card_expiry" ||
-              field.type.name === "credit_card_cvn"
-            ) {
-              iframeRegistry?.postMessageToIframe(fieldName, {
-                type: "xendit-iframe-populate-for-simulation",
-                scenario: value,
-              });
-            }
+          if (!field) continue;
 
-            // TODO handle non-iframe fields if needed
+          const isCreditCardField =
+            field.type.name === "credit_card_number" ||
+            field.type.name === "credit_card_expiry" ||
+            field.type.name === "credit_card_cvn";
+          if (!isCreditCardField) continue;
+
+          if (canUseSecureIframe) {
+            // secure iframe fields resolve the scenario to a concrete value
+            // internally, so we only forward the scenario name
+            iframeRegistry?.postMessageToIframe(fieldName, {
+              type: "xendit-iframe-populate-for-simulation",
+              scenario: value,
+            });
+          } else {
+            // non-iframe fields have no iframe to resolve the scenario, so we
+            // resolve the concrete value here and populate the input directly
+            const resolvedValue = resolveSimulationFieldValue(
+              value,
+              field.type.name,
+            );
+            if (resolvedValue === null) continue;
+
+            const input = document.getElementById(formFieldId(field));
+            input?.dispatchEvent(
+              new InternalPopulateFieldForSimulationEvent(resolvedValue),
+            );
           }
         }
       }}
