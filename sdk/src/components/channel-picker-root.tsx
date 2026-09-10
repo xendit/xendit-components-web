@@ -1,5 +1,5 @@
 import { Accordion } from "./core/accordion";
-import { AccordionItem } from "./core/accordion-item";
+import { AccordionItem, CardsGroupLogo } from "./core/accordion-item";
 import {
   useCurrentChannel,
   useChannelUiGroups,
@@ -14,7 +14,7 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
-import { FunctionComponent } from "preact";
+import { ComponentChildren, FunctionComponent } from "preact";
 import {
   ChannelPickerGroup,
   getChannelDisabledReason,
@@ -244,19 +244,16 @@ function groupEnabledChannelStats(
 function resolveChannelLogosForGroup(
   session: BffSession,
   channels: BffChannel[],
-): { src: string; alt: string; enabled: boolean }[] {
-  const logos: { src: string; alt: string; enabled: boolean }[] = [];
+): ({ src: string; alt: string; enabled: boolean } | ComponentChildren)[] {
+  const logos: (
+    | { src: string; alt: string; enabled: boolean }
+    | ComponentChildren
+  )[] = [];
   for (const channel of channels) {
     const enabled = satisfiesMinMax(session, channel);
-    if (channel.card?.brands) {
-      // use card logos if available
-      for (const brand of channel.card.brands) {
-        logos.push({
-          src: brand.logo_url,
-          alt: brand.name,
-          enabled,
-        });
-      }
+    if (channel.card) {
+      // use generic card icon
+      logos.push(<CardsGroupLogo enabled={enabled} />);
     } else {
       // else use channel brand logo
       logos.push({
