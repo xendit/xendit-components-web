@@ -215,8 +215,8 @@ xendit-payment-channel select::placeholder {
   font-size: 12px;
 }
 .xendit-accordion-item-logo-image {
-  max-height: 16px;
-  max-width: 24px;
+  max-height: 20px;
+  aspect-ratio: 1.4;
   object-fit: contain;
 }
 .xendit-accordion-item-logo-image-disabled {
@@ -572,7 +572,7 @@ xendit-channel-picker[inert] {
   width: 16px;
   height: 16px;
   border: 1px solid var(--xendit-color-border);
-  border-radius: var(--xendit-radius-2);
+  border-radius: 4px;
   box-sizing: border-box;
   color: transparent;
 }
@@ -1435,7 +1435,7 @@ xendit-channel-picker[inert] {
   margin-bottom: 8px;
 }
 .xendit-action-channel-logo {
-  height: 24px;
+  height: 64px;
 }
 .xendit-action-heading {
   text-align: center;
@@ -1463,4 +1463,8 @@ xendit-channel-picker[inert] {
   border-radius: calc(var(--xendit-radius-3) - 4px);
   padding: 16px 12px;
   overflow: hidden;
+}
+
+.xendit-action-card .xendit-action-qr-content {
+  max-width: unset;
 }

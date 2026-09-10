@@ -69,7 +69,9 @@ export class ActionQrBehavior extends ContainerActionBehavior {
         channelBrandLogoUrl: this.bb.channel.brand_logo_url,
         channelBrandName: this.bb.channel.brand_name,
         color: this.bb.channel.brand_color,
-        removePadding: true,
+        removePadding:
+          defaultActionContainerType ===
+          DefaultActionContainerType.QrWithCustomArt,
         title: qrAction.action_title,
       };
     }
