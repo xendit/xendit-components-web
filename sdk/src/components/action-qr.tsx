@@ -216,7 +216,15 @@ export function ActionQr(props: Props) {
             {amountText}
           </div>
         </div>
-        {affirmSection}
+        <div
+          style={{
+            padding: "48px",
+            paddingTop: "8px",
+            paddingBottom: "24px",
+          }}
+        >
+          {affirmSection}
+        </div>
       </div>
     );
   }

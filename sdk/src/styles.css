@@ -1435,7 +1435,7 @@ xendit-channel-picker[inert] {
   margin-bottom: 8px;
 }
 .xendit-action-channel-logo {
-  height: 24px;
+  height: 64px;
 }
 .xendit-action-heading {
   text-align: center;
@@ -1463,4 +1463,8 @@ xendit-channel-picker[inert] {
   border-radius: calc(var(--xendit-radius-3) - 4px);
   padding: 16px 12px;
   overflow: hidden;
+}
+
+.xendit-action-card .xendit-action-qr-content {
+  max-width: unset;
 }
