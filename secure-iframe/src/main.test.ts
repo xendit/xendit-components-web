@@ -245,7 +245,12 @@ async function expectPostMessage(message: object, fn: () => void) {
   const eventHandler = vitest.fn();
   window.parent.addEventListener("message", eventHandler);
   await fn();
-  await sleep(1); // postMessage has an internal timeout, we need to wait
+
+  // postMessage has "global task" priority, same as setTimeout
+  // so as long as the work is all synchronous we should only need sleep(0)
+  // but the WebCrypto stuff is async :(
+  await sleep(1000);
+
   expect(eventHandler).toHaveBeenCalled();
 
   let lastError: Error | null = null;
