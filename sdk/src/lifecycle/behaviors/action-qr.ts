@@ -37,6 +37,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
         this.bb.channelProperties.mock_channel_code_for_qr_art;
     }
 
+    channelCodeForQrArt = "QRIS";
     const qrHasCustomArt = hasCustomQrArt(channelCodeForQrArt);
 
     const container = this.bb.sdk[internal].liveComponents.actionContainer;

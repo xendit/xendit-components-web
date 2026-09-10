@@ -54,10 +54,16 @@ export type SubmissionError = {
 export class SubmissionBehavior implements Behavior {
   private exited = false;
 
+  // the submission promise and an abortcontroller for that same promise
   private submission: {
     abortController: AbortController;
     promise: Promise<void>;
   } | null = null;
+
+  // the submission type *at time of submissison* affects the submission end event
+  // it can change at any time so we store snapshot
+  private submissionType: BlackboardType["submissionRequested"] | null = null;
+  // the error that occurred during the submission
   private submissionError: Error | SubmissionError | null = null;
 
   // telemetry scope for the begin submission event
@@ -66,15 +72,31 @@ export class SubmissionBehavior implements Behavior {
   constructor(private bb: BlackboardType) {}
 
   enter() {
-    // Resume case: the SDK is restoring a previous (failed) payment attempt after a redirect. Do not start a new submission
-    if (this.bb.resuming) {
-      this.bb.dispatchEvent(new XenditSubmissionResumeEvent());
-      return;
+    let doSubmit = false;
+    switch (this.bb.submissionRequested) {
+      case "normal":
+        // regular submission event
+        this.bb.dispatchEvent(new XenditSubmissionBeginEvent());
+        this.submissionType = "normal";
+        doSubmit = true;
+        break;
+      case "resume":
+        // for resumes, we won't be submitting
+        this.bb.dispatchEvent(new XenditSubmissionResumeEvent());
+        this.submissionType = "resume";
+        doSubmit = false;
+        break;
+      case "oneclick":
+        // do submission but don't fire submission events
+        this.submissionType = "oneclick";
+        doSubmit = true;
+        break;
     }
 
-    this.bb.dispatchEvent(new XenditSubmissionBeginEvent());
-    this.bb.dispatchEvent(new InternalScheduleMockUpdateEvent(null));
-    this.submit();
+    if (doSubmit) {
+      this.bb.dispatchEvent(new InternalScheduleMockUpdateEvent(null));
+      this.submit();
+    }
   }
 
   exit() {
@@ -155,13 +177,22 @@ export class SubmissionBehavior implements Behavior {
     }
 
     // Dispatch submission end event
-    this.bb.dispatchEvent(
-      new XenditSubmissionEndEvent(
-        reason,
-        userErrorMessage,
-        developerErrorMessage,
-      ),
-    );
+    switch (this.submissionType) {
+      case "normal":
+      case "resume":
+        // submission end fires normally on normal and resume cases
+        this.bb.dispatchEvent(
+          new XenditSubmissionEndEvent(
+            reason,
+            userErrorMessage,
+            developerErrorMessage,
+          ),
+        );
+        break;
+      case "oneclick":
+        // do nothing
+        break;
+    }
 
     // Abort ongoing submission request (the error will be ignored)
     if (this.submission) {
@@ -169,9 +200,8 @@ export class SubmissionBehavior implements Behavior {
       this.submission = null;
     }
 
-    // Ensure submit flags are reset
+    // Ensure submit flags is reset
     this.bb.submissionRequested = false;
-    this.bb.resuming = false;
 
     // Schedule rerender (to clear the inert attribute on the active component)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
