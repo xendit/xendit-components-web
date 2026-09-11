@@ -347,7 +347,6 @@ export class XenditComponents extends EventTarget {
         dispatchEvent: this.dispatchEvent.bind(this),
         world: null,
         submissionRequested: false,
-        resuming: false,
         simulatePaymentRequested: false,
         actionCompleted: false,
         redirectReturnPending: false,
@@ -491,7 +490,7 @@ export class XenditComponents extends EventTarget {
             resumeSession = pollResult.session;
             // The succeeded channel is only known after the poll
             resumeSucceededChannel = pollResult.succeeded_channel ?? null;
-            this[internal].behaviorTree.bb.resuming = true;
+            this[internal].behaviorTree.bb.submissionRequested = "resume";
           }
         } catch {
           // we can't read the error code here, but most likely the token_request_id is from another session
@@ -1207,11 +1206,17 @@ export class XenditComponents extends EventTarget {
    * Set to null to clear the current channel.
    */
   setCurrentChannel(channel: XenditPaymentChannel | null): void {
-    if (this[internal].behaviorTree.bb.submissionRequested) {
-      throw new Error(
-        "Cannot change the payment channel while a submission is in progress.",
-      );
+    switch (this[internal].behaviorTree.bb.submissionRequested) {
+      case "normal":
+      case "resume":
+        throw new Error(
+          "Cannot change the payment channel while a submission is in progress.",
+        );
+      case "oneclick":
+        this.abortSubmission(); // changing channels during oneclick submissions is allowed but aborts the oneclick submission
+        break;
     }
+
     const currentChannelCode = this[internal].currentChannelCode;
 
     const channelCode = channel?.[internal][0].channel_code ?? null;
@@ -1242,10 +1247,13 @@ export class XenditComponents extends EventTarget {
    * Ensure all components have the correct inert attribute. This needs to be called when the current channel changes or a submission starts or ends.
    */
   syncInertAttribute() {
+    const submissionType = this[internal].behaviorTree.bb.submissionRequested;
+
     // all channel components should have `inert` unless they are the current channel and there is no submission in progress
-    const hasSubmissionInProgress =
-      this[internal].behaviorTree.bb.submissionRequested ||
-      this[internal].behaviorTree.bb.resuming;
+    // (only if the submission is a normal or resume submission, oneclick keeps it interactive)
+    const needsInertAttribute =
+      submissionType === "normal" || submissionType === "resume";
+
     const channelComponents = this[internal].liveComponents.paymentChannels;
 
     for (const [_, component] of channelComponents) {
@@ -1254,7 +1262,7 @@ export class XenditComponents extends EventTarget {
         : component.channel.channelCode;
       if (
         channelCode === this[internal].currentChannelCode &&
-        !hasSubmissionInProgress
+        !needsInertAttribute
       ) {
         if (component.element.hasAttribute("inert")) {
           component.element.removeAttribute("inert");
@@ -1267,7 +1275,7 @@ export class XenditComponents extends EventTarget {
     // lock the channel picker during submission
     const channelPicker = this[internal].liveComponents.channelPicker;
     if (channelPicker) {
-      if (hasSubmissionInProgress) {
+      if (needsInertAttribute) {
         channelPicker.setAttribute("inert", "");
       } else {
         channelPicker.removeAttribute("inert");
@@ -1485,20 +1493,37 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
-   * Destroys a component of any type created by the SDK. Removes it from the DOM if necessary.
-   * Throws if the element is not a xendit component or if it was already destroyed.
+   * Destroys a component of any type created by the SDK.
+   * It will be cleaned up and removed from the DOM.
    */
-  destroyComponent(component: HTMLElement): void {
+  destroyComponent(component: HTMLElement) {
     if (!component.tagName.startsWith("XENDIT-")) {
       throw new Error(
-        "Unable to destroy component; only elements created by this SDK can be destroyed.",
+        "Unable to remove component; only elements created by this SDK can be destroyed.",
       );
     }
 
+    this.forgetComponent(component);
+    render(null, component);
+    component.remove();
+  }
+
+  /**
+   * @public
+   * Destroys a component of any type created by the SDK.
+   * It will become non-interactive and non-functional, but its DOM will be unchanged. (Useful for fade-out animations)
+   */
+  forgetComponent(component: HTMLElement): void {
+    if (!component.tagName.startsWith("XENDIT-")) {
+      throw new Error(
+        "Unable to remove component; only elements created by this SDK can be destroyed.",
+      );
+    }
+
+    component.setAttribute("inert", "true");
+
     if (this[internal].liveComponents.channelPicker === component) {
       this[internal].liveComponents.channelPicker = null;
-      render(null, component);
-      component.remove();
       return;
     }
 
@@ -1509,16 +1534,12 @@ export class XenditComponents extends EventTarget {
         if (this[internal].currentChannelCode === channelCode) {
           this.setCurrentChannel(null);
         }
-        render(null, component);
-        component.remove();
         return;
       }
     }
 
     if (this[internal].liveComponents.actionContainer === component) {
       this[internal].liveComponents.actionContainer = null;
-      render(null, component);
-      component.remove();
       return;
     }
 
@@ -1526,8 +1547,6 @@ export class XenditComponents extends EventTarget {
       this[internal].liveComponents.actionInstructionsContainer === component
     ) {
       this[internal].liveComponents.actionInstructionsContainer = null;
-      render(null, component);
-      component.remove();
       return;
     }
 
@@ -1537,14 +1556,12 @@ export class XenditComponents extends EventTarget {
         this[internal].liveComponents.digitalWalletContainer.delete(
           channelCode,
         );
-        render(null, component);
-        component.remove();
         return;
       }
     }
 
     throw new Error(
-      "Unable to destroy component; component not found. It may have already been destroyed.",
+      "Unable to remove component; component not found. It may have already been destroyed.",
     );
   }
 
@@ -1616,7 +1633,20 @@ export class XenditComponents extends EventTarget {
       );
     }
 
-    this[internal].behaviorTree.bb.submissionRequested = true;
+    this[internal].behaviorTree.bb.submissionRequested = "normal";
+    this.behaviorTreeUpdate();
+
+    this.syncInertAttribute();
+  }
+
+  /**
+   * @internal
+   * Submits a oneclick payment.
+   */
+  submitOneclick() {
+    this.assertInitialized();
+
+    this[internal].behaviorTree.bb.submissionRequested = "oneclick";
     this.behaviorTreeUpdate();
 
     this.syncInertAttribute();
@@ -1652,7 +1682,7 @@ export class XenditComponents extends EventTarget {
       { once: true },
     );
 
-    this[internal].behaviorTree.bb.submissionRequested = true;
+    this[internal].behaviorTree.bb.submissionRequested = "normal";
     this.behaviorTreeUpdate();
 
     this.syncInertAttribute();
@@ -1676,7 +1706,13 @@ export class XenditComponents extends EventTarget {
       return; // no submission in progress
     }
 
+    // if we're in a oneclick submission also clear the active channel
+    const isOneClick =
+      this[internal].behaviorTree.bb.submissionRequested === "oneclick";
+
     this[internal].behaviorTree.bb.submissionRequested = false;
+    if (isOneClick) this.setCurrentChannel(null);
+
     this.behaviorTreeUpdate();
   }
 

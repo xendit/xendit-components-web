@@ -52,7 +52,6 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
 
       if (abandonedAfterRedirect) {
         this.bb.submissionRequested = false;
-        this.bb.resuming = false;
       }
     }
 

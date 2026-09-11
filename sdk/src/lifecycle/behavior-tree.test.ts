@@ -78,7 +78,6 @@ const mockBlackboard: BlackboardType & { world: object } = {
     throw new Error("Should not be called in this test");
   },
   submissionRequested: false,
-  resuming: false,
   simulatePaymentRequested: false,
   actionCompleted: false,
   redirectReturnPending: false,
@@ -201,7 +200,7 @@ describe("Behavior Tree - Submission", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
-      submissionRequested: true,
+      submissionRequested: "normal",
     });
     assertHasNodes(node, [
       SdkActiveBehavior,
@@ -216,7 +215,7 @@ describe("Behavior Tree - Payment Entity", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
-      submissionRequested: true,
+      submissionRequested: "normal",
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
@@ -239,7 +238,7 @@ describe("Behavior Tree - Payment Entity", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
-      submissionRequested: true,
+      submissionRequested: "normal",
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
@@ -262,7 +261,7 @@ describe("Behavior Tree - Payment Entity", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
-      submissionRequested: true,
+      submissionRequested: "normal",
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
@@ -288,7 +287,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
-      submissionRequested: true,
+      submissionRequested: "normal",
       actionCompleted: true,
       world: {
         ...mockBlackboard.world,
@@ -310,7 +309,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
-      submissionRequested: true,
+      submissionRequested: "normal",
       simulatePaymentRequested: true,
       world: {
         ...mockBlackboard.world,
@@ -334,7 +333,7 @@ describe("Behavior Tree - Actions", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
-      submissionRequested: true,
+      submissionRequested: "normal",
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
@@ -359,7 +358,7 @@ describe("Behavior Tree - Actions", () => {
         mockBlackboard.world.channels,
         "MOCK_EWALLET_PAYLINK",
       ),
-      submissionRequested: true,
+      submissionRequested: "normal",
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
@@ -385,7 +384,7 @@ describe("Behavior Tree - Actions", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
       channel: findChannel(mockBlackboard.world.channels, "MOCK_OTC"),
-      submissionRequested: true,
+      submissionRequested: "normal",
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
