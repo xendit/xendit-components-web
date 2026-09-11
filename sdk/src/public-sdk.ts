@@ -1,6 +1,7 @@
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
+  XenditCardBinChangedEvent,
   XenditChannelPropertiesChangedEvent,
   XenditFatalErrorEvent,
   XenditEventListener,
@@ -146,6 +147,7 @@ type CachedChannelComponent = {
  */
 export type ChannelComponentData = {
   savePaymentMethod: boolean;
+  cardBin: string | null;
   cardDetails: {
     cardNumber: string;
     details: BffCardDetails | null;
@@ -637,6 +639,20 @@ export class XenditComponents extends EventTarget {
       return;
     }
 
+    if (newData.cardBin && newData.cardBin !== component.data.cardBin) {
+      // schemes/countryCodes come from the same card_info response as this bin
+      const details =
+        newData.cardDetails?.details ?? component.data.cardDetails?.details;
+      this.dispatchEvent(
+        new XenditCardBinChangedEvent(
+          channelCode,
+          newData.cardBin,
+          details?.schemes ?? [],
+          details?.country_codes ?? [],
+        ),
+      );
+    }
+
     component.data = mergeIgnoringUndefined(component.data, newData);
     this.behaviorTreeUpdate();
 
@@ -984,6 +1000,7 @@ export class XenditComponents extends EventTarget {
         customerDetailsFormRef: customerDetailsFormRef,
         data: {
           savePaymentMethod: false,
+          cardBin: null,
           cardDetails: null,
           paymentOptions: null,
           customerDetails: channel[internal][0].requires_customer_details
@@ -2017,6 +2034,16 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "fatal-error",
     listener: XenditEventListener<XenditFatalErrorEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * If using CARDS, fired whenever the BIN changes. This will be either a 6 or 8 digit string depending on the detected card brand.
+   */
+  addEventListener(
+    name: "card-bin-changed",
+    listener: XenditEventListener<XenditCardBinChangedEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
