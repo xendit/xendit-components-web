@@ -13,6 +13,7 @@ import {
   timestampForFilename,
 } from "./action-qr-utils";
 import { useActionCard } from "./action-card";
+import Icon from "./icon";
 
 type Props = {
   amount: number;
@@ -42,6 +43,7 @@ export function ActionQr(props: Props) {
   } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
+  const [hasDownloadError, setHasDownloadError] = useState(false);
 
   const onMadePaymentClicked = useCallback(() => {
     setShowSpinner(true);
@@ -133,25 +135,51 @@ export function ActionQr(props: Props) {
   }
 
   const qrWrapper = (
-    <div
-      data-testid="qr-code"
-      className="xendit-action-qr-qrcode-container"
-      role="button"
-      tabIndex={0}
-      onClick={onClickQrCode}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClickQrCode(e);
-        }
-      }}
-      ref={(r) => {
-        if (r && (r.childNodes.length !== 1 || r.firstChild !== svgNode)) {
-          // insert svg if not already present
-          r?.replaceChildren(svgNode);
-        }
-      }}
-    />
+    <div className="xendit-action-qr-qrcode-wrapper">
+      <div
+        data-testid="qr-code"
+        className="xendit-action-qr-qrcode-container"
+        role="button"
+        tabIndex={0}
+        onClick={onClickQrCode}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClickQrCode(e);
+          }
+        }}
+        ref={(r) => {
+          if (r && (r.childNodes.length !== 1 || r.firstChild !== svgNode)) {
+            // insert svg if not already present
+            r?.replaceChildren(svgNode);
+          }
+        }}
+      />
+
+      {svgNode instanceof SVGSVGElement ? (
+        <Button
+          variant={ButtonVariant.SECONDARY_ROUNDED}
+          onClick={() => {
+            const downloadNode = generateQrSvg(
+              qrString,
+              qrArtConfigForDownload,
+            );
+            downloadSvgAsPng(downloadNode, "qr-code.png").catch(() => {
+              setHasDownloadError(true);
+            });
+          }}
+          className="xendit-button-block"
+        >
+          <Icon name="download" size={18} />
+          {t("action_qr.download_qr")}
+        </Button>
+      ) : null}
+      {hasDownloadError ? (
+        <div className="xendit-error-message xendit-text-14 xendit-text-center">
+          {t("action.image_download_error")}
+        </div>
+      ) : null}
+    </div>
   );
 
   const affirmSection = (

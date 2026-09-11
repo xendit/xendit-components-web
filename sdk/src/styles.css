@@ -2,6 +2,7 @@
 :root {
   --xendit-font-family: sans-serif;
   --xendit-color-primary: #1762ee;
+  --xendit-color-secondary: #ededed;
   --xendit-color-text: #252525;
   --xendit-color-text-inverse: #ffffff;
   --xendit-color-text-secondary: #585858;
@@ -858,6 +859,15 @@ xendit-channel-picker[inert] {
   color: var(--xendit-color-background);
   border-radius: var(--xendit-radius-1);
 }
+.xendit-button-secondary-rounded {
+  border: 1px solid transparent;
+  background-color: var(--xendit-color-secondary);
+  color: var(--xendit-color-text);
+  border-radius: var(--xendit-radius-1);
+}
+.xendit-button-secondary-rounded:hover {
+  background-color: var(--xendit-color-background);
+}
 .xendit-button-white-rounded {
   background-color: var(--xendit-color-background);
   color: var(--xendit-color-text);
@@ -1289,6 +1299,12 @@ xendit-channel-picker[inert] {
   height: 64px;
   align-self: center;
   object-fit: contain;
+}
+.xendit-action-qr-qrcode-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .xendit-action-qr-qrcode-container {
   width: 100%;
