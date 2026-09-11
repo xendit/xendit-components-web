@@ -19,12 +19,29 @@ describe("channel picker telemetry", () => {
     await userEvent.click(testCasesGroup1);
     const e1 = await waitForTelemetryEvent(sdk, "CHECKOUT_CHANNEL_GROUP", true);
     expect(e1.metadata?.group_name).toBe("Channel UI Test Cases");
+    // Should include channels from ui_tests group
+    expect(e1.metadata?.channels).toEqual(
+      expect.arrayContaining([
+        "UI_INPUT_TEST",
+        "UI_INITIAL_VALUE_TEST",
+        "UI_FIELD_GROUPING_TEST",
+      ]),
+    );
 
     // again, ensure previous event was popped
     const testCasesGroup2 = screen.getByText("Other Mock Channels");
     await userEvent.click(testCasesGroup2);
     const e2 = await waitForTelemetryEvent(sdk, "CHECKOUT_CHANNEL_GROUP", true);
     expect(e2.metadata?.group_name).toBe("Other Mock Channels");
+    // Should include channels from other group
+    expect(e2.metadata?.channels).toEqual(
+      expect.arrayContaining([
+        "MOCK_EWALLET",
+        "MOCK_QR",
+        "MOCK_VA",
+        "MOCK_OTC",
+      ]),
+    );
 
     // they should be siblings
     expect(e1.parent_event_id).toBe(e2.parent_event_id);

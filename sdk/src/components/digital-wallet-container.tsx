@@ -5,6 +5,9 @@ import { XenditDigitalWalletCode } from "../public-data-types";
 import { useCallback, useRef } from "preact/hooks";
 import { DigitalWalletWaitForLoad } from "./digital-wallet-wait-for-load";
 import { DigitalWalletApplepay } from "./digital-wallet-applepay";
+import { useSdk } from "./session-provider";
+import { getTelemetry } from "../telemetry";
+import { TelemetryEvents } from "../telemetry-events";
 
 type Props<T extends XenditDigitalWalletCode> = {
   digitalWalletCode: T;
@@ -16,15 +19,19 @@ export const DigitalWalletContainer: FunctionComponent<
 > = (props) => {
   const { digitalWalletCode, digitalWalletOptions } = props;
 
+  const sdk = useSdk();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const onReady = useCallback(() => {
     if (!containerRef.current) return;
+    getTelemetry(sdk).append(
+      TelemetryEvents.DigitalWalletLoaded(true, digitalWalletCode),
+    );
     containerRef.current.parentElement?.style.setProperty("display", "block");
     containerRef.current.dispatchEvent(
       new InternalDigitalWalletReady(digitalWalletCode),
     );
-  }, [digitalWalletCode]);
+  }, [sdk, digitalWalletCode]);
 
   let el: JSX.Element | null = null;
   switch (digitalWalletCode) {
