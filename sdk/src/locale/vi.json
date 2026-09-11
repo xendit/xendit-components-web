@@ -1,5 +1,6 @@
 {
   "session": {
+    "action.image_download_error": "Tải hình ảnh thất bại.",
     "action.payment_confirmation_instructions": "Sau khi bạn đã thanh toán, hãy nhấp nút phía trên để nhận xác nhận thanh toán.",
     "action.payment_made": "Tôi đã thực hiện thanh toán này",
     "action_barcode.amount_to_pay": "Số tiền cần thanh toán",
@@ -12,6 +13,7 @@
     "action_empty_list_push_notification.subtext": "Vui lòng kiểm tra thông báo trong ứng dụng {{channelName}} để hoàn tất thanh toán.",
     "action_empty_list_push_notification.title": "Đang chờ thanh toán...",
     "action_qr.unable_to_generate": "Không thể tạo mã QR",
+    "action_qr.download_qr": "Tải QR",
     "action_va.amount_to_pay": "Số tiền cần thanh toán",
     "action_va.copied_to_clipboard": "Đã sao chép vào khay nhớ tạm",
     "action_va.copy": "Sao chép",

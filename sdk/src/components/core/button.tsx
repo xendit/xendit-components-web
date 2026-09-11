@@ -4,6 +4,7 @@ import { ComponentChildren, FunctionComponent } from "preact";
 export enum ButtonVariant {
   BARE = "bare",
   PRIMARY_ROUNDED = "primary-rounded",
+  SECONDARY_ROUNDED = "secondary-rounded",
   WHITE_ROUNDED = "white-rounded",
 }
 
@@ -27,6 +28,7 @@ export const Button: FunctionComponent<Props> = (props) => {
 
   const buttonVariantClass = {
     [ButtonVariant.BARE]: undefined,
+    [ButtonVariant.SECONDARY_ROUNDED]: "xendit-button-secondary-rounded",
     [ButtonVariant.PRIMARY_ROUNDED]: "xendit-button-primary-rounded",
     [ButtonVariant.WHITE_ROUNDED]: "xendit-button-white-rounded",
   }[variant];
