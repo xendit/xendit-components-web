@@ -1,3 +1,13 @@
+# 0.0.32
+
+### Notable
+
+Added capability to download QR code
+
+### Bug Fixes
+
+- Fall back to redirect action for channels that don't support QR simulation, if available
+
 # 0.0.31
 
 ### Bug Fixes
