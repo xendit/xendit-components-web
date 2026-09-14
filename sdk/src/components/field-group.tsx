@@ -7,6 +7,7 @@ import { internal } from "../internal";
 import { useSdk } from "./session-provider";
 import { getLocalizedErrorMessage } from "../localization";
 import { channelPropertyFieldValidate } from "../validation";
+import { getCardDetailsForCurrentCardNumber } from "../utils-channel-properties";
 import {
   InternalPopulateFieldForSimulationEvent,
   InternalSetFieldTouchedEvent,
@@ -152,7 +153,10 @@ const FieldGroup = ({
       if (!touchedFields[formFieldName(field)]) continue;
 
       const allowedBrands = channel?.card?.brands;
-      const schemes = channelComponentData?.cardDetails?.details?.schemes;
+      const schemes = getCardDetailsForCurrentCardNumber(
+        channelProperties,
+        channelComponentData,
+      )?.schemes;
       if (allowedBrands?.length && schemes?.length) {
         if (!schemes.some((s) => allowedBrands.some((b) => b.name === s))) {
           return (

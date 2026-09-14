@@ -1,4 +1,5 @@
-import { ChannelProperties } from "./public-sdk";
+import { BffCardDetails } from "./backend-types/card-details";
+import { ChannelComponentData, ChannelProperties } from "./public-sdk";
 
 /**
  * Convert form key/value pairs (from html form) to channel properties
@@ -135,6 +136,27 @@ export function getCardNumberFromChannelProperties(
     return null;
   }
   return cardNumber;
+}
+
+/**
+ * lookup result isn't cleared when the card number changes, so it can point to a stale card.
+ * Returns null if `cardDetails.cardNumber` no longer matches the form's card number.
+ */
+export function getCardDetailsForCurrentCardNumber(
+  channelProperties: ChannelProperties | null,
+  channelComponentData: ChannelComponentData | null,
+): BffCardDetails | null {
+  const cardDetails = channelComponentData?.cardDetails;
+  if (!cardDetails) {
+    return null;
+  }
+  if (
+    cardDetails.cardNumber !==
+    getCardNumberFromChannelProperties(channelProperties)
+  ) {
+    return null;
+  }
+  return cardDetails.details;
 }
 
 /**
