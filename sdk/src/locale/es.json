@@ -1,5 +1,6 @@
 {
   "session": {
+    "action.image_download_error": "Descarga de imagen fallida.",
     "action.payment_confirmation_instructions": "Una vez que hayas pagado, haz clic en el botón de arriba para obtener tu confirmación de pago.",
     "action.payment_made": "He realizado este pago",
     "action_barcode.amount_to_pay": "Monto a pagar",
@@ -12,6 +13,7 @@
     "action_empty_list_push_notification.subtext": "Verifique la notificación en su app de {{channelName}} para completar su pago.",
     "action_empty_list_push_notification.title": "Esperando pago...",
     "action_qr.unable_to_generate": "No se puede generar el código QR",
+    "action_qr.download_qr": "Descargar QR",
     "action_va.amount_to_pay": "Monto a Pagar",
     "action_va.copied_to_clipboard": "Copiado al portapapeles",
     "action_va.copy": "Copiar",
