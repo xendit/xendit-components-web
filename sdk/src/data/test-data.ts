@@ -1337,6 +1337,25 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "One-Click QR Test",
+        channel_code: "ONECLICK_QR_TEST",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "oneclick_qr",
+        pm_type: "QR_CODE",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        form: [],
+        _mock_action_type: "QR",
+        instructions: [
+          "This channel is in a QR group.",
+          "It should automatically start a submission when the group is opened.",
+        ],
+      },
+      {
         brand_name: "Disabled Group Test",
         channel_code: "GROUP_DISABLED_GROUP_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
@@ -1407,6 +1426,11 @@ export function makeTestBffData(): BffResponse {
       {
         id: "single_item",
         label: "Mock Single Item Group",
+        icon_url: "https://placehold.co/48x48.png?text=Logo",
+      },
+      {
+        id: "oneclick_qr",
+        label: "Mock One-Click QR Group",
         icon_url: "https://placehold.co/48x48.png?text=Logo",
       },
       {

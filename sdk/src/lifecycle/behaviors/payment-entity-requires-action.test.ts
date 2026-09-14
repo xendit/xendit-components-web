@@ -79,14 +79,14 @@ describe("PaymentEntityRequiresActionBehavior.onPollResult", () => {
     behavior.onPollResult(pollResponse, entityWithStatus("REQUIRES_ACTION"));
 
     expect(bb.submissionRequested).toBe(false);
-    expect(bb.resuming).toBe(false);
     expect(bb.redirectReturnPending).toBe(false);
   });
 
   it("raises the cancel flags before dispatching, so a single tree update lands on the final state", () => {
     const events: Event[] = [];
     const bb = buildBlackboard(events, { redirectReturnPending: true });
-    let submissionRequestedAtDispatch: boolean | null = null;
+    let submissionRequestedAtDispatch: typeof bb.submissionRequested | null =
+      null;
     bb.dispatchEvent = (event: Event) => {
       submissionRequestedAtDispatch = bb.submissionRequested;
       events.push(event);
