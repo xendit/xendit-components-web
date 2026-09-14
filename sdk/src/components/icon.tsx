@@ -13,7 +13,8 @@ export type IconName =
   | "bank_transfer"
   | "online_banking"
   | "copy"
-  | "dummy";
+  | "dummy"
+  | "download";
 
 type Props = {
   name: IconName;
@@ -222,6 +223,35 @@ const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
           d="M17.5 11.875V15C17.5 15.3315 17.3683 15.6495 17.1339 15.8839C16.8995 16.1183 16.5815 16.25 16.25 16.25H3.75C3.41848 16.25 3.10054 16.1183 2.86612 15.8839C2.6317 15.6495 2.5 15.3315 2.5 15V11.875C2.5 11.5435 2.6317 11.2255 2.86612 10.9911C3.10054 10.7567 3.41848 10.625 3.75 10.625H16.25C16.5815 10.625 16.8995 10.7567 17.1339 10.9911C17.3683 11.2255 17.5 11.5435 17.5 11.875ZM16.25 3.75H3.75C3.41848 3.75 3.10054 3.8817 2.86612 4.11612C2.6317 4.35054 2.5 4.66848 2.5 5V8.125C2.5 8.45652 2.6317 8.77446 2.86612 9.00888C3.10054 9.2433 3.41848 9.375 3.75 9.375H16.25C16.5815 9.375 16.8995 9.2433 17.1339 9.00888C17.3683 8.77446 17.5 8.45652 17.5 8.125V5C17.5 4.66848 17.3683 4.35054 17.1339 4.11612C16.8995 3.8817 16.5815 3.75 16.25 3.75Z"
         />,
         20 / 24,
+      );
+      break;
+    }
+    case "download": {
+      iconNode = scaleIcon(
+        <>
+          <path
+            d="M5.375 6.875L8 9.5L10.625 6.875"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+          ></path>
+          <path
+            d="M8 2.5V9.5"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+          ></path>
+          <path
+            d="M13.5 9.5V13C13.5 13.1326 13.4473 13.2598 13.3536 13.3536C13.2598 13.4473 13.1326 13.5 13 13.5H3C2.86739 13.5 2.74021 13.4473 2.64645 13.3536C2.55268 13.2598 2.5 13.1326 2.5 13V9.5"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+          ></path>
+        </>,
+        16 / 24,
       );
       break;
     }
