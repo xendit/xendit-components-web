@@ -146,7 +146,9 @@ export function findBestAction(
 ): BffAction | undefined {
   if (prefersRedirectAction) {
     const redirectAction = actions.find(
-      (action) => action.type === "REDIRECT_CUSTOMER",
+      (action) =>
+        action.type === "REDIRECT_CUSTOMER" &&
+        action.descriptor !== "WEB_GOOGLE_PAYLINK",
     );
     if (redirectAction) {
       return redirectAction;
