@@ -3,7 +3,8 @@ import { screen, fireEvent, waitFor } from "@testing-library/dom";
 import { XenditComponentsTest } from "../src";
 import { internal } from "../src/internal";
 import { assert } from "../src/utils";
-import { waitForEvent } from "./utils";
+import { waitForEvent, Writable } from "./utils";
+import { BlackboardType } from "../src/lifecycle/behavior-tree";
 
 afterEach(() => {
   document.body.replaceChildren();
@@ -17,6 +18,10 @@ afterEach(() => {
 function forceNonIframeMode(sdk: XenditComponentsTest) {
   const { sessionAuthKey, hostId } = sdk[internal].sdkKey;
   sdk[internal].sdkKey = { sessionAuthKey, hostId };
+  (sdk[internal].behaviorTree.bb as Writable<BlackboardType>).sdkKey = {
+    sessionAuthKey,
+    hostId,
+  };
 }
 
 describe("channel component non-iframe simulation", () => {

@@ -138,7 +138,7 @@ describe("digital wallets - applepay - telemetry", () => {
     expect(button).toBeInTheDocument();
   });
 
-  it("should render fire a DIGITAL_WALLET_BEGIN event when googlepay is opened and CHECKOUT_DIGITAL_WALLET_CLOSE when closed", async () => {
+  it("should render fire a DIGITAL_WALLET_BEGIN event when applepay is opened and CHECKOUT_DIGITAL_WALLET_CLOSE when closed", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
     });
