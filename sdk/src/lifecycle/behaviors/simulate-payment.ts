@@ -131,9 +131,6 @@ export class SimulatePaymentBehavior implements Behavior {
     );
     if (!redirectAction) return false;
 
-    // simulate payment is no longer relevant, we're redirecting away
-    this.bb.simulatePaymentRequested = false;
-
     // defer to ActionRedirectBehavior
     this.bb.prefersRedirectAction = true;
     this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
