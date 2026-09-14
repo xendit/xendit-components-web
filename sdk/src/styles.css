@@ -2,6 +2,7 @@
 :root {
   --xendit-font-family: sans-serif;
   --xendit-color-primary: #1762ee;
+  --xendit-color-secondary: #ededed;
   --xendit-color-text: #252525;
   --xendit-color-text-inverse: #ffffff;
   --xendit-color-text-secondary: #585858;
@@ -215,8 +216,8 @@ xendit-payment-channel select::placeholder {
   font-size: 12px;
 }
 .xendit-accordion-item-logo-image {
-  max-height: 16px;
-  max-width: 24px;
+  max-height: 20px;
+  aspect-ratio: 1.4;
   object-fit: contain;
 }
 .xendit-accordion-item-logo-image-disabled {
@@ -572,7 +573,7 @@ xendit-channel-picker[inert] {
   width: 16px;
   height: 16px;
   border: 1px solid var(--xendit-color-border);
-  border-radius: var(--xendit-radius-2);
+  border-radius: 4px;
   box-sizing: border-box;
   color: transparent;
 }
@@ -857,6 +858,15 @@ xendit-channel-picker[inert] {
   background-color: var(--xendit-color-primary);
   color: var(--xendit-color-background);
   border-radius: var(--xendit-radius-1);
+}
+.xendit-button-secondary-rounded {
+  border: 1px solid transparent;
+  background-color: var(--xendit-color-secondary);
+  color: var(--xendit-color-text);
+  border-radius: var(--xendit-radius-1);
+}
+.xendit-button-secondary-rounded:hover {
+  background-color: var(--xendit-color-background);
 }
 .xendit-button-white-rounded {
   background-color: var(--xendit-color-background);
@@ -1290,6 +1300,12 @@ xendit-channel-picker[inert] {
   align-self: center;
   object-fit: contain;
 }
+.xendit-action-qr-qrcode-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .xendit-action-qr-qrcode-container {
   width: 100%;
   position: relative;
@@ -1435,7 +1451,7 @@ xendit-channel-picker[inert] {
   margin-bottom: 8px;
 }
 .xendit-action-channel-logo {
-  height: 24px;
+  height: 64px;
 }
 .xendit-action-heading {
   text-align: center;
@@ -1463,4 +1479,8 @@ xendit-channel-picker[inert] {
   border-radius: calc(var(--xendit-radius-3) - 4px);
   padding: 16px 12px;
   overflow: hidden;
+}
+
+.xendit-action-card .xendit-action-qr-content {
+  max-width: unset;
 }

@@ -248,15 +248,13 @@ function resolveChannelLogosForGroup(
   const logos: { src: string; alt: string; enabled: boolean }[] = [];
   for (const channel of channels) {
     const enabled = satisfiesMinMax(session, channel);
-    if (channel.card?.brands) {
-      // use card logos if available
-      for (const brand of channel.card.brands) {
-        logos.push({
-          src: brand.logo_url,
-          alt: brand.name,
-          enabled,
-        });
-      }
+    if (channel.card) {
+      // use generic card icon
+      logos.push({
+        src: "https://assets.xendit.co/payment-session/logos/CARDS.svg",
+        alt: channel.brand_name,
+        enabled,
+      });
     } else {
       // else use channel brand logo
       logos.push({

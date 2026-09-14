@@ -30,6 +30,7 @@ export type XenditEventMap = {
 
   "fatal-error": XenditFatalErrorEvent;
 
+  "card-bin-changed": XenditCardBinChangedEvent;
   "channel-properties-changed": XenditChannelPropertiesChangedEvent;
 };
 
@@ -281,6 +282,23 @@ export class XenditPaymentRequestCreatedEvent extends Event {
 
   constructor(public paymentRequestId: string) {
     super(XenditPaymentRequestCreatedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * If using CARDS, fired whenever the BIN changes. This will be either a 6 or 8 digit string depending on the detected card brand.
+ */
+export class XenditCardBinChangedEvent extends Event {
+  static type = "card-bin-changed" as const;
+
+  constructor(
+    public channelCode: string,
+    public bin: string,
+    public schemes: string[],
+    public countryCodes: string[],
+  ) {
+    super(XenditCardBinChangedEvent.type, {});
   }
 }
 

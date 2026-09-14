@@ -132,7 +132,6 @@ export const GroupLogos = (props: GroupLogosProps) => {
   let logoIndex = 1;
 
   for (const logo of logos) {
-    // else use channel brand logo
     logoNodes.push(
       <img
         key={logoIndex++}
