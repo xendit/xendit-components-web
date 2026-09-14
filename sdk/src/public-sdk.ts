@@ -109,6 +109,7 @@ import {
   bffSucceededChannelToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
+  getChannelCodesForTelemetry,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
 import { createTFunction, TFunction } from "./localization";
@@ -526,7 +527,14 @@ export class XenditComponents extends EventTarget {
     if (resumeSession) {
       getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(true));
     } else {
-      getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
+      const channelList = getChannelCodesForTelemetry(
+        resumeSession ?? bff.session,
+        bff.channels,
+        null,
+      );
+      getTelemetry(this).appendAndPushScope(
+        TelemetryEvents.Loaded(true, channelList),
+      );
     }
 
     // Update world state
@@ -2176,6 +2184,16 @@ export class XenditComponentsTest extends XenditComponents {
     // Wait for libphonenumber-js so fields can assume it's already loaded
     await getLibphonenumber();
 
+    // telemetry
+    const availableChannels = getChannelCodesForTelemetry(
+      bff.session,
+      bff.channels,
+      null,
+    );
+    getTelemetry(this).appendAndPushScope(
+      TelemetryEvents.Loaded(true, availableChannels),
+    );
+
     // Update internal data
     this.dispatchEvent(
       new InternalUpdateWorldState({
@@ -2191,8 +2209,6 @@ export class XenditComponentsTest extends XenditComponents {
         experiments: bff.experiments,
       } satisfies WorldState),
     );
-
-    getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
   }
 
   /**
