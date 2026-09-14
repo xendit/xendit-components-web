@@ -18,6 +18,7 @@ import {
 } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
+import { ActionRedirectBehavior } from "./action-redirect";
 
 export class SimulatePaymentBehavior implements Behavior {
   exited = false;
@@ -91,18 +92,55 @@ export class SimulatePaymentBehavior implements Behavior {
       .catch((error) => {
         if (isAbortError(error)) return;
 
-        // ignore if we already exited
-        if (!this.exited) {
-          // exit the simulate payment state and log the error
-          this.bb.simulatePaymentRequested = false;
-          console.error("Simulate Payment failed:", error);
+        if (this.exited) return;
+
+        if (
+          error.errorResponse?.error_code === "PAYMENT_METHOD_NOT_SUPPORTED" &&
+          this.tryFallBackToRedirect()
+        ) {
+          // we deferred to ActionRedirectBehavior, which will navigate away;
+          // don't treat this as a failure
+          return;
         }
+
+        this.bb.simulatePaymentRequested = false;
+        console.error("Simulate Payment failed:", error);
       });
 
     this.simulationRequest = {
       promise,
       abortController,
     };
+  }
+
+  /**
+   * When simulate payment returns PAYMENT_METHOD_NOT_SUPPORTED, some channels
+   * (like ShopeePay) still expose a redirect action to complete the payment. If a
+   * redirect action is present on the current payment entity, defer to
+   * ActionRedirectBehavior.
+   *
+   * Returns true if the fallback was triggered.
+   */
+  private tryFallBackToRedirect(): boolean {
+    const actions = this.bb.world?.paymentEntity?.entity.actions;
+    if (!actions) return false;
+
+    const redirectAction = actions.find(
+      (action) => action.type === "REDIRECT_CUSTOMER",
+    );
+    if (!redirectAction) return false;
+
+    // simulate payment is no longer relevant, we're redirecting away
+    this.bb.simulatePaymentRequested = false;
+
+    // defer to ActionRedirectBehavior
+    const redirectBehavior = new ActionRedirectBehavior(
+      this.bb,
+      redirectAction.value,
+    );
+    redirectBehavior.enter();
+
+    return true;
   }
 }
 
