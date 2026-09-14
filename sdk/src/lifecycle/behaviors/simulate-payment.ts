@@ -116,8 +116,9 @@ export class SimulatePaymentBehavior implements Behavior {
   /**
    * When simulate payment returns PAYMENT_METHOD_NOT_SUPPORTED, some channels
    * (like ShopeePay) still expose a redirect action to complete the payment. If a
-   * redirect action is present on the current payment entity, defer to
-   * ActionRedirectBehavior.
+   * redirect action is present on the current payment entity, set the blackboard
+   * to prefer that action and dispatch an update event to trigger the transition
+   * to ActionRedirectBehavior.
    *
    * Returns true if the fallback was triggered.
    */
