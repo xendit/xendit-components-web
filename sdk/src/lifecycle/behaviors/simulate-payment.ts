@@ -98,7 +98,7 @@ export class SimulatePaymentBehavior implements Behavior {
           error.errorResponse?.error_code === "PAYMENT_METHOD_NOT_SUPPORTED" &&
           this.tryFallBackToRedirect()
         ) {
-          // we deferred to ActionRedirectBehavior, which will navigate away;
+          // we deferred to redirection action, which will navigate away;
           // don't treat this as a failure
           return;
         }
