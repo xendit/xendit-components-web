@@ -114,7 +114,13 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
       telemetryForDigitalWalletClose(errorCode);
 
       // force error
-      sdk.submitDigitalWallet("APPLE_PAY", cardsChannel, {}, submissionError);
+      sdk.submitDigitalWallet(
+        "APPLE_PAY",
+        cardsChannel,
+        {},
+        false,
+        submissionError,
+      );
     },
     [cardsChannel, sdk, t, telemetryForDigitalWalletClose],
   );
@@ -167,13 +173,18 @@ export const DigitalWalletApplepay: FunctionComponent<Props> = (props) => {
         telemetryForDigitalWalletClose();
 
         // do submit
-        sdk.submitDigitalWallet("APPLE_PAY", cardsChannel, {
-          apple_pay: JSON.stringify({
-            billingContact: event.payment.billingContact,
-            shippingContact: event.payment.shippingContact,
-            token: event.payment.token,
-          }),
-        });
+        sdk.submitDigitalWallet(
+          "APPLE_PAY",
+          cardsChannel,
+          {
+            apple_pay: JSON.stringify({
+              billingContact: event.payment.billingContact,
+              shippingContact: event.payment.shippingContact,
+              token: event.payment.token,
+            }),
+          },
+          false, // never try to save for applepay
+        );
       } catch (err) {
         console.error(
           "XenditComponents: Unable to submit the Apple Pay payment",
