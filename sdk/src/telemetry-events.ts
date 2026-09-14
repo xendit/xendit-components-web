@@ -9,6 +9,7 @@ export type TelemetryStage =
   | "CHECKOUT_ATTEMPT_DISCARD"
   | "CHECKOUT_ACTION_BEGIN"
   | "CHECKOUT_ACTION_CLOSE"
+  | "CHECKOUT_DIGITAL_WALLET_LOADED"
   | "CHECKOUT_DIGITAL_WALLET_BEGIN"
   | "CHECKOUT_DIGITAL_WALLET_CLOSE"
   | "CHECKOUT_ACTION_COPY_TEXT"
@@ -23,17 +24,20 @@ export interface SessionTelemetryEvent {
   payment_channel?: string;
   payment_request_id?: string;
   payment_token_id?: string;
-  metadata?: Record<string, string | number | boolean | undefined>;
+  metadata?: Record<string, string | number | boolean | string[] | undefined>;
 }
 
 export const TelemetryEvents = {
   /**
    * On initialization, after calling the get session endpoint
    */
-  Loaded(success: boolean) {
+  Loaded(success: boolean, channels?: string[]) {
     return {
       stage: "CHECKOUT_LOADED",
       success,
+      metadata: {
+        channels,
+      },
     };
   },
 
@@ -50,12 +54,13 @@ export const TelemetryEvents = {
   /**
    * On channel group click
    */
-  ChannelGroup(success: boolean, group_name: string) {
+  ChannelGroup(success: boolean, group_name: string, channels: string[]) {
     return {
       stage: "CHECKOUT_CHANNEL_GROUP",
       success,
       metadata: {
         group_name,
+        channels,
       },
     };
   },
@@ -162,6 +167,17 @@ export const TelemetryEvents = {
     return {
       stage: "CHECKOUT_ACTION_CLOSE",
       success,
+    };
+  },
+
+  /**
+   * When a digital wallet component has loaded and is ready
+   */
+  DigitalWalletLoaded(success: boolean, digital_wallet: string) {
+    return {
+      stage: "CHECKOUT_DIGITAL_WALLET_LOADED",
+      success,
+      metadata: { digital_wallet },
     };
   },
 
