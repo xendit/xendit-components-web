@@ -352,6 +352,7 @@ export class XenditComponents extends EventTarget {
         actionCompleted: false,
         redirectReturnPending: false,
         pollImmediatelyRequested: false,
+        prefersRedirectAction: false,
       }),
       telemetry,
       currentChannelCode: null,

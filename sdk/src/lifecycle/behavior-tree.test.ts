@@ -83,6 +83,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
   actionCompleted: false,
   redirectReturnPending: false,
   pollImmediatelyRequested: false,
+  prefersRedirectAction: false,
 };
 
 function withSessionStatus(

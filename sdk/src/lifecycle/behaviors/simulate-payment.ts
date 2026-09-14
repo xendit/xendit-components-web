@@ -18,7 +18,6 @@ import {
 } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
-import { ActionRedirectBehavior } from "./action-redirect";
 
 export class SimulatePaymentBehavior implements Behavior {
   exited = false;
@@ -37,6 +36,7 @@ export class SimulatePaymentBehavior implements Behavior {
   exit() {
     this.exited = true;
     this.bb.simulatePaymentRequested = false;
+    this.bb.prefersRedirectAction = false;
     this.abortSimulation();
   }
 
@@ -134,11 +134,8 @@ export class SimulatePaymentBehavior implements Behavior {
     this.bb.simulatePaymentRequested = false;
 
     // defer to ActionRedirectBehavior
-    const redirectBehavior = new ActionRedirectBehavior(
-      this.bb,
-      redirectAction.value,
-    );
-    redirectBehavior.enter();
+    this.bb.prefersRedirectAction = true;
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
 
     return true;
   }
