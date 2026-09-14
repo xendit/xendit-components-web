@@ -89,6 +89,8 @@ export type BlackboardType = {
   pollImmediatelyRequested: boolean;
   // if true, don't exit ovo's and jeniuspay's ActionEmptyListPushNotificationBehavior when the payment request status changes to pending
   hackyOvoActionLatch?: boolean;
+  // if true, the current payment entity has a redirect action, which should be preferred over other actions
+  prefersRedirectAction: boolean;
 };
 
 export function behaviorTreeForSdk(bb: BlackboardType) {
@@ -278,7 +280,10 @@ export function behaviorTreeForAction(bb: BlackboardType) {
     return behaviorNode(ActionCompletedBehavior);
   }
 
-  const action = findBestAction(bb.world.paymentEntity.entity.actions);
+  const action = findBestAction(
+    bb.world.paymentEntity.entity.actions,
+    bb.prefersRedirectAction,
+  );
 
   if (!action) {
     // an empty list of actions means we prompt the user to tap a push notification

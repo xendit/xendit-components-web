@@ -36,6 +36,7 @@ export class SimulatePaymentBehavior implements Behavior {
   exit() {
     this.exited = true;
     this.bb.simulatePaymentRequested = false;
+    this.bb.prefersRedirectAction = false;
     this.abortSimulation();
   }
 
@@ -91,18 +92,50 @@ export class SimulatePaymentBehavior implements Behavior {
       .catch((error) => {
         if (isAbortError(error)) return;
 
-        // ignore if we already exited
-        if (!this.exited) {
-          // exit the simulate payment state and log the error
-          this.bb.simulatePaymentRequested = false;
-          console.error("Simulate Payment failed:", error);
+        if (this.exited) return;
+
+        if (
+          error.errorResponse?.error_code === "PAYMENT_METHOD_NOT_SUPPORTED" &&
+          this.tryFallBackToRedirect()
+        ) {
+          // we deferred to redirection action, which will navigate away;
+          // don't treat this as a failure
+          return;
         }
+
+        this.bb.simulatePaymentRequested = false;
+        console.error("Simulate Payment failed:", error);
       });
 
     this.simulationRequest = {
       promise,
       abortController,
     };
+  }
+
+  /**
+   * When simulate payment returns PAYMENT_METHOD_NOT_SUPPORTED, some channels
+   * (like ShopeePay) still expose a redirect action to complete the payment. If a
+   * redirect action is present on the current payment entity, set the blackboard
+   * to prefer that action and dispatch an update event to trigger the transition
+   * to ActionRedirectBehavior.
+   *
+   * Returns true if the fallback was triggered.
+   */
+  private tryFallBackToRedirect(): boolean {
+    const actions = this.bb.world?.paymentEntity?.entity.actions;
+    if (!actions) return false;
+
+    const redirectAction = actions.find(
+      (action) => action.type === "REDIRECT_CUSTOMER",
+    );
+    if (!redirectAction) return false;
+
+    // defer to ActionRedirectBehavior
+    this.bb.prefersRedirectAction = true;
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+
+    return true;
   }
 }
 
