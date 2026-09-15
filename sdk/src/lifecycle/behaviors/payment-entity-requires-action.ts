@@ -7,31 +7,34 @@ import {
 } from "../../public-event-types";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
-import { PollWorker } from "./utils/poll-worker";
+import {
+  createSessionUpdateWorker,
+  SessionUpdateWorker,
+} from "./utils/session-update-worker";
 
 export class PaymentEntityRequiresActionBehavior implements Behavior {
-  private pollWorker: PollWorker | null = null;
+  private updateWorker: SessionUpdateWorker | null = null;
   public canCreateActionContainer: boolean = true;
 
   constructor(private bb: BlackboardType) {
-    this.resetPolling();
+    this.resetWorker();
   }
 
   enter() {
     this.bb.dispatchEvent(new XenditActionBeginEvent());
     this.canCreateActionContainer = false;
-    this.pollWorker?.start();
+    this.updateWorker?.start();
   }
 
   updatePostorder() {
     if (this.bb.pollImmediatelyRequested) {
       this.bb.pollImmediatelyRequested = false;
-      this.resetPolling();
+      this.resetWorker();
     }
   }
 
   exit() {
-    this.pollWorker?.stop();
+    this.updateWorker?.stop();
     this.bb.dispatchEvent(new XenditActionEndEvent());
 
     // clear flag for next time
@@ -66,19 +69,14 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
   };
 
   /**
-   * Stop the current poll worker and make a new one. Start polling if the previous pollWorker was polling.
+   * Stop the current worker and make a new one. Start it if the previous worker was running.
    */
-  resetPolling() {
-    const polling = this.pollWorker?.isPolling() ?? false;
-    this.pollWorker?.stop();
-    this.pollWorker = new PollWorker(
-      this.bb.sdkKey,
-      this.bb.sdk,
-      this.bb.world?.sessionTokenRequestId ?? null,
-      this.onPollResult,
-    );
-    if (polling) {
-      this.pollWorker.start();
+  resetWorker() {
+    const running = this.updateWorker?.isRunning() ?? false;
+    this.updateWorker?.stop();
+    this.updateWorker = createSessionUpdateWorker(this.bb, this.onPollResult);
+    if (running) {
+      this.updateWorker.start();
     }
   }
 }

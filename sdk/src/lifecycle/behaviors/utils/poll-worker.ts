@@ -102,7 +102,7 @@ export class PollWorker {
     }
   }
 
-  isPolling() {
+  isRunning() {
     return this.started && !this.stopped;
   }
 
