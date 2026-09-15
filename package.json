@@ -93,7 +93,7 @@
     "rollup-plugin-import-css": "^4.2.0",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.0",
-    "vitest": "4.1.2"
+    "vitest": "5.0.0"
   },
   "packageManager": "pnpm@10.28.1"
 }
