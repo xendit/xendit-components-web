@@ -53,6 +53,43 @@ function convertDataToUrlSearchParams<T extends object>(data: T) {
   return params;
 }
 
+/**
+ * Builds the URL endpoint.
+ */
+export function buildEndpointUrl(
+  sdkKey: ParsedSdkKey,
+  path: string,
+  query: URLSearchParams = new URLSearchParams(),
+): URL {
+  const versionNumber = process.env.XENDIT_COMPONENTS_VERSION;
+  assert(versionNumber);
+  assert(versionNumber.startsWith("v"));
+
+  const hostId = sdkKey.hostId;
+  if (hostId === MOCK_HOST_ID) {
+    throw new Error("A network request was made in mock mode; this is a bug.");
+  }
+  const host = hostFromHostId(hostId);
+  if (!host) {
+    throw new Error(
+      `Unknown hostId ${hostId} in sdkKey; this is a bug, please contact support.`,
+    );
+  }
+
+  const url = new URL(path, host);
+  query.set("components_version", versionNumber);
+  url.search = query.toString();
+  return url;
+}
+
+async function throwErrorResponse(response: Response): Promise<never> {
+  const errorData = (await response.json()) as ErrorResponse;
+  if (!errorData || !errorData.error_code) {
+    throw new Error("Unexpected error response from server");
+  }
+  throw new NetworkError(errorData);
+}
+
 // GET with path param
 export function endpoint<ResponseBody, PathArg>(
   method: "GET",
@@ -147,32 +184,16 @@ export function endpoint(
         );
     }
 
-    const versionNumber = process.env.XENDIT_COMPONENTS_VERSION;
-    assert(versionNumber);
-    assert(versionNumber.startsWith("v"));
-
-    const hostId = (sdkKey as ParsedSdkKey).hostId;
-    if (hostId === MOCK_HOST_ID) {
-      throw new Error(
-        "A network request was made in mock mode; this is a bug.",
-      );
-    }
-    const host = hostFromHostId(hostId);
-    if (!host) {
-      throw new Error(
-        `Unknown hostId ${hostId} in sdkKey; this is a bug, please contact support.`,
-      );
-    }
-
-    const url = new URL(getPath(pathArg), host);
     if (getQuery && !queryArg) {
       throw new Error(
         "Query string argument is missing; this is a bug, please contact support.",
       );
     }
-    const query = getQuery?.(queryArg) ?? new URLSearchParams();
-    query.set("components_version", versionNumber);
-    url.search = query.toString();
+    const url = buildEndpointUrl(
+      sdkKey as ParsedSdkKey,
+      getPath(pathArg),
+      getQuery?.(queryArg),
+    );
 
     const options: RequestInit = {
       method,
@@ -189,13 +210,43 @@ export function endpoint(
         ? await fetchWithRetry(url, options, 500, 3)
         : await fetch(url, options);
     if (!response.ok) {
-      const errorData = (await response.json()) as ErrorResponse;
-      if (!errorData || !errorData.error_code) {
-        throw new Error("Unexpected error response from server");
-      }
-      throw new NetworkError(errorData);
+      await throwErrorResponse(response);
     }
 
     return response.json();
   };
+}
+
+/**
+ * Opens a Server-Sent Events stream and returns a reader for the response body.
+ * Connection errors are retried like other GET requests.
+ */
+export async function openEventStream(
+  url: URL,
+  abortSignal: AbortSignal,
+): Promise<ReadableStreamDefaultReader<Uint8Array>> {
+  const response = await fetchWithRetry(
+    url,
+    {
+      method: "GET",
+      headers: { Accept: "text/event-stream" },
+      signal: abortSignal,
+    },
+    500,
+    3,
+  );
+  if (!response.ok) {
+    await throwErrorResponse(response);
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.startsWith("text/event-stream")) {
+    throw new Error(
+      `Unexpected content type from event stream: ${contentType}`,
+    );
+  }
+  if (!response.body) {
+    throw new Error("Event stream response has no body");
+  }
+  return response.body.getReader();
 }
