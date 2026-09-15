@@ -1,7 +1,8 @@
-import { ChannelProperties } from "./public-sdk";
+import { ChannelComponentData, ChannelProperties } from "./public-sdk";
 import { describe, expect, it } from "vitest";
 import {
   channelPropertiesChanged,
+  getCardDetailsForCurrentCardNumber,
   getCardNumberFromChannelProperties,
   getValueFromChannelProperty,
 } from "./utils-channel-properties";
@@ -75,5 +76,76 @@ describe("utils - channelPropertiesChanged", () => {
     };
     const b: ChannelProperties = { card_details: { first_name: "Budi" } };
     expect(channelPropertiesChanged(a, b)).toBe(true);
+  });
+});
+
+describe("utils - getCardDetailsForCurrentCardNumber", () => {
+  const details = {
+    schemes: ["VISA"],
+    country_codes: ["ID"],
+    require_billing_information: false,
+  };
+
+  function channelDataForCardNumber(cardNumber: string): ChannelComponentData {
+    return {
+      savePaymentMethod: false,
+      cardBin: null,
+      cardDetails: { cardNumber, details },
+      paymentOptions: null,
+      customerDetails: null,
+    };
+  }
+
+  function propsWithCardNumber(cardNumber: string): ChannelProperties {
+    return { card_details: { card_number: cardNumber } };
+  }
+
+  it("should return the details when they belong to the current card number", () => {
+    expect(
+      getCardDetailsForCurrentCardNumber(
+        propsWithCardNumber("CARD-A"),
+        channelDataForCardNumber("CARD-A"),
+      ),
+    ).toBe(details);
+  });
+
+  it("should return null when the details belong to a different card number", () => {
+    // the user already changed the card number, but the lookup for the new number has not come back yet
+    expect(
+      getCardDetailsForCurrentCardNumber(
+        propsWithCardNumber("CARD-B"),
+        channelDataForCardNumber("CARD-A"),
+      ),
+    ).toBeNull();
+  });
+
+  it("should return null when no lookup has completed yet", () => {
+    expect(
+      getCardDetailsForCurrentCardNumber(propsWithCardNumber("CARD-A"), null),
+    ).toBeNull();
+    expect(
+      getCardDetailsForCurrentCardNumber(propsWithCardNumber("CARD-A"), {
+        savePaymentMethod: false,
+        cardBin: null,
+        cardDetails: null,
+        paymentOptions: null,
+        customerDetails: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("should return null when the form has no card number", () => {
+    expect(
+      getCardDetailsForCurrentCardNumber(
+        {},
+        channelDataForCardNumber("CARD-A"),
+      ),
+    ).toBeNull();
+    expect(
+      getCardDetailsForCurrentCardNumber(
+        null,
+        channelDataForCardNumber("CARD-A"),
+      ),
+    ).toBeNull();
   });
 });

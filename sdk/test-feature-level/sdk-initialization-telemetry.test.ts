@@ -1,4 +1,4 @@
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { XenditComponentsTest } from "../src";
 import { waitForEvent, waitForTelemetryEvent } from "./utils";
 
@@ -9,6 +9,16 @@ describe("sdk initialization telemetry", () => {
     });
 
     await waitForEvent(sdk, "init");
-    await waitForTelemetryEvent(sdk, "CHECKOUT_LOADED", true);
+    const event = await waitForTelemetryEvent(sdk, "CHECKOUT_LOADED", true);
+
+    expect(event.metadata?.channels).toEqual(
+      expect.arrayContaining([
+        "CARDS",
+        "MOCK_EWALLET",
+        "MOCK_QR",
+        "MOCK_VA",
+        "UI_INPUT_TEST",
+      ]),
+    );
   });
 });

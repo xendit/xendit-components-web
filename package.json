@@ -47,7 +47,7 @@
     "test:watch": "vitest",
     "test:run": "vitest run",
     "test:debug": "vitest run --printConsoleTrace=true --silent=false",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint . --fix --ext .ts,.tsx",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier . --check --write",

@@ -167,7 +167,12 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           telemetryScope.current = null;
         }
 
-        sdk.submitDigitalWallet("GOOGLE_PAY", targetChannel, channelProperties);
+        sdk.submitDigitalWallet(
+          "GOOGLE_PAY",
+          targetChannel,
+          channelProperties,
+          true, // always try to save for googlepay
+        );
       })
       .catch(function (err) {
         type GooglePayErrorCode =
@@ -228,6 +233,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           "GOOGLE_PAY",
           targetChannel,
           {},
+          false,
           submissionError,
         );
       })

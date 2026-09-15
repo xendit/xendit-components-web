@@ -109,6 +109,7 @@ import {
   bffSucceededChannelToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
+  getChannelCodesForTelemetry,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
 import { createTFunction, TFunction } from "./localization";
@@ -272,6 +273,7 @@ export class XenditComponents extends EventTarget {
       digitalWalletCode: XenditDigitalWalletCode;
       channelCode: string;
       channelProperties: ChannelProperties;
+      channelData: ChannelComponentData;
       instantSubmissionError: SubmissionError | null;
     } | null;
 
@@ -352,6 +354,7 @@ export class XenditComponents extends EventTarget {
         actionCompleted: false,
         redirectReturnPending: false,
         pollImmediatelyRequested: false,
+        prefersRedirectAction: false,
       }),
       telemetry,
       currentChannelCode: null,
@@ -525,7 +528,14 @@ export class XenditComponents extends EventTarget {
     if (resumeSession) {
       getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(true));
     } else {
-      getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
+      const channelList = getChannelCodesForTelemetry(
+        resumeSession ?? bff.session,
+        bff.channels,
+        null,
+      );
+      getTelemetry(this).appendAndPushScope(
+        TelemetryEvents.Loaded(true, channelList),
+      );
     }
 
     // Update world state
@@ -680,7 +690,8 @@ export class XenditComponents extends EventTarget {
       );
       bb.channelProperties =
         this[internal].currentDigitalWalletSubmission.channelProperties;
-      bb.channelData = null;
+      bb.channelData =
+        this[internal].currentDigitalWalletSubmission.channelData;
       bb.channelIsDigitalWallet = true;
       bb.instantSubmissionError =
         this[internal].currentDigitalWalletSubmission.instantSubmissionError;
@@ -1630,6 +1641,7 @@ export class XenditComponents extends EventTarget {
     digitalWalletCode: XenditDigitalWalletCode,
     channel: XenditPaymentChannel,
     channelProperties: ChannelProperties,
+    savePaymentMethod: boolean,
     instantSubmissionError: SubmissionError | null = null,
   ) {
     this.assertInitialized();
@@ -1640,6 +1652,12 @@ export class XenditComponents extends EventTarget {
       digitalWalletCode,
       channelCode: channel[internal][0].channel_code,
       channelProperties,
+      channelData: {
+        savePaymentMethod,
+        cardDetails: null,
+        paymentOptions: null,
+        customerDetails: null,
+      },
       instantSubmissionError,
     };
 
@@ -2175,6 +2193,16 @@ export class XenditComponentsTest extends XenditComponents {
     // Wait for libphonenumber-js so fields can assume it's already loaded
     await getLibphonenumber();
 
+    // telemetry
+    const availableChannels = getChannelCodesForTelemetry(
+      bff.session,
+      bff.channels,
+      null,
+    );
+    getTelemetry(this).appendAndPushScope(
+      TelemetryEvents.Loaded(true, availableChannels),
+    );
+
     // Update internal data
     this.dispatchEvent(
       new InternalUpdateWorldState({
@@ -2190,8 +2218,6 @@ export class XenditComponentsTest extends XenditComponents {
         experiments: bff.experiments,
       } satisfies WorldState),
     );
-
-    getTelemetry(this).appendAndPushScope(TelemetryEvents.Loaded(true));
   }
 
   /**

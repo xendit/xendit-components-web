@@ -22,7 +22,7 @@ Or load it directly from our CDN:
 <script src="https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.umd.js"></script>
 ```
 
-Our npm package includes TypeScript types. You also download the [.d.ts file](https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.d.ts) directly.
+Our npm package includes TypeScript types. You can also download the [.d.ts file](https://assets.xendit.co/components/VERSION_NUMBER_HERE/index.d.ts) directly.
 
 ## Sessions
 
@@ -91,7 +91,7 @@ This returns a `HTMLElement`, which you need to insert into your document.
 
 This method uses caching, it will always return the same channel picker element.
 Changing the current channel will update the channel picker UI, even if it's unmounted.
-If you don't want this, use `destroyComponent.`
+If you don't want this, use `destroyComponent`.
 
 ### `getActiveChannels`
 
@@ -230,7 +230,7 @@ Validation errors are normally hidden until the user changes and unfocusses the 
 ### `getCurrentChannel`
 
 ```typescript
-const channel: XenditChannel = components.getCurrentChannel();
+const channel: XenditPaymentChannel = components.getCurrentChannel();
 ```
 
 Returns the current channel.
@@ -325,6 +325,18 @@ Notifies you when an underlying Payment Request is created by the session, or th
 ### `payment-token-created` and `payment-token-discarded`
 
 Notifies you when an underlying Payment Token is created by the session, or thrown away when the user cancels the tokenization flow.
+
+### `card-bin-changed`
+
+Notifies you when the BIN (the first 6 or 8 digits of the card number) of the card being entered changes. The BIN is looked up after the user has entered enough digits, so this event is not fired on every keystroke. If the BIN stays the same, or the card number is cleared, the event is not fired.
+
+The event contains the `channelCode`, `bin`, card's `schemes` and `countryCodes`.
+
+### `channel-properties-changed`
+
+Notifies you when the information the user has entered into a channel component changes. If the channel component has form fields, this event is also fired when it is first rendered. If nothing changed, the event is not fired.
+
+The event contains the `channelCode` and the complete `channelProperties` of the channel.
 
 ## Resuming after a redirect
 

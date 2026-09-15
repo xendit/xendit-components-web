@@ -1,5 +1,6 @@
 {
   "session": {
+    "action.image_download_error": "Gagal mengunduh gambar.",
     "action.payment_confirmation_instructions": "Setelah Anda bayar, klik tombol di atas untuk mendapatkan konfirmasi pembayaran Anda.",
     "action.payment_made": "Saya telah melakukan pembayaran ini",
     "action_barcode.amount_to_pay": "Jumlah Pembayaran",
@@ -12,6 +13,7 @@
     "action_empty_list_push_notification.subtext": "Cek notifikasi di aplikasi {{channelName}} Anda untuk menyelesaikan pembayaran.",
     "action_empty_list_push_notification.title": "Menunggu pembayaran...",
     "action_qr.unable_to_generate": "Tidak dapat membuat kode QR",
+    "action_qr.download_qr": "Unduh QR",
     "action_va.amount_to_pay": "Jumlah Pembayaran",
     "action_va.copied_to_clipboard": "Disalin ke clipboard",
     "action_va.copy": "Salin",

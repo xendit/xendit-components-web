@@ -1,5 +1,6 @@
 {
   "session": {
+    "action.image_download_error": "ไม่สามารถดาวน์โหลดรูปภาพได้",
     "action.payment_confirmation_instructions": "เมื่อคุณชำระเงินแล้ว คลิกที่ปุ่มด้านบนเพื่อยืนยันการชำระเงิน",
     "action.payment_made": "ฉันได้ชำระเงินแล้ว",
     "action_barcode.amount_to_pay": "จำนวนเงินที่ต้องชำระ",
@@ -12,6 +13,7 @@
     "action_empty_list_push_notification.subtext": "ตรวจสอบการแจ้งเตือนในแอป {{channelName}} ของคุณเพื่อดำเนินการชำระเงินให้เสร็จสิ้น",
     "action_empty_list_push_notification.title": "กําลังรอการชําระเงิน...",
     "action_qr.unable_to_generate": "ไม่สามารถสร้าง QR code ได้",
+    "action_qr.download_qr": "ดาวน์โหลด QR",
     "action_va.amount_to_pay": "ยอดชำระ",
     "action_va.copied_to_clipboard": "คัดลอกไปยังคลิปบอร์ด",
     "action_va.copy": "คัดลอก",

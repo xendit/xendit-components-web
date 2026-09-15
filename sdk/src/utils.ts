@@ -140,7 +140,21 @@ export function redirectCanBeHandledInIframe(action: BffAction): boolean {
 /**
  * Return the first action in the list that we understand.
  */
-export function findBestAction(actions: BffAction[]): BffAction | undefined {
+export function findBestAction(
+  actions: BffAction[],
+  prefersRedirectAction?: boolean,
+): BffAction | undefined {
+  if (prefersRedirectAction) {
+    const redirectAction = actions.find(
+      (action) =>
+        action.type === "REDIRECT_CUSTOMER" &&
+        action.descriptor !== "WEB_GOOGLE_PAYLINK",
+    );
+    if (redirectAction) {
+      return redirectAction;
+    }
+  }
+
   const best = actions.find((a) => {
     switch (a.type) {
       case "REDIRECT_CUSTOMER": {

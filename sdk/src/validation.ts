@@ -11,6 +11,7 @@ import { LocaleKey, LocalizedString } from "./localization";
 import { ChannelComponentData } from "./public-sdk";
 import { parseEncryptedFieldValue } from "./utils";
 import { CustomerDetails } from "./backend-types/customer";
+import { getCardDetailsForCurrentCardNumber } from "./utils-channel-properties";
 
 export type ValidationResult = {
   errorCode: LocaleKey | LocalizedString | undefined;
@@ -273,7 +274,10 @@ export function channelPropertiesAreValid(
   }
 
   const allowedBrands = channel.card?.brands;
-  const schemes = channelComponentData?.cardDetails?.details?.schemes;
+  const schemes = getCardDetailsForCurrentCardNumber(
+    channelProperties,
+    channelComponentData,
+  )?.schemes;
   if (allowedBrands?.length && schemes?.length) {
     const allowedNames = allowedBrands.map((b) => b.name);
     if (!schemes.some((s) => allowedNames.includes(s))) {

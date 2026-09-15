@@ -5,7 +5,7 @@ import {
   channelPropertiesAreValid,
   channelPropertyFieldValidate,
 } from "./validation";
-import { ChannelComponentData } from "./public-sdk";
+import { ChannelComponentData, ChannelProperties } from "./public-sdk";
 
 // Make the loader return the real libphonenumber-js module synchronously.
 vi.mock("./libphonenumber-loader", () => ({
@@ -95,12 +95,18 @@ function channelWithBrands(brandNames: string[]): BffChannel {
   };
 }
 
+const FIXTURE_CARD_NUMBER = "xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT";
+
+function propsWithFixtureCardNumber(): ChannelProperties {
+  return { card_details: { card_number: FIXTURE_CARD_NUMBER } };
+}
+
 function channelDataWithSchemes(schemes: string[]): ChannelComponentData {
   return {
     savePaymentMethod: false,
     cardBin: null,
     cardDetails: {
-      cardNumber: "xendit-encrypted-1-PUBLICKEY-IV-CIPHERTEXT",
+      cardNumber: FIXTURE_CARD_NUMBER,
       details: {
         schemes,
         country_codes: ["ID"],
@@ -287,33 +293,53 @@ describe("card brand validation", () => {
   it("should block submit when card brand is not in allowed list", () => {
     const channel = channelWithBrands(["VISA", "MASTERCARD"]);
     const channelData = channelDataWithSchemes(["AMERICAN-EXPRESS"]);
-    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
-      false,
-    );
+    expect(
+      channelPropertiesAreValid(
+        "PAY",
+        channel,
+        propsWithFixtureCardNumber(),
+        channelData,
+      ),
+    ).toBe(false);
   });
 
   it("should allow submit when card brand is in allowed list", () => {
     const channel = channelWithBrands(["VISA", "MASTERCARD"]);
     const channelData = channelDataWithSchemes(["VISA"]);
-    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
-      true,
-    );
+    expect(
+      channelPropertiesAreValid(
+        "PAY",
+        channel,
+        propsWithFixtureCardNumber(),
+        channelData,
+      ),
+    ).toBe(true);
   });
 
   it("should allow submit when one scheme of a co-branded card matches", () => {
     const channel = channelWithBrands(["VISA", "MASTERCARD"]);
     const channelData = channelDataWithSchemes(["JCB", "VISA"]);
-    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
-      true,
-    );
+    expect(
+      channelPropertiesAreValid(
+        "PAY",
+        channel,
+        propsWithFixtureCardNumber(),
+        channelData,
+      ),
+    ).toBe(true);
   });
 
   it("should allow submit when channel has no allowed brands configured", () => {
     const channel = channelWithForm([encryptedField]); // no card.brands
     const channelData = channelDataWithSchemes(["AMERICAN-EXPRESS"]);
-    expect(channelPropertiesAreValid("PAY", channel, {}, channelData)).toBe(
-      true,
-    );
+    expect(
+      channelPropertiesAreValid(
+        "PAY",
+        channel,
+        propsWithFixtureCardNumber(),
+        channelData,
+      ),
+    ).toBe(true);
   });
 
   it("should allow submit when card_info has not yet responded", () => {
