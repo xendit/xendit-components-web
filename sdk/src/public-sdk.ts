@@ -1657,6 +1657,7 @@ export class XenditComponents extends EventTarget {
         cardDetails: null,
         paymentOptions: null,
         customerDetails: null,
+        cardBin: null,
       },
       instantSubmissionError,
     };
