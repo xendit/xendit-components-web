@@ -307,10 +307,14 @@ xendit-payment-channel select::placeholder {
 .xendit-channel-picker-oneclick-action-container {
   max-width: 350px;
   margin: 0 auto;
+  margin-bottom: 16px;
+}
+
+.xendit-channel-picker-oneclick-action-container
+  xendit-action-container[is-qr-with-custom-art] {
   border: 1px solid var(--xendit-color-border);
   box-shadow: var(--xendit-card-shadow);
   border-radius: 8px;
-  margin-bottom: 16px;
 }
 
 /* Payment channel */

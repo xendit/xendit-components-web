@@ -42,6 +42,9 @@ export abstract class ContainerActionBehavior implements Behavior {
       // clear the previous action's contents before reusing container
       this.flushPendingContainerDestroy();
       this.flushPendingInstructionsContainerDestroy();
+
+      this.syncIsQrWithCustomArtAttribute(null, isQrWithCustomArt);
+
       return () => {
         this.emptyActionContainer();
       };
@@ -74,17 +77,10 @@ export abstract class ContainerActionBehavior implements Behavior {
     );
     document.body.appendChild(defaultActionContainer);
 
-    // for qr with custom art, set a flag on both the defualt wrapper and the action container
-    // (cast required because typescript doesn't know rendering the DefaultActionContianer created the component)
-    const actionContainer = this.bb.sdk[internal].liveComponents
-      .actionContainer as unknown as HTMLElement;
-    if (isQrWithCustomArt) {
-      actionContainer?.setAttribute("is-qr-with-custom-art", "");
-      defaultActionContainer?.setAttribute("is-qr-with-custom-art", "");
-    } else {
-      actionContainer?.removeAttribute("is-qr-with-custom-art");
-      defaultActionContainer?.removeAttribute("is-qr-with-custom-art");
-    }
+    this.syncIsQrWithCustomArtAttribute(
+      defaultActionContainer,
+      isQrWithCustomArt,
+    );
 
     // Cleanup function
     // (if actionCancelledByUser is true, abort the submission after the modal closes)
@@ -104,6 +100,23 @@ export abstract class ContainerActionBehavior implements Behavior {
         defaultActionContainer,
       );
     };
+  }
+
+  syncIsQrWithCustomArtAttribute(
+    defaultActionContainer: HTMLElement | null,
+    isQrWithCustomArt: boolean,
+  ) {
+    // for qr with custom art, set a flag on both the defualt wrapper and the action container
+    // (cast required because typescript doesn't know rendering the DefaultActionContianer created the component)
+    const actionContainer = this.bb.sdk[internal].liveComponents
+      .actionContainer as unknown as HTMLElement;
+    if (isQrWithCustomArt) {
+      actionContainer?.setAttribute("is-qr-with-custom-art", "");
+      defaultActionContainer?.setAttribute("is-qr-with-custom-art", "");
+    } else {
+      actionContainer?.removeAttribute("is-qr-with-custom-art");
+      defaultActionContainer?.removeAttribute("is-qr-with-custom-art");
+    }
   }
 
   cleanupActionContainer(cancelledByUser: boolean) {

@@ -47,10 +47,10 @@ export function getCustomQrArtComponent(
 
 function QrArtQris(props: QrArtComponentProps) {
   return (
-    <div>
+    <>
       {hardcodedGraphics.closeButton({ top: "12px", right: "12px" })}
       <QrMinicardQris {...props} />
-    </div>
+    </>
   );
 }
 
@@ -92,7 +92,7 @@ function QrMinicardQris(props: QrArtComponentProps) {
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      style={{ aspectRatio: width / height }}
+      style={{ aspectRatio: width / height, display: "block" }}
     >
       {/* background triangles */}
       <rect
@@ -397,7 +397,7 @@ function QrMinicardDuitnow(props: QrArtComponentProps) {
   return (
     <svg
       viewBox={"0 0 180 210"}
-      style={{ aspectRatio: "1", margin: "32px 14% 24px" }}
+      style={{ aspectRatio: "1", margin: "32px 14% 24px", display: "block" }}
     >
       <rect width="180" height="210" fill={duitnowAccentColor} rx={13} />
       <rect x="10" y="10" width="160" height="170" fill="white" rx={4} />
