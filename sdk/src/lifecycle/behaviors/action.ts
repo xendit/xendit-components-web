@@ -33,9 +33,7 @@ export abstract class ContainerActionBehavior implements Behavior {
    * Creates a default action container if the user has not created one already.
    * Returns a cleanup function that destroys the default action container if it was created.
    */
-  ensureHasActionContainer(
-    defaultActionContainerType: DefaultActionContainerType = DefaultActionContainerType.Generic,
-  ) {
+  ensureHasActionContainer(isQrWithCustomArt: boolean = false) {
     assert(this.bb.channel);
 
     if (this.bb.sdk[internal].liveComponents.actionContainer) {
@@ -52,29 +50,41 @@ export abstract class ContainerActionBehavior implements Behavior {
     let cleanedUp = false;
     let success = false;
 
-    const container = document.createElement("div");
-    container.setAttribute("class", "xendit-default-action-container");
+    const defaultActionContainer = document.createElement("div");
 
     const props: Parameters<typeof DefaultActionContainer>[0] = {
       sdk: this.bb.sdk,
       title: this.title,
       width: this.defaultContainerWidth,
       height: this.defaultContainerHeight,
-      borderColor: undefined, // needs some design feedback
-      // borderColor: this.bb.channel.brand_color,
-      defaultActionContainerType,
+      borderColor: undefined,
       onClose: () => {
         cleanedUp = true;
-        render(null, container);
-        container.remove();
+        render(null, defaultActionContainer);
+        defaultActionContainer.remove();
         if (!success) {
           this.bb.sdk.abortSubmission();
         }
       },
     };
 
-    render(createElement(DefaultActionContainer, props), container);
-    document.body.appendChild(container);
+    render(
+      createElement(DefaultActionContainer, props),
+      defaultActionContainer,
+    );
+    document.body.appendChild(defaultActionContainer);
+
+    // for qr with custom art, set a flag on both the defualt wrapper and the action container
+    // (cast required because typescript doesn't know rendering the DefaultActionContianer created the component)
+    const actionContainer = this.bb.sdk[internal].liveComponents
+      .actionContainer as unknown as HTMLElement;
+    if (isQrWithCustomArt) {
+      actionContainer?.setAttribute("is-qr-with-custom-art", "");
+      defaultActionContainer?.setAttribute("is-qr-with-custom-art", "");
+    } else {
+      actionContainer?.removeAttribute("is-qr-with-custom-art");
+      defaultActionContainer?.removeAttribute("is-qr-with-custom-art");
+    }
 
     // Cleanup function
     // (if actionCancelledByUser is true, abort the submission after the modal closes)
@@ -91,7 +101,7 @@ export abstract class ContainerActionBehavior implements Behavior {
           ...props,
           close: true,
         }),
-        container,
+        defaultActionContainer,
       );
     };
   }

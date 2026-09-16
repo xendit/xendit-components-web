@@ -42,10 +42,6 @@ export function getCustomQrArtComponent(
     return QrArtPromptPay;
   }
 
-  if (channelCode === "QRPH") {
-    return QrArtQrPh;
-  }
-
   return null;
 }
 
@@ -66,18 +62,22 @@ function QrMinicardQris(props: QrArtComponentProps) {
   const width = 960;
   const height = 1290;
   const innerWidth = width - 120 * 2;
+
   const logoRowY = 60;
+  const textRowY = 270;
+  const qrY = 440;
+
   const logoRowMargin = 80;
-  const logoRowHeight = 100;
+  const logoRowHeight = 120;
   const qrMargin = 33;
 
   const triangle1Size = 350;
   const triangle1X = -180;
-  const triangle1Y = 320;
+  const triangle1Y = 340;
 
   const triangle2Size = 500;
   const triangle2X = width - triangle2Size / 2;
-  const triangle2Y = height - triangle2Size / 2 + 50;
+  const triangle2Y = height - triangle2Size / 2 + 70;
 
   function rectRotateAroundCenter(
     angle: number,
@@ -133,22 +133,34 @@ function QrMinicardQris(props: QrArtComponentProps) {
         <div
           style={{
             height: "100%",
+            position: "relative",
           }}
         >
+          {/* logos baselines should be aligned, qris logo height should be as tall as the bird's head */}
           {hardcodedGraphics.qris({
-            float: "left",
-            height: "100%",
-            width: "66%",
+            position: "absolute",
+            left: "0",
+            bottom: "0px",
+            height: "auto",
+            width: "60%",
           })}
           {hardcodedGraphics.gpn({
-            float: "right",
+            position: "absolute",
+            right: "0",
+            top: "0",
             height: "100%",
             width: "auto",
           })}
         </div>
       </foreignObject>
       {/* merchant name and nmid */}
-      <foreignObject x={padding} y="250" width={innerWidth} height="90">
+      <foreignObject
+        x={padding}
+        y={textRowY}
+        width={innerWidth}
+        height="90"
+        style={{ overflow: "visible" }}
+      >
         <div
           style={{
             color: "black",
@@ -160,14 +172,28 @@ function QrMinicardQris(props: QrArtComponentProps) {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            overflow: "hidden",
             fontFamily: "Nunito Regular, var(--xendit-font-family)",
           }}
         >
-          <div className="xendit-text-semibold">
-            {merchantName.toUpperCase()}
-            {/* TOOD: do something with this */}
-            {" " + amountText}
+          <div
+            className="xendit-text-semibold"
+            style={{ whiteSpace: "nowrap", width: "100%" }}
+          >
+            <div
+              style={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                margin: "0 -48px",
+              }}
+            >
+              {merchantName.toUpperCase()}
+            </div>
+          </div>
+          <div
+            className="xendit-text-semibold"
+            style={{ fontSize: "50px", lineHeight: "70px" }}
+          >
+            {amountText}
           </div>
           {nmid ? (
             <div
@@ -185,13 +211,13 @@ function QrMinicardQris(props: QrArtComponentProps) {
       {/* white background for qr */}
       <rect
         x={padding - qrMargin}
-        y={420 - qrMargin}
+        y={qrY - qrMargin}
         width={innerWidth + qrMargin * 2}
         height={innerWidth + qrMargin * 2}
         fill="white"
       />
       {/* qr image */}
-      <foreignObject x={padding} y="420" width={innerWidth} height={innerWidth}>
+      <foreignObject x={padding} y={qrY} width={innerWidth} height={innerWidth}>
         <div style={{ "--xendit-qr-foreground-color": "black" }}>
           {props.qr}
         </div>
@@ -487,89 +513,6 @@ function QrArtPromptPay(props: QrArtComponentProps) {
         >
           {amountText}
           <div className="xendit-text-16">{merchantName}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function QrArtQrPh(props: QrArtComponentProps) {
-  const { merchantName, amountText, channelLogo, channelName, t } = props;
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        paddingTop: "24px",
-        paddingLeft: "24px",
-        paddingRight: "24px",
-        paddingBottom: "12px",
-        overflow: "hidden",
-      }}
-    >
-      {channelLogo ? (
-        <img
-          src={channelLogo}
-          alt={t("image_alt.channel_logo", { channelName })}
-          style={{
-            height: "48px",
-            alignSelf: "center",
-            marginBottom: "16px",
-          }}
-        />
-      ) : null}
-      {hardcodedGraphics.closeButton({})}
-      <div
-        style={{
-          backgroundColor: "white",
-          border: "4px solid rgb(0,0,0,0.15)",
-          zIndex: 1,
-          position: "relative",
-          borderRadius: "12px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          padding: "24px",
-        }}
-      >
-        <div
-          className="xendit-text-center"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
-          }}
-        >
-          <div
-            className="xendit-text-semibold"
-            style={{ fontSize: "20px", lineHeight: "28px" }}
-          >
-            {merchantName}
-          </div>
-          <div
-            className="xendit-text-bold"
-            style={{ fontSize: "24px", lineHeight: "32px" }}
-          >
-            {amountText}
-          </div>
-        </div>
-        <div style={{ position: "relative" }}>
-          {props.qr}
-          {hardcodedGraphics.qrph({
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: "12%",
-            height: "12%",
-            aspectRatio: "1",
-            transform: "translate(-50%, -50%)",
-            zIndex: "3",
-            backgroundColor: "white",
-            padding: "8px",
-            borderRadius: "6px",
-          })}
         </div>
       </div>
     </div>

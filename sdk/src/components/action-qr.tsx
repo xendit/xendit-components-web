@@ -235,15 +235,19 @@ export function ActionQr(props: Props) {
             className="xendit-action-qr-channel-logo"
           />
         )}
-        <div className="xendit-action-qr-content">
-          <div className="xendit-text-16 xendit-text-center xendit-qr-merchant-info">
-            <div className="xendit-text-semibold">{businessName}</div>
-          </div>
-          {qrWrapper}
-          <div className="xendit-text-16 xendit-text-semibold xendit-text-center">
+        <div>
+          <div className="xendit-text-center xendit-text-16">Scan To Pay</div>
+          <div
+            className="xendit-text-semibold xendit-text-center"
+            style={{ fontSize: "24px", lineHeight: "24px", marginTop: "12px" }}
+          >
             {amountText}
           </div>
+          <div className="xendit-text-16 xendit-text-semibold xendit-text-center xendit-qr-merchant-info">
+            {businessName}
+          </div>
         </div>
+        {qrWrapper}
         <div
           style={{
             padding: "48px",

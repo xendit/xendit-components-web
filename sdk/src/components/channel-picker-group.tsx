@@ -104,7 +104,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
   }, [channelsInGroup, currentChannel, marshalConfig, open, sdk]);
 
   // when the group is opened, if the currently selected channel is unset but the fakeDropdownSelection is set,
-  // select that channel to sync this group's selection with the sdk state
+  // select that channel to restore this group's selection into the sdk state
   const previousOpen = usePrevious(open);
   useLayoutEffect(() => {
     if (open && !previousOpen) {
@@ -115,7 +115,16 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
           (channel) => channel.channel_code === fakeDropdownSelection,
         );
         if (ch) {
-          sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
+          // ! cannot call this directly from a hook because it will rerender !
+          // (there are no race conditions here because this state change can only be triggered by user input)
+          // The flow goes like this:
+          //  - user clicks channel picker group
+          //    - setCurrentChannel(null) -> force render -> collapses old group
+          //    - setPreviewGroupId(id) -> normal render -> expands new group -> this code runs
+          //      - next tick -> setCurrentChannel(ch) -> force render
+          setTimeout(() => {
+            sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
+          }, 0);
         }
       }
     }

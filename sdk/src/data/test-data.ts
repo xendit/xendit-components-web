@@ -521,7 +521,6 @@ export function makeTestBffData(): BffResponse {
                   value: "DUITNOW_QR",
                 },
                 { label: "PromptPay", value: "PROMPTPAY" },
-                { label: "QRPH", value: "QRPH" },
               ],
             },
             channel_property: "mock_channel_code_for_qr_art",

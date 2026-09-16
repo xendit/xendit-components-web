@@ -134,10 +134,10 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
           sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
           setPreviewGroupId(null);
         } else {
-          // multiple enabled channels, set as previewed and clear the channel selection
+          // multiple enabled channels, set as previewed (group displayed but no channel selected)
           telemetryForGroupChange(newGroup.label, groupId);
-          setPreviewGroupId(groupId);
           sdk.setCurrentChannel(null);
+          setPreviewGroupId(groupId);
         }
       }
     },
