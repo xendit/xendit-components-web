@@ -50,102 +50,153 @@ export function getCustomQrArtComponent(
 }
 
 function QrArtQris(props: QrArtComponentProps) {
-  const { channelLogo, channelName, merchantName, amountText, t, nmid } = props;
+  return (
+    <div>
+      {hardcodedGraphics.closeButton({ top: "12px", right: "12px" })}
+      <QrMinicardQris {...props} />
+    </div>
+  );
+}
 
-  const qrisAccentColor = "#DB4849";
-  const borderArtWidth = "24px";
+function QrMinicardQris(props: QrArtComponentProps) {
+  const { merchantName, amountText, nmid } = props;
+
+  const qrisAccentColor = "#DB4848";
+  const padding = 120;
+  const width = 960;
+  const height = 1290;
+  const innerWidth = width - 120 * 2;
+  const logoRowY = 60;
+  const logoRowMargin = 80;
+  const logoRowHeight = 100;
+  const qrMargin = 33;
+
+  const triangle1Size = 350;
+  const triangle1X = -180;
+  const triangle1Y = 320;
+
+  const triangle2Size = 500;
+  const triangle2X = width - triangle2Size / 2;
+  const triangle2Y = height - triangle2Size / 2 + 50;
+
+  function rectRotateAroundCenter(
+    angle: number,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    return `rotate(${angle}, ${x + width / 2}, ${y + height / 2})`;
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        paddingTop: "24px",
-        paddingLeft: borderArtWidth,
-        paddingRight: borderArtWidth,
-        overflow: "hidden",
-      }}
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ aspectRatio: width / height }}
     >
-      {hardcodedGraphics.closeButton({})}
-      {channelLogo ? (
-        <img
-          src={channelLogo}
-          alt={t("image_alt.channel_logo", { channelName })}
-          style={{
-            height: "64px",
-            alignSelf: "center",
-          }}
-        />
-      ) : null}
-      <div
-        className="xendit-text-center xendit-text-16"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          marginTop: "16px",
-        }}
-      >
-        <div className="xendit-text-semibold">{merchantName}</div>
-        {nmid ? <div className="xendit-text-14">NMID: {nmid}</div> : null}
-      </div>
-      <div
-        style={{
-          position: "relative",
-          margin: `-${borderArtWidth}`,
-          marginBottom: "0",
-          padding: borderArtWidth,
-        }}
+      {/* background triangles */}
+      <rect
+        fill={qrisAccentColor}
+        x={triangle1X}
+        y={triangle1Y}
+        width={triangle1Size}
+        height={triangle1Size}
+        transform={rectRotateAroundCenter(
+          45,
+          triangle1X,
+          triangle1Y,
+          triangle1Size,
+          triangle1Size,
+        )}
+      />
+      <rect
+        fill={qrisAccentColor}
+        x={triangle2X}
+        y={triangle2Y}
+        width={triangle2Size}
+        height={triangle2Size}
+        transform={rectRotateAroundCenter(
+          -128,
+          triangle2X,
+          triangle2Y,
+          triangle2Size,
+          triangle2Size,
+        )}
+      />
+      {/* header row */}
+      <foreignObject
+        x={logoRowMargin}
+        y={logoRowY}
+        width={width - logoRowMargin * 2}
+        height={logoRowHeight}
       >
         <div
           style={{
-            padding: "20px",
-            backgroundColor: "white",
-            zIndex: 1,
-            position: "relative",
-            borderRadius: "4px",
+            height: "100%",
+          }}
+        >
+          {hardcodedGraphics.qris({
+            float: "left",
+            height: "100%",
+            width: "66%",
+          })}
+          {hardcodedGraphics.gpn({
+            float: "right",
+            height: "100%",
+            width: "auto",
+          })}
+        </div>
+      </foreignObject>
+      {/* merchant name and nmid */}
+      <foreignObject x={padding} y="250" width={innerWidth} height="90">
+        <div
+          style={{
+            color: "black",
+            fontSize: "37px",
+            textAlign: "center",
+            height: "100%",
+            lineHeight: "37px",
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
+            justifyContent: "center",
+            alignItems: "center",
+            overflow: "hidden",
+            fontFamily: "Nunito Regular, var(--xendit-font-family)",
           }}
         >
-          {props.qr}
-          <div
-            className="xendit-text-semibold xendit-text-center"
-            style={{ fontSize: "24px", lineHeight: borderArtWidth }}
-          >
-            {amountText}
+          <div className="xendit-text-semibold">
+            {merchantName.toUpperCase()}
+            {/* TOOD: do something with this */}
+            {" " + amountText}
           </div>
+          {nmid ? (
+            <div
+              style={{
+                fontSize: "30px",
+                lineHeight: "30px",
+                marginTop: "20px",
+              }}
+            >
+              NMID: {nmid}
+            </div>
+          ) : null}
         </div>
-        <svg
-          style={{
-            position: "absolute",
-            top: "-9%",
-            left: 0,
-            width: "60%",
-            height: "auto",
-            pointerEvents: "none",
-          }}
-          viewBox="0 0 100 100"
-        >
-          <polygon fill={qrisAccentColor} points="0,0 50,50 0,100" />
-        </svg>
-        <svg
-          style={{
-            position: "absolute",
-            bottom: 0,
-            right: 0,
-            width: "30%",
-            height: "auto",
-            pointerEvents: "none",
-          }}
-          viewBox="0 0 100 100"
-        >
-          <polygon fill={qrisAccentColor} points="0,100 100,100 100,0" />
-        </svg>
-      </div>
-    </div>
+      </foreignObject>
+      {/* white background for qr */}
+      <rect
+        x={padding - qrMargin}
+        y={420 - qrMargin}
+        width={innerWidth + qrMargin * 2}
+        height={innerWidth + qrMargin * 2}
+        fill="white"
+      />
+      {/* qr image */}
+      <foreignObject x={padding} y="420" width={innerWidth} height={innerWidth}>
+        <div style={{ "--xendit-qr-foreground-color": "black" }}>
+          {props.qr}
+        </div>
+      </foreignObject>
+    </svg>
   );
 }
 
@@ -287,9 +338,7 @@ function QrArtPaynow(props: QrArtComponentProps) {
 }
 
 function QrArtDuitnow(props: QrArtComponentProps) {
-  const { merchantName, amountText } = props;
-
-  const duitnowAccentColor = "#ED3066";
+  const { amountText } = props;
 
   return (
     <div
@@ -309,46 +358,68 @@ function QrArtDuitnow(props: QrArtComponentProps) {
       >
         {amountText}
       </div>
-      <div
-        className="xendit-text-center xendit-text-16 xendit-text-semibold"
-        style={{
-          marginTop: "8px",
-        }}
-      >
-        {merchantName}
-      </div>
-      <svg
-        viewBox={"0 0 180 180"}
-        style={{ aspectRatio: "1", margin: "32px 14% 24px" }}
-      >
-        <rect width="180" height="180" fill={duitnowAccentColor} rx={13} />
-        <rect x="10" y="10" width="160" height="140" fill="white" rx={4} />
-        <path d="M0 180 L20 180 L0 160 Z" fill={duitnowAccentColor} />
-        <path d="M10 150 L30 150 L10 130 Z" fill="white" />
-        <foreignObject x="40" y="30" width="100" height="100">
-          <div style={{ "--xendit-qr-foreground-color": duitnowAccentColor }}>
-            {props.qr}
-          </div>
-        </foreignObject>
-        <foreignObject
-          x="0"
-          y="160"
-          height="10px"
-          width="180px"
-          style={{ overflow: "visible" }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              height: "10px",
-            }}
-          >
-            {hardcodedGraphics.malaysiaNationalQrText({ width: "auto" })}
-          </div>
-        </foreignObject>
-      </svg>
+      <QrMinicardDuitnow {...props} />
     </div>
+  );
+}
+
+function QrMinicardDuitnow(props: QrArtComponentProps) {
+  const { merchantName } = props;
+
+  const duitnowAccentColor = "#ED3066";
+
+  return (
+    <svg
+      viewBox={"0 0 180 210"}
+      style={{ aspectRatio: "1", margin: "32px 14% 24px" }}
+    >
+      <rect width="180" height="210" fill={duitnowAccentColor} rx={13} />
+      <rect x="10" y="10" width="160" height="170" fill="white" rx={4} />
+      <path d="M0 210 L20 210 L0 190 Z" fill={duitnowAccentColor} />
+      <path d="M10 150 L30 150 L10 130 Z" fill="white" />
+      <foreignObject x="40" y="30" width="100" height="100">
+        <div style={{ "--xendit-qr-foreground-color": duitnowAccentColor }}>
+          {props.qr}
+        </div>
+      </foreignObject>
+      <foreignObject x="40" y="140" width="100" height="20">
+        <div
+          style={{
+            color: "black",
+            fontSize: "10px",
+            textAlign: "center",
+            height: "20px",
+            lineHeight: "10px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            webkitLineClamp: "2",
+            overflow: "hidden",
+            fontFamily: "Nunito Regular, var(--xendit-font-family)",
+          }}
+        >
+          {merchantName}
+        </div>
+      </foreignObject>
+      <foreignObject
+        x="0"
+        y="190"
+        height="10"
+        width="180px"
+        style={{ overflow: "visible" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "12.6px",
+          }}
+        >
+          {hardcodedGraphics.malaysiaNationalQrText({ width: "auto" })}
+        </div>
+      </foreignObject>
+    </svg>
   );
 }
 
@@ -606,6 +677,45 @@ const hardcodedGraphics: Record<
         fill-rule="evenodd"
         d="M35.649 16.636h7.13V35.41c-.42 4.05-3.48 6.964-7.13 8.046H20.052l-5.347-3.8 5.347-3.352s9.29-.002 13.815-.447q1.177-.51 1.336-1.788a171 171 0 0 0 .446-17.432"
         clip-rule="evenodd"
+      />
+    </svg>
+  ),
+  qris: (style) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="312"
+      height="50"
+      fill="none"
+      viewBox="0 0 312 50"
+      style={style}
+    >
+      <g fill="#000" mask="url(#c)">
+        <path d="M43.2 8.2h34v20.4H63l14.2 13h-12l-14-13v13h-8V21h25v-5h-25zm37.6 33.4H89V8.1h-8.3zm-66.6-8V8.1H7.7a2 2 0 0 0-2 2l-.2 29.4c0 1 1 2 2 2H27v-8zm17 16.4h8.5V33.2h-8.5z" />
+        <path d="M18.4 8.2v8.3h12.8V29h8.5V10.2c0-1-1-2-2-2z" />
+        <path d="M18.4 20.6v8.5h8.4v-8.5zm6 6h-3.5V23h3.4zm105.5 6.6v12.5c0 1.1-1 2-2 2H115v2H130c1 0 2-.9 2-2V33.3zM2.1 16.5V3.9Q2.2 2.2 4 2h12.7V0H2A2 2 0 0 0 0 2v14.5z" />
+        <path d="M126.3 16.5V8.2H92.7V29H115V33H92.7v8.4h33.6V20.7h-22.4v-4.2zm24.2 3.7h-7.4q-1.3 0-2.5-.5a6 6 0 0 1-2.1-1.3 7 7 0 0 1-1.5-2 6.4 6.4 0 0 1 6.1-9 7 7 0 0 1 4.7 1.7 7 7 0 0 1 1.4 2q.4 1.2.4 2.5v1.6l-.7 1.5q-.3.6-1 1.1-.5.6-1.2 1h3.8zm-7.4-1.6q1 0 1.9-.4t1.5-1l1-1.6.3-2-.3-1.8-1-1.5a4 4 0 0 0-1.5-1 5 5 0 0 0-2-.4q-1 0-1.8.4a4 4 0 0 0-1.5 1l-1 1.5-.3 1.9q0 1 .3 1.9a4 4 0 0 0 1 1.5q.6.8 1.5 1.1t1.9.4m9.2-11h4.5q1.4 0 2 .4.8.3 1.4.8.4.6.6 1.1l.1 1.3q0 .6-.2 1.1l-.6 1q-.4.6-1 .8l-1.3.4 3.7 5.7h-2.2l-3.3-5.5h-2v5.5h-1.7zm1.8 5.6h3.3l.8-.4q.4-.2.7-.6t.2-1-.2-1l-.7-.7-.8-.2-1-.2H154zm23.3-2.9q-.6-.7-1.4-1a4 4 0 0 0-1.8-.4q-1 0-1.9.4t-1.5 1.1l-1 1.6-.3 2q0 1 .3 2a4 4 0 0 0 1 1.5q.6.7 1.4 1a5 5 0 0 0 2 .5q1.2 0 2-.5a4 4 0 0 0 1.4-1.2l1.5 1-.6.6-.9.8-1.4.6q-1 .3-2 .2a7 7 0 0 1-2.7-.5l-2.1-1.5q-.9-1-1.3-2.1a7 7 0 0 1-.4-2.4 7 7 0 0 1 1.8-4.7q.9-1 2.1-1.5a7 7 0 0 1 2.7-.5q1.3 0 2.5.5a5 5 0 0 1 2 1.5zm3 5.7q0-1 .3-1.7.3-.8 1-1.4l1.4-1a4 4 0 0 1 1.8-.3q1 0 1.8.4l1.5 1a4 4 0 0 1 1.3 3l-.4 1.8q-.3.8-1 1.4t-1.4.9-1.8.3c-1 0-1.2 0-1.8-.3q-.8-.4-1.4-1t-1-1.3q-.3-.8-.4-1.8m1.8 0q0 .7.2 1.2t.5.9 1 .6 1.1.3l1.2-.3a3 3 0 0 0 1.4-1.5q.2-.5.2-1.2t-.2-1.2l-.5-.9-1-.6q-.5-.2-1-.2-.8 0-1.3.2l-.9.6-.5 1zm18 4.3h-1.6V19q-.6.7-1.4 1t-1.7.4-1.8-.3l-1.3-1-.9-1.3q-.3-.8-.3-1.8t.3-1.7.9-1.4l1.3-1 1.8-.3q1 0 1.8.4t1.2 1V6.8h1.7zm-4.5-1.2q.8 0 1.2-.3a3 3 0 0 0 1.5-1.5q.2-.5.2-1.2t-.2-1.2l-.6-.9-.9-.6q-.5-.2-1.2-.2t-1.1.2l-1 .6-.5 1-.2 1q0 .8.2 1.3l.6.9q.3.4.9.6.5.2 1.1.3m8.2-2.4q0 .5.2 1l.7.8 1 .5 1 .1q.8 0 1.3-.3t1-.9l1.3 1q-1.4 1.6-3.8 1.6l-1.8-.3q-.8-.3-1.5-1l-.8-1.3q-.3-.8-.4-1.8 0-1 .4-1.7.3-.8 1-1.4.5-.6 1.3-1 .8-.3 1.8-.3a4 4 0 0 1 3.2 1.4q.6.6.7 1.4.3.8.3 1.7v.5zm5.1-1.3q0-.5-.2-1l-.4-.7-.8-.5q-.4-.2-1-.2l-1.2.2-.8.6-.5.8-.2.8zm9.5 2.3q.4.6 1.2 1 .8.3 1.5.4.5 0 1-.2l.8-.4.5-.6q.3-.4.3-1t-.5-1L222 15l-1.5-.5-1.5-.7-1.1-1.1q-.6-.7-.5-2 0-.5.2-1.1a4 4 0 0 1 2.2-2q.7-.4 1.9-.4t2 .3q1 .3 1.7 1.2L224 10l-1-.7-1.3-.4-1.2.2-.7.5q-.4.3-.5.6l-.1.6q0 .9.5 1.3t1.2.7l1.5.5 1.5.5q.7.4 1.2 1.1.4.6.4 1.8 0 .9-.3 1.6l-1 1.2q-.6.5-1.4.8t-1.7.2q-1.3 0-2.3-.4a4 4 0 0 1-1.8-1.3zm13.9-4.4h-2.4v4.5l.2.7.4.4q.1.2.7.2h.6l.6-.3v1.4q-.3.2-.8.3h-.7q-1 0-1.4-.2-.6-.3-.8-.7t-.4-1v-5.3h-1.8v-1.4h1.8V9.5h1.6v2.3h2.4zm2.1-.3q.7-.7 1.6-1l1.8-.3 1.6.2 1.1.6q.5.4.7 1l.2 1v5.1l.1.7h-1.4L240 19q-.6.8-1.3 1.1t-1.8.3l-1-.1q-.7-.2-1-.5l-.7-.8q-.2-.5-.2-1.1-.1-.9.4-1.4.3-.5 1-.9l1.5-.4q.8-.2 1.8-.2h1.2v-.4l-.1-.6-.4-.6-.7-.4-.9-.1h-.8l-.6.3-.6.3-.4.3zm4.6 3.3h-1.2q-.6 0-1 .3-.6.1-.9.5-.3.3-.3.8 0 .7.5 1 .7.4 1.3.4.8 0 1.2-.3l.8-.5.4-.8.1-.9v-.5zm4.8-4.4h1.6v1.3q.4-.7 1-1a3 3 0 0 1 1.8-.5q.7 0 1.3.2.5.2 1 .6l.6 1q.3.6.2 1.4v5.4h-1.5v-5q0-.5-.3-1l-.4-.6-.6-.4-.7-.1-1 .2-.7.4-.5 1-.2 1.2v4.3h-1.6zm18.6 8.4h-1.6V19l-1.3 1q-1 .4-1.7.4l-1.8-.3-1.4-1-.9-1.3q-.3-.8-.3-1.8t.3-1.7a4 4 0 0 1 2.3-2.4l1.8-.3q1 0 1.7.4.8.4 1.3 1V6.8h1.6zM258 19l1.2-.3q.5-.1.8-.6.4-.3.6-.9.2-.5.2-1.2l-.2-1.2q-.2-.5-.6-.9l-.8-.6q-.6-.2-1.2-.2t-1.2.2l-.9.6-.5 1-.2 1q0 .9.2 1.3.2.6.5.9.4.5 1 .6.4.2 1 .3m7-6.1q.7-.7 1.6-1l1.8-.3 1.6.2 1.1.6q.6.4.7 1l.2 1v5.8h-1.4V19l-1.3 1.1q-.7.3-1.8.3l-1.1-.1-1-.5-.6-.8q-.2-.5-.3-1.1 0-.9.5-1.4.3-.5 1-.9.6-.3 1.5-.4t1.8-.2h1.2v-.4l-.1-.6-.5-.6-.6-.4-.9-.1h-.8l-.6.3q-.4 0-.5.3l-.5.3zm4.6 3.3h-1.2q-.6 0-1 .3l-1 .5-.2.8q0 .7.5 1t1.4.4q.6 0 1-.3t.8-.5l.5-.8.1-.9v-.5zm4.8-4.4h1.6v1.3l.4-.6.7-.5.7-.3.8-.1.7.1v1.7h-.8q-1.3 0-1.8.5-.7.8-.7 2v4.3h-1.6zM137.3 29h4.5q1.2 0 2 .3t1.3.8l.7 1.2.1 1.2-.1 1.2-.7 1.1q-.4.5-1.3.8t-2 .4H139v5.6h-1.7zm1.7 5.5h3.3l.9-.4q.4-.2.6-.6.3-.4.3-1l-.3-1-.6-.7-.9-.3H139zm9.9 3.4q0 .6.2 1t.6.8l1 .5 1 .1q.9 0 1.3-.3.7-.3 1-.9l1.3.9a5 5 0 0 1-3.8 1.8l-1.8-.4a3 3 0 0 1-1.4-1q-.6-.5-.9-1.4l-.3-1.7q0-1 .3-1.7a4 4 0 0 1 2.4-2.3q.7-.4 1.7-.4a4 4 0 0 1 2 .4q.8.4 1.3 1l.7 1.4q.3.9.2 1.6v.6zm5.1-1.2q0-.6-.2-1-.1-.5-.4-.8l-.8-.5q-.5-.2-1-.2l-1.2.2-.8.6-.6.8q-.2.4-.1.9zm3.7-3.6h1.5v1.3l.3-.4.6-.5.8-.4 1-.2a3 3 0 0 1 1.7.4q.7.3 1 1.2.5-.9 1.3-1.2a3 3 0 0 1 1.5-.4q1 0 1.6.3l1 .9.5 1.1.1 1.5v4.9H169v-4.7l-.1-1q0-.4-.2-.7-.2-.4-.6-.6l-1-.2q-1.2 0-1.7.7a4 4 0 0 0-.4 1.8v4.7h-1.6V37l-.1-1q0-.6-.3-1l-.5-.5-1-.2q-.5 0-.8.2-.4 0-.7.5l-.5.8q-.2.5-.2 1.2v4.5h-1.6zm15.4-5h1.6v6.3l1.3-1.1q.8-.4 1.7-.4 1-.1 1.8.4l1.4.9q.6.6.9 1.4.4 1 .3 1.7a4 4 0 0 1-1.2 3.2 3 3 0 0 1-1.4 1l-1.8.3a4 4 0 0 1-1.7-.4q-.8-.4-1.3-1v1.2h-1.6zm4.5 12.2 1.1-.2.9-.6q.4-.5.5-1 .2-.5.2-1.2l-.2-1.2q-.1-.4-.5-.9l-.9-.6-1.1-.2q-.7 0-1.2.2l-1 .6-.5 1-.2 1.1q0 .8.2 1.2.2.5.6 1l.9.6zm6.5-6.1 1.6-1q1-.3 2-.3c1 0 1 0 1.5.2l1.1.6q.4.5.6 1t.2 1v5.1l.1.8h-1.4v-1.3h-.1q-.6.9-1.3 1.1l-1.7.4-1.2-.2q-.5-.1-.9-.5l-.7-.8-.2-1q0-.9.4-1.4l1-1 1.5-.4 1.8-.2h1.2V36l-.1-.7-.4-.5q-.2-.4-.6-.4-.4-.3-.9-.2t-.8 0l-.6.3-.6.3-.5.4zm4.7 3.3h-1.2l-1.1.3q-.5.1-.8.5l-.4.8q0 .7.6 1 .4.4 1.3.4.6 0 1.1-.2l.8-.6.4-.8.1-.9v-.5zm3.7-4.4h1.9l2.6 6.6 2.4-6.6h1.7l-4 10.2-.5 1-.5.8q-.3.4-.8.5l-1.2.2h-.7l-.7-.2.2-1.4h1.6q.3 0 .5-.3l.3-.4.2-.6.6-1.3zm10 1 1.7-.9 1.8-.3q1 0 1.6.2l1.1.6.7 1 .2 1v5.9h-1.4v-1.3q-.6.9-1.3 1.1l-1.8.4-1.1-.2-1-.5-.6-.8-.2-1q0-.9.3-1.4l1-1 1.6-.4 1.8-.2h1.1v-1l-.4-.5-.7-.4q-.3-.3-.9-.2c-.6.1-.6 0-.8 0l-.6.3-.6.3-.4.4zm4.7 3.4H206l-1 .3q-.6.1-.9.5l-.3.8q0 .7.5 1t1.3.4 1.2-.2l.7-.6.4-.8.1-.9v-.5zM212 33h1.7v1.3l.5-.6.5-.5.8-.3h1.5v1.8l-.5-.2h-.4q-1.1 0-1.8.6-.6.8-.6 2.1v4.3h-1.7zm6.8 1q.7-.6 1.6-.9l1.8-.3q.9 0 1.6.2t1.1.6.6 1 .2 1V40l.1.8v.8h-1.4v-1.3h-.1q-.6.9-1.3 1.1l-1.7.4-1.2-.2-.9-.5-.7-.8-.2-1q0-.9.4-1.4l1-1 1.5-.4 1.8-.2h1.2v-1l-.5-.5q-.2-.3-.6-.4-.4-.3-.9-.2t-.8 0l-.6.3-.6.3-.4.4zm4.6 3.4H222l-1.1.3q-.5.1-.8.5t-.3.8q0 .7.5 1t1.3.4q.7 0 1.2-.2l.7-.6.5-.8v-1.4zM228 33h1.6v1.3q.3-.7 1-1 1-.5 1.8-.5.6 0 1.2.2t1 .6.7 1 .2 1.4v5.5H234v-5q0-.6-.2-1 0-.5-.4-.7l-.6-.4H231l-.7.5q-.5.4-.5 1l-.2 1.2v4.4H228zm15.4-4.1h2.3l7 10.3h.1V29h1.8v12.6h-2.2l-7.2-10.4v10.4h-1.8zm14 5.1a4 4 0 0 1 1.7-.9q.8-.3 1.8-.3t1.6.2l1 .6q.6.5.7 1l.2 1v5.9h-1.3v-1.3h-.1a3 3 0 0 1-1.3 1.1q-.8.3-1.7.4l-1.2-.2-1-.5-.5-.8q-.3-.4-.3-1 0-.9.3-1.4l1-1 1.6-.4 1.8-.2h1.2v-1l-.5-.5-.6-.4q-.4-.3-1-.2h-.8l-.6.3q-.2 0-.5.3l-.4.4zm4.7 3.4-2.3.3-.9.5q-.3.3-.3.8 0 .7.5 1a3 3 0 0 0 1.4.4q.6 0 1.1-.2l.8-.6.4-.8v-1.4zm9.2-2.3-.7-.6-1-.2q-.5 0-1 .2t-.4.8q0 .3.2.5l.6.4.7.2.7.2 1 .2.8.5q.4.3.4.7.3.4.3 1 0 .8-.3 1.2-.3.6-.8.9l-1.2.4-1.2.2-1.9-.4q-.8-.3-1.4-1.1l1.2-1 1 .6q.3.3 1.1.4l.6-.1.6-.2.4-.3.1-.5-.2-.6-.5-.4-.7-.2-.6-.1q-.6 0-1-.3l-.8-.4q-.4-.3-.6-.7-.3-.4-.3-1t.3-1.1l.7-.9 1.1-.4 1.2-.2q1 0 1.6.3.9.4 1.3 1zm3.3-5q0-.6.3-1a1.2 1.2 0 0 1 1.7 0q.4.4.4 1 0 .3-.4.8-.3.3-.8.3t-.9-.3zm.3 3h1.7v8.5H275zm3.9 4.2q0-1 .3-1.7l1-1.4 1.4-1 1.8-.3a4 4 0 0 1 1.8.4 4 4 0 0 1 1.5 1q.6.5 1 1.3.3.8.3 1.7l-.3 1.7-1 1.5q-.7.6-1.5 1-.8.2-1.8.3l-1.8-.4q-.8-.3-1.4-1l-1-1.4zm1.7 0q0 .8.2 1.2l.5 1 1 .6 1.1.2 1.2-.2.9-.6.6-1q.2-.5.2-1.2l-.2-1.2-.6-.9-1-.6-1-.2-1.3.2-.9.6-.5 1zm9.4-4.2h1.7v1.3q.3-.7 1-1 .8-.5 1.8-.5.6 0 1.2.2.6.1 1 .6t.6 1q.4.6.3 1.4v5.5H296v-5q0-.6-.2-1-.1-.5-.4-.7l-.6-.4H293q-.4.1-.7.5l-.6 1-.1 1.2v4.4H290zm10.1 1q.7-.6 1.6-.9l1.8-.3q1 0 1.6.2l1.2.6q.4.5.6 1l.2 1v5.9h-1.4v-1.3q-.7.9-1.4 1.1t-1.7.4l-1-.2q-.6-.1-1-.5l-.7-.8q-.2-.4-.3-1 0-.9.4-1.4l1-1 1.6-.4 1.8-.2h1.2V36l-.1-.7-.4-.5q-.3-.4-.7-.4-.3-.3-.9-.2h-.8l-.6.3-.5.3-.5.4zm4.6 3.4h-1.2l-1 .3q-.6.1-.8.5-.4.3-.4.8 0 .7.5 1t1.4.4q.6 0 1-.2l.8-.6.5-.8.1-.9v-.5zm4.9 4h1.6V28.2h-1.6z" />
+      </g>
+    </svg>
+  ),
+  gpn: (style) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="3174.8"
+      height="4025.2"
+      viewBox="0 0 3174.8 4025.2"
+      style={style}
+    >
+      <path
+        d="M2202.4 2955v929.5c0 136.3 121.5 130 245.4 117.7 5.5-.4 6.4-1.5 6.5-6.2 0-2.6 5.8-614.6 5.8-629.5 35.5 34 307.7 427.6 364.6 505.3 108.3 147.9 71.5 133.6 297 133.6 39.3 0 40.7-10.8 40.7-48.8v-929.5c0-34.1-7.2-59.4-20.2-77.7-42.5-60.1-154-46.2-213.2-41.3-7.3.7-17.7 6.9-18.3 14.5 0 70.3.5 551 0 655-15.9-12-58-67.2-72-87.3-121.7-175.4-248.9-364.3-377.5-530-54.4-70.1-99.8-54.1-218-54.1-40 0-40.8 9.7-40.8 48.8M1399 3990.2v-1l5.3-321 308.1-3.1c287.8 3.3 423.4-357.7 282.7-598.7-52.6-90.1-143.4-48-307.7-12.3-81.8 17.9-139 14.2-138.3 55.4 68.2 23.5 131.4-16.4 194 43.3 43 40.9 63.8 117.9 43 195-40.3 149.7-227.4 113.9-381.7 113.9 0-400.7 40.6-356.4-146.2-318.7-153.2 31-110.6 27.4-110.6 410 0 111.3-3.6 228.6 0 339.1 4 131.7 115.5 113.3 230 113.3h1.7c16.3.2 19.7-2.6 19.7-15.2M305.3 3272.5l8.6-15.6c26.8-81.5 154-140.2 230.3-186.4 42-25.5 235.8-135.1 256.9-159.7-238-51.7-453.8-18-608.7 103.1-129 101-204.5 330-172.9 566.9C48.8 3800.2 176 3938.2 363 3994c173 51.7 508.9 29.9 628-73.5l3.3-302.6c0-96.3 17.9-213.9-77.1-237.4-102.3-25.3-291.9 75.6-411.2 119.9-32 11.8-37 7.2-34.3 45.9l301.6 4.9.2 160.5c1.2 77.8-1.5 67-84.2 81.3-97.3 16.7-210.7 11-287.8-32.4-134.6-75.9-165.2-313-96.1-488.2"
+        style="fill:#003662;fill-rule:evenodd"
+      />
+      <path
+        d="m2620.9 2159.8 112.7 15.4c-5.8 5.6-.9 13.2-43.5 18.4-24.1 3-29.8 2-52.9-1.4zM801 2910.8c-21.1 24.6-214.9 134.2-257 159.7-76.2 46.2-203.4 105-230.2 186.4l-4.3 7.8 8.7-2.4c48.3-8.2 188.5-72.5 243-95.7 81-34.4 196.5-98.3 251.4-67.5-33.7 47.7-278.4 94.5-277.5 201.8 71.4-8.7 1181-356.3 1290.9-388.5 110.6-32.3 211.3-60.8 302.6-115.2 61.7-36.8 407.3-314 471.4-364.2 45.2-35.5 64.8-58.1 140.1-69 72.8-10.3 128.3-3.6 143.4-73.8-54.8 23.7-65.7 31.5-113.2-4.7 16-28.5 56-39.7 97.4-34 68 9.4 55 38.2 87.6 58.3 14.8-149.6-133.6-134-157.4-148.1-16.6-9.8-29.6-36.6-55.1-52.8-44-28.2-119.4-14.8-175.4-13.3-72.4 2-128.2-11.1-195-12.1 9.5 33 27.4 39.3 45.5 71.6-21.5 13.1-31.5 11.5-64 16.7-22.8 3.7-48.6 8.8-64.6 15.4-6.2 44.3 62.4 80.4 30.8 145.5-23.3-14-689-868.4-736.3-930-43-56-81.5-101-124.2-156.9-119-155.5-208.7-220-340.5-350.9-25.2-25-44.5-50-70-74L621.9 405.6c-50-47.8-94.6-88.9-144-137L267.8 61C240 34 207.7-8.3 190.8 7.6 172 41.1 179 227.2 193.7 271.7 219.2 349.5 276 389 320.9 433c97.8 96 190.4 185 288 281 135 133.1 289.1 293.1 428 422 32.7 30.4 120 99.2 102.4 180.9-24.5-8.2-359.9-342.5-415.5-393.8L365 569c-20.5-19-31.7-42.8-65.8-42.9-17.7 30.3-11 201.2-.8 239.4 19.9 75.3 69.1 110.4 109.2 149.8L925 1420.7c45.6 43.8 80 76.2 125.5 126.7 36.3 40.2 102.2 75.1 90.3 167.6-38.7-9.2-140-129.5-182.2-169.3L500 1103.8c-101.4-99.7-101.3-112-101.3 28 0 123.6-.8 150.2 93.3 246.7 149.3 153.2 288 278 458.5 449 104.9 105.3 191.7 152 192.5 265.9-33.4-11-408-386.6-465.4-439.6-55.6-51.3-121.4-140-162.5-142.2-20.4 35.5-34.8 214.3 66 310.9 126 120.7 273 274.6 400.1 392 35 32.4 65.7 61.8 99.4 95.3 32.7 32.5 64.4 69.9 61.7 142-34.8-6.9-93.4-81-130.1-116.8-44.5-43.2-84.1-80-129.5-122.6l-188.4-186c-22.3-20.8-41.6-54.9-76.9-50-18.8 90.1-5 205.1 45.6 261.2 25.8 28.7 52.2 50.7 80.2 78.3l239.1 236.4c72.3 69 83 95.5 147.6 126.3 24.3 11.7 11.2-.7 24.2 17z"
+        style="fill:#f2303e;fill-rule:evenodd"
+      />
+      <path
+        d="m2286.5 1407.6-7-8.6c-31.6-51.4-143.5-450.6-180.3-479.5-36.5 15.4-83.2 139.6-88.1 176.3-21.5 160 227.5 531.3 124.1 620.6l-82.7-213.5c-16.5-46.8-55.3-189.5-83-210.6-28.5 9-101.2 146.5-88.8 236.1 5.7 41.7 67 214.8 88 245.6 40.3 59.6 97.4 127.4 142.3 182l108 137c16.5 21.4 18.8 34 46.3 39l271-548.2c36.5-87.5 11-146.5-16.3-224.6l-210.8-610.6c-21.1-60.4-46.2-148.3-70.7-201-37.3 6-32 20.6-63.7 83.5-17.3 34-33.3 63.9-35.5 111.5-3.3 71.1 107 356.2 136.3 443.3 20.3 60.4 70.3 165.2 10.9 221.7"
+        style="fill:#f2303e;fill-rule:evenodd"
       />
     </svg>
   ),
