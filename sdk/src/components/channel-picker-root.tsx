@@ -34,9 +34,12 @@ import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
 import { ChannelPickerOneclick } from "./channel-picker-oneclick";
 
-type Props = object;
+type Props = {
+  enableOneClickQr: boolean;
+};
 
 export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
+  const { enableOneClickQr } = props;
   const sdk = useSdk();
   const telemetry = getTelemetry(sdk);
   const session = useSession();
@@ -196,10 +199,9 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
               channelsByGroup[group.id],
             );
 
-            const enableOneclick = enableOneclickForGroup(
-              session,
-              channelsByGroup[group.id],
-            );
+            const enableOneclick =
+              enableOneClickQr &&
+              enableOneclickForGroup(session, channelsByGroup[group.id]);
 
             return (
               <AccordionItem

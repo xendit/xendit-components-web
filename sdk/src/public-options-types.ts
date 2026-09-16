@@ -81,6 +81,18 @@ export interface XenditGetChannelsOptions {
 
 /**
  * @public
+ * Options for configuring the channel picker component.
+ */
+export interface XenditChannelPickerOptions {
+  /**
+   * When true, QR code channels begin the payment flow as soon as the QR group is selected, without requiring a
+   * call to submit() and without firing submission-* or action-* events.
+   */
+  oneClickQr?: boolean;
+}
+
+/**
+ * @public
  * Options for configuring action containers.
  */
 export interface ActionContainerOptions {

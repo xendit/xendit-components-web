@@ -26,6 +26,7 @@ import {
   XenditGetChannelsOptions,
   ActionContainerOptions,
   DigitalWalletOptions,
+  XenditChannelPickerOptions,
 } from "./public-options-types";
 import {
   XenditBusiness,
@@ -239,6 +240,7 @@ export class XenditComponents extends EventTarget {
      */
     liveComponents: {
       channelPicker: HTMLElement | null;
+      channelPickerOptions: XenditChannelPickerOptions | null;
       paymentChannels: Map<string, CachedChannelComponent>;
       actionContainer: HTMLElement | null;
       actionContainerDestroyTimer: ReturnType<typeof setTimeout> | null;
@@ -326,6 +328,7 @@ export class XenditComponents extends EventTarget {
       worldState: null,
       liveComponents: {
         channelPicker: null,
+        channelPickerOptions: null,
         paymentChannels: new Map(),
         actionContainer: null,
         actionContainerDestroyTimer: null,
@@ -871,7 +874,9 @@ export class XenditComponents extends EventTarget {
    * document.querySelector(".payment-container").appendChild(channelPickerDiv);
    * ```
    */
-  createChannelPickerComponent(): HTMLElement {
+  createChannelPickerComponent(
+    options?: XenditChannelPickerOptions,
+  ): HTMLElement {
     // destroy previous instance if it exists
     if (this[internal].liveComponents.channelPicker) {
       this.destroyComponent(this[internal].liveComponents.channelPicker);
@@ -880,8 +885,9 @@ export class XenditComponents extends EventTarget {
     const container = document.createElement("xendit-channel-picker");
     container.setAttribute("translate", "no");
 
-    // Store the container for later population
+    // Store the container and options for later population
     this[internal].liveComponents.channelPicker = container;
+    this[internal].liveComponents.channelPickerOptions = options ?? null;
 
     // If initialization is complete, populate immediately
     // Otherwise, it will be populated when initializeAsync completes
@@ -904,11 +910,16 @@ export class XenditComponents extends EventTarget {
     const container = this[internal].liveComponents.channelPicker;
     if (!container) return;
 
+    const options = this[internal].liveComponents.channelPickerOptions;
+    const oneClickQr = options?.oneClickQr ?? false;
+
     render(
       createElement(XenditSessionProvider, {
         data: this[internal].worldState,
         sdk: this,
-        children: createElement(ChannelPickerRoot, {}),
+        children: createElement(ChannelPickerRoot, {
+          enableOneClickQr: oneClickQr,
+        }),
       }),
       container,
     );
