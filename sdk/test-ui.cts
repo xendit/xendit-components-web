@@ -155,7 +155,9 @@ if (savedKey) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).sdk = components;
 
-const channelPicker = components.createChannelPickerComponent();
+const channelPicker = components.createChannelPickerComponent({
+  oneClickQr: true,
+});
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 
 function logEvent(event: Event) {

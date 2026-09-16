@@ -12,13 +12,17 @@ import { PollWorker } from "./utils/poll-worker";
 export class PaymentEntityRequiresActionBehavior implements Behavior {
   private pollWorker: PollWorker | null = null;
   public canCreateActionContainer: boolean = true;
+  private firedActionBeginEvent: boolean = false;
 
   constructor(private bb: BlackboardType) {
     this.resetPolling();
   }
 
   enter() {
-    this.bb.dispatchEvent(new XenditActionBeginEvent());
+    if (this.bb.submissionRequested !== "oneclick") {
+      this.bb.dispatchEvent(new XenditActionBeginEvent());
+      this.firedActionBeginEvent = true;
+    }
     this.canCreateActionContainer = false;
     this.pollWorker?.start();
   }
@@ -32,7 +36,10 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
 
   exit() {
     this.pollWorker?.stop();
-    this.bb.dispatchEvent(new XenditActionEndEvent());
+    if (this.firedActionBeginEvent) {
+      this.bb.dispatchEvent(new XenditActionEndEvent());
+      this.firedActionBeginEvent = false;
+    }
 
     // clear flag for next time
     this.bb.actionCompleted = false;
