@@ -5,7 +5,6 @@ import {
   toPaymentEntity,
 } from "../../../backend-types/payment-entity";
 import { XenditComponents } from "../../../public-sdk";
-import { parseSseChunk, SseMessage } from "../../../sse";
 import { ParsedSdkKey, SLEEP_MULTIPLIER } from "../../../utils";
 import { PollWorker } from "./poll-worker";
 
@@ -15,35 +14,29 @@ import { PollWorker } from "./poll-worker";
  */
 const WATCHDOG_MS = 15_000;
 
+// Drops in a row, with no heartbeat in between, before we stop streaming.
+const MAX_DROPS = 3;
+
 // Sent by the server when the stream reaches its maximum duration.
 const STREAM_TIMEOUT_CODE = "SESSION_STREAM_TIMEOUT";
 
 type StreamErrorData = Extract<BffStreamEvent, { event: "error" }>["data"];
 
-// How one connection ended.
-type ConnectionResult = "final" | "reconnect" | "fallback" | "stopped";
-
-// Outcome of one message. "ended" means the connection ended, not the worker.
-type MessageResult = "continue" | "heartbeat" | "final" | "ended" | "fallback";
-
-// Wraps an error- thrown by onResult, so it isn't mistaken for a stream failure.
-class OnResultError extends Error {
-  constructor(public readonly original: unknown) {
-    super("onResult threw an error");
-  }
-}
-
 /**
  * Receives session updates over the session stream until stop() is called.
- * Reopens a healthy connection that ends, and falls back to PollWorker if the stream can't be used.
+ * Reopens a healthy connection that goes silent, and falls back to PollWorker if the stream can't be used.
  */
 export class StreamWorker {
   started = false;
   stopped = false;
 
-  private abortController: AbortController | null = null;
-  private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+  private source: EventSource | null = null;
   private fallbackWorker: PollWorker | null = null;
+  private healthy = false;
+  private drops = 0;
+  private watchdog: ReturnType<typeof setTimeout> | undefined;
+  private finish: ((fallback: boolean) => void) | null = null;
+  private fail: ((error: unknown) => void) | null = null;
 
   constructor(
     private sdkKey: ParsedSdkKey,
@@ -63,12 +56,14 @@ export class StreamWorker {
     }
     this.started = true;
 
-    let result: ConnectionResult;
-    do {
-      result = await this.runConnection();
-    } while (result === "reconnect");
+    const fallback = await new Promise<boolean>((resolve, reject) => {
+      this.finish = resolve;
+      this.fail = reject;
+      this.openStream();
+    });
 
-    if (result === "fallback") {
+    // stop() may have run before this resumed
+    if (fallback && !this.stopped) {
       this.fallbackWorker = new PollWorker(
         this.sdkKey,
         this.sdk,
@@ -86,108 +81,116 @@ export class StreamWorker {
   stop() {
     this.started = false;
     this.stopped = true;
-    this.closeConnection();
+    this.closeStream();
     this.fallbackWorker?.stop();
+    this.finish?.(false);
   }
 
-  private async runConnection(): Promise<ConnectionResult> {
-    const abortController = new AbortController();
-    this.abortController = abortController;
-    let healthy = false;
-    let watchdog: ReturnType<typeof setTimeout> | undefined;
-    const resetWatchdog = () => {
-      clearTimeout(watchdog);
-      watchdog = setTimeout(
-        () => this.closeConnection(),
-        WATCHDOG_MS * SLEEP_MULTIPLIER,
-      );
+  private openStream() {
+    const source = streamSession(
+      this.sdkKey,
+      this.sdkKey.sessionAuthKey,
+      this.sessionTokenRequestId,
+    );
+    this.source = source;
+    this.healthy = false;
+
+    const listen = (name: string, handler: (event: Event) => void) => {
+      source.addEventListener(name, (event) => {
+        if (this.source === source) {
+          handler(event);
+        }
+      });
     };
 
+    listen("open", () => this.resetWatchdog());
+    listen("heartbeat", () => {
+      this.healthy = true;
+      this.drops = 0;
+      this.resetWatchdog();
+    });
+    listen("update", (event) => this.deliver(event as MessageEvent, false));
+    listen("final", (event) => this.deliver(event as MessageEvent, true));
+    listen("error", (event) => {
+      // only an error event sent by the server carries data
+      if (event instanceof MessageEvent) {
+        this.handleServerError(event.data);
+      } else {
+        this.handleDrop(source);
+      }
+    });
+  }
+
+  private deliver(event: MessageEvent, isFinal: boolean) {
+    this.resetWatchdog();
+    const response = parseJson<BffPollResponse>(event.data);
+    if (!response?.session) {
+      this.giveUp();
+      return;
+    }
+
     try {
-      const reader = await streamSession(
-        this.sdkKey,
-        this.sdkKey.sessionAuthKey,
-        this.sessionTokenRequestId,
-        abortController.signal,
-      );
-      this.reader = reader;
-      if (this.stopped) return "stopped";
-
-      resetWatchdog();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (this.stopped) return "stopped";
-        if (done) return healthy ? "reconnect" : "fallback";
-
-        buffer += decoder.decode(value, { stream: true });
-        const { messages, rest } = parseSseChunk(buffer);
-        buffer = rest;
-
-        for (const message of messages) {
-          resetWatchdog();
-          const messageResult = this.handleMessage(message);
-          // onResult may have stopped this worker
-          if (this.stopped) return "stopped";
-
-          if (messageResult === "heartbeat") {
-            healthy = true;
-          } else if (messageResult === "ended") {
-            return healthy ? "reconnect" : "fallback";
-          } else if (messageResult !== "continue") {
-            return messageResult;
-          }
-        }
-      }
+      this.onResult(response, getPaymentEntity(response));
     } catch (error) {
-      if (error instanceof OnResultError) {
-        this.stop();
-        throw error.original;
-      }
-      // errors caused by stop() are expected
-      if (this.stopped) return "stopped";
-      return healthy ? "reconnect" : "fallback";
-    } finally {
-      clearTimeout(watchdog);
-      this.closeConnection();
+      // reject before stop(), which would otherwise resolve start() first
+      this.fail?.(error);
+      this.stop();
+      return;
+    }
+
+    // onResult may have stopped this worker
+    if (isFinal && !this.stopped) {
+      // nothing else is coming, so close before EventSource reconnects
+      this.closeStream();
+      this.finish?.(false);
     }
   }
 
-  private handleMessage(message: SseMessage): MessageResult {
-    switch (message.event) {
-      case "heartbeat":
-        return "heartbeat";
-      case "update":
-      case "final": {
-        const response = parseJson<BffPollResponse>(message.data);
-        if (!response?.session) {
-          return "fallback";
-        }
-        try {
-          this.onResult(response, getPaymentEntity(response));
-        } catch (error) {
-          throw new OnResultError(error);
-        }
-        return message.event === "final" ? "final" : "continue";
-      }
-      case "error": {
-        const data = parseJson<StreamErrorData>(message.data);
-        return data?.error_code === STREAM_TIMEOUT_CODE ? "ended" : "fallback";
-      }
-      default:
-        // ignore unknown events
-        return "continue";
+  private handleServerError(data: string) {
+    const error = parseJson<StreamErrorData>(data);
+    // a timeout is expected: the server ends the stream and EventSource reconnects
+    if (error?.error_code !== STREAM_TIMEOUT_CODE) {
+      this.giveUp();
     }
   }
 
-  private closeConnection() {
-    this.abortController?.abort();
-    // cancelling also wakes up a pending read()
-    this.reader?.cancel().catch(() => {});
-    this.abortController = null;
-    this.reader = null;
+  private handleDrop(source: EventSource) {
+    // EventSource doesn't reconnect after an error response or a wrong content type
+    if (source.readyState === source.CLOSED) {
+      this.giveUp();
+      return;
+    }
+    // no watchdog while EventSource waits to reconnect, "open" restarts it
+    clearTimeout(this.watchdog);
+    this.healthy = false;
+    this.drops += 1;
+    if (this.drops >= MAX_DROPS) {
+      this.giveUp();
+    }
+  }
+
+  private resetWatchdog() {
+    clearTimeout(this.watchdog);
+    this.watchdog = setTimeout(() => {
+      if (this.healthy) {
+        // EventSource thinks a silent stream is still connected, so reopen it ourselves
+        this.closeStream();
+        this.openStream();
+      } else {
+        this.giveUp();
+      }
+    }, WATCHDOG_MS * SLEEP_MULTIPLIER);
+  }
+
+  private giveUp() {
+    this.closeStream();
+    this.finish?.(true);
+  }
+
+  private closeStream() {
+    clearTimeout(this.watchdog);
+    this.source?.close();
+    this.source = null;
   }
 }
 

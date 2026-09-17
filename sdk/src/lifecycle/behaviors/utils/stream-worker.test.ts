@@ -32,43 +32,54 @@ const sessionOnly: BffPollResponse = { session };
 const sdkKey = parseSdkKey(makeTestSdkKey());
 const sdk = { isMock: () => false } as unknown as XenditComponents;
 
-/** A stream body the test can push text into, close, or fail. */
-function makeFakeStream() {
-  let controller!: ReadableStreamDefaultController<Uint8Array>;
-  let cancelled = false;
-  const stream = new ReadableStream<Uint8Array>({
-    start: (c) => {
-      controller = c;
-    },
-    cancel: () => {
-      cancelled = true;
-    },
-  });
-  const encoder = new TextEncoder();
-  return {
-    reader: stream.getReader(),
-    push: (text: string) => controller.enqueue(encoder.encode(text)),
-    close: () => controller.close(),
-    // note: error() drops chunks that haven't been read yet
-    fail: (error: Error) => controller.error(error),
-    isCancelled: () => cancelled,
-  };
-}
+// A stand-in for EventSource, which jsdom doesn't implement
+class FakeEventSource extends EventTarget {
+  readonly CLOSED = 2;
+  readyState = 0;
+  closed = false;
 
-function sse(event: string, data: unknown) {
-  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-}
-
-const heartbeat = sse("heartbeat", { timestamp: "2026-09-14T00:00:00Z" });
-
-/** Each call to streamSession returns the next fake stream. */
-function queueStreams(count: number) {
-  const streams = Array.from({ length: count }, () => makeFakeStream());
-  for (const stream of streams) {
-    vi.mocked(streamSession).mockResolvedValueOnce(stream.reader);
+  // The server accepted the connection.
+  open() {
+    this.readyState = 1;
+    this.dispatchEvent(new Event("open"));
   }
-  return streams;
+
+  // A named event from the serve.
+  send(eventName: string, data: unknown) {
+    const text = typeof data === "string" ? data : JSON.stringify(data);
+    this.dispatchEvent(new MessageEvent(eventName, { data: text }));
+  }
+
+  // The connection dropped; a real EventSource would reconnect.
+  drop() {
+    this.readyState = 0;
+    this.dispatchEvent(new Event("error"));
+  }
+
+  // The server refused the stream; a real EventSource gives up.
+  reject() {
+    this.readyState = this.CLOSED;
+    this.dispatchEvent(new Event("error"));
+  }
+
+  close() {
+    this.readyState = this.CLOSED;
+    this.closed = true;
+  }
 }
+
+// Each call to streamSession returns the next fake source.
+function queueSources(count: number) {
+  const sources = Array.from({ length: count }, () => new FakeEventSource());
+  for (const source of sources) {
+    vi.mocked(streamSession).mockReturnValueOnce(
+      source as unknown as EventSource,
+    );
+  }
+  return sources;
+}
+
+const heartbeat = { timestamp: "2026-09-14T00:00:00Z" };
 
 const workers: { stop(): void }[] = [];
 
@@ -92,35 +103,35 @@ afterEach(() => {
 });
 
 describe("StreamWorker - normal flow", () => {
-  it("delivers an update and keeps the connection open", async () => {
-    const [stream] = queueStreams(1);
+  it("delivers an update and keeps the connection open", () => {
+    const [source] = queueSources(1);
     const { onResult } = startWorker();
 
-    stream.push(sse("update", sessionOnly));
-    await vi.waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
-    stream.push(sse("update", sessionOnly));
-    await vi.waitFor(() => expect(onResult).toHaveBeenCalledTimes(2));
+    source.open();
+    source.send("update", sessionOnly);
+    source.send("update", sessionOnly);
 
+    expect(onResult).toHaveBeenCalledTimes(2);
     expect(onResult).toHaveBeenCalledWith(sessionOnly, null);
+    expect(source.closed).toBe(false);
     expect(streamSession).toHaveBeenCalledTimes(1);
     expect(streamSession).toHaveBeenCalledWith(
       sdkKey,
       sdkKey.sessionAuthKey,
       "tok-1",
-      expect.anything(),
     );
     expect(pollSession).not.toHaveBeenCalled();
   });
 
-  it("delivers final and finishes without reconnecting", async () => {
-    const [stream] = queueStreams(1);
+  it("closes the stream after final without falling back", async () => {
+    const [source] = queueSources(1);
     const { worker, onResult, done } = startWorker();
 
-    stream.push(sse("final", sessionOnly));
+    source.send("final", sessionOnly);
     await done;
 
     expect(onResult).toHaveBeenCalledTimes(1);
-    expect(streamSession).toHaveBeenCalledTimes(1);
+    expect(source.closed).toBe(true);
     expect(pollSession).not.toHaveBeenCalled();
     // like PollWorker, only stop() ends isRunning()
     expect(worker.isRunning()).toBe(true);
@@ -129,17 +140,15 @@ describe("StreamWorker - normal flow", () => {
   it("prefers payment_token over payment_request, like PollWorker", async () => {
     const paymentRequest = makeTestPaymentRequest("MOCK_REDIRECT", "REDIRECT");
     const paymentToken = makeTestPaymentToken("MOCK_REDIRECT", "REDIRECT");
-    const [stream] = queueStreams(1);
+    const [source] = queueSources(1);
     const { onResult, done } = startWorker();
 
-    stream.push(sse("update", { session, payment_request: paymentRequest }));
-    stream.push(
-      sse("final", {
-        session,
-        payment_request: paymentRequest,
-        payment_token: paymentToken,
-      }),
-    );
+    source.send("update", { session, payment_request: paymentRequest });
+    source.send("final", {
+      session,
+      payment_request: paymentRequest,
+      payment_token: paymentToken,
+    });
     await done;
 
     expect(onResult.mock.calls[0][1]).toEqual(toPaymentEntity(paymentRequest));
@@ -147,169 +156,194 @@ describe("StreamWorker - normal flow", () => {
   });
 
   it("does not deliver heartbeats or unknown events", async () => {
-    const [stream] = queueStreams(1);
+    const [source] = queueSources(1);
     const { onResult, done } = startWorker();
 
-    stream.push(heartbeat);
-    stream.push(sse("something-new", { hello: "world" }));
-    stream.push(sse("final", sessionOnly));
+    source.send("heartbeat", heartbeat);
+    source.send("something-new", { hello: "world" });
+    source.send("final", sessionOnly);
     await done;
 
     expect(onResult).toHaveBeenCalledTimes(1);
-    expect(pollSession).not.toHaveBeenCalled();
   });
 });
 
-describe("StreamWorker - reconnect", () => {
-  it("reconnects on a stream timeout after a heartbeat", async () => {
-    const [first] = queueStreams(2);
+describe("StreamWorker - recovery", () => {
+  it("keeps listening after a stream timeout, leaving the reconnect to EventSource", async () => {
+    const [source] = queueSources(1);
     startWorker();
 
-    first.push(heartbeat);
-    first.push(
-      sse("error", {
-        error_code: "SESSION_STREAM_TIMEOUT",
-        message: "timeout",
-      }),
-    );
+    source.open();
+    source.send("heartbeat", heartbeat);
+    source.send("error", {
+      error_code: "SESSION_STREAM_TIMEOUT",
+      message: "timeout",
+    });
+    source.drop(); // the server ends the response after the timeout
+    await sleep(1_000);
 
-    await vi.waitFor(() => expect(streamSession).toHaveBeenCalledTimes(2));
-    expect(vi.mocked(streamSession).mock.calls[1].slice(0, 3)).toEqual([
-      sdkKey,
-      sdkKey.sessionAuthKey,
-      "tok-1",
-    ]);
+    expect(source.closed).toBe(false);
+    expect(streamSession).toHaveBeenCalledTimes(1);
     expect(pollSession).not.toHaveBeenCalled();
   });
 
-  it("reconnects when the server closes a healthy connection", async () => {
-    const [first] = queueStreams(2);
+  it("tolerates drops below the limit", async () => {
+    const [source] = queueSources(1);
     startWorker();
 
-    first.push(heartbeat);
-    first.close();
+    source.drop();
+    source.drop();
+    await sleep(1_000);
 
-    await vi.waitFor(() => expect(streamSession).toHaveBeenCalledTimes(2));
+    expect(source.closed).toBe(false);
     expect(pollSession).not.toHaveBeenCalled();
   });
 
-  it("reconnects when a healthy connection drops", async () => {
-    const [first] = queueStreams(2);
-    const { onResult } = startWorker();
-
-    first.push(heartbeat);
-    first.push(sse("update", sessionOnly));
-    // fail() drops unread chunks, so wait until both messages were read
-    await vi.waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
-    first.fail(new TypeError("network error"));
-
-    await vi.waitFor(() => expect(streamSession).toHaveBeenCalledTimes(2));
-    expect(pollSession).not.toHaveBeenCalled();
-  });
-
-  it("reconnects when the watchdog fires on a healthy connection", async () => {
-    const [first] = queueStreams(2);
-    const { onResult } = startWorker();
-
-    first.push(heartbeat);
-    first.push(sse("update", sessionOnly));
-    await vi.waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
-    // send nothing more, the watchdog (15s * SLEEP_MULTIPLIER) closes it
-
-    await vi.waitFor(() => expect(streamSession).toHaveBeenCalledTimes(2));
-    expect(first.isCancelled()).toBe(true);
-    expect(pollSession).not.toHaveBeenCalled();
-  });
-
-  it("does not carry health over to the next connection", async () => {
-    const [first, second] = queueStreams(2);
+  it("forgets earlier drops once a heartbeat arrives", async () => {
+    const [source] = queueSources(1);
     startWorker();
 
-    first.push(heartbeat);
-    first.close();
-    await vi.waitFor(() => expect(streamSession).toHaveBeenCalledTimes(2));
+    source.drop();
+    source.drop();
+    source.open();
+    source.send("heartbeat", heartbeat);
+    source.drop();
+    source.drop();
+    await sleep(1_000);
 
-    second.push(sse("update", sessionOnly));
-    second.close();
+    expect(source.closed).toBe(false);
+    expect(pollSession).not.toHaveBeenCalled();
+  });
+
+  it("reopens the stream itself when a healthy connection goes silent", async () => {
+    const [first, second] = queueSources(2);
+    startWorker();
+
+    first.open();
+    first.send("heartbeat", heartbeat);
+    // nothing more, so the watchdog (15s * SLEEP_MULTIPLIER) reopens the stream
+
+    await vi.waitFor(() => expect(streamSession).toHaveBeenCalledTimes(2));
+    expect(first.closed).toBe(true);
+    expect(second.closed).toBe(false);
+    expect(pollSession).not.toHaveBeenCalled();
+  });
+
+  it("needs a new heartbeat after reconnecting before it counts as healthy", async () => {
+    const [source] = queueSources(1);
+    startWorker();
+
+    source.open();
+    source.send("heartbeat", heartbeat);
+    source.drop();
+    source.open(); // EventSource reconnected, but the server stays silent
 
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
-    expect(streamSession).toHaveBeenCalledTimes(2);
+    expect(source.closed).toBe(true);
+    expect(streamSession).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("StreamWorker - fallback", () => {
-  it("falls back to polling when the stream can't be opened, and never streams again", async () => {
-    vi.mocked(streamSession).mockRejectedValueOnce(
-      new Error("Unexpected content type from event stream: text/html"),
-    );
+  it("falls back to polling after three drops in a row, and never streams again", async () => {
+    const [source] = queueSources(1);
     const { onResult } = startWorker();
 
-    await vi.waitFor(() => expect(onResult).toHaveBeenCalledTimes(2));
+    source.drop();
+    source.drop();
+    source.drop();
+
+    await vi.waitFor(() => expect(onResult).toHaveBeenCalled());
     expect(pollSession).toHaveBeenCalledWith(
       sdkKey,
       sdkKey.sessionAuthKey,
       "tok-1",
     );
+    expect(source.closed).toBe(true);
     expect(streamSession).toHaveBeenCalledTimes(1);
   });
 
-  it("falls back instead of looping when closed after an update but before a heartbeat", async () => {
-    const [stream] = queueStreams(1);
+  it("falls back right away when the server refuses the stream", async () => {
+    const [source] = queueSources(1);
     startWorker();
 
-    stream.push(sse("update", sessionOnly));
-    stream.close();
+    source.reject(); // e.g. the session is gone or the origin isn't allowed
 
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
-    expect(streamSession).toHaveBeenCalledTimes(1);
+    expect(source.closed).toBe(true);
   });
 
-  it("falls back when the watchdog fires before any message", async () => {
-    const [stream] = queueStreams(1);
+  it("falls back when the connection stays silent before any heartbeat", async () => {
+    const [source] = queueSources(1);
     startWorker();
 
+    source.open();
+
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
-    expect(stream.isCancelled()).toBe(true);
+    expect(source.closed).toBe(true);
     expect(streamSession).toHaveBeenCalledTimes(1);
   });
 
-  it("falls back on a server error other than timeout, even after a heartbeat", async () => {
-    const [stream] = queueStreams(1);
-    startWorker();
-
-    stream.push(heartbeat);
-    stream.push(
-      sse("error", { error_code: "INTERNAL_SERVER_ERROR", message: "boom" }),
-    );
-
-    await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
-    expect(streamSession).toHaveBeenCalledTimes(1);
-  });
-
-  it.each([
-    ["an update with invalid JSON", "event: update\ndata: {not json\n\n"],
-    ["an update without session", sse("update", {})],
-    ["an error with invalid JSON", "event: error\ndata: {not json\n\n"],
-  ])("falls back on %s, even after a heartbeat", async (_name, text) => {
+  it("does not let updates without heartbeats keep a dropping stream alive", async () => {
     // keep polling pending, so any onResult call could only come from the stream
     vi.mocked(pollSession).mockReturnValue(
       new Promise<BffPollResponse>(() => {}),
     );
-    const [stream] = queueStreams(1);
+    const [source] = queueSources(1);
     const { onResult } = startWorker();
 
-    stream.push(heartbeat);
-    stream.push(text);
+    for (let i = 0; i < 3; i++) {
+      source.open();
+      source.send("update", sessionOnly);
+      source.drop();
+    }
 
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
-    expect(onResult).not.toHaveBeenCalled();
-    expect(streamSession).toHaveBeenCalledTimes(1);
+    expect(onResult).toHaveBeenCalledTimes(3);
+    expect(source.closed).toBe(true);
   });
+
+  it("falls back on a server error other than a timeout, even after a heartbeat", async () => {
+    const [source] = queueSources(1);
+    startWorker();
+
+    source.send("heartbeat", heartbeat);
+    source.send("error", {
+      error_code: "INTERNAL_SERVER_ERROR",
+      message: "boom",
+    });
+
+    await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
+    expect(source.closed).toBe(true);
+  });
+
+  it.each([
+    ["an update with invalid JSON", "update", "{not json"],
+    ["an update without a session", "update", "{}"],
+    ["an error with invalid JSON", "error", "{not json"],
+  ])(
+    "falls back on %s, even after a heartbeat",
+    async (_name, eventName, data) => {
+      // keep polling pending, so any onResult call could only come from the stream
+      vi.mocked(pollSession).mockReturnValue(
+        new Promise<BffPollResponse>(() => {}),
+      );
+      const [source] = queueSources(1);
+      const { onResult } = startWorker();
+
+      source.send("heartbeat", heartbeat);
+      source.send(eventName, data);
+
+      await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
+      expect(onResult).not.toHaveBeenCalled();
+      expect(streamSession).toHaveBeenCalledTimes(1);
+    },
+  );
 });
 
 describe("StreamWorker - stop", () => {
   it("stops cleanly when onResult calls stop()", async () => {
-    const [stream] = queueStreams(1);
+    const [source] = queueSources(1);
     // eslint-disable-next-line prefer-const
     let worker: StreamWorker;
     const onResult = vi.fn<OnResult>(() => {
@@ -318,37 +352,43 @@ describe("StreamWorker - stop", () => {
     const started = startWorker(onResult);
     worker = started.worker;
 
-    stream.push(sse("update", sessionOnly) + sse("update", sessionOnly));
+    source.send("update", sessionOnly);
+    source.send("update", sessionOnly);
     await started.done;
 
     expect(onResult).toHaveBeenCalledTimes(1);
     expect(worker.isRunning()).toBe(false);
-    expect(streamSession).toHaveBeenCalledTimes(1);
+    expect(source.closed).toBe(true);
     expect(pollSession).not.toHaveBeenCalled();
   });
 
-  it("does not read or fall back when stopped while opening", async () => {
-    const stream = makeFakeStream();
-    let resolveOpen!: (reader: ReadableStreamDefaultReader<Uint8Array>) => void;
-    vi.mocked(streamSession).mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveOpen = resolve;
-      }),
-    );
+  it("does not fall back when stopped right after starting", async () => {
+    const [source] = queueSources(1);
     const { worker, done } = startWorker();
 
     worker.stop();
-    resolveOpen(stream.reader);
     await done;
 
-    expect(stream.isCancelled()).toBe(true);
-    expect(streamSession).toHaveBeenCalledTimes(1);
+    expect(source.closed).toBe(true);
+    expect(pollSession).not.toHaveBeenCalled();
+  });
+
+  it("does not start polling when stopped as the stream gives up", async () => {
+    const [source] = queueSources(1);
+    const { worker, done } = startWorker();
+
+    source.reject();
+    worker.stop(); // runs before start() resumes to create the PollWorker
+    await done;
+    await sleep(1_000);
+
     expect(pollSession).not.toHaveBeenCalled();
   });
 
   it("stops the fallback PollWorker too", async () => {
-    vi.mocked(streamSession).mockRejectedValueOnce(new Error("open failed"));
+    const [source] = queueSources(1);
     const { worker, done } = startWorker();
+    source.reject();
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
 
     worker.stop();
@@ -363,19 +403,19 @@ describe("StreamWorker - stop", () => {
 
 describe("StreamWorker - errors from onResult", () => {
   it("rethrows an error from onResult instead of falling back", async () => {
-    const [stream] = queueStreams(1);
+    const [source] = queueSources(1);
     const { worker, done } = startWorker(
       vi.fn<OnResult>(() => {
         throw new Error("behavior bug");
       }),
     );
 
-    stream.push(heartbeat);
-    stream.push(sse("update", sessionOnly));
+    source.send("heartbeat", heartbeat);
+    source.send("update", sessionOnly);
 
     await expect(done).rejects.toThrow("behavior bug");
     expect(worker.isRunning()).toBe(false);
-    expect(stream.isCancelled()).toBe(true);
+    expect(source.closed).toBe(true);
     expect(pollSession).not.toHaveBeenCalled();
   });
 });

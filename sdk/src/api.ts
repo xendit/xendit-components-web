@@ -5,7 +5,7 @@ import {
   BffPaymentToken,
 } from "./backend-types/payment-entity";
 import { BffCardDetails } from "./backend-types/card-details";
-import { buildEndpointUrl, endpoint, openEventStream } from "./networking";
+import { buildEndpointUrl, endpoint } from "./networking";
 import { ParsedSdkKey } from "./utils";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { CustomerDetails } from "./backend-types/customer";
@@ -81,14 +81,13 @@ export const pollSession = endpoint<BffPollResponse, string, string | null>(
 );
 
 /**
- * Opens the session update stream. Not declared with endpoint because that always reads the whole response as JSON and a stream body doesn't end.
+ * Opens the session update stream. Not declared with endpoint because that always reads the whole response as JSON.
  */
 export function streamSession(
   sdkKey: ParsedSdkKey,
   sessionAuthKey: string,
   tokenRequestId: string | null,
-  abortSignal: AbortSignal,
-) {
+): EventSource {
   const url = buildEndpointUrl(
     sdkKey,
     `/api/sessions/${sessionAuthKey}/stream`,
@@ -96,7 +95,7 @@ export function streamSession(
       tokenRequestId ? { token_request_id: tokenRequestId } : {},
     ),
   );
-  return openEventStream(url, abortSignal);
+  return new EventSource(url);
 }
 
 type LookupCardDetailsRequestBody = {
