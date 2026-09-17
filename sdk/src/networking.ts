@@ -82,14 +82,6 @@ export function buildEndpointUrl(
   return url;
 }
 
-async function throwErrorResponse(response: Response): Promise<never> {
-  const errorData = (await response.json()) as ErrorResponse;
-  if (!errorData || !errorData.error_code) {
-    throw new Error("Unexpected error response from server");
-  }
-  throw new NetworkError(errorData);
-}
-
 // GET with path param
 export function endpoint<ResponseBody, PathArg>(
   method: "GET",
@@ -210,43 +202,13 @@ export function endpoint(
         ? await fetchWithRetry(url, options, 500, 3)
         : await fetch(url, options);
     if (!response.ok) {
-      await throwErrorResponse(response);
+      const errorData = (await response.json()) as ErrorResponse;
+      if (!errorData || !errorData.error_code) {
+        throw new Error("Unexpected error response from server");
+      }
+      throw new NetworkError(errorData);
     }
 
     return response.json();
   };
-}
-
-/**
- * Opens a Server-Sent Events stream and returns a reader for the response body.
- * Connection errors are retried like other GET requests.
- */
-export async function openEventStream(
-  url: URL,
-  abortSignal: AbortSignal,
-): Promise<ReadableStreamDefaultReader<Uint8Array>> {
-  const response = await fetchWithRetry(
-    url,
-    {
-      method: "GET",
-      headers: { Accept: "text/event-stream" },
-      signal: abortSignal,
-    },
-    500,
-    3,
-  );
-  if (!response.ok) {
-    await throwErrorResponse(response);
-  }
-
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.startsWith("text/event-stream")) {
-    throw new Error(
-      `Unexpected content type from event stream: ${contentType}`,
-    );
-  }
-  if (!response.body) {
-    throw new Error("Event stream response has no body");
-  }
-  return response.body.getReader();
 }
