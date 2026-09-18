@@ -83,8 +83,11 @@ const heartbeat = { timestamp: "2026-09-14T00:00:00Z" };
 
 const workers: { stop(): void }[] = [];
 
-function startWorker(onResult: Mock<OnResult> = vi.fn<OnResult>()) {
-  const worker = new StreamWorker(sdkKey, sdk, "tok-1", onResult);
+function startWorker(
+  onResult: Mock<OnResult> = vi.fn<OnResult>(),
+  workerSdk: XenditComponents = sdk,
+) {
+  const worker = new StreamWorker(sdkKey, workerSdk, "tok-1", onResult);
   workers.push(worker);
   worker.start();
   return { worker, onResult };
@@ -405,5 +408,49 @@ describe("StreamWorker - errors from onResult", () => {
     expect(pollSession).not.toHaveBeenCalled();
 
     consoleError.mockRestore();
+  });
+});
+
+describe("StreamWorker - mock mode", () => {
+  function makeMockSdk() {
+    const mockSdk = {
+      isMock: () => true,
+      nextMockUpdate: null as BffPollResponse | null,
+    };
+    return { mockSdk, sdk: mockSdk as unknown as XenditComponents };
+  }
+
+  it("delivers a mock update scheduled before start, without opening a stream", async () => {
+    const { mockSdk, sdk: mockSdkAsSdk } = makeMockSdk();
+    mockSdk.nextMockUpdate = sessionOnly;
+    const { onResult } = startWorker(vi.fn<OnResult>(), mockSdkAsSdk);
+
+    await vi.waitFor(() =>
+      expect(onResult).toHaveBeenCalledWith(sessionOnly, null),
+    );
+    expect(mockSdk.nextMockUpdate).toBeNull();
+    expect(streamSession).not.toHaveBeenCalled();
+  });
+
+  it("delivers a mock update scheduled after start", async () => {
+    const { mockSdk, sdk: mockSdkAsSdk } = makeMockSdk();
+    const { onResult } = startWorker(vi.fn<OnResult>(), mockSdkAsSdk);
+
+    await sleep(1_000); // a few intervals pass with nothing to deliver
+    expect(onResult).not.toHaveBeenCalled();
+
+    mockSdk.nextMockUpdate = sessionOnly;
+    await vi.waitFor(() => expect(onResult).toHaveBeenCalledTimes(1));
+  });
+
+  it("stops delivering mock updates after stop()", async () => {
+    const { mockSdk, sdk: mockSdkAsSdk } = makeMockSdk();
+    const { worker, onResult } = startWorker(vi.fn<OnResult>(), mockSdkAsSdk);
+
+    worker.stop();
+    mockSdk.nextMockUpdate = sessionOnly;
+    await sleep(1_000);
+
+    expect(onResult).not.toHaveBeenCalled();
   });
 });

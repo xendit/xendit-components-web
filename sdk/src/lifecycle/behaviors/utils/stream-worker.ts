@@ -4,8 +4,12 @@ import {
   BffPaymentEntity,
   toPaymentEntity,
 } from "../../../backend-types/payment-entity";
-import { XenditComponents } from "../../../public-sdk";
-import { ParsedSdkKey, SLEEP_MULTIPLIER } from "../../../utils";
+import { XenditComponents, XenditComponentsTest } from "../../../public-sdk";
+import {
+  MOCK_NETWORK_DELAY_MS,
+  ParsedSdkKey,
+  SLEEP_MULTIPLIER,
+} from "../../../utils";
 import { PollWorker } from "./poll-worker";
 import { SessionUpdateWorker } from "./session-update-worker";
 
@@ -36,6 +40,7 @@ export class StreamWorker implements SessionUpdateWorker {
   private healthy = false;
   private drops = 0;
   private watchdog: ReturnType<typeof setTimeout> | undefined;
+  private mockTimer: ReturnType<typeof setInterval> | undefined;
 
   constructor(
     private sdkKey: ParsedSdkKey,
@@ -54,6 +59,14 @@ export class StreamWorker implements SessionUpdateWorker {
       );
     }
     this.started = true;
+
+    if (this.sdk.isMock()) {
+      this.mockTimer = setInterval(
+        () => this.deliverMockUpdate(),
+        MOCK_NETWORK_DELAY_MS * SLEEP_MULTIPLIER,
+      );
+      return;
+    }
     this.openStream();
   }
 
@@ -64,6 +77,7 @@ export class StreamWorker implements SessionUpdateWorker {
   stop() {
     this.started = false;
     this.stopped = true;
+    clearInterval(this.mockTimer);
     this.closeStream();
     this.fallbackWorker?.stop();
   }
@@ -170,6 +184,18 @@ export class StreamWorker implements SessionUpdateWorker {
       this.onResult,
     );
     this.fallbackWorker.start();
+  }
+
+  // in mock mode, behaviors schedule updates with InternalScheduleMockUpdateEvent
+  private deliverMockUpdate() {
+    const sdk = this.sdk as XenditComponentsTest;
+    const response = sdk.nextMockUpdate;
+    if (!response) {
+      return;
+    }
+
+    sdk.nextMockUpdate = null;
+    this.onResult(response, getPaymentEntity(response));
   }
 
   private closeStream() {

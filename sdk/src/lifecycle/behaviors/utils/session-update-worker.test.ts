@@ -33,13 +33,16 @@ describe("createSessionUpdateWorker", () => {
     expect(worker).toBeInstanceOf(StreamWorker);
   });
 
-  it("polls in mock mode", () => {
+  it("streams in mock mode", () => {
     const worker = createSessionUpdateWorker(
-      buildBlackboard({ mock: true }),
+      buildBlackboard(
+        { mock: true, redirectReturnPending: true },
+        { "stream-session": false },
+      ),
       noop,
     );
 
-    expect(worker).toBeInstanceOf(PollWorker);
+    expect(worker).toBeInstanceOf(StreamWorker);
   });
 
   it("polls right after the buyer returns from a redirect", () => {

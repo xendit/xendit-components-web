@@ -19,9 +19,8 @@ export interface SessionUpdateWorker {
 }
 
 /**
- * Picks the stream when the stream-session experiment flag is true, except in
- * mock mode (nothing to stream) or right after a redirect return (the stream
- * sends nothing if the state didn't change, but the abandoned redirect check needs an answer).
+ * Always picks the stream in mock mode.
+ * Otherwise picks it when the stream-session experiment flag is true, except right after a redirect return (the stream sends nothing if the state didn't change, but the abandoned redirect check needs an answer).
  */
 export function createSessionUpdateWorker(
   bb: BlackboardType,
@@ -29,9 +28,9 @@ export function createSessionUpdateWorker(
 ): SessionUpdateWorker {
   const tokenRequestId = bb.world?.sessionTokenRequestId ?? null;
   const useStream =
-    !bb.mock &&
-    !bb.redirectReturnPending &&
-    bb.world?.experiments?.["stream-session"] === true;
+    bb.mock ||
+    (!bb.redirectReturnPending &&
+      bb.world?.experiments?.["stream-session"] === true);
 
   return useStream
     ? new StreamWorker(bb.sdkKey, bb.sdk, tokenRequestId, onResult)
