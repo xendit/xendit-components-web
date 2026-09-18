@@ -104,7 +104,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
   }, [channelsInGroup, currentChannel, marshalConfig, open, sdk]);
 
   // when the group is opened, if the currently selected channel is unset but the fakeDropdownSelection is set,
-  // select that channel to restore this group's selection into the sdk state
+  // select that channel to restore this group's selection into the sdk state.
   const previousOpen = usePrevious(open);
   useLayoutEffect(() => {
     if (open && !previousOpen) {

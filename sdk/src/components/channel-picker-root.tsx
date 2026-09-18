@@ -71,11 +71,19 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     [pairChannelData, session.amount, session.session_type],
   );
 
+  const instantOpen = useMemo(
+    () => instantOpenConfig(session, channelsByGroup, currentChannel),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   // selected group is the containing group of the currently selected channel
   const selectedGroupId = currentChannel?.ui_group ?? null;
 
   // previewed group means expanded but no channel selected
-  const [previewGroupId, setPreviewGroupId] = useState<string | null>(null);
+  const [previewGroupId, setPreviewGroupId] = useState<string | null>(
+    instantOpen?.group ?? null,
+  );
 
   const telemetryScopeForGroup = useRef<SessionTelemetryScope | null>(null);
   const telemetryForGroupClear = useCallback(() => {
@@ -166,6 +174,24 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
       setPreviewGroupId(null);
     }
   }, [currentChannel, previewGroupId]);
+
+  // select the instantOpen channel if any
+  const didInstantOpen = useRef(false);
+  useLayoutEffect(() => {
+    if (
+      !didInstantOpen.current &&
+      currentChannel === null &&
+      instantOpen?.channel
+    ) {
+      didInstantOpen.current = true;
+      // Select the channel on the next tick. This isn't ideal, I'd like to select it on the current tick but that's not safe, it will recursively render.
+      setTimeout(() => {
+        sdk.setCurrentChannel(
+          singleBffChannelToPublic(instantOpen.channel, marshalConfig),
+        );
+      }, 0);
+    }
+  }, [currentChannel, instantOpen?.channel, marshalConfig, sdk]);
 
   return (
     <div ref={thisRef}>
@@ -291,6 +317,36 @@ function enableOneclickForGroup(session: BffSession, channels: BffChannel[]) {
     channels[0].pm_type === "QR_CODE" &&
     channels[0].form.length === 0
   );
+}
+
+// we auto-open a group if there's only one and at least one channel is selectable, and auto-select a channel if there's only one.
+function instantOpenConfig(
+  session: BffSession,
+  channelsByGroup: Record<string, BffChannel[]>,
+  currentChannel: BffChannel | null,
+) {
+  if (currentChannel) {
+    return null; // channel already selected, unlikely to happen but lets just do nothing here
+  }
+
+  const channels = Object.values(channelsByGroup);
+  if (channels.length !== 1) {
+    return null; // must have exactly one group
+  }
+
+  if (channels[0].length === 0) {
+    return null; // no channels, should never happen
+  }
+
+  if (!channels[0].some((channel) => satisfiesMinMax(session, channel))) {
+    return null; // all channels in group are unselectable
+  }
+
+  if (channels[0].length !== 1) {
+    return { group: channels[0][0].ui_group }; // group is auto-opened but channel is not
+  }
+
+  return { group: channels[0][0].ui_group, channel: channels[0][0] }; // group and channel are auto selectable
 }
 
 export class XenditClearCurrentChannelEvent extends Event {

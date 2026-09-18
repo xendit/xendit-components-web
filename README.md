@@ -86,6 +86,8 @@ myContainer.replaceChildren(htmlElement);
 ```
 
 Creates a UI for the user to select a payment channel and fill any required information.
+If there is exactly one channel available, it will be automatically selected. Otherwise,
+the user must click to select a channel.
 
 This returns a `HTMLElement`, which you need to insert into your document.
 
@@ -178,7 +180,7 @@ function onSubmitButtonClick() {
 }
 ```
 
-Begins submission for the active payment channel.
+Begins submission for the current payment channel.
 
 Call this from the click event of your submit button.
 
