@@ -4,13 +4,7 @@ import {
   BffPaymentEntity,
   toPaymentEntity,
 } from "../../../backend-types/payment-entity";
-import { XenditComponents, XenditComponentsTest } from "../../../public-sdk";
-import {
-  MOCK_NETWORK_DELAY_MS,
-  ParsedSdkKey,
-  retryLoop,
-  sleep,
-} from "../../../utils";
+import { ParsedSdkKey, retryLoop, sleep } from "../../../utils";
 import { SessionUpdateWorker } from "./session-update-worker";
 
 /**
@@ -33,7 +27,6 @@ export class PollWorker implements SessionUpdateWorker {
 
   constructor(
     private sdkKey: ParsedSdkKey,
-    private sdk: XenditComponents,
     private sessionTokenRequestId: string | null,
     private onPollResult: (
       result: BffPollResponse,
@@ -57,31 +50,15 @@ export class PollWorker implements SessionUpdateWorker {
       if (this.stopped) return;
 
       let response: BffPollResponse;
-
-      if (this.sdk.isMock()) {
-        // mock polling
-        if (
-          this.sdk instanceof XenditComponentsTest &&
-          this.sdk.nextMockUpdate
-        ) {
-          await sleep(MOCK_NETWORK_DELAY_MS); // simulate network delay
-          response = this.sdk.nextMockUpdate;
-          this.sdk.nextMockUpdate = null;
-        } else {
-          continue;
-        }
-      } else {
-        // real polling request
-        try {
-          response = await pollSession(
-            this.sdkKey,
-            this.sdkKey.sessionAuthKey,
-            this.sessionTokenRequestId,
-          );
-        } catch (_err) {
-          // TODO: error handling
-          continue;
-        }
+      try {
+        response = await pollSession(
+          this.sdkKey,
+          this.sdkKey.sessionAuthKey,
+          this.sessionTokenRequestId,
+        );
+      } catch (_err) {
+        // TODO: error handling
+        continue;
       }
       if (this.stopped) return;
 

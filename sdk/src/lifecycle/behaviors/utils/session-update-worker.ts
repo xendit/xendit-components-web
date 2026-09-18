@@ -34,5 +34,5 @@ export function createSessionUpdateWorker(
 
   return useStream
     ? new StreamWorker(bb.sdkKey, bb.sdk, tokenRequestId, onResult)
-    : new PollWorker(bb.sdkKey, bb.sdk, tokenRequestId, onResult);
+    : new PollWorker(bb.sdkKey, tokenRequestId, onResult);
 }

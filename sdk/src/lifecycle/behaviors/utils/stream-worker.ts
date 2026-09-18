@@ -179,7 +179,6 @@ export class StreamWorker implements SessionUpdateWorker {
     this.closeStream();
     this.fallbackWorker = new PollWorker(
       this.sdkKey,
-      this.sdk,
       this.sessionTokenRequestId,
       this.onResult,
     );
