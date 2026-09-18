@@ -5,13 +5,9 @@ import {
   useSession,
 } from "./session-provider";
 import { BffChannelUiGroup } from "../backend-types/channel";
-import { assert } from "../utils";
+import { assert, usePrevious } from "../utils";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
-import {
-  channelFilterFn,
-  findChannelPairs,
-  singleBffChannelToPublic,
-} from "../bff-marshal";
+import { channelFilterFn, findChannelPairs } from "../bff-marshal";
 import { FunctionComponent } from "preact";
 
 interface ChannelPickerOneclickProps {
@@ -53,56 +49,32 @@ export const ChannelPickerOneclick: FunctionComponent<
   }, [channels, group.id, marshalConfig]);
   assert(channelsInGroup.length === 1);
 
-  // select the channel on open
+  // create action container
+  const previousOpen = usePrevious(open);
   useLayoutEffect(() => {
-    if (open && !currentChannel) {
-      // make channel object
-      const ch = singleBffChannelToPublic(channelsInGroup[0], marshalConfig);
-
-      // select channel
-      sdk.setCurrentChannel(ch);
+    if (channelsInGroup.length !== 1) {
+      // should never happen
+      return;
     }
-  }, [channelsInGroup, currentChannel, marshalConfig, open, sdk]);
 
-  // create action container and submit
-  useLayoutEffect(() => {
-    if (
-      open &&
-      currentChannel &&
-      currentChannel.channel_code === channelsInGroup[0].channel_code
-    ) {
+    if (open && !previousOpen) {
       // create a new action container if we didn't already
       if (!actionContinerRef.current) {
         actionContinerRef.current = sdk.createActionContainerComponent();
-        actionContinerContainerRef.current?.replaceChildren(
-          actionContinerRef.current,
-        );
       }
+      actionContinerContainerRef.current?.replaceChildren(
+        actionContinerRef.current,
+      );
+    }
 
-      // do submission
-      try {
-        sdk.submitOneclick();
-      } catch (_e) {
-        // dont care
-      }
-    } else {
+    if (!open) {
       // destroy action container if this group is no longer open or another channel was selected
       if (actionContinerRef.current) {
         sdk.forgetComponent(actionContinerRef.current);
         actionContinerRef.current = null;
       }
     }
-  }, [channelsInGroup, currentChannel, open, sdk]);
-
-  // destroy action container on unmount
-  useLayoutEffect(() => {
-    return () => {
-      if (actionContinerRef.current) {
-        sdk.forgetComponent(actionContinerRef.current);
-        actionContinerRef.current = null;
-      }
-    };
-  }, [sdk]);
+  }, [channelsInGroup, currentChannel?.channel_code, open, previousOpen, sdk]);
 
   return (
     <div className="xendit-channel-picker-group">

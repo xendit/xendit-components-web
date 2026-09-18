@@ -1741,9 +1741,11 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.submissionRequested === "oneclick";
 
     this[internal].behaviorTree.bb.submissionRequested = false;
-    if (isOneClick) this.setCurrentChannel(null);
-
     this.behaviorTreeUpdate();
+
+    // in oneclick mode, also clear the channel
+    // do this afterwards, in a separate update so everything happens in the right order
+    if (isOneClick) this.setCurrentChannel(null);
   }
 
   /**

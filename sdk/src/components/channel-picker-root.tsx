@@ -19,7 +19,7 @@ import {
   ChannelPickerGroup,
   getChannelDisabledReason,
 } from "./channel-picker-group";
-import { assert, satisfiesMinMax } from "../utils";
+import { assert, satisfiesMinMax, usePrevious } from "../utils";
 import { BffSession } from "../backend-types/session";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { TFunction } from "../localization";
@@ -175,15 +175,26 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     }
   }, [currentChannel, previewGroupId]);
 
-  // select the instantOpen channel if any
-  const didInstantOpen = useRef(false);
+  const openGroupId = selectedGroupId ?? previewGroupId;
+  const isOneClick =
+    openGroupId !== null &&
+    enableOneClickQr &&
+    enableOneclickForGroup(session, channelsByGroup[openGroupId]);
+
+  // if a preview group is alrady set on the first render, fire telemetry for it
   useLayoutEffect(() => {
-    if (
-      !didInstantOpen.current &&
-      currentChannel === null &&
-      instantOpen?.channel
-    ) {
-      didInstantOpen.current = true;
+    if (previewGroupId) {
+      const group = channelUiGroups.find(
+        (group) => group.id === previewGroupId,
+      )!;
+      telemetryForGroupChange(group.label, group.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // select the instantOpen channel if any (first render only)
+  useLayoutEffect(() => {
+    if (currentChannel === null && instantOpen?.channel && !isOneClick) {
       // Select the channel on the next tick. This isn't ideal, I'd like to select it on the current tick but that's not safe, it will recursively render.
       setTimeout(() => {
         sdk.setCurrentChannel(
@@ -191,7 +202,38 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
         );
       }, 0);
     }
-  }, [currentChannel, instantOpen?.channel, marshalConfig, sdk]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // did this render trigger a oneclick group to open? if so begin oneclick flow
+  const previousIsOneClick = usePrevious(isOneClick);
+  useLayoutEffect(() => {
+    if (!(isOneClick && !previousIsOneClick)) return;
+
+    setTimeout(() => {
+      // make channel object
+      const ch = singleBffChannelToPublic(
+        channelsByGroup[openGroupId][0],
+        marshalConfig,
+      );
+      // select channel
+      sdk.setCurrentChannel(ch);
+
+      // do submission
+      try {
+        sdk.submitOneclick();
+      } catch (_e) {
+        // dont care
+      }
+    }, 0);
+  }, [
+    channelsByGroup,
+    isOneClick,
+    marshalConfig,
+    openGroupId,
+    previousIsOneClick,
+    sdk,
+  ]);
 
   return (
     <div ref={thisRef}>
