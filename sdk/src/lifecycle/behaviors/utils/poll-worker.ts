@@ -11,6 +11,7 @@ import {
   retryLoop,
   sleep,
 } from "../../../utils";
+import { SessionUpdateWorker } from "./session-update-worker";
 
 /**
  * Polls the session status forever until stop() is called.
@@ -26,7 +27,7 @@ import {
  * // later
  * poller.stop();
  */
-export class PollWorker {
+export class PollWorker implements SessionUpdateWorker {
   started = false;
   stopped = false;
 

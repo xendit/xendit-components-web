@@ -13,7 +13,7 @@ export type OnSessionUpdate = (
  * Delivers session updates to a behavior until stop() is called.
  */
 export interface SessionUpdateWorker {
-  start(): Promise<void>;
+  start(): void;
   stop(): void;
   isRunning(): boolean;
 }

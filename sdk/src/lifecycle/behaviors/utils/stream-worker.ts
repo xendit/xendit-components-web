@@ -7,6 +7,7 @@ import {
 import { XenditComponents } from "../../../public-sdk";
 import { ParsedSdkKey, SLEEP_MULTIPLIER } from "../../../utils";
 import { PollWorker } from "./poll-worker";
+import { SessionUpdateWorker } from "./session-update-worker";
 
 /**
  * A connection that sends nothing for this long is treated as dead.
@@ -26,7 +27,7 @@ type StreamErrorData = Extract<BffStreamEvent, { event: "error" }>["data"];
  * Receives session updates over the session stream until stop() is called.
  * Reopens a healthy connection that goes silent, and falls back to PollWorker if the stream can't be used.
  */
-export class StreamWorker {
+export class StreamWorker implements SessionUpdateWorker {
   started = false;
   stopped = false;
 
@@ -35,8 +36,6 @@ export class StreamWorker {
   private healthy = false;
   private drops = 0;
   private watchdog: ReturnType<typeof setTimeout> | undefined;
-  private finish: ((fallback: boolean) => void) | null = null;
-  private fail: ((error: unknown) => void) | null = null;
 
   constructor(
     private sdkKey: ParsedSdkKey,
@@ -48,30 +47,14 @@ export class StreamWorker {
     ) => void,
   ) {}
 
-  async start() {
+  start() {
     if (this.stopped) {
       throw new Error(
         "StreamWorker has been stopped, make a new instance instead of calling start again",
       );
     }
     this.started = true;
-
-    const fallback = await new Promise<boolean>((resolve, reject) => {
-      this.finish = resolve;
-      this.fail = reject;
-      this.openStream();
-    });
-
-    // stop() may have run before this resumed
-    if (fallback && !this.stopped) {
-      this.fallbackWorker = new PollWorker(
-        this.sdkKey,
-        this.sdk,
-        this.sessionTokenRequestId,
-        this.onResult,
-      );
-      await this.fallbackWorker.start();
-    }
+    this.openStream();
   }
 
   isRunning() {
@@ -83,7 +66,6 @@ export class StreamWorker {
     this.stopped = true;
     this.closeStream();
     this.fallbackWorker?.stop();
-    this.finish?.(false);
   }
 
   private openStream() {
@@ -125,24 +107,21 @@ export class StreamWorker {
     this.resetWatchdog();
     const response = parseJson<BffPollResponse>(event.data);
     if (!response?.session) {
-      this.giveUp();
+      this.switchToFallback();
       return;
     }
 
     try {
       this.onResult(response, getPaymentEntity(response));
     } catch (error) {
-      // reject before stop(), which would otherwise resolve start() first
-      this.fail?.(error);
-      this.stop();
-      return;
+      // onResult isn't expected to throw.
+      console.error("Failed to handle session update:", error);
     }
 
     // onResult may have stopped this worker
     if (isFinal && !this.stopped) {
       // nothing else is coming, so close before EventSource reconnects
       this.closeStream();
-      this.finish?.(false);
     }
   }
 
@@ -150,14 +129,14 @@ export class StreamWorker {
     const error = parseJson<StreamErrorData>(data);
     // a timeout is expected: the server ends the stream and EventSource reconnects
     if (error?.error_code !== STREAM_TIMEOUT_CODE) {
-      this.giveUp();
+      this.switchToFallback();
     }
   }
 
   private handleDrop(source: EventSource) {
     // EventSource doesn't reconnect after an error response or a wrong content type
     if (source.readyState === source.CLOSED) {
-      this.giveUp();
+      this.switchToFallback();
       return;
     }
     // no watchdog while EventSource waits to reconnect, "open" restarts it
@@ -165,7 +144,7 @@ export class StreamWorker {
     this.healthy = false;
     this.drops += 1;
     if (this.drops >= MAX_DROPS) {
-      this.giveUp();
+      this.switchToFallback();
     }
   }
 
@@ -177,14 +156,20 @@ export class StreamWorker {
         this.closeStream();
         this.openStream();
       } else {
-        this.giveUp();
+        this.switchToFallback();
       }
     }, WATCHDOG_MS * SLEEP_MULTIPLIER);
   }
 
-  private giveUp() {
+  private switchToFallback() {
     this.closeStream();
-    this.finish?.(true);
+    this.fallbackWorker = new PollWorker(
+      this.sdkKey,
+      this.sdk,
+      this.sessionTokenRequestId,
+      this.onResult,
+    );
+    this.fallbackWorker.start();
   }
 
   private closeStream() {

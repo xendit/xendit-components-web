@@ -86,8 +86,8 @@ const workers: { stop(): void }[] = [];
 function startWorker(onResult: Mock<OnResult> = vi.fn<OnResult>()) {
   const worker = new StreamWorker(sdkKey, sdk, "tok-1", onResult);
   workers.push(worker);
-  const done = worker.start();
-  return { worker, onResult, done };
+  worker.start();
+  return { worker, onResult };
 }
 
 beforeEach(() => {
@@ -123,12 +123,11 @@ describe("StreamWorker - normal flow", () => {
     expect(pollSession).not.toHaveBeenCalled();
   });
 
-  it("closes the stream after final without falling back", async () => {
+  it("closes the stream after final without falling back", () => {
     const [source] = queueSources(1);
-    const { worker, onResult, done } = startWorker();
+    const { worker, onResult } = startWorker();
 
     source.send("final", sessionOnly);
-    await done;
 
     expect(onResult).toHaveBeenCalledTimes(1);
     expect(source.closed).toBe(true);
@@ -137,11 +136,11 @@ describe("StreamWorker - normal flow", () => {
     expect(worker.isRunning()).toBe(true);
   });
 
-  it("prefers payment_token over payment_request, like PollWorker", async () => {
+  it("prefers payment_token over payment_request, like PollWorker", () => {
     const paymentRequest = makeTestPaymentRequest("MOCK_REDIRECT", "REDIRECT");
     const paymentToken = makeTestPaymentToken("MOCK_REDIRECT", "REDIRECT");
     const [source] = queueSources(1);
-    const { onResult, done } = startWorker();
+    const { onResult } = startWorker();
 
     source.send("update", { session, payment_request: paymentRequest });
     source.send("final", {
@@ -149,20 +148,18 @@ describe("StreamWorker - normal flow", () => {
       payment_request: paymentRequest,
       payment_token: paymentToken,
     });
-    await done;
 
     expect(onResult.mock.calls[0][1]).toEqual(toPaymentEntity(paymentRequest));
     expect(onResult.mock.calls[1][1]).toEqual(toPaymentEntity(paymentToken));
   });
 
-  it("does not deliver heartbeats or unknown events", async () => {
+  it("does not deliver heartbeats or unknown events", () => {
     const [source] = queueSources(1);
-    const { onResult, done } = startWorker();
+    const { onResult } = startWorker();
 
     source.send("heartbeat", heartbeat);
     source.send("something-new", { hello: "world" });
     source.send("final", sessionOnly);
-    await done;
 
     expect(onResult).toHaveBeenCalledTimes(1);
   });
@@ -342,7 +339,7 @@ describe("StreamWorker - fallback", () => {
 });
 
 describe("StreamWorker - stop", () => {
-  it("stops cleanly when onResult calls stop()", async () => {
+  it("stops cleanly when onResult calls stop()", () => {
     const [source] = queueSources(1);
     // eslint-disable-next-line prefer-const
     let worker: StreamWorker;
@@ -354,7 +351,6 @@ describe("StreamWorker - stop", () => {
 
     source.send("update", sessionOnly);
     source.send("update", sessionOnly);
-    await started.done;
 
     expect(onResult).toHaveBeenCalledTimes(1);
     expect(worker.isRunning()).toBe(false);
@@ -362,37 +358,23 @@ describe("StreamWorker - stop", () => {
     expect(pollSession).not.toHaveBeenCalled();
   });
 
-  it("does not fall back when stopped right after starting", async () => {
+  it("does not fall back when stopped right after starting", () => {
     const [source] = queueSources(1);
-    const { worker, done } = startWorker();
+    const { worker } = startWorker();
 
     worker.stop();
-    await done;
 
     expect(source.closed).toBe(true);
     expect(pollSession).not.toHaveBeenCalled();
   });
 
-  it("does not start polling when stopped as the stream gives up", async () => {
-    const [source] = queueSources(1);
-    const { worker, done } = startWorker();
-
-    source.reject();
-    worker.stop(); // runs before start() resumes to create the PollWorker
-    await done;
-    await sleep(1_000);
-
-    expect(pollSession).not.toHaveBeenCalled();
-  });
-
   it("stops the fallback PollWorker too", async () => {
     const [source] = queueSources(1);
-    const { worker, done } = startWorker();
+    const { worker } = startWorker();
     source.reject();
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
 
     worker.stop();
-    await done;
     const callsAfterStop = vi.mocked(pollSession).mock.calls.length;
     await sleep(20_000); // 200ms in tests
 
@@ -402,20 +384,26 @@ describe("StreamWorker - stop", () => {
 });
 
 describe("StreamWorker - errors from onResult", () => {
-  it("rethrows an error from onResult instead of falling back", async () => {
+  it("logs an error from onResult and keeps streaming", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const error = new Error("behavior bug");
+    const onResult = vi.fn<OnResult>().mockImplementationOnce(() => {
+      throw error;
+    });
     const [source] = queueSources(1);
-    const { worker, done } = startWorker(
-      vi.fn<OnResult>(() => {
-        throw new Error("behavior bug");
-      }),
-    );
+    const { worker } = startWorker(onResult);
 
-    source.send("heartbeat", heartbeat);
+    source.send("update", sessionOnly);
     source.send("update", sessionOnly);
 
-    await expect(done).rejects.toThrow("behavior bug");
-    expect(worker.isRunning()).toBe(false);
-    expect(source.closed).toBe(true);
+    expect(consoleError).toHaveBeenCalledWith(expect.any(String), error);
+    expect(onResult).toHaveBeenCalledTimes(2);
+    expect(source.closed).toBe(false);
+    expect(worker.isRunning()).toBe(true);
     expect(pollSession).not.toHaveBeenCalled();
+
+    consoleError.mockRestore();
   });
 });
