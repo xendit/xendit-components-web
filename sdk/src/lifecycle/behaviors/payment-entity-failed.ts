@@ -7,7 +7,6 @@ export class PaymentEntityFailedBehavior implements Behavior {
 
   enter() {
     this.bb.submissionRequested = false;
-    this.bb.resuming = false;
     this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 }

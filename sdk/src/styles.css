@@ -304,6 +304,19 @@ xendit-payment-channel select::placeholder {
   object-fit: contain;
 }
 
+.xendit-channel-picker-oneclick-action-container {
+  max-width: 350px;
+  margin: 0 auto;
+  margin-bottom: 16px;
+}
+
+.xendit-channel-picker-oneclick-action-container
+  xendit-action-container[is-qr-with-custom-art] {
+  border: 1px solid var(--xendit-color-border);
+  box-shadow: var(--xendit-card-shadow);
+  border-radius: 8px;
+}
+
 /* Payment channel */
 
 xendit-payment-channel[inert],
@@ -1293,7 +1306,7 @@ xendit-channel-picker[inert] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  margin-top: 8px;
 }
 .xendit-action-qr-channel-logo {
   height: 64px;
@@ -1310,6 +1323,14 @@ xendit-channel-picker[inert] {
   width: 100%;
   position: relative;
   z-index: var(--xendit-z-index-overlay);
+}
+
+/* overrides for custom qr art */
+[is-qr-with-custom-art] .xendit-dialog-body {
+  padding: 0;
+}
+[is-qr-with-custom-art] .xendit-dialog > .xendit-dialog-floating-close {
+  display: none;
 }
 
 /* barcode actions */
