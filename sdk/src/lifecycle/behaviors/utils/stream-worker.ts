@@ -90,6 +90,8 @@ export class StreamWorker implements SessionUpdateWorker {
     );
     this.source = source;
     this.healthy = false;
+    // EventSource sends no event while it waits for a response that never comes
+    this.resetWatchdog();
 
     const listen = (name: string, handler: (event: Event) => void) => {
       source.addEventListener(name, (event) => {
@@ -153,9 +155,9 @@ export class StreamWorker implements SessionUpdateWorker {
       this.switchToFallback();
       return;
     }
-    // no watchdog while EventSource waits to reconnect, "open" restarts it
-    clearTimeout(this.watchdog);
     this.healthy = false;
+    // falls back if EventSource can't reconnect in time, "open" restarts it
+    this.resetWatchdog();
     this.drops += 1;
     if (this.drops >= MAX_DROPS) {
       this.switchToFallback();
