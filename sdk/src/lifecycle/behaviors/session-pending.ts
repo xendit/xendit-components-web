@@ -10,18 +10,16 @@ import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { discardPaymentEntity } from "./utils/discard";
-import { PollWorker } from "./utils/poll-worker";
+import {
+  createSessionUpdateWorker,
+  SessionUpdateWorker,
+} from "./utils/session-update-worker";
 
 export class SessionPendingBehavior implements Behavior {
-  private pollWorker: PollWorker;
+  private updateWorker: SessionUpdateWorker;
 
   constructor(private bb: BlackboardType) {
-    this.pollWorker = new PollWorker(
-      this.bb.sdkKey,
-      this.bb.sdk,
-      this.bb.world?.sessionTokenRequestId ?? null,
-      this.onPollResult,
-    );
+    this.updateWorker = createSessionUpdateWorker(this.bb, this.onPollResult);
   }
 
   enter() {
@@ -29,12 +27,12 @@ export class SessionPendingBehavior implements Behavior {
     this.bb.telemetry.append(TelemetryEvents.Pending(true));
 
     // start listening for changes
-    this.pollWorker.start();
+    this.updateWorker.start();
     this.bb.dispatchEvent(new XenditSessionPendingEvent());
   }
 
   exit() {
-    this.pollWorker.stop();
+    this.updateWorker.stop();
 
     assert(this.bb.world?.session);
 

@@ -7,18 +7,16 @@ import {
 } from "../../private-event-types";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
-import { PollWorker } from "./utils/poll-worker";
+import {
+  createSessionUpdateWorker,
+  SessionUpdateWorker,
+} from "./utils/session-update-worker";
 import { makeTestPollResponse } from "../../data/test-data-modifiers";
 
 export class PaymentEntityPendingBehavior implements Behavior {
-  private pollWorker: PollWorker;
+  private updateWorker: SessionUpdateWorker;
   constructor(private bb: BlackboardType) {
-    this.pollWorker = new PollWorker(
-      this.bb.sdkKey,
-      this.bb.sdk,
-      this.bb.world?.sessionTokenRequestId ?? null,
-      this.onPollResult,
-    );
+    this.updateWorker = createSessionUpdateWorker(this.bb, this.onPollResult);
   }
 
   enter() {
@@ -51,11 +49,11 @@ export class PaymentEntityPendingBehavior implements Behavior {
       }
     }
 
-    this.pollWorker.start();
+    this.updateWorker.start();
   }
 
   exit() {
-    this.pollWorker.stop();
+    this.updateWorker.stop();
   }
 
   onPollResult = (

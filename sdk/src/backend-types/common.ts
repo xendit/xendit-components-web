@@ -35,3 +35,9 @@ export type BffPollResponse = {
   succeeded_channel?: BffSucceededChannel;
   error_content?: BffErrorContent;
 };
+
+export type BffStreamEvent =
+  | { event: "heartbeat"; data: { timestamp: string } }
+  | { event: "update"; data: BffPollResponse }
+  | { event: "final"; data: BffPollResponse }
+  | { event: "error"; data: { error_code: string; message: string } };

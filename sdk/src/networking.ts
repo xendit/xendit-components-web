@@ -53,6 +53,35 @@ function convertDataToUrlSearchParams<T extends object>(data: T) {
   return params;
 }
 
+/**
+ * Builds the URL endpoint.
+ */
+export function buildEndpointUrl(
+  sdkKey: ParsedSdkKey,
+  path: string,
+  query: URLSearchParams = new URLSearchParams(),
+): URL {
+  const versionNumber = process.env.XENDIT_COMPONENTS_VERSION;
+  assert(versionNumber);
+  assert(versionNumber.startsWith("v"));
+
+  const hostId = sdkKey.hostId;
+  if (hostId === MOCK_HOST_ID) {
+    throw new Error("A network request was made in mock mode; this is a bug.");
+  }
+  const host = hostFromHostId(hostId);
+  if (!host) {
+    throw new Error(
+      `Unknown hostId ${hostId} in sdkKey; this is a bug, please contact support.`,
+    );
+  }
+
+  const url = new URL(path, host);
+  query.set("components_version", versionNumber);
+  url.search = query.toString();
+  return url;
+}
+
 // GET with path param
 export function endpoint<ResponseBody, PathArg>(
   method: "GET",
@@ -147,32 +176,16 @@ export function endpoint(
         );
     }
 
-    const versionNumber = process.env.XENDIT_COMPONENTS_VERSION;
-    assert(versionNumber);
-    assert(versionNumber.startsWith("v"));
-
-    const hostId = (sdkKey as ParsedSdkKey).hostId;
-    if (hostId === MOCK_HOST_ID) {
-      throw new Error(
-        "A network request was made in mock mode; this is a bug.",
-      );
-    }
-    const host = hostFromHostId(hostId);
-    if (!host) {
-      throw new Error(
-        `Unknown hostId ${hostId} in sdkKey; this is a bug, please contact support.`,
-      );
-    }
-
-    const url = new URL(getPath(pathArg), host);
     if (getQuery && !queryArg) {
       throw new Error(
         "Query string argument is missing; this is a bug, please contact support.",
       );
     }
-    const query = getQuery?.(queryArg) ?? new URLSearchParams();
-    query.set("components_version", versionNumber);
-    url.search = query.toString();
+    const url = buildEndpointUrl(
+      sdkKey as ParsedSdkKey,
+      getPath(pathArg),
+      getQuery?.(queryArg),
+    );
 
     const options: RequestInit = {
       method,
