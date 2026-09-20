@@ -27,6 +27,12 @@ if (isIframe) {
     sl: "https://checkout-ui-gateway-live.stg.tidnex.dev",
     sd: "https://checkout-ui-gateway-dev.stg.tidnex.dev",
   };
+  const paymentLinkUrls: Record<string, string> = {
+    pl: "https://checkout.xendit.co",
+    pd: "https://checkout-staging.xendit.co",
+    sl: "https://checkout-ui-live.stg.tidnex.dev",
+    sd: "https://checkout-ui-dev.stg.tidnex.dev",
+  };
   const env = queryString.get("env");
   const sessionAuthId = queryString.get("session_auth_id");
   const componentsVersion = queryString.get("components_version");
@@ -45,6 +51,16 @@ if (isIframe) {
     fetch(getSessionUrl.toString())
       .then((response) => response.json())
       .then((data) => {
+        const isPaymentLinkMode = data?.session?.mode === "PAYMENT_LINK";
+        if (isPaymentLinkMode && tokenRequestId) {
+          // handle first-party payment link
+          const paymentLinkUrl = `${paymentLinkUrls[env] ?? paymentLinkUrls["pl"]}/session/${sessionAuthId}`;
+          const target = new URL(paymentLinkUrl);
+          target.searchParams.set("token_request_id", tokenRequestId);
+          window.location.href = target.toString();
+          return;
+        }
+
         const returnUrl = data?.session?.components_configuration?.return_url;
         if (returnUrl && tokenRequestId) {
           const target = new URL(returnUrl);
