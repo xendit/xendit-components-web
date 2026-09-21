@@ -43,7 +43,10 @@ export const GraphicRedirectInstructions: FunctionComponent<
           strokeLinejoin="round"
         />
       </g>
-      <g ref={arrowSquareGroupRef} style={{ transformOrigin: "20px 20px" }}>
+      <g
+        ref={arrowSquareGroupRef}
+        style={{ transformOrigin: "20px 20px", willChange: "transform" }}
+      >
         <path
           d="M28.8177 6.00256H14.7777C12.193 6.00256 10.0977 8.09787 10.0977 10.6826V24.7226C10.0977 27.3073 12.193 29.4026 14.7777 29.4026H28.8177C31.4023 29.4026 33.4977 27.3073 33.4977 24.7226V10.6826C33.4977 8.09787 31.4024 6.00256 28.8177 6.00256Z"
           fill="white"
