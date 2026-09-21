@@ -102,20 +102,40 @@ export abstract class ContainerActionBehavior implements Behavior {
     };
   }
 
+  syncIsPopulatedAttribute(isPopulated: boolean) {
+    const actionContainer =
+      this.bb.sdk[internal].liveComponents.actionContainer;
+    if (isPopulated) {
+      actionContainer?.setAttribute("xendit-action-container-is-populated", "");
+    } else {
+      actionContainer?.removeAttribute("xendit-action-container-is-populated");
+    }
+  }
+
   syncIsQrWithCustomArtAttribute(
     defaultActionContainer: HTMLElement | null,
     isQrWithCustomArt: boolean,
   ) {
     // for qr with custom art, set a flag on both the defualt wrapper and the action container
     // (cast required because typescript doesn't know rendering the DefaultActionContianer created the component)
-    const actionContainer = this.bb.sdk[internal].liveComponents
-      .actionContainer as unknown as HTMLElement;
+    const actionContainer =
+      this.bb.sdk[internal].liveComponents.actionContainer;
     if (isQrWithCustomArt) {
-      actionContainer?.setAttribute("is-qr-with-custom-art", "");
-      defaultActionContainer?.setAttribute("is-qr-with-custom-art", "");
+      actionContainer?.setAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+        "",
+      );
+      defaultActionContainer?.setAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+        "",
+      );
     } else {
-      actionContainer?.removeAttribute("is-qr-with-custom-art");
-      defaultActionContainer?.removeAttribute("is-qr-with-custom-art");
+      actionContainer?.removeAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+      );
+      defaultActionContainer?.removeAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+      );
     }
   }
 
@@ -147,6 +167,7 @@ export abstract class ContainerActionBehavior implements Behavior {
       state.actionContainerDestroyTimer = null;
       if (state.actionContainer !== container) return;
       render(null, container);
+      this.syncIsPopulatedAttribute(false);
     }, MERCHANT_CONTAINER_DESTROY_DELAY_MS);
   }
 
@@ -177,6 +198,7 @@ export abstract class ContainerActionBehavior implements Behavior {
       );
     }
 
+    this.syncIsPopulatedAttribute(true);
     this.updateActionContainerBrandColor();
 
     // telemetry for start of action

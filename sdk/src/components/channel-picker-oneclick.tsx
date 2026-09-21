@@ -9,6 +9,7 @@ import { assert, usePrevious } from "../utils";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import { channelFilterFn, findChannelPairs } from "../bff-marshal";
 import { FunctionComponent } from "preact";
+import { GraphicQrScan } from "./graphic-qr-scan";
 
 interface ChannelPickerOneclickProps {
   group: BffChannelUiGroup;
@@ -77,11 +78,12 @@ export const ChannelPickerOneclick: FunctionComponent<
   }, [channelsInGroup, currentChannel?.channel_code, open, previousOpen, sdk]);
 
   return (
-    <div className="xendit-channel-picker-group">
+    <div className="xendit-channel-picker-group xendit-channel-picker-oneclick-group">
       <div
         className="xendit-channel-picker-oneclick-action-container"
         ref={actionContinerContainerRef}
       ></div>
+      <GraphicQrScan className="xendit-channel-picker-oneclick-pending-graphic" />
     </div>
   );
 };

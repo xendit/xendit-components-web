@@ -304,17 +304,44 @@ xendit-payment-channel select::placeholder {
   object-fit: contain;
 }
 
+.xendit-channel-picker-oneclick-group {
+  gap: 0;
+}
+
 .xendit-channel-picker-oneclick-action-container {
   max-width: 350px;
   margin: 0 auto;
-  margin-bottom: 16px;
+}
+
+.xendit-channel-picker-oneclick-action-container xendit-action-container {
+  /* hide until its loaded */
+  display: none;
 }
 
 .xendit-channel-picker-oneclick-action-container
-  xendit-action-container[is-qr-with-custom-art] {
+  xendit-action-container[xendit-action-container-is-populated] {
+  display: block;
+}
+
+.xendit-channel-picker-oneclick-action-container
+  xendit-action-container[xendit-action-container-is-qr-with-custom-art] {
   border: 1px solid var(--xendit-color-border);
   box-shadow: var(--xendit-card-shadow);
   border-radius: 8px;
+}
+
+.xendit-channel-picker-oneclick-pending-graphic {
+  height: 64px;
+  width: 64px;
+  margin: 0 auto;
+}
+
+.xendit-channel-picker-oneclick-action-container:has(
+    xendit-action-container[xendit-action-container-is-populated]
+  )
+  ~ .xendit-channel-picker-oneclick-pending-graphic {
+  /* hide loading graphic when the action container is populated */
+  display: none;
 }
 
 /* Payment channel */
@@ -1326,10 +1353,12 @@ xendit-channel-picker[inert] {
 }
 
 /* overrides for custom qr art */
-[is-qr-with-custom-art] .xendit-dialog-body {
+[xendit-action-container-is-qr-with-custom-art] .xendit-dialog-body {
   padding: 0;
 }
-[is-qr-with-custom-art] .xendit-dialog > .xendit-dialog-floating-close {
+[xendit-action-container-is-qr-with-custom-art]
+  .xendit-dialog
+  > .xendit-dialog-floating-close {
   display: none;
 }
 
