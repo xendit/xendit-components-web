@@ -1,3 +1,15 @@
+# 0.0.33
+
+### Notable
+
+Automatically expand a group or select a channel if there is only one available
+
+Added support for streaming session data
+
+### Bug Fixes
+
+- Bug fix for an unreleased feature
+
 # 0.0.32
 
 ### Notable
