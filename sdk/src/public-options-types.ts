@@ -1,5 +1,5 @@
 import { BffChannel, BffChannelUiGroup } from "./backend-types/channel";
-import { InterceptLocaleStringsFn } from "./localization";
+import { InterceptLocaleStringsFn, Locale } from "./localization";
 import { XenditDigitalWalletCode } from "./public-data-types";
 
 /**
@@ -33,6 +33,13 @@ export interface XenditSdkOptions {
    * Default `false`.
    */
   enablePaylinks?: boolean;
+
+  /**
+   * If set, loads the specified locale file at the same time as session initialization.
+   * This saves a round-trip if not using english. English is always loaded.
+   * If the preloaded locale doesn't match `session.locale`, english is used (but strings from the server remain localized).
+   */
+  preloadLocale?: Locale;
 
   /**
    * @internal
