@@ -2,8 +2,6 @@
 
 ### Notable
 
-Automatically expand a group or select a channel if there is only one available
-
 Added support for streaming session data
 
 ### Bug Fixes
