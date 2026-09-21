@@ -317,6 +317,10 @@ export function behaviorTreeForAction(bb: BlackboardType) {
           }
         }
         case "DEEPLINK_URL": {
+          if (bb.prefersRedirectAction) {
+            // do redirection even for deeplinks
+            return behaviorNode(ActionRedirectBehavior, action.value);
+          }
           return behaviorNode(ActionDeepLinkBehavior, String(actionIndex));
         }
         case "WEB_GOOGLE_PAYLINK": {
