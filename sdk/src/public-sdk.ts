@@ -495,6 +495,9 @@ export class XenditComponents extends EventTarget {
             // The succeeded channel is only known after the poll
             resumeSucceededChannel = pollResult.succeeded_channel ?? null;
             this[internal].behaviorTree.bb.resuming = true;
+          } else if (bff.session.status !== pollResult.session.status) {
+            bff.session = pollResult.session;
+            bff.succeeded_channel = pollResult.succeeded_channel;
           }
         } catch {
           // we can't read the error code here, but most likely the token_request_id is from another session
