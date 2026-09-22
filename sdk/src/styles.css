@@ -1311,6 +1311,13 @@ xendit-channel-picker[inert] {
   position: relative;
   z-index: var(--xendit-z-index-overlay);
 }
+.xendit-action-qr-status-text {
+  margin-top: 8px;
+}
+.xendit-action-qr-text-button {
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 /* barcode actions */
 .xendit-action-barcode-channel-logo {
