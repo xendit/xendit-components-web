@@ -482,6 +482,11 @@ export class XenditComponents extends EventTarget {
             this[internal].sdkKey.sessionAuthKey,
             resumeParams.tokenRequestId,
           );
+          // Handle when the session changed status on the first poll
+          if (pollResult.session.status !== "ACTIVE") {
+            this.dispatchEvent(new InternalUpdateWorldState(pollResult));
+            return;
+          }
           const resumeState = resolveResumeState(
             pollResult,
             resumeParams.tokenRequestId,
