@@ -1,3 +1,9 @@
+# 0.0.35
+
+### Bug Fixes
+
+- Handle changed session status on resume first poll
+
 # 0.0.34
 
 ### Bug Fixes
