@@ -1,20 +1,49 @@
 import { ChannelFormField } from "./backend-types/channel";
 import en from "./locale/en.json";
-import id from "./locale/id.json";
-import th from "./locale/th.json";
-import vi from "./locale/vi.json";
-import es from "./locale/es.json";
+
+/** @public */
+export type Locale = "en" | "id" | "th" | "vi" | "es";
 
 const localeMap: {
-  en: typeof en.session;
-  [locale: string]: Partial<typeof en.session>;
+  // all keys must be present in english but are optional in others
+  [K in Locale]: K extends "en"
+    ? typeof en.session
+    : Partial<typeof en.session>;
 } = {
   en: en.session,
-  id: id.session,
-  th: th.session,
-  vi: vi.session,
-  es: es.session,
+  id: {},
+  th: {},
+  vi: {},
+  es: {},
 };
+
+function isLocale(locale: string): locale is Locale {
+  return locale in localeMap;
+}
+
+export async function loadLocale(locale: string) {
+  let data: Partial<typeof en.session> | null = null;
+  switch (locale) {
+    case "en":
+      return;
+    case "id":
+      data = (await import("./locale/id.json")).session;
+      break;
+    case "th":
+      data = (await import("./locale/th.json")).session;
+      break;
+    case "vi":
+      data = (await import("./locale/vi.json")).session;
+      break;
+    case "es":
+      data = (await import("./locale/es.json")).session;
+      break;
+    default:
+      // unknown locale, this is ok because a new locale might have been added to the api
+      return;
+  }
+  localeMap[locale] = data;
+}
 
 export type InterceptLocaleStringsFn = (
   strings: Partial<(typeof localeMap)["en"]>,
@@ -50,9 +79,10 @@ export function createTFunction(
   locale: string,
   interceptLocaleStrings: InterceptLocaleStringsFn | undefined,
 ): TFunction {
-  const localeData = interceptLocaleStrings
-    ? interceptLocaleStrings(localeMap[locale])
-    : localeMap[locale];
+  const resolvedLocale: Locale = isLocale(locale) ? locale : "en";
+  const interceptFn = interceptLocaleStrings ?? ((obj) => obj);
+  const localeData = interceptFn(localeMap[resolvedLocale]);
+
   const tFn: TFunction = function (...args: unknown[]) {
     let key: keyof typeof en.session;
     let fallback: string | undefined;

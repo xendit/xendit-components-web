@@ -143,6 +143,7 @@ if (savedKey) {
     enablePaylinks: true,
     resume: savedResume,
     logTelemetryEvents: true,
+    // preloadLocale: "id",
   });
 } else {
   components = new XenditComponentsTest({

@@ -112,7 +112,7 @@ import {
   getChannelCodesForTelemetry,
 } from "./bff-marshal";
 import { BffCardDetails } from "./backend-types/card-details";
-import { createTFunction, TFunction } from "./localization";
+import { createTFunction, loadLocale, Locale, TFunction } from "./localization";
 import { amountFormat as _amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { DigitalWalletContainer } from "./components/digital-wallet-container";
@@ -412,8 +412,13 @@ export class XenditComponents extends EventTarget {
    * Initialize session data asynchronously
    */
   protected async initializeAsync(): Promise<void> {
-    // Start loading libphonenumber-js in the background
+    // Start loading libphonenumber and locale data in the background
     preloadLibphonenumber();
+
+    let localeDataPromise = this[internal].options.preloadLocale
+      ? loadLocale(this[internal].options.preloadLocale)
+      : null;
+
     let bff: BffResponse;
     try {
       // Fetch session data from the server
@@ -512,10 +517,14 @@ export class XenditComponents extends EventTarget {
         }
       }
     }
+    const session = resumeSession ?? bff.session;
 
-    // Wait for libphonenumber-js
+    // if we didn't already preload the locale, load it now
+    localeDataPromise = localeDataPromise ?? loadLocale(session.locale);
+
+    // Wait for background loaded js
     try {
-      await getLibphonenumber();
+      await Promise.all([getLibphonenumber(), localeDataPromise]);
     } catch (error) {
       this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
@@ -532,7 +541,7 @@ export class XenditComponents extends EventTarget {
       getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(true));
     } else {
       const channelList = getChannelCodesForTelemetry(
-        resumeSession ?? bff.session,
+        session,
         bff.channels,
         null,
       );
@@ -546,7 +555,7 @@ export class XenditComponents extends EventTarget {
       new InternalUpdateWorldState({
         business: bff.business,
         customer: bff.customer,
-        session: resumeSession ?? bff.session,
+        session: session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
         digitalWallets: bff.digital_wallets ?? null,
@@ -626,8 +635,13 @@ export class XenditComponents extends EventTarget {
       data,
     );
 
-    // update locale
-    const locale = this[internal].worldState.session.locale;
+    let locale = this[internal].worldState.session.locale;
+
+    // if preload was requested but it doesn't match the session, fallback to english
+    const preloadLocale = this[internal].options.preloadLocale;
+    if (preloadLocale && preloadLocale !== locale) locale = "en";
+
+    // update t fn
     this.t = createTFunction(
       locale,
       this[internal].options.interceptLocaleStrings,
@@ -2194,8 +2208,11 @@ export class XenditComponentsTest extends XenditComponents {
     bff.channels = intercepted.channels;
     bff.channel_ui_groups = intercepted.channel_ui_groups;
 
-    // Wait for libphonenumber-js so fields can assume it's already loaded
-    await getLibphonenumber();
+    // load locale data
+    const localeDataPromise = loadLocale(bff.session.locale);
+
+    // Wait for libphonenumber-js and locale data so fields can assume they are loaded
+    await Promise.all([getLibphonenumber(), localeDataPromise]);
 
     // telemetry
     const availableChannels = getChannelCodesForTelemetry(
@@ -2259,4 +2276,4 @@ export function amountFormat(amount: number, currency: string): string {
 }
 
 // re-exports
-export type { ChannelProperties, ChannelPropertyPrimative };
+export type { ChannelProperties, ChannelPropertyPrimative, Locale };
