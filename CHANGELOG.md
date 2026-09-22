@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-- Handle changed session status on resume first poll
+- Fix race condition when using `resume: true`
 
 # 0.0.34
 
