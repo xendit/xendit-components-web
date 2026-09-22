@@ -57,6 +57,9 @@ if (isIframe) {
           const paymentLinkUrl = `${paymentLinkUrls[env] ?? paymentLinkUrls["pl"]}/session/${sessionAuthId}`;
           const target = new URL(paymentLinkUrl);
           target.searchParams.set("token_request_id", tokenRequestId);
+          if (componentStatus) {
+            target.searchParams.set("component_status", componentStatus);
+          }
           window.location.href = target.toString();
           return;
         }
