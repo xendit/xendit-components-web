@@ -1,3 +1,9 @@
+# 0.0.34
+
+### Bug Fixes
+
+- Bug fix for an unreleased feature
+
 # 0.0.33
 
 ### Notable
