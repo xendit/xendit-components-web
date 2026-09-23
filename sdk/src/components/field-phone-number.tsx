@@ -134,8 +134,15 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
 
   function handleLocalChange(event: TargetedEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
-    setLocalNumber(nextLocal);
-    updateHiddenField(country, nextLocal);
+    const synced = nextLocal.trimStart().startsWith("+")
+      ? formatForUser(country, nextLocal)
+      : null;
+    if (synced) {
+      updateHiddenField(synced.country, synced.localNumber);
+    } else {
+      setLocalNumber(nextLocal);
+      updateHiddenField(country, nextLocal);
+    }
     onChange();
   }
 
@@ -176,7 +183,10 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
     );
   }
 
-  function formatForUser(_country = country, _localNumber = localNumber) {
+  function formatForUser(
+    _country = country,
+    _localNumber = localNumber,
+  ): { country: DropdownOptionWithDial; localNumber: string } | null {
     const lib = getLoadedLibphonenumber();
     const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
     if (phoneNumber) {
@@ -192,13 +202,14 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
       }
       const international = phoneNumber.formatInternational();
       // remove country dial code from displayed local number
-      setLocalNumber(
-        international.replace(
-          `+${lib.getCountryCallingCode(_country.value as CountryCode)} `,
-          "",
-        ),
+      const formattedLocalNumber = international.replace(
+        `+${lib.getCountryCallingCode(_country.value as CountryCode)} `,
+        "",
       );
+      setLocalNumber(formattedLocalNumber);
+      return { country: _country, localNumber: formattedLocalNumber };
     }
+    return null;
   }
 
   // on first render, populate hidden input and notify parent component of initial value
