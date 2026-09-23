@@ -1,3 +1,15 @@
+# 0.0.35
+
+### Bug Fixes
+
+- Fix race condition when using `resume: true`
+
+# 0.0.34
+
+### Bug Fixes
+
+- Bug fix for an unreleased feature
+
 # 0.0.33
 
 ### Notable
