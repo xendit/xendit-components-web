@@ -134,9 +134,10 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
 
   function handleLocalChange(event: TargetedEvent<HTMLInputElement>): void {
     const nextLocal = (event.target as HTMLInputElement).value;
-    const synced = nextLocal.trimStart().startsWith("+")
-      ? formatForUser(country, nextLocal)
-      : null;
+    const synced =
+      (event as unknown as InputEvent).inputType === "insertFromPaste"
+        ? formatForUser(country, nextLocal)
+        : null;
     if (synced) {
       updateHiddenField(synced.country, synced.localNumber);
     } else {
@@ -158,6 +159,19 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
     if (event.currentTarget?.value) {
       hiddenFieldRef.current?.dispatchEvent(new InternalSetFieldTouchedEvent());
     }
+  }
+
+  // a browser autofill fills the field without typing and announces it with a change event
+  function handleNativeChange(event: TargetedEvent<HTMLInputElement>): void {
+    const nextLocal = (event.target as HTMLInputElement).value;
+    const synced = formatForUser(country, nextLocal);
+    if (synced) {
+      updateHiddenField(synced.country, synced.localNumber);
+    } else {
+      setLocalNumber(nextLocal);
+      updateHiddenField(country, nextLocal);
+    }
+    onChange();
   }
 
   // when the user inputs a card number, update the phone number field to match
@@ -189,7 +203,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
   ): { country: DropdownOptionWithDial; localNumber: string } | null {
     const lib = getLoadedLibphonenumber();
     const phoneNumber = sanitizePhoneNumber(_country, _localNumber);
-    if (phoneNumber) {
+    if (phoneNumber && phoneNumber.isValid()) {
       // sync the dropdown if the number is from a different country
       if (phoneNumber.country && phoneNumber.country !== _country.value) {
         const matchedCountry = countriesWithDialCodesAsDropdownOptions.find(
@@ -243,6 +257,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         className="xendit-text-14 xendit-form-field-inner xendit-phone-number-input"
         onBlur={handleBlur}
         onChange={handleLocalChange}
+        onChangeCapture={handleNativeChange}
         value={localNumber}
         autoComplete="tel"
       />
