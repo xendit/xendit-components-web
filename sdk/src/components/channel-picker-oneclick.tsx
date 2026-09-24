@@ -81,12 +81,16 @@ export const ChannelPickerOneclick: FunctionComponent<
   function renderErrorMessage(message: string[]) {
     return (
       <div className="xendit-channel-picker-oneclick-group-error-message xendit-text-12">
-        {message.map((str, i) => (
-          <>
-            {i > 0 ? <br /> : null}
-            {str}
-          </>
-        ))}
+        {message.map((str, i) =>
+          i === 0 ? (
+            <span className="xendit-text-semibold xendit-text-14">{str}</span>
+          ) : (
+            <>
+              <br />
+              {str}
+            </>
+          ),
+        )}
       </div>
     );
   }

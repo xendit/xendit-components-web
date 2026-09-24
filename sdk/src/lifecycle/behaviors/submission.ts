@@ -425,7 +425,11 @@ async function asyncSubmit(
 }
 
 function defaultUserErrorMessage(t: TFunction): string[] {
-  return [t("default_error.message_1"), t("default_error.message_2")];
+  return [
+    t("default_error.title"),
+    t("default_error.message_1"),
+    t("default_error.message_2"),
+  ];
 }
 
 function failureCodeUserErrorMessage(
