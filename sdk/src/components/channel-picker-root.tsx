@@ -218,7 +218,6 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
 
     const submissionEndListener = (_event: Event) => {
       const event = _event as InternalOneclickSubmissionEndEvent;
-      console.log(event);
       if (event.userErrorMessage) {
         setOneclickErrorMessage(event.userErrorMessage);
       }
