@@ -15,6 +15,7 @@ import { BffSessionType } from "../../backend-types/session";
 import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
+  InternalOneclickSubmissionEndEvent,
   InternalScheduleMockUpdateEvent,
   InternalUpdateWorldState,
 } from "../../private-event-types";
@@ -190,7 +191,14 @@ export class SubmissionBehavior implements Behavior {
         );
         break;
       case "oneclick":
-        // do nothing
+        // fire different event name for oneclick
+        this.bb.dispatchEvent(
+          new InternalOneclickSubmissionEndEvent(
+            reason,
+            userErrorMessage,
+            developerErrorMessage,
+          ),
+        );
         break;
     }
 
@@ -417,11 +425,7 @@ async function asyncSubmit(
 }
 
 function defaultUserErrorMessage(t: TFunction): string[] {
-  return [
-    t("default_error.title"),
-    t("default_error.message_1"),
-    t("default_error.message_2"),
-  ];
+  return [t("default_error.message_1"), t("default_error.message_2")];
 }
 
 function failureCodeUserErrorMessage(

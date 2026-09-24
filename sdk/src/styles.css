@@ -308,6 +308,11 @@ xendit-payment-channel select::placeholder {
   gap: 0;
 }
 
+.xendit-channel-picker-oneclick-group-error-message {
+  color: var(--xendit-color-danger);
+  text-align: center;
+}
+
 .xendit-channel-picker-oneclick-action-container {
   max-width: 350px;
   margin: 0 auto;

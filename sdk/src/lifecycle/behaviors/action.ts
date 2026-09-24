@@ -117,7 +117,6 @@ export abstract class ContainerActionBehavior implements Behavior {
     isQrWithCustomArt: boolean,
   ) {
     // for qr with custom art, set a flag on both the defualt wrapper and the action container
-    // (cast required because typescript doesn't know rendering the DefaultActionContianer created the component)
     const actionContainer =
       this.bb.sdk[internal].liveComponents.actionContainer;
     if (isQrWithCustomArt) {

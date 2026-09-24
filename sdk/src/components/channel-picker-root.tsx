@@ -33,13 +33,14 @@ import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wall
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
 import { ChannelPickerOneclick } from "./channel-picker-oneclick";
+import { InternalOneclickSubmissionEndEvent } from "../private-event-types";
 
 type Props = {
   enableOneClickQr: boolean;
 };
 
 export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
-  const { enableOneClickQr } = props;
+  const { enableOneClickQr: enableOneclickQr } = props;
   const sdk = useSdk();
   const telemetry = getTelemetry(sdk);
   const session = useSession();
@@ -176,10 +177,13 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   }, [currentChannel, previewGroupId]);
 
   const openGroupId = selectedGroupId ?? previewGroupId;
-  const isOneClick =
+  const isOneclick =
     openGroupId !== null &&
-    enableOneClickQr &&
+    enableOneclickQr &&
     enableOneclickForGroup(session, channelsByGroup[openGroupId]);
+  const [oneclickErrorMessage, setOneclickErrorMessage] = useState<
+    string[] | null
+  >(null);
 
   // if a preview group is alrady set on the first render, fire telemetry for it
   useLayoutEffect(() => {
@@ -194,7 +198,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
 
   // select the instantOpen channel if any (first render only)
   useLayoutEffect(() => {
-    if (currentChannel === null && instantOpen?.channel && !isOneClick) {
+    if (currentChannel === null && instantOpen?.channel && !isOneclick) {
       // Select the channel on the next tick. This isn't ideal, I'd like to select it on the current tick but that's not safe, it will recursively render.
       setTimeout(() => {
         sdk.setCurrentChannel(
@@ -206,9 +210,25 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   }, []);
 
   // did this render trigger a oneclick group to open? if so begin oneclick flow
-  const previousIsOneClick = usePrevious(isOneClick);
+  const previousIsOneclick = usePrevious(isOneclick);
   useLayoutEffect(() => {
-    if (!(isOneClick && !previousIsOneClick)) return;
+    if (!(isOneclick && !previousIsOneclick)) return;
+
+    setOneclickErrorMessage(null);
+
+    const submissionEndListener = (_event: Event) => {
+      const event = _event as InternalOneclickSubmissionEndEvent;
+      console.log(event);
+      if (event.userErrorMessage) {
+        setOneclickErrorMessage(event.userErrorMessage);
+      }
+    };
+    const removeListener = () => {
+      (sdk as EventTarget).removeEventListener(
+        InternalOneclickSubmissionEndEvent.type,
+        submissionEndListener,
+      );
+    };
 
     setTimeout(() => {
       // make channel object
@@ -219,19 +239,28 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
       // select channel
       sdk.setCurrentChannel(ch);
 
+      (sdk as EventTarget).addEventListener(
+        InternalOneclickSubmissionEndEvent.type,
+        submissionEndListener,
+      );
+
       // do submission
       try {
         sdk.submitOneclick();
       } catch (_e) {
-        // dont care
+        removeListener();
       }
     }, 0);
+
+    return () => {
+      removeListener();
+    };
   }, [
     channelsByGroup,
-    isOneClick,
+    isOneclick,
     marshalConfig,
     openGroupId,
-    previousIsOneClick,
+    previousIsOneclick,
     sdk,
   ]);
 
@@ -268,7 +297,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
             );
 
             const enableOneclick =
-              enableOneClickQr &&
+              enableOneclickQr &&
               enableOneclickForGroup(session, channelsByGroup[group.id]);
 
             return (
@@ -283,7 +312,11 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
                 channelLogos={channelLogos}
               >
                 {enableOneclick ? (
-                  <ChannelPickerOneclick group={group} open={open} />
+                  <ChannelPickerOneclick
+                    group={group}
+                    open={open}
+                    errorMessage={oneclickErrorMessage}
+                  />
                 ) : (
                   <ChannelPickerGroup group={group} open={open} />
                 )}

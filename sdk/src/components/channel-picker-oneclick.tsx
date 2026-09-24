@@ -14,12 +14,13 @@ import { GraphicQrScan } from "./graphic-qr-scan";
 interface ChannelPickerOneclickProps {
   group: BffChannelUiGroup;
   open: boolean;
+  errorMessage: string[] | null;
 }
 
 export const ChannelPickerOneclick: FunctionComponent<
   ChannelPickerOneclickProps
 > = (props) => {
-  const { group, open } = props;
+  const { group, open, errorMessage } = props;
 
   const sdk = useSdk();
   const session = useSession();
@@ -77,13 +78,31 @@ export const ChannelPickerOneclick: FunctionComponent<
     }
   }, [channelsInGroup, currentChannel?.channel_code, open, previousOpen, sdk]);
 
+  function renderErrorMessage(message: string[]) {
+    return (
+      <div className="xendit-channel-picker-oneclick-group-error-message xendit-text-12">
+        {message.map((str, i) => (
+          <>
+            {i > 0 ? <br /> : null}
+            {str}
+          </>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="xendit-channel-picker-group xendit-channel-picker-oneclick-group">
+      {errorMessage ? renderErrorMessage(errorMessage) : null}
       <div
+        style={{ display: errorMessage ? "none" : "" }}
         className="xendit-channel-picker-oneclick-action-container"
         ref={actionContinerContainerRef}
       ></div>
-      <GraphicQrScan className="xendit-channel-picker-oneclick-pending-graphic" />
+      <GraphicQrScan
+        style={{ display: errorMessage ? "none" : "" }}
+        className="xendit-channel-picker-oneclick-pending-graphic"
+      />
     </div>
   );
 };
