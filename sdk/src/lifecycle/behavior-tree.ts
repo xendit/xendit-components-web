@@ -73,12 +73,12 @@ export type BlackboardType = {
   dispatchEvent(event: Event): boolean;
 
   // flags
-  // if true, start a submission, if false abort submission
-  submissionRequested: boolean;
-  // if true, the SDK is resuming a previous (failed) payment attempt after a
-  // redirect; skip submitting and let the tree route straight to the failure
-  // behavior. Distinct from submissionRequested, which means "submit now".
-  resuming: boolean;
+  // if set, triggers a submission, if false aborts the submission
+  // there are different kinds of submission:
+  //  - normal: usual submission flow
+  //  - resume: same but without actually sending the submission, assumes it was already sent
+  //  - oneclick: same but without firing submission events or inertifying the ui
+  submissionRequested: "normal" | "resume" | "oneclick" | false;
   // if true, start simulate payment, if false abort simulate payment
   simulatePaymentRequested: boolean;
   // if true, do not show the current action UI
@@ -123,7 +123,7 @@ export function behaviorTreeForSession(bb: BlackboardType) {
       return behaviorNode(
         SessionActiveBehavior,
         "active",
-        bb.submissionRequested || bb.resuming
+        bb.submissionRequested
           ? behaviorTreeForSubmission(bb)
           : behaviorTreeForForm(bb),
       );
@@ -155,6 +155,10 @@ export function behaviorTreeForForm(bb: BlackboardType) {
   }
 
   if (bb.channelIsDigitalWallet) {
+    return undefined;
+  }
+
+  if (bb.channelData?.isOneclick) {
     return undefined;
   }
 
@@ -212,7 +216,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
 
   function maybePaylinkAction() {
     assert(bb.world?.paymentEntity);
-    if (bb.resuming) return undefined;
+    if (bb.submissionRequested === "resume") return undefined; // no paylinks on resume, we've already paid
     return findPaylinkAction(bb.sdk, bb.world.paymentEntity.entity.actions)
       ? behaviorTreeForPaylink(bb)
       : undefined;
@@ -275,7 +279,7 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
 export function behaviorTreeForAction(bb: BlackboardType) {
   assert(bb.world?.paymentEntity);
 
-  if (bb.actionCompleted || bb.resuming) {
+  if (bb.actionCompleted || bb.submissionRequested === "resume") {
     // action completed is for when we want to close the action UI and go back to polling
     return behaviorNode(ActionCompletedBehavior);
   }

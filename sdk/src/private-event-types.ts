@@ -117,3 +117,22 @@ export class InternalPopulateFieldForSimulationEvent extends Event {
     super(InternalPopulateFieldForSimulationEvent.type, { bubbles: false });
   }
 }
+
+/**
+ * @internal
+ * Same as XenditSubmissionEndEvent but fired in oneclick mode.
+ */
+export class InternalOneclickSubmissionEndEvent extends Event {
+  static type = "xendit-oneclick-submission-end" as const;
+
+  constructor(
+    public reason: string,
+    public userErrorMessage?: string[],
+    public developerErrorMessage?: {
+      type: "NETWORK_ERROR" | "ERROR" | "FAILURE";
+      code: string;
+    },
+  ) {
+    super(InternalOneclickSubmissionEndEvent.type, {});
+  }
+}

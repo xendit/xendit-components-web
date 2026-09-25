@@ -33,9 +33,7 @@ export abstract class ContainerActionBehavior implements Behavior {
    * Creates a default action container if the user has not created one already.
    * Returns a cleanup function that destroys the default action container if it was created.
    */
-  ensureHasActionContainer(
-    defaultActionContainerType: DefaultActionContainerType = DefaultActionContainerType.Generic,
-  ) {
+  ensureHasActionContainer(isQrWithCustomArt: boolean = false) {
     assert(this.bb.channel);
 
     if (this.bb.sdk[internal].liveComponents.actionContainer) {
@@ -44,6 +42,9 @@ export abstract class ContainerActionBehavior implements Behavior {
       // clear the previous action's contents before reusing container
       this.flushPendingContainerDestroy();
       this.flushPendingInstructionsContainerDestroy();
+
+      this.syncIsQrWithCustomArtAttribute(null, isQrWithCustomArt);
+
       return () => {
         this.emptyActionContainer();
       };
@@ -52,29 +53,34 @@ export abstract class ContainerActionBehavior implements Behavior {
     let cleanedUp = false;
     let success = false;
 
-    const container = document.createElement("div");
-    container.setAttribute("class", "xendit-default-action-container");
+    const defaultActionContainer = document.createElement("div");
 
     const props: Parameters<typeof DefaultActionContainer>[0] = {
       sdk: this.bb.sdk,
       title: this.title,
       width: this.defaultContainerWidth,
       height: this.defaultContainerHeight,
-      borderColor: undefined, // needs some design feedback
-      // borderColor: this.bb.channel.brand_color,
-      defaultActionContainerType,
+      borderColor: undefined,
       onClose: () => {
         cleanedUp = true;
-        render(null, container);
-        container.remove();
+        render(null, defaultActionContainer);
+        defaultActionContainer.remove();
         if (!success) {
           this.bb.sdk.abortSubmission();
         }
       },
     };
 
-    render(createElement(DefaultActionContainer, props), container);
-    document.body.appendChild(container);
+    render(
+      createElement(DefaultActionContainer, props),
+      defaultActionContainer,
+    );
+    document.body.appendChild(defaultActionContainer);
+
+    this.syncIsQrWithCustomArtAttribute(
+      defaultActionContainer,
+      isQrWithCustomArt,
+    );
 
     // Cleanup function
     // (if actionCancelledByUser is true, abort the submission after the modal closes)
@@ -91,9 +97,45 @@ export abstract class ContainerActionBehavior implements Behavior {
           ...props,
           close: true,
         }),
-        container,
+        defaultActionContainer,
       );
     };
+  }
+
+  syncIsPopulatedAttribute(isPopulated: boolean) {
+    const actionContainer =
+      this.bb.sdk[internal].liveComponents.actionContainer;
+    if (isPopulated) {
+      actionContainer?.setAttribute("xendit-action-container-is-populated", "");
+    } else {
+      actionContainer?.removeAttribute("xendit-action-container-is-populated");
+    }
+  }
+
+  syncIsQrWithCustomArtAttribute(
+    defaultActionContainer: HTMLElement | null,
+    isQrWithCustomArt: boolean,
+  ) {
+    // for qr with custom art, set a flag on both the defualt wrapper and the action container
+    const actionContainer =
+      this.bb.sdk[internal].liveComponents.actionContainer;
+    if (isQrWithCustomArt) {
+      actionContainer?.setAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+        "",
+      );
+      defaultActionContainer?.setAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+        "",
+      );
+    } else {
+      actionContainer?.removeAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+      );
+      defaultActionContainer?.removeAttribute(
+        "xendit-action-container-is-qr-with-custom-art",
+      );
+    }
   }
 
   cleanupActionContainer(cancelledByUser: boolean) {
@@ -124,6 +166,7 @@ export abstract class ContainerActionBehavior implements Behavior {
       state.actionContainerDestroyTimer = null;
       if (state.actionContainer !== container) return;
       render(null, container);
+      this.syncIsPopulatedAttribute(false);
     }, MERCHANT_CONTAINER_DESTROY_DELAY_MS);
   }
 
@@ -154,6 +197,7 @@ export abstract class ContainerActionBehavior implements Behavior {
       );
     }
 
+    this.syncIsPopulatedAttribute(true);
     this.updateActionContainerBrandColor();
 
     // telemetry for start of action
