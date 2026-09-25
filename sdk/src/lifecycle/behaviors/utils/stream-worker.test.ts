@@ -87,10 +87,17 @@ function startWorker(
   onResult: Mock<OnResult> = vi.fn<OnResult>(),
   workerSdk: XenditComponents = sdk,
 ) {
-  const worker = new StreamWorker(sdkKey, workerSdk, "tok-1", onResult);
+  const onHeartbeat = vi.fn<() => void>();
+  const worker = new StreamWorker(
+    sdkKey,
+    workerSdk,
+    "tok-1",
+    onResult,
+    onHeartbeat,
+  );
   workers.push(worker);
   worker.start();
-  return { worker, onResult };
+  return { worker, onResult, onHeartbeat };
 }
 
 beforeEach(() => {
@@ -165,6 +172,31 @@ describe("StreamWorker - normal flow", () => {
     source.send("final", sessionOnly);
 
     expect(onResult).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("StreamWorker - heartbeats", () => {
+  it("reports each heartbeat, but not the open event or updates", () => {
+    const [source] = queueSources(1);
+    const { onHeartbeat } = startWorker();
+
+    source.open();
+    source.send("update", sessionOnly);
+    expect(onHeartbeat).not.toHaveBeenCalled();
+
+    source.send("heartbeat", heartbeat);
+    source.send("heartbeat", heartbeat);
+    expect(onHeartbeat).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores a heartbeat from a stream it already closed", () => {
+    const [source] = queueSources(1);
+    const { worker, onHeartbeat } = startWorker();
+
+    worker.stop();
+    source.send("heartbeat", heartbeat);
+
+    expect(onHeartbeat).not.toHaveBeenCalled();
   });
 });
 

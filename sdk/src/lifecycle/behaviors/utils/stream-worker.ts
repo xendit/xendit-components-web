@@ -50,6 +50,8 @@ export class StreamWorker implements SessionUpdateWorker {
       result: BffPollResponse,
       paymentEntity: BffPaymentEntity | null,
     ) => void,
+    // the server sends a heartbeat only after it checked the session and found nothing final
+    private onHeartbeat: () => void,
   ) {}
 
   start() {
@@ -106,6 +108,7 @@ export class StreamWorker implements SessionUpdateWorker {
       this.healthy = true;
       this.drops = 0;
       this.resetWatchdog();
+      this.onHeartbeat();
     });
     listen("update", (event) => this.deliver(event as MessageEvent, false));
     listen("final", (event) => this.deliver(event as MessageEvent, true));
