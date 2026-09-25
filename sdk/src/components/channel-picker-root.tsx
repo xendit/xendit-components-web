@@ -86,6 +86,24 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     instantOpen?.group ?? null,
   );
 
+  // actual visibly open group
+  const openGroupId = selectedGroupId ?? previewGroupId;
+  const previousOpenGroupId = usePrevious(openGroupId) ?? null;
+
+  // groups that use the oneclick feature
+  const oneclickGroups = useMemo(() => {
+    const set = new Set<string | null>();
+    for (const [k, v] of Object.entries(channelsByGroup)) {
+      if (enableOneclickForGroup(enableOneclickQr, v)) {
+        set.add(k);
+      }
+    }
+    return set;
+  }, [channelsByGroup, enableOneclickQr]);
+  const [oneclickErrorMessage, setOneclickErrorMessage] = useState<
+    string[] | null
+  >(null);
+
   const telemetryScopeForGroup = useRef<SessionTelemetryScope | null>(null);
   const telemetryForGroupClear = useCallback(() => {
     if (telemetryScopeForGroup.current) {
@@ -139,7 +157,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
         if (enabledChannels === 0) {
           // no enabled channels, do nothing
           return;
-        } else if (enabledChannels === 1) {
+        } else if (enabledChannels === 1 && !oneclickGroups.has(newGroup.id)) {
           // one enabled channel, select it automatically
           const ch = channelsByGroup[groupId][0];
           telemetryForGroupChange(newGroup.label, groupId);
@@ -158,6 +176,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
       channels,
       channelsByGroup,
       marshalConfig,
+      oneclickGroups,
       previewGroupId,
       sdk,
       selectedGroupId,
@@ -176,15 +195,6 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     }
   }, [currentChannel, previewGroupId]);
 
-  const openGroupId = selectedGroupId ?? previewGroupId;
-  const isOneclick =
-    openGroupId !== null &&
-    enableOneclickQr &&
-    enableOneclickForGroup(session, channelsByGroup[openGroupId]);
-  const [oneclickErrorMessage, setOneclickErrorMessage] = useState<
-    string[] | null
-  >(null);
-
   // if a preview group is alrady set on the first render, fire telemetry for it
   useLayoutEffect(() => {
     if (previewGroupId) {
@@ -198,7 +208,11 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
 
   // select the instantOpen channel if any (first render only)
   useLayoutEffect(() => {
-    if (currentChannel === null && instantOpen?.channel && !isOneclick) {
+    if (
+      currentChannel === null &&
+      instantOpen?.channel &&
+      !oneclickGroups.has(instantOpen.channel.ui_group)
+    ) {
       // Select the channel on the next tick. This isn't ideal, I'd like to select it on the current tick but that's not safe, it will recursively render.
       setTimeout(() => {
         sdk.setCurrentChannel(
@@ -210,9 +224,16 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   }, []);
 
   // did this render trigger a oneclick group to open? if so begin oneclick flow
-  const previousIsOneclick = usePrevious(isOneclick);
   useLayoutEffect(() => {
-    if (!(isOneclick && !previousIsOneclick)) return;
+    if (!openGroupId) return;
+    if (
+      !(
+        oneclickGroups.has(openGroupId) &&
+        !oneclickGroups.has(previousOpenGroupId)
+      )
+    ) {
+      return;
+    }
 
     setOneclickErrorMessage(null);
 
@@ -236,7 +257,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
         marshalConfig,
       );
       // select channel
-      sdk.setCurrentChannel(ch);
+      sdk.setCurrentChannel(ch, { noCache: true, isOneclick: true });
 
       (sdk as EventTarget).addEventListener(
         InternalOneclickSubmissionEndEvent.type,
@@ -256,10 +277,10 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     };
   }, [
     channelsByGroup,
-    isOneclick,
     marshalConfig,
+    oneclickGroups,
     openGroupId,
-    previousIsOneclick,
+    previousOpenGroupId,
     sdk,
   ]);
 
@@ -295,9 +316,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
               channelsByGroup[group.id],
             );
 
-            const enableOneclick =
-              enableOneclickQr &&
-              enableOneclickForGroup(session, channelsByGroup[group.id]);
+            const enableOneclick = oneclickGroups.has(group.id);
 
             return (
               <AccordionItem
@@ -385,11 +404,16 @@ function resolveChannelLogosForGroup(
   return logos;
 }
 
-function enableOneclickForGroup(session: BffSession, channels: BffChannel[]) {
+export function enableOneclickForGroup(
+  enableOneclickUserOption: boolean,
+  channelsInGroup: BffChannel[],
+) {
+  if (!enableOneclickUserOption) return false;
+
   return (
-    channels.length === 1 &&
-    channels[0].pm_type === "QR_CODE" &&
-    channels[0].form.length === 0
+    channelsInGroup.length === 1 &&
+    channelsInGroup[0].pm_type === "QR_CODE" &&
+    channelsInGroup[0].form.length === 0
   );
 }
 

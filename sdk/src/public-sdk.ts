@@ -148,6 +148,7 @@ type CachedChannelComponent = {
  * Properties of a component updatable by events
  */
 export type ChannelComponentData = {
+  isOneclick: boolean;
   savePaymentMethod: boolean;
   cardBin: string | null;
   cardDetails: {
@@ -975,9 +976,18 @@ export class XenditComponents extends EventTarget {
    * document.querySelector(".payment-container").appendChild(paymentComponent);
    * ```
    */
+  createChannelComponent(channel: XenditPaymentChannel): HTMLElement;
+  /** @internal */
   createChannelComponent(
     channel: XenditPaymentChannel,
-    active = true,
+    options: { active?: boolean; noCache?: boolean; isOneclick?: boolean },
+  ): HTMLElement;
+  /** @internal */
+  createChannelComponent(
+    channel: XenditPaymentChannel,
+    options: { active?: boolean; noCache?: boolean; isOneclick?: boolean } = {
+      active: true,
+    },
   ): HTMLElement {
     this.assertInitialized();
 
@@ -991,7 +1001,7 @@ export class XenditComponents extends EventTarget {
 
     const channelCode = channel[internal][0].channel_code;
 
-    if (active) {
+    if (options.active) {
       // make it active (before creating the component)
       this[internal].currentChannelCode = channelCode;
     }
@@ -1003,7 +1013,7 @@ export class XenditComponents extends EventTarget {
     const customerDetailsFormRef = createRef<CustomerDetailsFormHandle>();
     let container: HTMLElement;
 
-    if (cachedComponent) {
+    if (cachedComponent && !options.noCache) {
       container = cachedComponent.element;
     } else {
       container = document.createElement("xendit-payment-channel");
@@ -1023,6 +1033,7 @@ export class XenditComponents extends EventTarget {
         channelFormRef: channelFormRef,
         customerDetailsFormRef: customerDetailsFormRef,
         data: {
+          isOneclick: !!options.isOneclick,
           savePaymentMethod: false,
           cardBin: null,
           cardDetails: null,
@@ -1035,7 +1046,7 @@ export class XenditComponents extends EventTarget {
     }
 
     this.renderPaymentChannel(channelCode);
-    if (active) {
+    if (options.active) {
       this.behaviorTreeUpdate();
       this.syncInertAttribute();
     }
@@ -1230,7 +1241,17 @@ export class XenditComponents extends EventTarget {
    *
    * Set to null to clear the current channel.
    */
-  setCurrentChannel(channel: XenditPaymentChannel | null): void {
+  setCurrentChannel(channel: XenditPaymentChannel | null): void;
+  /** @internal */
+  setCurrentChannel(
+    channel: XenditPaymentChannel | null,
+    options: { noCache?: boolean; isOneclick?: boolean },
+  ): void;
+  /** @internal */
+  setCurrentChannel(
+    channel: XenditPaymentChannel | null,
+    options: { noCache?: boolean; isOneclick?: boolean } = {},
+  ): void {
     switch (this[internal].behaviorTree.bb.submissionRequested) {
       case "normal":
       case "resume":
@@ -1258,7 +1279,7 @@ export class XenditComponents extends EventTarget {
       const component =
         this[internal].liveComponents.paymentChannels.get(channelCode) ?? null;
       if (!component) {
-        this.createChannelComponent(channel, false);
+        this.createChannelComponent(channel, { active: true, ...options });
       }
     }
 
@@ -1697,6 +1718,7 @@ export class XenditComponents extends EventTarget {
       channelCode: channel[internal][0].channel_code,
       channelProperties,
       channelData: {
+        isOneclick: false,
         savePaymentMethod,
         cardDetails: null,
         paymentOptions: null,

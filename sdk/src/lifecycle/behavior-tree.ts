@@ -158,6 +158,10 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     return undefined;
   }
 
+  if (bb.channelData?.isOneclick) {
+    return undefined;
+  }
+
   const channelPropertiesValid = channelPropertiesAreValid(
     bb.world.session.session_type,
     bb.channel,

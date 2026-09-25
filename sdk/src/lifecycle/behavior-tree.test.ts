@@ -66,6 +66,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
   channel: null,
   channelProperties: null,
   channelData: {
+    isOneclick: false,
     savePaymentMethod: false,
     cardBin: null,
     cardDetails: null,
