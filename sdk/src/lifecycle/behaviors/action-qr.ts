@@ -6,16 +6,14 @@ import { ContainerActionBehavior, DefaultActionContainerType } from "./action";
 import { ActionQr } from "../../components/action-qr";
 import {
   InternalBehaviorTreeUpdateEvent,
-  InternalUpdateWorldState,
+  InternalSessionStatusCheckedEvent,
 } from "../../private-event-types";
 import { hasCustomQrArt } from "../../components/action-qr-custom-art";
 import { ActionCardProps } from "../../components/action-card";
-import { pollSession } from "../../api";
-import { getPaymentEntity } from "./utils/stream-worker";
 
 export class ActionQrBehavior extends ContainerActionBehavior {
-  // a status check that finishes after exit() must not overwrite newer world state
-  private exited = false;
+  // cancels the status check that is still waiting
+  private statusCheckAbort: AbortController | null = null;
 
   constructor(
     protected bb: BlackboardType,
@@ -109,39 +107,25 @@ export class ActionQrBehavior extends ContainerActionBehavior {
 
   /**
    * Fired when the user clicks "Check status." in prod live with streaming on.
-   * A reopened stream sends nothing if the status hasn't changed, so poll once instead.
+   * Restarts the session update worker like the affirm button and resolves on the next status check.
    */
-  async checkStatus(): Promise<boolean> {
-    assert(this.bb.world);
+  checkStatus(): Promise<void> {
+    return new Promise((resolve) => {
+      this.statusCheckAbort?.abort();
+      this.statusCheckAbort = new AbortController();
 
-    const response = await pollSession(
-      this.bb.sdkKey,
-      this.bb.sdkKey.sessionAuthKey,
-      this.bb.world.sessionTokenRequestId,
-    );
-    if (this.exited) {
-      return true;
-    }
+      (this.bb.sdk as EventTarget).addEventListener(
+        InternalSessionStatusCheckedEvent.type,
+        () => resolve(),
+        { once: true, signal: this.statusCheckAbort.signal },
+      );
 
-    const paymentEntity = getPaymentEntity(response);
-
-    this.bb.dispatchEvent(
-      new InternalUpdateWorldState({
-        session: response.session,
-        paymentEntity: paymentEntity ?? undefined, // do not clear payment entity if this returns null
-        succeededChannel: response.succeeded_channel ?? null,
-      }),
-    );
-
-    return (
-      response.session.status !== "ACTIVE" ||
-      (paymentEntity !== null &&
-        paymentEntity.entity.status !== "REQUIRES_ACTION")
-    );
+      this.affirmPayment();
+    });
   }
 
   exit() {
-    this.exited = true;
+    this.statusCheckAbort?.abort();
     super.exit();
   }
 }

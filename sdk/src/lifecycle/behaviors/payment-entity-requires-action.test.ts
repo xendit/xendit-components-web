@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { streamSession } from "../../api";
 import { PaymentEntityRequiresActionBehavior } from "./payment-entity-requires-action";
 import { BlackboardType } from "../behavior-tree";
 import { BffPollResponse } from "../../backend-types/common";
-import { InternalUpdateWorldState } from "../../private-event-types";
+import {
+  InternalSessionStatusCheckedEvent,
+  InternalUpdateWorldState,
+} from "../../private-event-types";
 import { parseSdkKey } from "../../utils";
 import { makeTestBffData } from "../../data/test-data";
 import {
@@ -15,6 +19,12 @@ import {
   BffPaymentRequestStatus,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
+
+// Keep the real module, only replace the stream the worker opens.
+vi.mock("../../api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../api")>()),
+  streamSession: vi.fn(),
+}));
 
 const testData = makeTestBffData();
 const pollResponse: BffPollResponse = { session: testData.session };
@@ -141,6 +151,44 @@ describe("PaymentEntityRequiresActionBehavior.onPollResult", () => {
     expect(events.some((e) => e.type === InternalUpdateWorldState.type)).toBe(
       true,
     );
+  });
+
+  it("announces the status check after the world state update, so a screen closed by the update does not hear it", () => {
+    const events: Event[] = [];
+    const behavior = new PaymentEntityRequiresActionBehavior(
+      buildBlackboard(events, {}),
+    );
+
+    behavior.onPollResult(pollResponse, entityWithStatus("REQUIRES_ACTION"));
+
+    expect(events.map((e) => e.type)).toEqual([
+      InternalUpdateWorldState.type,
+      InternalSessionStatusCheckedEvent.type,
+    ]);
+  });
+});
+
+describe("PaymentEntityRequiresActionBehavior heartbeats", () => {
+  it("announces each stream heartbeat as a status check, without touching the world state", () => {
+    const source = Object.assign(new EventTarget(), { close: () => {} });
+    vi.mocked(streamSession).mockReturnValue(source as unknown as EventSource);
+    const events: Event[] = [];
+    const bb = buildBlackboard(events, {
+      mock: false,
+      sdk: { isMock: () => false } as unknown as BlackboardType["sdk"],
+    });
+    bb.world = { ...bb.world!, experiments: { "stream-session": true } };
+    const behavior = new PaymentEntityRequiresActionBehavior(bb);
+
+    behavior.enter();
+    source.dispatchEvent(new MessageEvent("heartbeat", { data: "{}" }));
+    behavior.exit();
+
+    const types = events.map((e) => e.type);
+    expect(
+      types.filter((t) => t === InternalSessionStatusCheckedEvent.type),
+    ).toHaveLength(1);
+    expect(types).not.toContain(InternalUpdateWorldState.type);
   });
 });
 

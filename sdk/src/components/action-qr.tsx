@@ -25,7 +25,7 @@ type Props = {
   hideUi: boolean;
   isProdLive: boolean;
   onAffirm: () => void;
-  onCheckStatus: () => Promise<boolean>;
+  onCheckStatus: () => Promise<void>;
   qrString: string;
   streamingEnabled: boolean;
   title: string;
@@ -75,16 +75,10 @@ export function ActionQr(props: Props) {
       return;
     }
     setStatusCheck("checking");
-    onCheckStatus()
-      .then((paymentFound) => {
-        // if the payment was found, the behavior tree closes this screen, so keep showing "Checking..."
-        if (!paymentFound) {
-          setStatusCheck("not_found");
-        }
-      })
-      .catch(() => {
-        setStatusCheck("idle");
-      });
+    // only resolves while this screen is open, if the payment was found, the screen closes on "Checking..."
+    onCheckStatus().then(() => {
+      setStatusCheck("not_found");
+    });
   }, [onCheckStatus, statusCheck]);
 
   const svgNode = useMemo(() => {

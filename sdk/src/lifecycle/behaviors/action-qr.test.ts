@@ -1,33 +1,26 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { pollSession } from "../../api";
-import { BffPollResponse } from "../../backend-types/common";
-import { BffPaymentRequest } from "../../backend-types/payment-entity";
-import { makeTestBffData } from "../../data/test-data";
-import {
-  makeTestPaymentRequest,
-  makeTestSdkKey,
-} from "../../data/test-data-modifiers";
+import { describe, expect, it } from "vitest";
+import { makeTestSdkKey } from "../../data/test-data-modifiers";
 import { internal } from "../../internal";
-import { InternalUpdateWorldState } from "../../private-event-types";
+import {
+  InternalBehaviorTreeUpdateEvent,
+  InternalSessionStatusCheckedEvent,
+} from "../../private-event-types";
 import { parseSdkKey } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ActionQrBehavior } from "./action-qr";
 
-// Keep the real module, only replace the network call checkStatus makes.
-vi.mock("../../api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../api")>()),
-  pollSession: vi.fn(),
-}));
+function buildSdk() {
+  return Object.assign(new EventTarget(), {
+    isProdLive: () => true,
+    [internal]: { liveComponents: { actionInstructionsContainer: null } },
+  });
+}
 
-const session = makeTestBffData().session;
-
-function buildBlackboard(events: Event[]): BlackboardType {
+function buildBlackboard(sdk: EventTarget, events: Event[]): BlackboardType {
   return {
-    sdk: {
-      [internal]: { liveComponents: { actionInstructionsContainer: null } },
-    },
+    sdk,
     sdkKey: parseSdkKey(makeTestSdkKey()),
-    world: { sessionTokenRequestId: "tok-1" },
+    pollImmediatelyRequested: false,
     dispatchEvent: (event: Event) => {
       events.push(event);
       return true;
@@ -36,73 +29,70 @@ function buildBlackboard(events: Event[]): BlackboardType {
   } as any;
 }
 
-function paymentRequest(
-  status: BffPaymentRequest["status"],
-): BffPaymentRequest {
-  return { ...makeTestPaymentRequest("QRIS", "PENDING"), status };
+// lets pending promise callbacks run
+function flush() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-beforeEach(() => {
-  vi.mocked(pollSession).mockReset();
-});
+function track(promise: Promise<void>) {
+  const state = { resolved: false };
+  promise.then(() => {
+    state.resolved = true;
+  });
+  return state;
+}
 
 describe("ActionQrBehavior.checkStatus", () => {
-  it("resolves false while the payment still requires action", async () => {
-    vi.mocked(pollSession).mockResolvedValue({
-      session,
-      payment_request: paymentRequest("REQUIRES_ACTION"),
-    });
+  it("asks for an immediate check, like the old affirm button", () => {
     const events: Event[] = [];
-    const behavior = new ActionQrBehavior(buildBlackboard(events), "0");
+    const bb = buildBlackboard(buildSdk(), events);
+    const behavior = new ActionQrBehavior(bb, "0");
 
-    await expect(behavior.checkStatus()).resolves.toBe(false);
-    expect(pollSession).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.any(String),
-      "tok-1",
-    );
-    expect(events.some((e) => e.type === InternalUpdateWorldState.type)).toBe(
-      true,
-    );
+    behavior.checkStatus();
+
+    expect(bb.pollImmediatelyRequested).toBe(true);
+    expect(events.map((e) => e.type)).toEqual([
+      InternalBehaviorTreeUpdateEvent.type,
+    ]);
   });
 
-  it("resolves true once the payment has succeeded", async () => {
-    vi.mocked(pollSession).mockResolvedValue({
-      session,
-      payment_request: paymentRequest("SUCCEEDED"),
-    });
-    const behavior = new ActionQrBehavior(buildBlackboard([]), "0");
+  it("resolves on the next status check, not before", async () => {
+    const sdk = buildSdk();
+    const behavior = new ActionQrBehavior(buildBlackboard(sdk, []), "0");
 
-    await expect(behavior.checkStatus()).resolves.toBe(true);
+    const check = track(behavior.checkStatus());
+    await flush();
+    expect(check.resolved).toBe(false);
+
+    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
+    await flush();
+    expect(check.resolved).toBe(true);
   });
 
-  it("resolves true once the session is completed", async () => {
-    vi.mocked(pollSession).mockResolvedValue({
-      session: { ...session, status: "COMPLETED" },
-    });
-    const behavior = new ActionQrBehavior(buildBlackboard([]), "0");
+  it("waits for a new answer when checked again after an answer", async () => {
+    const sdk = buildSdk();
+    const behavior = new ActionQrBehavior(buildBlackboard(sdk, []), "0");
 
-    await expect(behavior.checkStatus()).resolves.toBe(true);
+    behavior.checkStatus();
+    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
+    const second = track(behavior.checkStatus());
+    await flush();
+    expect(second.resolved).toBe(false);
+
+    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
+    await flush();
+    expect(second.resolved).toBe(true);
   });
 
-  it("ignores a response that arrives after the behavior has exited", async () => {
-    let respond: (response: BffPollResponse) => void = () => {};
-    vi.mocked(pollSession).mockReturnValue(
-      new Promise((resolve) => {
-        respond = resolve;
-      }),
-    );
-    const events: Event[] = [];
-    const behavior = new ActionQrBehavior(buildBlackboard(events), "0");
+  it("never resolves after the screen closes, so no result is shown", async () => {
+    const sdk = buildSdk();
+    const behavior = new ActionQrBehavior(buildBlackboard(sdk, []), "0");
 
-    // the stream closes the screen while the poll is still in flight
-    const result = behavior.checkStatus();
+    const check = track(behavior.checkStatus());
     behavior.exit();
-    respond({ session, payment_request: paymentRequest("REQUIRES_ACTION") });
+    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
+    await flush();
 
-    await expect(result).resolves.toBe(true);
-    expect(events.some((e) => e.type === InternalUpdateWorldState.type)).toBe(
-      false,
-    );
+    expect(check.resolved).toBe(false);
   });
 });

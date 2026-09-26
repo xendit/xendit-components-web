@@ -217,9 +217,7 @@ function parseJson<T>(data: string): T | null {
   }
 }
 
-export function getPaymentEntity(
-  response: BffPollResponse,
-): BffPaymentEntity | null {
+function getPaymentEntity(response: BffPollResponse): BffPaymentEntity | null {
   if (response.payment_token) {
     return toPaymentEntity(response.payment_token);
   }
