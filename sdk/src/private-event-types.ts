@@ -117,3 +117,16 @@ export class InternalPopulateFieldForSimulationEvent extends Event {
     super(InternalPopulateFieldForSimulationEvent.type, { bubbles: false });
   }
 }
+
+/**
+ * @internal
+ * Event fired when the server answers during an action (poll, stream update or heartbeat).
+ * Used by "Check status" to know the check is done.
+ */
+export class InternalSessionStatusCheckedEvent extends Event {
+  static type = "xendit-internal-session-status-checked" as const;
+
+  constructor() {
+    super(InternalSessionStatusCheckedEvent.type, {});
+  }
+}

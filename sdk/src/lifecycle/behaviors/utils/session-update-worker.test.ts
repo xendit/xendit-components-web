@@ -1,10 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { streamSession } from "../../../api";
 import { BlackboardType } from "../../behavior-tree";
 import { parseSdkKey } from "../../../utils";
 import { makeTestSdkKey } from "../../../data/test-data-modifiers";
 import { createSessionUpdateWorker } from "./session-update-worker";
 import { PollWorker } from "./poll-worker";
 import { StreamWorker } from "./stream-worker";
+
+// Keep the real module, only replace the stream the worker opens.
+vi.mock("../../../api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../../api")>()),
+  streamSession: vi.fn(),
+}));
 
 function buildBlackboard(
   overrides: Partial<BlackboardType>,
@@ -31,6 +38,23 @@ describe("createSessionUpdateWorker", () => {
     const worker = createSessionUpdateWorker(buildBlackboard({}), noop);
 
     expect(worker).toBeInstanceOf(StreamWorker);
+  });
+
+  it("passes heartbeats to the stream worker", () => {
+    const source = Object.assign(new EventTarget(), { close: () => {} });
+    vi.mocked(streamSession).mockReturnValue(source as unknown as EventSource);
+    const onHeartbeat = vi.fn();
+    const worker = createSessionUpdateWorker(
+      buildBlackboard({}),
+      noop,
+      onHeartbeat,
+    );
+
+    worker.start();
+    source.dispatchEvent(new MessageEvent("heartbeat", { data: "{}" }));
+    worker.stop();
+
+    expect(onHeartbeat).toHaveBeenCalledTimes(1);
   });
 
   it("streams in mock mode", () => {

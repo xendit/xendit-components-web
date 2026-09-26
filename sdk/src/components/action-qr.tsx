@@ -3,7 +3,7 @@ import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 import { emvcoQrParse } from "../emvco-qr";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
-import { TargetedEvent } from "preact";
+import { ComponentChildren, TargetedEvent } from "preact";
 import { getCustomQrArtComponent } from "./action-qr-custom-art";
 import {
   cleanStringForFilename,
@@ -23,8 +23,11 @@ type Props = {
   channelLogo: string;
   currency: string;
   hideUi: boolean;
+  isProdLive: boolean;
   onAffirm: () => void;
+  onCheckStatus: () => Promise<void>;
   qrString: string;
+  streamingEnabled: boolean;
   title: string;
   t: TFunction;
 };
@@ -37,18 +40,46 @@ export function ActionQr(props: Props) {
     channelName,
     channelLogo,
     currency,
+    isProdLive,
     onAffirm,
+    onCheckStatus,
     qrString,
+    streamingEnabled,
     t,
   } = props;
 
   const [showSpinner, setShowSpinner] = useState(false);
   const [hasDownloadError, setHasDownloadError] = useState(false);
+  const [statusCheck, setStatusCheck] = useState<
+    "idle" | "checking" | "not_found"
+  >("idle");
 
   const onMadePaymentClicked = useCallback(() => {
+    if (showSpinner) {
+      // the span link has no disabled state, so ignore repeat clicks here
+      return;
+    }
     setShowSpinner(true);
     onAffirm();
-  }, [onAffirm]);
+  }, [onAffirm, showSpinner]);
+
+  const onDownloadClicked = useCallback(() => {
+    const downloadNode = generateQrSvg(qrString, qrArtConfigForDownload);
+    downloadSvgAsPng(downloadNode, "qr-code.png").catch(() => {
+      setHasDownloadError(true);
+    });
+  }, [qrString]);
+
+  const onCheckStatusClicked = useCallback(() => {
+    if (statusCheck === "checking") {
+      return;
+    }
+    setStatusCheck("checking");
+    // only resolves while this screen is open, if the payment was found, the screen closes on "Checking..."
+    onCheckStatus().then(() => {
+      setStatusCheck("not_found");
+    });
+  }, [onCheckStatus, statusCheck]);
 
   const svgNode = useMemo(() => {
     try {
@@ -156,18 +187,10 @@ export function ActionQr(props: Props) {
         }}
       />
 
-      {svgNode instanceof SVGSVGElement ? (
+      {!streamingEnabled && svgNode instanceof SVGSVGElement ? (
         <Button
           variant={ButtonVariant.SECONDARY_ROUNDED}
-          onClick={() => {
-            const downloadNode = generateQrSvg(
-              qrString,
-              qrArtConfigForDownload,
-            );
-            downloadSvgAsPng(downloadNode, "qr-code.png").catch(() => {
-              setHasDownloadError(true);
-            });
-          }}
+          onClick={onDownloadClicked}
           className="xendit-button-block"
         >
           <Icon name="download" size={18} />
@@ -182,7 +205,51 @@ export function ActionQr(props: Props) {
     </div>
   );
 
-  const affirmSection = (
+  const checkStatusLink = (
+    <TextButton onClick={onCheckStatusClicked}>
+      {t("action_qr.check_status")}
+    </TextButton>
+  );
+
+  let statusCheckSection: ComponentChildren = checkStatusLink;
+  if (statusCheck === "checking") {
+    statusCheckSection = t("action_qr.checking");
+  } else if (statusCheck === "not_found") {
+    statusCheckSection = (
+      <>
+        {t("action_qr.no_payment_found")} {checkStatusLink}
+      </>
+    );
+  }
+
+  const affirmSection = streamingEnabled ? (
+    <div className="xendit-action-present-to-customer-affirm xendit-action-qr-status-text xendit-text-14 xendit-text-secondary xendit-text-center">
+      <div>
+        {t("action_qr.make_payment_to_proceed")}
+        {svgNode instanceof SVGSVGElement ? (
+          <>
+            {" "}
+            <TextButton onClick={onDownloadClicked}>
+              {t("action_qr.download_qr")}
+            </TextButton>
+          </>
+        ) : null}
+      </div>
+      <div>
+        {isProdLive ? (
+          statusCheckSection
+        ) : (
+          <TextButton disabled={showSpinner} onClick={onMadePaymentClicked}>
+            {showSpinner ? (
+              <ButtonLoadingSpinner />
+            ) : (
+              t("action_qr.simulate_success")
+            )}
+          </TextButton>
+        )}
+      </div>
+    </div>
+  ) : (
     <div className="xendit-action-present-to-customer-affirm">
       <Button
         variant={ButtonVariant.WHITE_ROUNDED}
@@ -270,3 +337,31 @@ const qrArtConfigForDownload: QrArtConfig = {
   margin: 2,
   colors: ["#000", "#FFF"],
 };
+
+/**
+ * A clickable piece of inline text, used for the actions in the streaming text line.
+ */
+function TextButton(props: {
+  children: ComponentChildren;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const { children, disabled = false, onClick } = props;
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      aria-disabled={disabled}
+      className="xendit-action-qr-text-button"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+    >
+      {children}
+    </span>
+  );
+}
