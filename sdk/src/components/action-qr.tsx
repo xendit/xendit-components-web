@@ -216,11 +216,7 @@ export function ActionQr(props: Props) {
     statusCheckSection = (
       <>
         {t("action_qr.checking")}
-        <span className="xendit-action-qr-checking-dots" aria-hidden="true">
-          <span>.</span>
-          <span>.</span>
-          <span>.</span>
-        </span>
+        <LoadingDots />
       </>
     );
   } else if (statusCheck === "not_found") {
@@ -230,6 +226,17 @@ export function ActionQr(props: Props) {
       </>
     );
   }
+
+  const simulateSection = showSpinner ? (
+    <>
+      {t("action_qr.simulating")}
+      <LoadingDots />
+    </>
+  ) : (
+    <TextButton onClick={onMadePaymentClicked}>
+      {t("action_qr.simulate_success")}
+    </TextButton>
+  );
 
   const affirmSection = streamingEnabled ? (
     <div className="xendit-action-present-to-customer-affirm xendit-action-qr-status-text xendit-text-14 xendit-text-secondary xendit-text-center">
@@ -244,19 +251,7 @@ export function ActionQr(props: Props) {
           </>
         ) : null}
       </div>
-      <div>
-        {isProdLive ? (
-          statusCheckSection
-        ) : (
-          <TextButton disabled={showSpinner} onClick={onMadePaymentClicked}>
-            {showSpinner ? (
-              <ButtonLoadingSpinner />
-            ) : (
-              t("action_qr.simulate_success")
-            )}
-          </TextButton>
-        )}
-      </div>
+      <div>{isProdLive ? statusCheckSection : simulateSection}</div>
     </div>
   ) : (
     <div className="xendit-action-present-to-customer-affirm">
@@ -371,6 +366,16 @@ function TextButton(props: {
       }}
     >
       {children}
+    </span>
+  );
+}
+
+function LoadingDots() {
+  return (
+    <span className="xendit-action-qr-loading-dots" aria-hidden="true">
+      <span>.</span>
+      <span>.</span>
+      <span>.</span>
     </span>
   );
 }
