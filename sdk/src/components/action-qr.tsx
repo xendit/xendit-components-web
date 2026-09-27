@@ -213,7 +213,16 @@ export function ActionQr(props: Props) {
 
   let statusCheckSection: ComponentChildren = checkStatusLink;
   if (statusCheck === "checking") {
-    statusCheckSection = t("action_qr.checking");
+    statusCheckSection = (
+      <>
+        {t("action_qr.checking")}
+        <span className="xendit-action-qr-checking-dots" aria-hidden="true">
+          <span>.</span>
+          <span>.</span>
+          <span>.</span>
+        </span>
+      </>
+    );
   } else if (statusCheck === "not_found") {
     statusCheckSection = (
       <>
