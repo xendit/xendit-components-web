@@ -3,7 +3,7 @@ import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 import { emvcoQrParse } from "../emvco-qr";
 import { amountFormat } from "../amount-format";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
-import { ComponentChildren, TargetedEvent } from "preact";
+import { TargetedEvent } from "preact";
 import { getCustomQrArtComponent } from "./action-qr-custom-art";
 import {
   cleanStringForFilename,
@@ -13,6 +13,7 @@ import {
   timestampForFilename,
 } from "./action-qr-utils";
 import { useActionCard } from "./action-card";
+import { ActionAffirmText } from "./action-affirm-text";
 import Icon from "./icon";
 
 type Props = {
@@ -50,18 +51,11 @@ export function ActionQr(props: Props) {
 
   const [showSpinner, setShowSpinner] = useState(false);
   const [hasDownloadError, setHasDownloadError] = useState(false);
-  const [statusCheck, setStatusCheck] = useState<
-    "idle" | "checking" | "not_found"
-  >("idle");
 
   const onMadePaymentClicked = useCallback(() => {
-    if (showSpinner) {
-      // the span link has no disabled state, so ignore repeat clicks here
-      return;
-    }
     setShowSpinner(true);
     onAffirm();
-  }, [onAffirm, showSpinner]);
+  }, [onAffirm]);
 
   const onDownloadClicked = useCallback(() => {
     const downloadNode = generateQrSvg(qrString, qrArtConfigForDownload);
@@ -69,17 +63,6 @@ export function ActionQr(props: Props) {
       setHasDownloadError(true);
     });
   }, [qrString]);
-
-  const onCheckStatusClicked = useCallback(() => {
-    if (statusCheck === "checking") {
-      return;
-    }
-    setStatusCheck("checking");
-    // only resolves while this screen is open, if the payment was found, the screen closes on "Checking..."
-    onCheckStatus().then(() => {
-      setStatusCheck("not_found");
-    });
-  }, [onCheckStatus, statusCheck]);
 
   const svgNode = useMemo(() => {
     try {
@@ -205,53 +188,16 @@ export function ActionQr(props: Props) {
     </div>
   );
 
-  const checkStatusLink = (
-    <TextButton onClick={onCheckStatusClicked}>
-      {t("action_qr.check_status")}
-    </TextButton>
-  );
-
-  let statusCheckSection: ComponentChildren = checkStatusLink;
-  if (statusCheck === "checking") {
-    statusCheckSection = (
-      <>
-        {t("action_qr.checking")}
-        <LoadingDots />
-      </>
-    );
-  } else if (statusCheck === "not_found") {
-    statusCheckSection = (
-      <TextButton onClick={onCheckStatusClicked}>
-        {t("action_qr.no_payment_found")}
-      </TextButton>
-    );
-  }
-
-  const simulateSection = showSpinner ? (
-    <>
-      {t("action_qr.simulating")}
-      <LoadingDots />
-    </>
-  ) : (
-    <TextButton onClick={onMadePaymentClicked}>
-      {t("action_qr.simulate_success")}
-    </TextButton>
-  );
-
   const affirmSection = streamingEnabled ? (
-    <div className="xendit-action-present-to-customer-affirm xendit-action-qr-status-text xendit-text-14 xendit-text-secondary xendit-text-center">
-      <div>{t("action_qr.make_payment_to_proceed")}</div>
-      <div>
-        {svgNode instanceof SVGSVGElement ? (
-          <>
-            <TextButton onClick={onDownloadClicked}>
-              {t("action_qr.download_qr")}
-            </TextButton>{" "}
-          </>
-        ) : null}
-        {isProdLive ? statusCheckSection : simulateSection}
-      </div>
-    </div>
+    <ActionAffirmText
+      isProdLive={isProdLive}
+      onAffirm={onAffirm}
+      onCheckStatus={onCheckStatus}
+      onDownload={
+        svgNode instanceof SVGSVGElement ? onDownloadClicked : undefined
+      }
+      t={t}
+    />
   ) : (
     <div className="xendit-action-present-to-customer-affirm">
       <Button
@@ -340,41 +286,3 @@ const qrArtConfigForDownload: QrArtConfig = {
   margin: 2,
   colors: ["#000", "#FFF"],
 };
-
-/**
- * A clickable piece of inline text, used for the actions in the streaming text line.
- */
-function TextButton(props: {
-  children: ComponentChildren;
-  disabled?: boolean;
-  onClick: () => void;
-}) {
-  const { children, disabled = false, onClick } = props;
-  return (
-    <span
-      role="button"
-      tabIndex={0}
-      aria-disabled={disabled}
-      className="xendit-action-qr-text-button"
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function LoadingDots() {
-  return (
-    <span className="xendit-action-qr-loading-dots" aria-hidden="true">
-      <span>.</span>
-      <span>.</span>
-      <span>.</span>
-    </span>
-  );
-}

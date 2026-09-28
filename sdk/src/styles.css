@@ -1311,11 +1311,11 @@ xendit-channel-picker[inert] {
   position: relative;
   z-index: var(--xendit-z-index-overlay);
 }
-.xendit-action-qr-status-text {
+.xendit-action-affirm-text {
   margin-top: 8px;
   gap: 4px;
 }
-.xendit-action-qr-text-button {
+.xendit-action-text-button {
   text-decoration: underline;
   cursor: pointer;
   white-space: nowrap;
@@ -1338,14 +1338,14 @@ xendit-channel-picker[inert] {
     visibility: visible;
   }
 }
-.xendit-action-qr-loading-dots span:nth-child(2) {
+.xendit-action-loading-dots span:nth-child(2) {
   animation: xendit-loading-dot-2 1.5s steps(1, end) infinite;
 }
-.xendit-action-qr-loading-dots span:nth-child(3) {
+.xendit-action-loading-dots span:nth-child(3) {
   animation: xendit-loading-dot-3 1.5s steps(1, end) infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .xendit-action-qr-loading-dots span {
+  .xendit-action-loading-dots span {
     animation: none;
   }
 }

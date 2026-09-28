@@ -4,17 +4,10 @@ import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior, DefaultActionContainerType } from "./action";
 import { ActionQr } from "../../components/action-qr";
-import {
-  InternalBehaviorTreeUpdateEvent,
-  InternalSessionStatusCheckedEvent,
-} from "../../private-event-types";
 import { hasCustomQrArt } from "../../components/action-qr-custom-art";
 import { ActionCardProps } from "../../components/action-card";
 
 export class ActionQrBehavior extends ContainerActionBehavior {
-  // cancels the status check that is still waiting
-  private statusCheckAbort: AbortController | null = null;
-
   constructor(
     protected bb: BlackboardType,
     private actionIndex: string,
@@ -59,8 +52,7 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       onAffirm: this.affirmPayment.bind(this),
       onCheckStatus: this.checkStatus.bind(this),
       qrString: qrAction.value,
-      streamingEnabled:
-        this.bb.mock || this.bb.world.experiments?.["stream-session"] === true,
+      streamingEnabled: this.isStreamingEnabled(),
       title: qrAction.action_subtitle,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
@@ -89,43 +81,5 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       () => createElement(ActionQr, actionQrProps),
       cardProps,
     );
-  }
-
-  /**
-   * Fired when user affirms they have made the payment by clicking
-   * the affirm button.
-   */
-  affirmPayment() {
-    if (this.bb.sdk.isProdLive()) {
-      // live mode
-      this.bb.pollImmediatelyRequested = true;
-    } else {
-      this.bb.simulatePaymentRequested = true;
-    }
-    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
-  }
-
-  /**
-   * Fired when the user clicks "Check status." in prod live with streaming on.
-   * Restarts the session update worker like the affirm button and resolves on the next status check.
-   */
-  checkStatus(): Promise<void> {
-    return new Promise((resolve) => {
-      this.statusCheckAbort?.abort();
-      this.statusCheckAbort = new AbortController();
-
-      (this.bb.sdk as EventTarget).addEventListener(
-        InternalSessionStatusCheckedEvent.type,
-        () => resolve(),
-        { once: true, signal: this.statusCheckAbort.signal },
-      );
-
-      this.affirmPayment();
-    });
-  }
-
-  exit() {
-    this.statusCheckAbort?.abort();
-    super.exit();
   }
 }
