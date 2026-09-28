@@ -221,9 +221,9 @@ export function ActionQr(props: Props) {
     );
   } else if (statusCheck === "not_found") {
     statusCheckSection = (
-      <>
-        {t("action_qr.no_payment_found")} {checkStatusLink}
-      </>
+      <TextButton onClick={onCheckStatusClicked}>
+        {t("action_qr.no_payment_found")}
+      </TextButton>
     );
   }
 
@@ -240,18 +240,17 @@ export function ActionQr(props: Props) {
 
   const affirmSection = streamingEnabled ? (
     <div className="xendit-action-present-to-customer-affirm xendit-action-qr-status-text xendit-text-14 xendit-text-secondary xendit-text-center">
+      <div>{t("action_qr.make_payment_to_proceed")}</div>
       <div>
-        {t("action_qr.make_payment_to_proceed")}
         {svgNode instanceof SVGSVGElement ? (
           <>
-            {" "}
             <TextButton onClick={onDownloadClicked}>
               {t("action_qr.download_qr")}
-            </TextButton>
+            </TextButton>{" "}
           </>
         ) : null}
+        {isProdLive ? statusCheckSection : simulateSection}
       </div>
-      <div>{isProdLive ? statusCheckSection : simulateSection}</div>
     </div>
   ) : (
     <div className="xendit-action-present-to-customer-affirm">

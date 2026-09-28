@@ -1313,6 +1313,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-action-qr-status-text {
   margin-top: 8px;
+  gap: 4px;
 }
 .xendit-action-qr-text-button {
   text-decoration: underline;
