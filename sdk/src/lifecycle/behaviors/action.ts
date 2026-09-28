@@ -11,11 +11,6 @@ import { createPortal } from "preact/compat";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
 
-export enum DefaultActionContainerType {
-  QrWithCustomArt = "qr-with-custom-art",
-  Generic = "generic",
-}
-
 // How long a merchant-provided action container keeps its contents after the action ends.
 export const MERCHANT_CONTAINER_DESTROY_DELAY_MS = 2000;
 
