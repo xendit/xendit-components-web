@@ -88,6 +88,7 @@ describe("utils - getCardDetailsForCurrentCardNumber", () => {
 
   function channelDataForCardNumber(cardNumber: string): ChannelComponentData {
     return {
+      isOneclick: false,
       savePaymentMethod: false,
       cardBin: null,
       cardDetails: { cardNumber, details },
@@ -125,6 +126,7 @@ describe("utils - getCardDetailsForCurrentCardNumber", () => {
     ).toBeNull();
     expect(
       getCardDetailsForCurrentCardNumber(propsWithCardNumber("CARD-A"), {
+        isOneclick: false,
         savePaymentMethod: false,
         cardBin: null,
         cardDetails: null,

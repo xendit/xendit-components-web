@@ -15,13 +15,17 @@ import {
 export class PaymentEntityRequiresActionBehavior implements Behavior {
   private updateWorker: SessionUpdateWorker | null = null;
   public canCreateActionContainer: boolean = true;
+  private firedActionBeginEvent: boolean = false;
 
   constructor(private bb: BlackboardType) {
     this.resetWorker();
   }
 
   enter() {
-    this.bb.dispatchEvent(new XenditActionBeginEvent());
+    if (this.bb.submissionRequested !== "oneclick") {
+      this.bb.dispatchEvent(new XenditActionBeginEvent());
+      this.firedActionBeginEvent = true;
+    }
     this.canCreateActionContainer = false;
     this.updateWorker?.start();
   }
@@ -35,7 +39,10 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
 
   exit() {
     this.updateWorker?.stop();
-    this.bb.dispatchEvent(new XenditActionEndEvent());
+    if (this.firedActionBeginEvent) {
+      this.bb.dispatchEvent(new XenditActionEndEvent());
+      this.firedActionBeginEvent = false;
+    }
 
     // clear flag for next time
     this.bb.actionCompleted = false;
@@ -55,7 +62,6 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
 
       if (abandonedAfterRedirect) {
         this.bb.submissionRequested = false;
-        this.bb.resuming = false;
       }
     }
 

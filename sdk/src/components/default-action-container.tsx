@@ -2,7 +2,6 @@ import { useLayoutEffect, useRef } from "preact/hooks";
 import { XenditComponents } from "../public-sdk";
 import { Dialog } from "./core/dialog";
 import { internal } from "../internal";
-import { DefaultActionContainerType } from "../lifecycle/behaviors/action";
 
 type Props = {
   sdk: XenditComponents;
@@ -12,7 +11,6 @@ type Props = {
   width: number;
   height: number;
   borderColor?: string;
-  defaultActionContainerType: DefaultActionContainerType;
 };
 
 export default function DefaultActionContainer(props: Props) {
@@ -27,18 +25,12 @@ export default function DefaultActionContainer(props: Props) {
     };
   }, [sdk]);
 
-  const isCustomArtQr =
-    props.defaultActionContainerType ===
-    DefaultActionContainerType.QrWithCustomArt;
-
   return (
     <Dialog
       title={title}
       onClose={onClose}
       close={props.close}
       borderColor={borderColor}
-      noPadding={isCustomArtQr}
-      noCloseButton={isCustomArtQr}
       seamless
     >
       <div
