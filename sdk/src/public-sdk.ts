@@ -318,7 +318,11 @@ export class XenditComponents extends EventTarget {
       );
     }
 
-    const sdkKey = parseSdkKey(options.componentsSdkKey, options.hostId);
+    const sdkKey = parseSdkKey(
+      options.componentsSdkKey,
+      options.hostId,
+      options.customHostUrl,
+    );
     const telemetry = new SessionTelemetry(
       this,
       Boolean(options.logTelemetryEvents),

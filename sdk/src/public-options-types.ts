@@ -36,9 +36,15 @@ export interface XenditSdkOptions {
 
   /**
    * @internal
-   * Print telemetry events to console.
+   * If set, the SDK will connect to the specified host ID, when the provded SDK key only contains session auth ID.
    */
   hostId?: string;
+
+  /**
+   * @internal
+   * If set, the SDK will connect to the specified host URL, when the provded SDK key only contains session auth ID.
+   */
+  customHostUrl?: string;
 
   /**
    * @internal

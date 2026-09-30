@@ -6,6 +6,7 @@ import {
   camelCaseToKebabCase,
   cancellableSleep,
   errorToString,
+  hostFromSdkKey,
   isAbortError,
   mergeIgnoringUndefined,
   parseEncryptedFieldValue,
@@ -99,6 +100,19 @@ describe("utils - parseSdkKey", () => {
     for (const key of invalidKeys) {
       expect(() => parseSdkKey(key)).toThrow();
     }
+  });
+  it("should parse a two-part key with a custom host URL", () => {
+    const parsed = parseSdkKey(
+      "session-auth",
+      undefined,
+      "https://custom.example.com",
+    );
+    expect(parsed).toEqual({
+      sessionAuthKey: "session-auth",
+      hostId: "custom",
+      customHostUrl: "https://custom.example.com",
+    });
+    expect(hostFromSdkKey(parsed)).toBe("https://custom.example.com");
   });
 });
 
