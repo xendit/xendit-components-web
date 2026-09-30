@@ -5,7 +5,7 @@ import { TFunction } from "../localization";
 type Props = {
   isProdLive: boolean;
   onAffirm: () => void;
-  // when set, a "Download QR" link comes first on the second line
+  // when set, a "Download QR" link follows the text
   onDownload?: () => void;
   t: TFunction;
 };
@@ -37,19 +37,18 @@ export function ActionAffirmText(props: Props) {
 
   return (
     <div className="xendit-action-present-to-customer-affirm xendit-action-affirm-text xendit-text-12 xendit-text-secondary xendit-text-center">
-      <div>{t("action_qr.make_payment_keep_page_open")}</div>
-      {onDownload || !isProdLive ? (
-        <div>
-          {onDownload ? (
-            <>
-              <TextButton onClick={onDownload}>
-                {t("action_qr.download_qr")}
-              </TextButton>{" "}
-            </>
-          ) : null}
-          {isProdLive ? null : simulateSection}
-        </div>
-      ) : null}
+      <div>
+        {t("action_qr.make_payment_keep_page_open")}
+        {onDownload ? (
+          <>
+            {" "}
+            <TextButton onClick={onDownload}>
+              {t("action_qr.download_qr")}
+            </TextButton>
+          </>
+        ) : null}
+      </div>
+      {isProdLive ? null : <div>{simulateSection}</div>}
     </div>
   );
 }
