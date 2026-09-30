@@ -246,11 +246,26 @@ export type ParsedSdkKey = {
   hostId: string;
   publicKey?: string;
   signature?: string;
+  /**
+   * When hostId is CUSTOM_HOST_ID, this holds the custom host URL to connect to.
+   */
+  customHostUrl?: string;
 };
+
+/**
+ * Resolves the host URL for a parsed SDK key, handling the custom host case.
+ */
+export function hostFromSdkKey(sdkKey: ParsedSdkKey): string | null {
+  if (sdkKey.hostId === CUSTOM_HOST_ID) {
+    return sdkKey.customHostUrl ?? null;
+  }
+  return hostFromHostId(sdkKey.hostId);
+}
 
 export function parseSdkKey(
   componentsSdkKey: string,
   hostId?: string,
+  customHostUrl?: string,
 ): ParsedSdkKey {
   if (!componentsSdkKey) {
     throw new Error(
@@ -258,6 +273,16 @@ export function parseSdkKey(
     );
   }
   const parts = componentsSdkKey.split("-");
+
+  // when a custom host URL is provided, connect to it directly. the SDK key is
+  // expected to only contain the session auth ID (same shape as the hostId workaround).
+  if (parts.length === 2 && customHostUrl) {
+    return {
+      sessionAuthKey: [parts[0], parts[1]].join("-"),
+      hostId: CUSTOM_HOST_ID,
+      customHostUrl,
+    };
+  }
 
   if (parts.length === 2 && hostId) {
     // checkout-ui workaround

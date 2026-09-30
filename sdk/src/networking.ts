@@ -1,6 +1,6 @@
 import {
   assert,
-  hostFromHostId,
+  hostFromSdkKey,
   MOCK_HOST_ID,
   ParsedSdkKey,
   retryLoop,
@@ -69,7 +69,7 @@ export function buildEndpointUrl(
   if (hostId === MOCK_HOST_ID) {
     throw new Error("A network request was made in mock mode; this is a bug.");
   }
-  const host = hostFromHostId(hostId);
+  const host = hostFromSdkKey(sdkKey);
   if (!host) {
     throw new Error(
       `Unknown hostId ${hostId} in sdkKey; this is a bug, please contact support.`,
