@@ -2,7 +2,11 @@
 
 ### Notable
 
-Changes for an unreleased feature
+Added one-click QR feature
+
+### Bug Fixes
+
+- Fix phone number input unsynced country dropdown
 
 # 0.0.35
 
