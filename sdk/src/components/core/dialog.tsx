@@ -21,22 +21,13 @@ type Props = {
    */
   seamless?: boolean;
   /**
-   * Remove padding on body element.
-   */
-  noPadding?: boolean;
-  /**
-   * Remove close button. It must be closed by firing an event or rendering with close=true.
-   */
-  noCloseButton?: boolean;
-  /**
    * Borders of the dialog.
    */
   borderColor?: string;
 };
 
 export const Dialog: FunctionComponent<Props> = (props) => {
-  const { title, onClose, children, seamless, borderColor, noCloseButton } =
-    props;
+  const { title, onClose, children, seamless, borderColor } = props;
 
   const closeCalledRef = useRef(false);
   const closeAnimationPlaying = useRef(false);
@@ -133,7 +124,7 @@ export const Dialog: FunctionComponent<Props> = (props) => {
         ref={dialogRef}
         style={borderColor ? { border: `4px solid ${borderColor}` } : undefined}
       >
-        {!noCloseButton && !seamless ? (
+        {!seamless ? (
           <div className="xendit-dialog-header xendit-text-16 xendit-text-semibold">
             {title}
             <button aria-label="Close" onClick={onCloseWithAnimation}>
@@ -141,13 +132,8 @@ export const Dialog: FunctionComponent<Props> = (props) => {
             </button>
           </div>
         ) : null}
-        <div
-          className="xendit-dialog-body"
-          style={props.noPadding ? { padding: "0" } : undefined}
-        >
-          {children}
-        </div>
-        {!noCloseButton && seamless ? (
+        <div className="xendit-dialog-body">{children}</div>
+        {seamless ? (
           <button
             aria-label="Close"
             onClick={onCloseButtonClick}

@@ -103,6 +103,7 @@ function propsWithFixtureCardNumber(): ChannelProperties {
 
 function channelDataWithSchemes(schemes: string[]): ChannelComponentData {
   return {
+    isOneclick: false,
     savePaymentMethod: false,
     cardBin: null,
     cardDetails: {

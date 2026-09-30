@@ -19,7 +19,7 @@ import {
   ChannelPickerGroup,
   getChannelDisabledReason,
 } from "./channel-picker-group";
-import { assert, satisfiesMinMax } from "../utils";
+import { assert, satisfiesMinMax, usePrevious } from "../utils";
 import { BffSession } from "../backend-types/session";
 import { BffChannel, BffChannelUiGroup } from "../backend-types/channel";
 import { TFunction } from "../localization";
@@ -32,10 +32,15 @@ import {
 import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wallet-section";
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
+import { ChannelPickerOneclick } from "./channel-picker-oneclick";
+import { InternalOneclickSubmissionEndEvent } from "../private-event-types";
 
-type Props = object;
+type Props = {
+  enableOneClickQr: boolean;
+};
 
 export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
+  const { enableOneClickQr: enableOneclickQr } = props;
   const sdk = useSdk();
   const telemetry = getTelemetry(sdk);
   const session = useSession();
@@ -67,11 +72,37 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
     [pairChannelData, session.amount, session.session_type],
   );
 
+  const instantOpen = useMemo(
+    () => instantOpenConfig(session, channelsByGroup, currentChannel),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   // selected group is the containing group of the currently selected channel
   const selectedGroupId = currentChannel?.ui_group ?? null;
 
   // previewed group means expanded but no channel selected
-  const [previewGroupId, setPreviewGroupId] = useState<string | null>(null);
+  const [previewGroupId, setPreviewGroupId] = useState<string | null>(
+    instantOpen?.group ?? null,
+  );
+
+  // actual visibly open group
+  const openGroupId = selectedGroupId ?? previewGroupId;
+  const previousOpenGroupId = usePrevious(openGroupId) ?? null;
+
+  // groups that use the oneclick feature
+  const oneclickGroups = useMemo(() => {
+    const set = new Set<string | null>();
+    for (const [k, v] of Object.entries(channelsByGroup)) {
+      if (enableOneclickForGroup(enableOneclickQr, v)) {
+        set.add(k);
+      }
+    }
+    return set;
+  }, [channelsByGroup, enableOneclickQr]);
+  const [oneclickErrorMessage, setOneclickErrorMessage] = useState<
+    string[] | null
+  >(null);
 
   const telemetryScopeForGroup = useRef<SessionTelemetryScope | null>(null);
   const telemetryForGroupClear = useCallback(() => {
@@ -126,17 +157,17 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
         if (enabledChannels === 0) {
           // no enabled channels, do nothing
           return;
-        } else if (enabledChannels === 1) {
+        } else if (enabledChannels === 1 && !oneclickGroups.has(newGroup.id)) {
           // one enabled channel, select it automatically
           const ch = channelsByGroup[groupId][0];
           telemetryForGroupChange(newGroup.label, groupId);
           sdk.setCurrentChannel(singleBffChannelToPublic(ch, marshalConfig));
           setPreviewGroupId(null);
         } else {
-          // multiple enabled channels, set as previewed and clear the channel selection
+          // multiple enabled channels, set as previewed (group displayed but no channel selected)
           telemetryForGroupChange(newGroup.label, groupId);
-          setPreviewGroupId(groupId);
           sdk.setCurrentChannel(null);
+          setPreviewGroupId(groupId);
         }
       }
     },
@@ -145,6 +176,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
       channels,
       channelsByGroup,
       marshalConfig,
+      oneclickGroups,
       previewGroupId,
       sdk,
       selectedGroupId,
@@ -162,6 +194,95 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
       setPreviewGroupId(null);
     }
   }, [currentChannel, previewGroupId]);
+
+  // if a preview group is alrady set on the first render, fire telemetry for it
+  useLayoutEffect(() => {
+    if (previewGroupId) {
+      const group = channelUiGroups.find(
+        (group) => group.id === previewGroupId,
+      )!;
+      telemetryForGroupChange(group.label, group.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // select the instantOpen channel if any (first render only)
+  useLayoutEffect(() => {
+    if (
+      currentChannel === null &&
+      instantOpen?.channel &&
+      !oneclickGroups.has(instantOpen.channel.ui_group)
+    ) {
+      // Select the channel on the next tick. This isn't ideal, I'd like to select it on the current tick but that's not safe, it will recursively render.
+      setTimeout(() => {
+        sdk.setCurrentChannel(
+          singleBffChannelToPublic(instantOpen.channel, marshalConfig),
+        );
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // did this render trigger a oneclick group to open? if so begin oneclick flow
+  useLayoutEffect(() => {
+    if (!openGroupId) return;
+    if (
+      !(
+        oneclickGroups.has(openGroupId) &&
+        !oneclickGroups.has(previousOpenGroupId)
+      )
+    ) {
+      return;
+    }
+
+    setOneclickErrorMessage(null);
+
+    const submissionEndListener = (_event: Event) => {
+      const event = _event as InternalOneclickSubmissionEndEvent;
+      if (event.userErrorMessage) {
+        setOneclickErrorMessage(event.userErrorMessage);
+      }
+    };
+    const removeListener = () => {
+      (sdk as EventTarget).removeEventListener(
+        InternalOneclickSubmissionEndEvent.type,
+        submissionEndListener,
+      );
+    };
+
+    setTimeout(() => {
+      // make channel object
+      const ch = singleBffChannelToPublic(
+        channelsByGroup[openGroupId][0],
+        marshalConfig,
+      );
+      // select channel
+      sdk.setCurrentChannel(ch, { noCache: true, isOneclick: true });
+
+      (sdk as EventTarget).addEventListener(
+        InternalOneclickSubmissionEndEvent.type,
+        submissionEndListener,
+      );
+
+      // do submission
+      try {
+        sdk.submitOneclick();
+      } catch (_e) {
+        removeListener();
+      }
+    }, 0);
+
+    return () => {
+      removeListener();
+    };
+  }, [
+    channelsByGroup,
+    marshalConfig,
+    oneclickGroups,
+    openGroupId,
+    previousOpenGroupId,
+    sdk,
+  ]);
 
   return (
     <div ref={thisRef}>
@@ -195,6 +316,8 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
               channelsByGroup[group.id],
             );
 
+            const enableOneclick = oneclickGroups.has(group.id);
+
             return (
               <AccordionItem
                 key={group.id}
@@ -206,7 +329,15 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
                 onClick={handleSelectChannelGroup}
                 channelLogos={channelLogos}
               >
-                <ChannelPickerGroup group={group} open={open} />
+                {enableOneclick ? (
+                  <ChannelPickerOneclick
+                    group={group}
+                    open={open}
+                    errorMessage={oneclickErrorMessage}
+                  />
+                ) : (
+                  <ChannelPickerGroup group={group} open={open} />
+                )}
               </AccordionItem>
             );
           })}
@@ -271,6 +402,49 @@ function resolveChannelLogosForGroup(
     }
   }
   return logos;
+}
+
+export function enableOneclickForGroup(
+  enableOneclickUserOption: boolean,
+  channelsInGroup: BffChannel[],
+) {
+  if (!enableOneclickUserOption) return false;
+
+  return (
+    channelsInGroup.length === 1 &&
+    channelsInGroup[0].pm_type === "QR_CODE" &&
+    channelsInGroup[0].form.length === 0
+  );
+}
+
+// we auto-open a group if there's only one and at least one channel is selectable, and auto-select a channel if there's only one.
+function instantOpenConfig(
+  session: BffSession,
+  channelsByGroup: Record<string, BffChannel[]>,
+  currentChannel: BffChannel | null,
+) {
+  if (currentChannel) {
+    return null; // channel already selected, unlikely to happen but lets just do nothing here
+  }
+
+  const channels = Object.values(channelsByGroup);
+  if (channels.length !== 1) {
+    return null; // must have exactly one group
+  }
+
+  if (channels[0].length === 0) {
+    return null; // no channels, should never happen
+  }
+
+  if (!channels[0].some((channel) => satisfiesMinMax(session, channel))) {
+    return null; // all channels in group are unselectable
+  }
+
+  if (channels[0].length !== 1) {
+    return { group: channels[0][0].ui_group }; // group is auto-opened but channel is not
+  }
+
+  return { group: channels[0][0].ui_group, channel: channels[0][0] }; // group and channel are auto selectable
 }
 
 export class XenditClearCurrentChannelEvent extends Event {

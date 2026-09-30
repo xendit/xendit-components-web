@@ -2,7 +2,7 @@ import { createElement } from "preact";
 import { internal } from "../../internal";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
-import { ContainerActionBehavior, DefaultActionContainerType } from "./action";
+import { ContainerActionBehavior } from "./action";
 import { ActionQr } from "../../components/action-qr";
 import { hasCustomQrArt } from "../../components/action-qr-custom-art";
 import { ActionCardProps } from "../../components/action-card";
@@ -38,6 +38,8 @@ export class ActionQrBehavior extends ContainerActionBehavior {
 
     const qrHasCustomArt = hasCustomQrArt(channelCodeForQrArt);
 
+    this.cleanupFn = this.ensureHasActionContainer(qrHasCustomArt);
+
     const container = this.bb.sdk[internal].liveComponents.actionContainer;
 
     const actionQrProps: Parameters<typeof ActionQr>[0] = {
@@ -56,11 +58,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
 
-    const defaultActionContainerType = qrHasCustomArt
-      ? DefaultActionContainerType.QrWithCustomArt
-      : DefaultActionContainerType.Generic;
-    this.cleanupFn = this.ensureHasActionContainer(defaultActionContainerType);
-
     let cardProps: Omit<ActionCardProps, "children"> | undefined = undefined;
     const withCard = container?.getAttribute("data-with-card") === "true";
     if (withCard) {
@@ -70,9 +67,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
         channelBrandLogoUrl: this.bb.channel.brand_logo_url,
         channelBrandName: this.bb.channel.brand_name,
         color: this.bb.channel.brand_color,
-        removePadding:
-          defaultActionContainerType ===
-          DefaultActionContainerType.QrWithCustomArt,
         title: qrAction.action_title,
       };
     }
