@@ -256,7 +256,7 @@ export const PhoneNumberField: FunctionComponent<FieldProps> = (props) => {
         placeholder={getExampleLocalNumber()}
         className="xendit-text-14 xendit-form-field-inner xendit-phone-number-input"
         onBlur={handleBlur}
-        onChange={handleLocalChange}
+        onInput={handleLocalChange}
         onChangeCapture={handleNativeChange}
         value={localNumber}
         autoComplete="tel"
