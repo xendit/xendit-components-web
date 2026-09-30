@@ -26,7 +26,6 @@ type Props = {
   hideUi: boolean;
   isProdLive: boolean;
   onAffirm: () => void;
-  onCheckStatus: () => Promise<void>;
   qrString: string;
   streamingEnabled: boolean;
   title: string;
@@ -43,7 +42,6 @@ export function ActionQr(props: Props) {
     currency,
     isProdLive,
     onAffirm,
-    onCheckStatus,
     qrString,
     streamingEnabled,
     t,
@@ -192,7 +190,6 @@ export function ActionQr(props: Props) {
     <ActionAffirmText
       isProdLive={isProdLive}
       onAffirm={onAffirm}
-      onCheckStatus={onCheckStatus}
       onDownload={
         svgNode instanceof SVGSVGElement ? onDownloadClicked : undefined
       }

@@ -28,7 +28,6 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
       currency: this.bb.world.session.currency,
       isProdLive: this.bb.sdk.isProdLive(),
       onAffirm: this.affirmPayment.bind(this),
-      onCheckStatus: this.checkStatus.bind(this),
       streamingEnabled: this.isStreamingEnabled(),
       barcodeContent: barcodeAction.value,
       merchantName: this.bb.world.business.name ?? "",

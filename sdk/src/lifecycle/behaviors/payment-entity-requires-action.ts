@@ -1,9 +1,6 @@
 import { BffPollResponse } from "../../backend-types/common";
 import { BffPaymentEntity } from "../../backend-types/payment-entity";
-import {
-  InternalSessionStatusCheckedEvent,
-  InternalUpdateWorldState,
-} from "../../private-event-types";
+import { InternalUpdateWorldState } from "../../private-event-types";
 import {
   XenditActionBeginEvent,
   XenditActionEndEvent,
@@ -69,11 +66,6 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
         succeededChannel: pollResponse.succeeded_channel ?? null, // do set succeeded channel to null if it doesn't return one
       }),
     );
-    this.bb.dispatchEvent(new InternalSessionStatusCheckedEvent());
-  };
-
-  onHeartbeat = () => {
-    this.bb.dispatchEvent(new InternalSessionStatusCheckedEvent());
   };
 
   /**
@@ -82,11 +74,7 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
   resetWorker() {
     const running = this.updateWorker?.isRunning() ?? false;
     this.updateWorker?.stop();
-    this.updateWorker = createSessionUpdateWorker(
-      this.bb,
-      this.onPollResult,
-      this.onHeartbeat,
-    );
+    this.updateWorker = createSessionUpdateWorker(this.bb, this.onPollResult);
     if (running) {
       this.updateWorker.start();
     }

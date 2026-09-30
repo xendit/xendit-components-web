@@ -21,7 +21,6 @@ type Props = {
   currency: string;
   isProdLive: boolean;
   onAffirm: () => void;
-  onCheckStatus: () => Promise<void>;
   streamingEnabled: boolean;
   vaNumber: string;
   merchantName: string;
@@ -38,7 +37,6 @@ export function ActionVa(props: Props) {
     currency,
     isProdLive,
     onAffirm,
-    onCheckStatus,
     streamingEnabled,
     vaNumber,
     merchantName,
@@ -74,12 +72,7 @@ export function ActionVa(props: Props) {
   ];
 
   const affirmSection = streamingEnabled ? (
-    <ActionAffirmText
-      isProdLive={isProdLive}
-      onAffirm={onAffirm}
-      onCheckStatus={onCheckStatus}
-      t={t}
-    />
+    <ActionAffirmText isProdLive={isProdLive} onAffirm={onAffirm} t={t} />
   ) : (
     <div className="xendit-action-present-to-customer-affirm">
       <Button

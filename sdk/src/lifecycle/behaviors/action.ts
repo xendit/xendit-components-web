@@ -10,10 +10,7 @@ import { Instructions as InstructionsType } from "../../backend-types/instructio
 import { createPortal } from "preact/compat";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
-import {
-  InternalBehaviorTreeUpdateEvent,
-  InternalSessionStatusCheckedEvent,
-} from "../../private-event-types";
+import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 
 export enum DefaultActionContainerType {
   QrWithCustomArt = "qr-with-custom-art",
@@ -30,9 +27,6 @@ export abstract class ContainerActionBehavior implements Behavior {
   title = "Complete your payment";
 
   telemetryScope: SessionTelemetryScope | null = null;
-
-  // cancels the status check that is still waiting
-  private statusCheckAbort: AbortController | null = null;
 
   constructor(protected bb: BlackboardType) {}
 
@@ -255,26 +249,7 @@ export abstract class ContainerActionBehavior implements Behavior {
     this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 
-  /**
-   * Fired when the user clicks "Check status." in prod live with streaming on.
-   */
-  checkStatus(): Promise<void> {
-    return new Promise((resolve) => {
-      this.statusCheckAbort?.abort();
-      this.statusCheckAbort = new AbortController();
-
-      (this.bb.sdk as EventTarget).addEventListener(
-        InternalSessionStatusCheckedEvent.type,
-        () => resolve(),
-        { once: true, signal: this.statusCheckAbort.signal },
-      );
-
-      this.affirmPayment();
-    });
-  }
-
   exit() {
-    this.statusCheckAbort?.abort();
     this.cleanupActionContainer(false);
     this.emptyActionInstructionsContainer();
 

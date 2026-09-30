@@ -30,7 +30,6 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       currency: this.bb.world.session.currency,
       isProdLive: this.bb.sdk.isProdLive(),
       onAffirm: this.affirmPayment.bind(this),
-      onCheckStatus: this.checkStatus.bind(this),
       streamingEnabled: this.isStreamingEnabled(),
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",

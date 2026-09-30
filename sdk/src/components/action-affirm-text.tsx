@@ -5,58 +5,24 @@ import { TFunction } from "../localization";
 type Props = {
   isProdLive: boolean;
   onAffirm: () => void;
-  onCheckStatus: () => Promise<void>;
   // when set, a "Download QR" link comes first on the second line
   onDownload?: () => void;
   t: TFunction;
 };
 
 /**
- * The two lines of text that replace the affirm button on action screens when session streaming is on.
+ * The text that replaces the affirm button on action screens when session streaming is on.
+ * The page updates by itself, so there is nothing to click in prod live except "Download QR".
  */
 export function ActionAffirmText(props: Props) {
-  const { isProdLive, onAffirm, onCheckStatus, onDownload, t } = props;
+  const { isProdLive, onAffirm, onDownload, t } = props;
 
   const [simulating, setSimulating] = useState(false);
-  const [statusCheck, setStatusCheck] = useState<
-    "idle" | "checking" | "not_found"
-  >("idle");
 
   const onSimulateClicked = useCallback(() => {
     setSimulating(true);
     onAffirm();
   }, [onAffirm]);
-
-  const onCheckStatusClicked = useCallback(() => {
-    if (statusCheck === "checking") {
-      return;
-    }
-    setStatusCheck("checking");
-    // only resolves while this screen is open, if the payment was found, the screen closes on "Checking..."
-    onCheckStatus().then(() => {
-      setStatusCheck("not_found");
-    });
-  }, [onCheckStatus, statusCheck]);
-
-  let statusCheckSection: ComponentChildren = (
-    <TextButton onClick={onCheckStatusClicked}>
-      {t("action_qr.check_status")}
-    </TextButton>
-  );
-  if (statusCheck === "checking") {
-    statusCheckSection = (
-      <>
-        {t("action_qr.checking")}
-        <LoadingDots />
-      </>
-    );
-  } else if (statusCheck === "not_found") {
-    statusCheckSection = (
-      <TextButton onClick={onCheckStatusClicked}>
-        {t("action_qr.no_payment_found")}
-      </TextButton>
-    );
-  }
 
   const simulateSection = simulating ? (
     <>
@@ -70,18 +36,20 @@ export function ActionAffirmText(props: Props) {
   );
 
   return (
-    <div className="xendit-action-present-to-customer-affirm xendit-action-affirm-text xendit-text-14 xendit-text-secondary xendit-text-center">
-      <div>{t("action_qr.make_payment_to_proceed")}</div>
-      <div>
-        {onDownload ? (
-          <>
-            <TextButton onClick={onDownload}>
-              {t("action_qr.download_qr")}
-            </TextButton>{" "}
-          </>
-        ) : null}
-        {isProdLive ? statusCheckSection : simulateSection}
-      </div>
+    <div className="xendit-action-present-to-customer-affirm xendit-action-affirm-text xendit-text-12 xendit-text-secondary xendit-text-center">
+      <div>{t("action_qr.make_payment_keep_page_open")}</div>
+      {onDownload || !isProdLive ? (
+        <div>
+          {onDownload ? (
+            <>
+              <TextButton onClick={onDownload}>
+                {t("action_qr.download_qr")}
+              </TextButton>{" "}
+            </>
+          ) : null}
+          {isProdLive ? null : simulateSection}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -113,7 +81,7 @@ function TextButton(props: {
 }
 
 /**
- * Three dots after "Checking" or "Simulating", animated with CSS.
+ * Three dots after "Simulating", animated with CSS.
  */
 function LoadingDots() {
   return (

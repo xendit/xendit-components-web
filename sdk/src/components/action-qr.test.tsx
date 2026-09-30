@@ -22,7 +22,6 @@ describe("ActionQr NMID", () => {
     hideUi: false,
     isProdLive: false,
     onAffirm: () => {},
-    onCheckStatus: () => Promise.resolve(),
     streamingEnabled: false,
     title: "Complete payment",
     t: ((key: string) => key) as TFunction,

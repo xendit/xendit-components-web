@@ -13,7 +13,6 @@ type Props = {
   currency: string;
   isProdLive: boolean;
   onAffirm: () => void;
-  onCheckStatus: () => Promise<void>;
   streamingEnabled: boolean;
   barcodeContent: string;
   merchantName: string;
@@ -30,7 +29,6 @@ export function ActionBarcode(props: Props) {
     currency,
     isProdLive,
     onAffirm,
-    onCheckStatus,
     streamingEnabled,
     barcodeContent,
     merchantName,
@@ -75,12 +73,7 @@ export function ActionBarcode(props: Props) {
   }, [barcodeContent, t]);
 
   const affirmSection = streamingEnabled ? (
-    <ActionAffirmText
-      isProdLive={isProdLive}
-      onAffirm={onAffirm}
-      onCheckStatus={onCheckStatus}
-      t={t}
-    />
+    <ActionAffirmText isProdLive={isProdLive} onAffirm={onAffirm} t={t} />
   ) : (
     <div className="xendit-action-present-to-customer-affirm">
       <Button

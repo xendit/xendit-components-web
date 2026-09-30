@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeTestSdkKey } from "../../data/test-data-modifiers";
 import { internal } from "../../internal";
-import {
-  InternalBehaviorTreeUpdateEvent,
-  InternalSessionStatusCheckedEvent,
-} from "../../private-event-types";
+import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { parseSdkKey } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
@@ -38,19 +35,6 @@ function buildBlackboard(
     ...overrides,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
-}
-
-// lets pending promise callbacks run
-function flush() {
-  return new Promise((resolve) => setTimeout(resolve, 0));
-}
-
-function track(promise: Promise<void>) {
-  const state = { resolved: false };
-  promise.then(() => {
-    state.resolved = true;
-  });
-  return state;
 }
 
 describe("ContainerActionBehavior.affirmPayment", () => {
@@ -105,60 +89,5 @@ describe("ContainerActionBehavior.isStreamingEnabled", () => {
     const behavior = new TestActionBehavior(buildBlackboard(buildSdk()));
 
     expect(behavior.isStreamingEnabled()).toBe(false);
-  });
-});
-
-describe("ContainerActionBehavior.checkStatus", () => {
-  it("asks for an immediate check, like the old affirm button", () => {
-    const events: Event[] = [];
-    const bb = buildBlackboard(buildSdk(), events);
-    const behavior = new TestActionBehavior(bb);
-
-    behavior.checkStatus();
-
-    expect(bb.pollImmediatelyRequested).toBe(true);
-    expect(events.map((e) => e.type)).toEqual([
-      InternalBehaviorTreeUpdateEvent.type,
-    ]);
-  });
-
-  it("resolves on the next status check, not before", async () => {
-    const sdk = buildSdk();
-    const behavior = new TestActionBehavior(buildBlackboard(sdk));
-
-    const check = track(behavior.checkStatus());
-    await flush();
-    expect(check.resolved).toBe(false);
-
-    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
-    await flush();
-    expect(check.resolved).toBe(true);
-  });
-
-  it("waits for a new answer when checked again after an answer", async () => {
-    const sdk = buildSdk();
-    const behavior = new TestActionBehavior(buildBlackboard(sdk));
-
-    behavior.checkStatus();
-    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
-    const second = track(behavior.checkStatus());
-    await flush();
-    expect(second.resolved).toBe(false);
-
-    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
-    await flush();
-    expect(second.resolved).toBe(true);
-  });
-
-  it("never resolves after the screen closes, so no result is shown", async () => {
-    const sdk = buildSdk();
-    const behavior = new TestActionBehavior(buildBlackboard(sdk));
-
-    const check = track(behavior.checkStatus());
-    behavior.exit();
-    sdk.dispatchEvent(new InternalSessionStatusCheckedEvent());
-    await flush();
-
-    expect(check.resolved).toBe(false);
   });
 });

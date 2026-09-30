@@ -50,7 +50,6 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
       isProdLive: this.bb.sdk.isProdLive(),
       onAffirm: this.affirmPayment.bind(this),
-      onCheckStatus: this.checkStatus.bind(this),
       qrString: qrAction.value,
       streamingEnabled: this.isStreamingEnabled(),
       title: qrAction.action_subtitle,
