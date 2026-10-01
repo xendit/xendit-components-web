@@ -323,7 +323,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
                 key={group.id}
                 id={group.id}
                 title={group.label}
-                subtitle={disabledReason ?? undefined}
+                subtitle={disabled ? (disabledReason ?? undefined) : undefined}
                 open={open}
                 disabled={disabled}
                 onClick={handleSelectChannelGroup}
@@ -346,7 +346,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   );
 };
 
-// returns null if the group has any enabled channels, otherwise returns the disabled reason as a string
+// return number of enabled channels in group, and if it is zero, return the reason why the first channel is disabled
 function groupEnabledChannelStats(
   session: BffSession,
   group: BffChannelUiGroup,
@@ -374,7 +374,8 @@ function groupEnabledChannelStats(
   }
   return {
     enabledChannels,
-    firstDisabledChannelReason,
+    firstDisabledChannelReason:
+      enabledChannels === 0 ? firstDisabledChannelReason : null,
   };
 }
 

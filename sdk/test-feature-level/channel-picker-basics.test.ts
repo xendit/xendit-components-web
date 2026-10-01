@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { XenditComponentsTest } from "../src";
 import { waitForEvent } from "./utils";
-import { screen } from "@testing-library/dom";
+import { screen, within } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { assert } from "../src/utils";
 
@@ -97,5 +97,37 @@ describe("channel picker basics", () => {
     expect(channelComponent).toBeInTheDocument();
 
     expect(sdk.getCurrentChannel()?.channelCode).toEqual(ch.channelCode);
+  });
+
+  it("should show disabled reason for fully disabled group but not for partially disabled group", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+
+    await waitForEvent(sdk, "init");
+
+    // Mock Disabled Group: all channels disabled, should show disabled reason
+    const disabledGroupHeader = screen.getByText("Mock Disabled Group");
+    const disabledGroupItem = disabledGroupHeader.closest(
+      ".xendit-accordion-item",
+    );
+    assert(disabledGroupItem);
+    const disabledGroupSubtitle = within(
+      disabledGroupItem as HTMLElement,
+    ).queryByText("The payment amount is below the min. transaction limit");
+    expect(disabledGroupSubtitle).toBeInTheDocument();
+
+    // Mock Partial Disabled Group: some channels enabled, should NOT show disabled reason
+    const partialGroupHeader = screen.getByText("Mock Partial Disabled Group");
+    const partialGroupItem = partialGroupHeader.closest(
+      ".xendit-accordion-item",
+    );
+    assert(partialGroupItem);
+    const partialGroupSubtitle = within(
+      partialGroupItem as HTMLElement,
+    ).queryByText("The payment amount is below the min. transaction limit");
+    expect(partialGroupSubtitle).not.toBeInTheDocument();
   });
 });
