@@ -13,6 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          token: ""
           persist-credentials: false
 
       - name: Setup Node.js

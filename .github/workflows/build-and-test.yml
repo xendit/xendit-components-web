@@ -18,6 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          token: ""
           persist-credentials: false
 
       - name: Install dependencies
@@ -39,6 +40,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          token: ""
           persist-credentials: false
 
       - name: Restore node_modules
@@ -60,6 +62,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          token: ""
           persist-credentials: false
 
       - name: Restore node_modules
@@ -81,6 +84,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          token: ""
           persist-credentials: false
 
       - name: Restore node_modules
@@ -102,6 +106,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          token: ""
           persist-credentials: false
 
       - name: Restore node_modules
@@ -129,6 +134,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          token: ""
           persist-credentials: false
 
       - name: Restore node_modules
