@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: Checkout code
         run: |
+          git config --global --add safe.directory "$PWD"
           git clone --depth 1 https://github.com/${{ github.repository }}.git .
 
       - name: Setup Node.js
