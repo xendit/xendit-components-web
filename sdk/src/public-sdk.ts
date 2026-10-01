@@ -1757,7 +1757,9 @@ export class XenditComponents extends EventTarget {
    * Does nothing if there is no active submission.
    */
   abortSubmission() {
-    this.assertInitialized();
+    if (!this[internal].worldState) {
+      return; // don't throw on useless abort, users might abort to cleanup regardless of current status
+    }
 
     const submissionBehavior =
       this[internal].behaviorTree.findBehavior(SubmissionBehavior);
