@@ -3,6 +3,7 @@ import {
   createTFunction,
   getLocalizedErrorMessage,
   InterceptLocaleStringsFn,
+  loadLocale,
 } from "./localization";
 import { ChannelFormField } from "./backend-types/channel";
 
@@ -128,5 +129,22 @@ describe("getLocalizedErrorMessage", () => {
       mockField,
     );
     expect(result).toBe("This is a string");
+  });
+});
+
+describe("loadLocale", () => {
+  it("loads locale data and makes it available to createTFunction", async () => {
+    // Before loading, non-English locales have empty data and fall back to key
+    const tBeforeLoad = createTFunction("id", undefined);
+    expect(tBeforeLoad("validation.card_cvn_invalid")).toBe(
+      "validation.card_cvn_invalid",
+    );
+
+    // Load the Indonesian locale
+    await loadLocale("id");
+
+    // After loading, the locale data should be available
+    const tAfterLoad = createTFunction("id", undefined);
+    expect(tAfterLoad("validation.card_cvn_invalid")).toBe("CVN tidak valid");
   });
 });
