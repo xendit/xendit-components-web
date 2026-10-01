@@ -14,6 +14,7 @@ import {
 import { XenditComponents } from "../../../public-sdk";
 import { parseSdkKey, sleep } from "../../../utils";
 import { StreamWorker } from "./stream-worker";
+import { StreamFallbackReason } from "./session-update-worker";
 
 // Keep the real module, only replace the two network calls the workers make.
 vi.mock("../../../api", async (importOriginal) => ({
@@ -87,10 +88,25 @@ function startWorker(
   onResult: Mock<OnResult> = vi.fn<OnResult>(),
   workerSdk: XenditComponents = sdk,
 ) {
-  const worker = new StreamWorker(sdkKey, workerSdk, "tok-1", onResult);
+  const onFallback = vi.fn<(reason: StreamFallbackReason) => void>();
+  const worker = new StreamWorker(
+    sdkKey,
+    workerSdk,
+    "tok-1",
+    onResult,
+    onFallback,
+  );
   workers.push(worker);
   worker.start();
-  return { worker, onResult };
+  return { worker, onResult, onFallback };
+}
+
+function expectFallback(
+  onFallback: Mock<(reason: StreamFallbackReason) => void>,
+  reason: string,
+) {
+  expect(onFallback).toHaveBeenCalledTimes(1);
+  expect(onFallback).toHaveBeenCalledWith(reason);
 }
 
 beforeEach(() => {
@@ -128,7 +144,7 @@ describe("StreamWorker - normal flow", () => {
 
   it("closes the stream after final without falling back", () => {
     const [source] = queueSources(1);
-    const { worker, onResult } = startWorker();
+    const { worker, onResult, onFallback } = startWorker();
 
     source.send("final", sessionOnly);
 
@@ -137,6 +153,7 @@ describe("StreamWorker - normal flow", () => {
     expect(pollSession).not.toHaveBeenCalled();
     // like PollWorker, only stop() ends isRunning()
     expect(worker.isRunning()).toBe(true);
+    expect(onFallback).not.toHaveBeenCalled();
   });
 
   it("prefers payment_token over payment_request, like PollWorker", () => {
@@ -171,7 +188,7 @@ describe("StreamWorker - normal flow", () => {
 describe("StreamWorker - recovery", () => {
   it("keeps listening after a stream timeout, leaving the reconnect to EventSource", async () => {
     const [source] = queueSources(1);
-    startWorker();
+    const { onFallback } = startWorker();
 
     source.open();
     source.send("heartbeat", heartbeat);
@@ -185,11 +202,12 @@ describe("StreamWorker - recovery", () => {
     expect(source.closed).toBe(false);
     expect(streamSession).toHaveBeenCalledTimes(1);
     expect(pollSession).not.toHaveBeenCalled();
+    expect(onFallback).not.toHaveBeenCalled();
   });
 
   it("tolerates drops below the limit", async () => {
     const [source] = queueSources(1);
-    startWorker();
+    const { onFallback } = startWorker();
 
     source.drop();
     source.drop();
@@ -197,11 +215,12 @@ describe("StreamWorker - recovery", () => {
 
     expect(source.closed).toBe(false);
     expect(pollSession).not.toHaveBeenCalled();
+    expect(onFallback).not.toHaveBeenCalled();
   });
 
   it("forgets earlier drops once a heartbeat arrives", async () => {
     const [source] = queueSources(1);
-    startWorker();
+    const { onFallback } = startWorker();
 
     source.drop();
     source.drop();
@@ -213,11 +232,12 @@ describe("StreamWorker - recovery", () => {
 
     expect(source.closed).toBe(false);
     expect(pollSession).not.toHaveBeenCalled();
+    expect(onFallback).not.toHaveBeenCalled();
   });
 
   it("reopens the stream itself when a healthy connection goes silent", async () => {
     const [first, second] = queueSources(2);
-    startWorker();
+    const { onFallback } = startWorker();
 
     first.open();
     first.send("heartbeat", heartbeat);
@@ -227,11 +247,12 @@ describe("StreamWorker - recovery", () => {
     expect(first.closed).toBe(true);
     expect(second.closed).toBe(false);
     expect(pollSession).not.toHaveBeenCalled();
+    expect(onFallback).not.toHaveBeenCalled();
   });
 
   it("needs a new heartbeat after reconnecting before it counts as healthy", async () => {
     const [source] = queueSources(1);
-    startWorker();
+    const { onFallback } = startWorker();
 
     source.open();
     source.send("heartbeat", heartbeat);
@@ -241,13 +262,14 @@ describe("StreamWorker - recovery", () => {
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
     expect(source.closed).toBe(true);
     expect(streamSession).toHaveBeenCalledTimes(1);
+    expectFallback(onFallback, "no_heartbeat");
   });
 });
 
 describe("StreamWorker - fallback", () => {
   it("falls back to polling after three drops in a row, and never streams again", async () => {
     const [source] = queueSources(1);
-    const { onResult } = startWorker();
+    const { onResult, onFallback } = startWorker();
 
     source.drop();
     source.drop();
@@ -261,27 +283,30 @@ describe("StreamWorker - fallback", () => {
     );
     expect(source.closed).toBe(true);
     expect(streamSession).toHaveBeenCalledTimes(1);
+    expectFallback(onFallback, "too_many_drops");
   });
 
   it("falls back right away when the server refuses the stream", async () => {
     const [source] = queueSources(1);
-    startWorker();
+    const { onFallback } = startWorker();
 
     source.reject(); // e.g. the session is gone or the origin isn't allowed
 
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
     expect(source.closed).toBe(true);
+    expectFallback(onFallback, "stream_refused");
   });
 
   it("falls back when the connection stays silent before any heartbeat", async () => {
     const [source] = queueSources(1);
-    startWorker();
+    const { onFallback } = startWorker();
 
     source.open();
 
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
     expect(source.closed).toBe(true);
     expect(streamSession).toHaveBeenCalledTimes(1);
+    expectFallback(onFallback, "no_heartbeat");
   });
 
   it("does not let updates without heartbeats keep a dropping stream alive", async () => {
@@ -290,7 +315,7 @@ describe("StreamWorker - fallback", () => {
       new Promise<BffPollResponse>(() => {}),
     );
     const [source] = queueSources(1);
-    const { onResult } = startWorker();
+    const { onResult, onFallback } = startWorker();
 
     for (let i = 0; i < 3; i++) {
       source.open();
@@ -301,11 +326,12 @@ describe("StreamWorker - fallback", () => {
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
     expect(onResult).toHaveBeenCalledTimes(3);
     expect(source.closed).toBe(true);
+    expectFallback(onFallback, "too_many_drops");
   });
 
   it("falls back on a server error other than a timeout, even after a heartbeat", async () => {
     const [source] = queueSources(1);
-    startWorker();
+    const { onFallback } = startWorker();
 
     source.send("heartbeat", heartbeat);
     source.send("error", {
@@ -315,21 +341,22 @@ describe("StreamWorker - fallback", () => {
 
     await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
     expect(source.closed).toBe(true);
+    expectFallback(onFallback, "server_error");
   });
 
   it.each([
-    ["an update with invalid JSON", "update", "{not json"],
-    ["an update without a session", "update", "{}"],
-    ["an error with invalid JSON", "error", "{not json"],
+    ["an update with invalid JSON", "update", "{not json", "invalid_message"],
+    ["an update without a session", "update", "{}", "invalid_message"],
+    ["an error with invalid JSON", "error", "{not json", "server_error"],
   ])(
     "falls back on %s, even after a heartbeat",
-    async (_name, eventName, data) => {
+    async (_name, eventName, data, reason) => {
       // keep polling pending, so any onResult call could only come from the stream
       vi.mocked(pollSession).mockReturnValue(
         new Promise<BffPollResponse>(() => {}),
       );
       const [source] = queueSources(1);
-      const { onResult } = startWorker();
+      const { onResult, onFallback } = startWorker();
 
       source.send("heartbeat", heartbeat);
       source.send(eventName, data);
@@ -337,6 +364,7 @@ describe("StreamWorker - fallback", () => {
       await vi.waitFor(() => expect(pollSession).toHaveBeenCalled());
       expect(onResult).not.toHaveBeenCalled();
       expect(streamSession).toHaveBeenCalledTimes(1);
+      expectFallback(onFallback, reason);
     },
   );
 });
@@ -363,12 +391,13 @@ describe("StreamWorker - stop", () => {
 
   it("does not fall back when stopped right after starting", () => {
     const [source] = queueSources(1);
-    const { worker } = startWorker();
+    const { worker, onFallback } = startWorker();
 
     worker.stop();
 
     expect(source.closed).toBe(true);
     expect(pollSession).not.toHaveBeenCalled();
+    expect(onFallback).not.toHaveBeenCalled();
   });
 
   it("stops the fallback PollWorker too", async () => {

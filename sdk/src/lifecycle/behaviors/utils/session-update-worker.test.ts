@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { BlackboardType } from "../../behavior-tree";
 import { parseSdkKey } from "../../../utils";
 import { makeTestSdkKey } from "../../../data/test-data-modifiers";
-import { createSessionUpdateWorker } from "./session-update-worker";
+import {
+  createSessionUpdateWorker,
+  StreamFallbackReason,
+} from "./session-update-worker";
 import { PollWorker } from "./poll-worker";
 import { StreamWorker } from "./stream-worker";
 
@@ -90,3 +93,60 @@ describe("createSessionUpdateWorker", () => {
     expect(worker).toBeInstanceOf(PollWorker);
   });
 });
+
+describe("createSessionUpdateWorker - session update summary", () => {
+  it("records the stream", () => {
+    const bb = buildBlackboard({});
+
+    createSessionUpdateWorker(bb, noop);
+
+    expect(bb.sessionUpdateSummary).toEqual({ mode: "stream" });
+  });
+
+  it("records poll when the flag is false", () => {
+    const bb = buildBlackboard({}, { "stream-session": false });
+
+    createSessionUpdateWorker(bb, noop);
+
+    expect(bb.sessionUpdateSummary).toEqual({ mode: "poll" });
+  });
+
+  it("takes the latest worker's mode, e.g. poll right after a redirect return", () => {
+    const bb = buildBlackboard({});
+    createSessionUpdateWorker(bb, noop);
+
+    bb.redirectReturnPending = true;
+    createSessionUpdateWorker(bb, noop);
+
+    expect(bb.sessionUpdateSummary).toEqual({ mode: "poll" });
+  });
+
+  it("records a fallback with its reason", () => {
+    const bb = buildBlackboard({});
+    const worker = createSessionUpdateWorker(bb, noop);
+
+    fallBack(worker, "too_many_drops");
+
+    expect(bb.sessionUpdateSummary).toEqual({
+      mode: "stream_fallback_poll",
+      fallbackReason: "too_many_drops",
+    });
+  });
+
+  it("forgets an earlier fallback when a later worker streams", () => {
+    const bb = buildBlackboard({});
+    const worker = createSessionUpdateWorker(bb, noop);
+    fallBack(worker, "too_many_drops");
+
+    createSessionUpdateWorker(bb, noop);
+
+    expect(bb.sessionUpdateSummary).toEqual({ mode: "stream" });
+  });
+});
+
+// what StreamWorker calls on fallback
+function fallBack(worker: unknown, reason: StreamFallbackReason) {
+  (worker as { onFallback: (reason: StreamFallbackReason) => void }).onFallback(
+    reason,
+  );
+}
