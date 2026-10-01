@@ -16,7 +16,11 @@ export class SessionCompletedBehavior implements Behavior {
 
     assert(this.bb.world?.session);
     this.bb.telemetry.append(
-      TelemetryEvents.End(true, this.bb.world.session.status),
+      TelemetryEvents.End(
+        true,
+        this.bb.world.session.status,
+        this.bb.sessionUpdateSummary,
+      ),
     );
   }
 }

@@ -101,5 +101,11 @@ describe("sdk submit telemetry - actions and end states", () => {
 
     // the 5th event should be a sibling of the first
     expect(e5.parent_event_id).toBe(e1.parent_event_id);
+
+    // mock mode always streams
+    expect(e5.metadata).toEqual({
+      status: "COMPLETED",
+      session_update: "stream",
+    });
   });
 });

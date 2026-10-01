@@ -219,12 +219,21 @@ export const TelemetryEvents = {
   /**
    * On session complete, expiry, or cancel state
    */
-  End(success: boolean, status: string) {
+  End(
+    success: boolean,
+    status: string,
+    sessionUpdate?: {
+      mode: string;
+      fallbackReason?: string;
+    },
+  ) {
     return {
       stage: "CHECKOUT_END",
       success,
       metadata: {
         status,
+        session_update: sessionUpdate?.mode,
+        stream_fallback_reason: sessionUpdate?.fallbackReason,
       },
     };
   },
