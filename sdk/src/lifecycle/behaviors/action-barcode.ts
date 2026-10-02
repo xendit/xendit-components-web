@@ -2,7 +2,6 @@ import { createElement } from "preact";
 import { ActionBarcode } from "../../components/action-barcode";
 import { ActionCardProps } from "../../components/action-card";
 import { internal } from "../../internal";
-import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
@@ -27,7 +26,9 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
+      isProdLive: this.bb.sdk.isProdLive(),
       onAffirm: this.affirmPayment.bind(this),
+      streamingEnabled: this.isStreamingEnabled(),
       barcodeContent: barcodeAction.value,
       merchantName: this.bb.world.business.name ?? "",
       paymentCode: barcodeAction.value,
@@ -59,19 +60,5 @@ export class ActionBarcodeBehavior extends ContainerActionBehavior {
       () => createElement(ActionBarcode, actionBarcodeProps),
       cardProps,
     );
-  }
-
-  /**
-   * Fired when user affirms they have made the payment by clicking
-   * the affirm button.
-   */
-  affirmPayment() {
-    if (this.bb.sdk.isProdLive()) {
-      // live mode
-      this.bb.pollImmediatelyRequested = true;
-    } else {
-      this.bb.simulatePaymentRequested = true;
-    }
-    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 }

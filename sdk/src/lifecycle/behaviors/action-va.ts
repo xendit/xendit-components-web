@@ -3,7 +3,6 @@ import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
 import { ActionVa } from "../../components/action-va";
-import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { ActionCardProps } from "../../components/action-card";
 import { internal } from "../../internal";
 
@@ -29,7 +28,9 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       amount: this.bb.world.session.amount,
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
+      isProdLive: this.bb.sdk.isProdLive(),
       onAffirm: this.affirmPayment.bind(this),
+      streamingEnabled: this.isStreamingEnabled(),
       vaNumber: vaAction.value,
       merchantName: this.bb.world.business.name ?? "",
       renderInstructions: this.renderActionInstructions.bind(
@@ -61,19 +62,5 @@ export class ActionVaBehavior extends ContainerActionBehavior {
       () => createElement(ActionVa, actionVaProps),
       cardProps,
     );
-  }
-
-  /**
-   * Fired when user affirms they have made the payment by clicking
-   * the affirm button.
-   */
-  affirmPayment() {
-    if (this.bb.sdk.isProdLive()) {
-      // live mode
-      this.bb.pollImmediatelyRequested = true;
-    } else {
-      this.bb.simulatePaymentRequested = true;
-    }
-    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 }

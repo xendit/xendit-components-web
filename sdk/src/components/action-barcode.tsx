@@ -4,13 +4,16 @@ import { amountFormat } from "../amount-format";
 import { TFunction } from "../localization";
 import { generateBarcodeSvg } from "./action-barcode-utils";
 import { useActionCard } from "./action-card";
+import { ActionAffirmText } from "./action-affirm-text";
 import { Button, ButtonLoadingSpinner, ButtonVariant } from "./core/button";
 
 type Props = {
   amount: number;
   channelLogo: string;
   currency: string;
+  isProdLive: boolean;
   onAffirm: () => void;
+  streamingEnabled: boolean;
   barcodeContent: string;
   merchantName: string;
   paymentCode: string;
@@ -24,7 +27,9 @@ export function ActionBarcode(props: Props) {
     amount,
     channelLogo,
     currency,
+    isProdLive,
     onAffirm,
+    streamingEnabled,
     barcodeContent,
     merchantName,
     renderInstructions,
@@ -67,6 +72,24 @@ export function ActionBarcode(props: Props) {
     }
   }, [barcodeContent, t]);
 
+  const affirmSection = streamingEnabled ? (
+    <ActionAffirmText isProdLive={isProdLive} onAffirm={onAffirm} t={t} />
+  ) : (
+    <div className="xendit-action-present-to-customer-affirm">
+      <Button
+        variant={ButtonVariant.WHITE_ROUNDED}
+        disabled={showSpinner}
+        onClick={onMadePaymentClicked}
+        className="xendit-button-block"
+      >
+        {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
+      </Button>
+      <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
+        {t("action.payment_confirmation_instructions")}
+      </div>
+    </div>
+  );
+
   return (
     <div className="xendit-action-present-to-customer">
       {!inActionCard ? (
@@ -107,19 +130,7 @@ export function ActionBarcode(props: Props) {
           ))}
         </div>
       </div>
-      <div className="xendit-action-present-to-customer-affirm">
-        <Button
-          variant={ButtonVariant.WHITE_ROUNDED}
-          disabled={showSpinner}
-          onClick={onMadePaymentClicked}
-          className="xendit-button-block"
-        >
-          {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
-        </Button>
-        <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
-          {t("action.payment_confirmation_instructions")}
-        </div>
-      </div>
+      {affirmSection}
       {renderInstructions()}
     </div>
   );

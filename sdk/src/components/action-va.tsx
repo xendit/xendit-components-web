@@ -13,12 +13,15 @@ import Icon from "./icon";
 import { SessionTelemetry } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
 import { useActionCard } from "./action-card";
+import { ActionAffirmText } from "./action-affirm-text";
 
 type Props = {
   amount: number;
   channelLogo: string;
   currency: string;
+  isProdLive: boolean;
   onAffirm: () => void;
+  streamingEnabled: boolean;
   vaNumber: string;
   merchantName: string;
   renderInstructions: () => ComponentChildren;
@@ -32,7 +35,9 @@ export function ActionVa(props: Props) {
     amount,
     channelLogo,
     currency,
+    isProdLive,
     onAffirm,
+    streamingEnabled,
     vaNumber,
     merchantName,
     renderInstructions,
@@ -65,6 +70,24 @@ export function ActionVa(props: Props) {
       enableCopy: true,
     },
   ];
+
+  const affirmSection = streamingEnabled ? (
+    <ActionAffirmText isProdLive={isProdLive} onAffirm={onAffirm} t={t} />
+  ) : (
+    <div className="xendit-action-present-to-customer-affirm">
+      <Button
+        variant={ButtonVariant.WHITE_ROUNDED}
+        disabled={showSpinner}
+        onClick={onMadePaymentClicked}
+        className="xendit-button-block"
+      >
+        {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
+      </Button>
+      <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
+        {t("action.payment_confirmation_instructions")}
+      </div>
+    </div>
+  );
 
   return (
     <div className="xendit-action-present-to-customer">
@@ -105,19 +128,7 @@ export function ActionVa(props: Props) {
           ))}
         </div>
       </div>
-      <div className="xendit-action-present-to-customer-affirm">
-        <Button
-          variant={ButtonVariant.WHITE_ROUNDED}
-          disabled={showSpinner}
-          onClick={onMadePaymentClicked}
-          className="xendit-button-block"
-        >
-          {showSpinner ? <ButtonLoadingSpinner /> : t("action.payment_made")}
-        </Button>
-        <div className="xendit-text-12 xendit-text-secondary xendit-text-center">
-          {t("action.payment_confirmation_instructions")}
-        </div>
-      </div>
+      {affirmSection}
       {renderInstructions()}
     </div>
   );

@@ -20,7 +20,9 @@ describe("ActionQr NMID", () => {
     channelLogo: "https://example.com/qris.png",
     currency: "IDR",
     hideUi: false,
+    isProdLive: false,
     onAffirm: () => {},
+    streamingEnabled: false,
     title: "Complete payment",
     t: ((key: string) => key) as TFunction,
   };

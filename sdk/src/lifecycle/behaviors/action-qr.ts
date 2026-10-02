@@ -4,7 +4,6 @@ import { assert, assertEquals } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { ContainerActionBehavior } from "./action";
 import { ActionQr } from "../../components/action-qr";
-import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { hasCustomQrArt } from "../../components/action-qr-custom-art";
 import { ActionCardProps } from "../../components/action-card";
 
@@ -51,8 +50,10 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       channelLogo: this.bb.channel.brand_logo_url,
       currency: this.bb.world.session.currency,
       hideUi: container?.getAttribute("data-qr-code-only") === "true" || false,
+      isProdLive: this.bb.sdk.isProdLive(),
       onAffirm: this.affirmPayment.bind(this),
       qrString: qrAction.value,
+      streamingEnabled: this.isStreamingEnabled(),
       title: qrAction.action_subtitle,
       t: this.bb.sdk.t.bind(this.bb.sdk),
     };
@@ -73,23 +74,5 @@ export class ActionQrBehavior extends ContainerActionBehavior {
       () => createElement(ActionQr, actionQrProps),
       cardProps,
     );
-  }
-
-  /**
-   * Fired when user affirms they have made the payment by clicking
-   * the affirm button.
-   */
-  affirmPayment() {
-    if (this.bb.sdk.isProdLive()) {
-      // live mode
-      this.bb.pollImmediatelyRequested = true;
-    } else {
-      this.bb.simulatePaymentRequested = true;
-    }
-    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
-  }
-
-  exit() {
-    super.exit();
   }
 }

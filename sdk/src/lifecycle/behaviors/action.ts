@@ -10,6 +10,7 @@ import { Instructions as InstructionsType } from "../../backend-types/instructio
 import { createPortal } from "preact/compat";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
+import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 
 // How long a merchant-provided action container keeps its contents after the action ends.
 export const MERCHANT_CONTAINER_DESTROY_DELAY_MS = 2000;
@@ -266,6 +267,25 @@ export abstract class ContainerActionBehavior implements Behavior {
       if (state.actionInstructionsContainer !== container) return;
       render(null, container);
     }, MERCHANT_CONTAINER_DESTROY_DELAY_MS);
+  }
+
+  isStreamingEnabled(): boolean {
+    return (
+      this.bb.mock || this.bb.world?.experiments?.["stream-session"] === true
+    );
+  }
+
+  /**
+   * Fired when user affirms they have made the payment by clicking the affirm button.
+   */
+  affirmPayment() {
+    if (this.bb.sdk.isProdLive()) {
+      // live mode
+      this.bb.pollImmediatelyRequested = true;
+    } else {
+      this.bb.simulatePaymentRequested = true;
+    }
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 
   exit() {

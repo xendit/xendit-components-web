@@ -1356,6 +1356,44 @@ xendit-channel-picker[inert] {
   position: relative;
   z-index: var(--xendit-z-index-overlay);
 }
+.xendit-action-affirm-text {
+  margin-top: 8px;
+  gap: 4px;
+}
+.xendit-action-text-button {
+  text-decoration: underline;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* shows 1, 2, 3 dots while checking or simulating, and repeats */
+@keyframes xendit-loading-dot-2 {
+  0% {
+    visibility: hidden;
+  }
+  33.33% {
+    visibility: visible;
+  }
+}
+@keyframes xendit-loading-dot-3 {
+  0% {
+    visibility: hidden;
+  }
+  66.67% {
+    visibility: visible;
+  }
+}
+.xendit-action-loading-dots span:nth-child(2) {
+  animation: xendit-loading-dot-2 1.5s steps(1, end) infinite;
+}
+.xendit-action-loading-dots span:nth-child(3) {
+  animation: xendit-loading-dot-3 1.5s steps(1, end) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .xendit-action-loading-dots span {
+    animation: none;
+  }
+}
 
 /* overrides for custom qr art */
 [xendit-action-container-is-qr-with-custom-art] .xendit-dialog-body {

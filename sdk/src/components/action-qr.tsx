@@ -13,6 +13,7 @@ import {
   timestampForFilename,
 } from "./action-qr-utils";
 import { useActionCard } from "./action-card";
+import { ActionAffirmText } from "./action-affirm-text";
 import Icon from "./icon";
 
 type Props = {
@@ -23,8 +24,10 @@ type Props = {
   channelLogo: string;
   currency: string;
   hideUi: boolean;
+  isProdLive: boolean;
   onAffirm: () => void;
   qrString: string;
+  streamingEnabled: boolean;
   title: string;
   t: TFunction;
 };
@@ -37,8 +40,10 @@ export function ActionQr(props: Props) {
     channelName,
     channelLogo,
     currency,
+    isProdLive,
     onAffirm,
     qrString,
+    streamingEnabled,
     t,
   } = props;
 
@@ -49,6 +54,13 @@ export function ActionQr(props: Props) {
     setShowSpinner(true);
     onAffirm();
   }, [onAffirm]);
+
+  const onDownloadClicked = useCallback(() => {
+    const downloadNode = generateQrSvg(qrString, qrArtConfigForDownload);
+    downloadSvgAsPng(downloadNode, "qr-code.png").catch(() => {
+      setHasDownloadError(true);
+    });
+  }, [qrString]);
 
   const svgNode = useMemo(() => {
     try {
@@ -156,18 +168,10 @@ export function ActionQr(props: Props) {
         }}
       />
 
-      {svgNode instanceof SVGSVGElement ? (
+      {!streamingEnabled && svgNode instanceof SVGSVGElement ? (
         <Button
           variant={ButtonVariant.SECONDARY_ROUNDED}
-          onClick={() => {
-            const downloadNode = generateQrSvg(
-              qrString,
-              qrArtConfigForDownload,
-            );
-            downloadSvgAsPng(downloadNode, "qr-code.png").catch(() => {
-              setHasDownloadError(true);
-            });
-          }}
+          onClick={onDownloadClicked}
           className="xendit-button-block"
         >
           <Icon name="download" size={18} />
@@ -182,7 +186,16 @@ export function ActionQr(props: Props) {
     </div>
   );
 
-  const affirmSection = (
+  const affirmSection = streamingEnabled ? (
+    <ActionAffirmText
+      isProdLive={isProdLive}
+      onAffirm={onAffirm}
+      onDownload={
+        svgNode instanceof SVGSVGElement ? onDownloadClicked : undefined
+      }
+      t={t}
+    />
+  ) : (
     <div className="xendit-action-present-to-customer-affirm">
       <Button
         variant={ButtonVariant.WHITE_ROUNDED}
