@@ -11,7 +11,10 @@ import {
   SLEEP_MULTIPLIER,
 } from "../../../utils";
 import { PollWorker } from "./poll-worker";
-import { SessionUpdateWorker } from "./session-update-worker";
+import {
+  SessionUpdateWorker,
+  StreamFallbackReason,
+} from "./session-update-worker";
 
 /**
  * A connection that sends nothing for this long is treated as dead.
@@ -50,6 +53,7 @@ export class StreamWorker implements SessionUpdateWorker {
       result: BffPollResponse,
       paymentEntity: BffPaymentEntity | null,
     ) => void,
+    private onFallback: (reason: StreamFallbackReason) => void,
   ) {}
 
   start() {
@@ -123,7 +127,7 @@ export class StreamWorker implements SessionUpdateWorker {
     this.resetWatchdog();
     const response = parseJson<BffPollResponse>(event.data);
     if (!response?.session) {
-      this.switchToFallback();
+      this.switchToFallback("invalid_message");
       return;
     }
 
@@ -145,14 +149,14 @@ export class StreamWorker implements SessionUpdateWorker {
     const error = parseJson<StreamErrorData>(data);
     // a timeout is expected: the server ends the stream and EventSource reconnects
     if (error?.error_code !== STREAM_TIMEOUT_CODE) {
-      this.switchToFallback();
+      this.switchToFallback("server_error");
     }
   }
 
   private handleDrop(source: EventSource) {
     // EventSource doesn't reconnect after an error response or a wrong content type
     if (source.readyState === source.CLOSED) {
-      this.switchToFallback();
+      this.switchToFallback("stream_refused");
       return;
     }
     this.healthy = false;
@@ -160,7 +164,7 @@ export class StreamWorker implements SessionUpdateWorker {
     this.resetWatchdog();
     this.drops += 1;
     if (this.drops >= MAX_DROPS) {
-      this.switchToFallback();
+      this.switchToFallback("too_many_drops");
     }
   }
 
@@ -172,12 +176,13 @@ export class StreamWorker implements SessionUpdateWorker {
         this.closeStream();
         this.openStream();
       } else {
-        this.switchToFallback();
+        this.switchToFallback("no_heartbeat");
       }
     }, WATCHDOG_MS * SLEEP_MULTIPLIER);
   }
 
-  private switchToFallback() {
+  private switchToFallback(reason: StreamFallbackReason) {
+    this.onFallback(reason);
     this.closeStream();
     this.fallbackWorker = new PollWorker(
       this.sdkKey,

@@ -43,6 +43,7 @@ import { SessionPendingBehavior } from "./behaviors/session-pending";
 import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
 import { SessionTelemetry } from "../telemetry";
+import { SessionUpdateSummary } from "./behaviors/utils/session-update-worker";
 import { BffErrorContent } from "../backend-types/common";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
@@ -91,6 +92,8 @@ export type BlackboardType = {
   hackyOvoActionLatch?: boolean;
   // if true, the current payment entity has a redirect action, which should be preferred over other actions
   prefersRedirectAction: boolean;
+  // how the latest worker received session updates, sent with CHECKOUT_END
+  sessionUpdateSummary?: SessionUpdateSummary;
 };
 
 export function behaviorTreeForSdk(bb: BlackboardType) {

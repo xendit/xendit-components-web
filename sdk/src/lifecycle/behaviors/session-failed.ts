@@ -12,7 +12,11 @@ export class SessionFailedBehavior implements Behavior {
 
     assert(this.bb.world?.session);
     this.bb.telemetry.append(
-      TelemetryEvents.End(false, this.bb.world.session.status),
+      TelemetryEvents.End(
+        false,
+        this.bb.world.session.status,
+        this.bb.sessionUpdateSummary,
+      ),
     );
   }
 }
