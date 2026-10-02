@@ -16,9 +16,11 @@ jobs:
       image: node:24
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
+          git fetch origin ${{ github.sha }} --depth 1
+          git checkout ${{ github.sha }}
 
       - name: Install dependencies
         run: |
@@ -37,9 +39,11 @@ jobs:
       image: node:24
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
+          git fetch origin ${{ github.sha }} --depth 1
+          git checkout ${{ github.sha }}
 
       - name: Restore node_modules
         uses: actions/cache/restore@v5
@@ -58,9 +62,11 @@ jobs:
       image: node:24
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
+          git fetch origin ${{ github.sha }} --depth 1
+          git checkout ${{ github.sha }}
 
       - name: Restore node_modules
         uses: actions/cache/restore@v5
@@ -79,9 +85,11 @@ jobs:
       image: node:24
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
+          git fetch origin ${{ github.sha }} --depth 1
+          git checkout ${{ github.sha }}
 
       - name: Restore node_modules
         uses: actions/cache/restore@v5
@@ -100,9 +108,11 @@ jobs:
       image: node:24
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
+          git fetch origin ${{ github.sha }} --depth 1
+          git checkout ${{ github.sha }}
 
       - name: Restore node_modules
         uses: actions/cache/restore@v5
@@ -127,9 +137,11 @@ jobs:
       image: node:24
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
+          git fetch origin ${{ github.sha }} --depth 1
+          git checkout ${{ github.sha }}
 
       - name: Restore node_modules
         uses: actions/cache/restore@v5
