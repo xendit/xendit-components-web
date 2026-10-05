@@ -1,3 +1,14 @@
+# 0.0.37
+
+### Notable
+
+Show a "keep this page open" message instead of the confirm payment button when streaming
+
+### Bug Fixes
+
+- Fix disabled channel group label
+- Don't throw on `abortSubmission()` before init
+
 # 0.0.36
 
 ### Notable
