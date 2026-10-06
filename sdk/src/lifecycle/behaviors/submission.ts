@@ -157,6 +157,13 @@ export class SubmissionBehavior implements Behavior {
       if (isSubmissionError(this.submissionError)) {
         // explicit error message from the server
         userErrorMessage = this.submissionError.text;
+
+        if (this.submissionError.code === "SESSION_NOT_ACTIVE") {
+          userErrorMessage = [
+            t("session_status.inactive.title"),
+            t("session_status.inactive.subtext"),
+          ];
+        }
         developerErrorMessage = {
           type: "ERROR",
           code: this.submissionError.code,
