@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: xendit-components-web-public
+    runs-on: public-general-shared
 
     # Only run on main repo, not forks
     if: github.repository == 'xendit/xendit-components-web' && startsWith(github.event.inputs.tag, 'v')
