@@ -119,6 +119,8 @@
     "validation.generic_invalid": "{{field}} is not valid. Please check and try again.",
     "validation.required": "{{field}} is required.",
     "validation.text_too_long": "{{field}} is too long",
-    "validation.text_too_short": "{{field}} is too short"
+    "validation.text_too_short": "{{field}} is too short",
+    "session_status.inactive.title": "This session is no longer available",
+    "session_status.inactive.subtext": "Please try to check out again or contact the seller if the problem persists."
   }
 }
