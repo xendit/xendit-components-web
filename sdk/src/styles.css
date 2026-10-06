@@ -517,6 +517,7 @@ xendit-channel-picker[inert] {
   border-radius: 4px;
   padding: 4px;
   background-color: white; /* always white, not --xendit-color-background */
+  box-sizing: content-box;
 }
 
 .xendit-card-brands-list {
