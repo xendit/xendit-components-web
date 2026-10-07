@@ -31,6 +31,10 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
   }
 
   updatePostorder() {
+    if (this.bb.actionCompleted) {
+      // the action UI is closed, so the action has ended even though the payment still requires action
+      this.fireActionEnd();
+    }
     if (this.bb.pollImmediatelyRequested) {
       this.bb.pollImmediatelyRequested = false;
       this.resetWorker();
@@ -39,14 +43,18 @@ export class PaymentEntityRequiresActionBehavior implements Behavior {
 
   exit() {
     this.updateWorker?.stop();
-    if (this.firedActionBeginEvent) {
-      this.bb.dispatchEvent(new XenditActionEndEvent());
-      this.firedActionBeginEvent = false;
-    }
+    this.fireActionEnd();
 
     // clear flag for next time
     this.bb.actionCompleted = false;
     this.bb.redirectReturnPending = false;
+  }
+
+  private fireActionEnd() {
+    if (this.firedActionBeginEvent) {
+      this.bb.dispatchEvent(new XenditActionEndEvent());
+      this.firedActionBeginEvent = false;
+    }
   }
 
   onPollResult = (

@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { PaymentEntityRequiresActionBehavior } from "./payment-entity-requires-action";
 import { BlackboardType } from "../behavior-tree";
 import { BffPollResponse } from "../../backend-types/common";
 import { InternalUpdateWorldState } from "../../private-event-types";
+import { XenditActionEndEvent } from "../../public-event-types";
 import { parseSdkKey } from "../../utils";
 import { makeTestBffData } from "../../data/test-data";
 import {
@@ -157,5 +158,73 @@ describe("PaymentEntityRequiresActionBehavior.exit", () => {
 
     expect(bb.actionCompleted).toBe(false);
     expect(bb.redirectReturnPending).toBe(false);
+  });
+});
+
+describe("PaymentEntityRequiresActionBehavior action-end", () => {
+  let behavior: PaymentEntityRequiresActionBehavior | null = null;
+
+  // enter() starts a mock stream worker with an interval, exit() stops it
+  afterEach(() => {
+    behavior?.exit();
+    behavior = null;
+  });
+
+  function countActionEnd(events: Event[]) {
+    return events.filter((e) => e.type === XenditActionEndEvent.type).length;
+  }
+
+  it("fires action-end as soon as the action completes, before the payment status changes", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events, {});
+    behavior = new PaymentEntityRequiresActionBehavior(bb);
+    behavior.enter();
+
+    bb.actionCompleted = true;
+    behavior.updatePostorder();
+
+    expect(countActionEnd(events)).toBe(1);
+  });
+
+  it("fires action-end only once, even after more updates and exit", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events, {});
+    behavior = new PaymentEntityRequiresActionBehavior(bb);
+    behavior.enter();
+
+    bb.actionCompleted = true;
+    behavior.updatePostorder();
+    expect(countActionEnd(events)).toBe(1);
+
+    behavior.updatePostorder();
+    behavior.exit();
+
+    expect(countActionEnd(events)).toBe(1);
+  });
+
+  it("keeps action-end until exit while the action is in progress", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events, {});
+    behavior = new PaymentEntityRequiresActionBehavior(bb);
+    behavior.enter();
+
+    behavior.updatePostorder();
+    expect(countActionEnd(events)).toBe(0);
+
+    behavior.exit();
+    expect(countActionEnd(events)).toBe(1);
+  });
+
+  it("never fires action-end for oneclick, which has no action-begin", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events, { submissionRequested: "oneclick" });
+    behavior = new PaymentEntityRequiresActionBehavior(bb);
+    behavior.enter();
+
+    bb.actionCompleted = true;
+    behavior.updatePostorder();
+    behavior.exit();
+
+    expect(countActionEnd(events)).toBe(0);
   });
 });
