@@ -11,9 +11,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
