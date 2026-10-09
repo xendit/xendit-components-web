@@ -146,6 +146,8 @@ export function ActionQr(props: Props) {
     );
   }
 
+  const QrArtComponent = getCustomQrArtComponent(channelCodeForQrArt);
+
   const qrWrapper = (
     <div className="xendit-action-qr-qrcode-wrapper">
       <div
@@ -168,7 +170,9 @@ export function ActionQr(props: Props) {
         }}
       />
 
-      {!streamingEnabled && svgNode instanceof SVGSVGElement ? (
+      {!streamingEnabled &&
+      !QrArtComponent &&
+      svgNode instanceof SVGSVGElement ? (
         <Button
           variant={ButtonVariant.SECONDARY_ROUNDED}
           onClick={onDownloadClicked}
@@ -212,8 +216,6 @@ export function ActionQr(props: Props) {
   );
 
   const amountText = amountFormat(amount, currency);
-
-  const QrArtComponent = getCustomQrArtComponent(channelCodeForQrArt);
 
   if (QrArtComponent) {
     return (
@@ -260,7 +262,7 @@ export function ActionQr(props: Props) {
             {businessName}
           </div>
         </div>
-        {qrWrapper}
+        <div style={{ margin: "8px 16px 0 16px" }}>{qrWrapper}</div>
         <div
           style={{
             padding: "48px",
