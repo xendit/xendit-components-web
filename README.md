@@ -281,6 +281,12 @@ Notifies you when the session information is loaded. Most SDK functions require 
 
 `createChannelPickerComponent` is available before the init event.
 
+### `fatal-error`
+
+An unrecoverable error occurred. Discard this `XenditComponents` instance.
+
+This can be either a network error on initialization or a crash. Network errors on submission are not fatal. Don't add your own retry logic, we already retry retryable errors.
+
 ### `session-complete` and `session-expired-or-canceled`
 
 Notifies you when the session is in a terminal state.
@@ -471,7 +477,9 @@ Google Pay is available to Sessions that meet the following requirements:
 
 - Your Session country is a country where Google Pay is supported.
 - You have at least one Google Pay compatible payment method available in your session. (e.g. cards)
-- You've provided your Google MerchantID to Xendit on the Xendit Dashboard. (If you don't have a Google MerchantID, complete registration with the [Google Pay & Wallet Console](https://pay.google.com/business/console/?utm_source=devsite&utm_medium=devsite&utm_campaign=devsite) to provision one)
+<!-- TODO: update when the dashboard UI is available -->
+- Your Xendit account has Google Pay enabled
+<!-- - You've provided your Google MerchantID to Xendit on the Xendit Dashboard. (If you don't have a Google MerchantID, complete registration with the [Google Pay & Wallet Console](https://pay.google.com/business/console/?utm_source=devsite&utm_medium=devsite&utm_campaign=devsite) to provision one) -->
 - The Google Pay SDK is loaded using `<script async src="https://pay.google.com/gp/p/js/pay.js"></script>`. (You need to include the SDK yourself, we don't bundle it. There's no need to wait for it to finish loading, if it's still loading when you create the component, it'll have `display:none` until it finishes loading)
 - The user is using a compatible browser. (The component will have `display:none` if the user is using an incompatible browser)
 
@@ -487,7 +495,9 @@ Apple Pay is available to Sessions that meet the following requirements:
 
 - Your Session country is a country where Apple Pay is supported.
 - You have a CARDS channel available in your session.
-- You've registered and verified your checkout domain for Apple Pay on the Xendit Dashboard. (Apple refuses to show its payment sheet on domains it does not recognize. To verify your domain, download the domain association file from the xendit dashboard and host it at `https://[YOUR_DOMAIN]/.well-known/apple-developer-merchantid-domain-association`)
+<!-- TODO: update when the dashboard UI is available -->
+- Your Xendit account has Apple Pay enabled
+<!-- - You've registered and verified your checkout domain for Apple Pay on the Xendit Dashboard. (Apple refuses to show its payment sheet on domains it does not recognize. To verify your domain, download the domain association file from the xendit dashboard and host it at `https://[YOUR_DOMAIN]/.well-known/apple-developer-merchantid-domain-association`) -->
 - The Apple Pay SDK is loaded using `<script async src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"></script>`. ( Same as googlepay you need to include the SDK yourself, we don't bundle it. There's no need to wait for it to finish loading, if it's still loading when you create the component, it'll have `display:none` until it finishes loading)
 - The user's browser and device support Apple Pay. (The component will have `display:none` otherwise)
 
