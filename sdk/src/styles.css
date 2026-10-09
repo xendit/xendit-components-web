@@ -1348,13 +1348,9 @@ xendit-channel-picker[inert] {
 }
 .xendit-action-qr-qrcode-wrapper {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 .xendit-action-qr-qrcode-container {
   width: 100%;
-  position: relative;
   z-index: var(--xendit-z-index-overlay);
 }
 .xendit-action-affirm-text {

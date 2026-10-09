@@ -2,6 +2,7 @@ import {
   AllCSSProperties,
   ComponentChildren,
   JSX,
+  SVGAttributes,
   TargetedEvent,
 } from "preact";
 import { TFunction } from "../localization";
@@ -124,6 +125,25 @@ function QrMinicardQris(props: QrArtComponentProps) {
         )}
       />
       {/* header row */}
+      {/* logos baselines should be aligned, qris logo height should be as tall as the bird's head */}
+      {hardcodedGraphics.qris(
+        {},
+        {
+          x: `${logoRowMargin}`,
+          y: `${logoRowY + 2}`,
+          height: "150",
+          width: "500",
+        },
+      )}
+      {hardcodedGraphics.gpn(
+        {},
+        {
+          x: "625",
+          y: `${logoRowY - 8}`,
+          height: "130",
+          width: "400",
+        },
+      )}
       <foreignObject
         x={logoRowMargin}
         y={logoRowY}
@@ -136,21 +156,13 @@ function QrMinicardQris(props: QrArtComponentProps) {
             position: "relative",
           }}
         >
-          {/* logos baselines should be aligned, qris logo height should be as tall as the bird's head */}
-          {hardcodedGraphics.qris({
+          {/* {hardcodedGraphics.qris({
             position: "absolute",
             left: "0",
             bottom: "0px",
             height: "auto",
             width: "60%",
-          })}
-          {hardcodedGraphics.gpn({
-            position: "absolute",
-            right: "0",
-            top: "0",
-            height: "100%",
-            width: "auto",
-          })}
+          })}*/}
         </div>
       </foreignObject>
       {/* merchant name and nmid */}
@@ -397,7 +409,7 @@ function QrMinicardDuitnow(props: QrArtComponentProps) {
   return (
     <svg
       viewBox={"0 0 180 210"}
-      style={{ aspectRatio: "1", margin: "32px 14% 24px", display: "block" }}
+      style={{ aspectRatio: "1", margin: "0 14%", display: "block" }}
     >
       <rect width="180" height="210" fill={duitnowAccentColor} rx={13} />
       <rect x="10" y="10" width="160" height="170" fill="white" rx={4} />
@@ -525,9 +537,12 @@ function fireCloseDialogEvent(e: TargetedEvent) {
 
 const hardcodedGraphics: Record<
   string,
-  (styles: AllCSSProperties) => JSX.Element
+  (
+    styles: AllCSSProperties,
+    attributes?: SVGAttributes<SVGSVGElement>,
+  ) => JSX.Element
 > = {
-  closeButton: (style) => (
+  closeButton: (style, attributes) => (
     <button
       aria-label="Close"
       onClick={fireCloseDialogEvent}
@@ -537,13 +552,14 @@ const hardcodedGraphics: Record<
       <Icon name="x" size={20} />
     </button>
   ),
-  sgqr: (style) => (
+  sgqr: (style, attributes = {}) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="83"
       height="40"
       fill="none"
       style={style}
+      {...attributes}
     >
       <path
         fill="#FD0031"
@@ -551,13 +567,14 @@ const hardcodedGraphics: Record<
       />
     </svg>
   ),
-  promptpay: (style) => (
+  promptpay: (style, attributes = {}) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="158"
       height="48"
       fill="none"
       style={style}
+      {...attributes}
     >
       <title>Thai QR Payment</title>
       <path
@@ -580,7 +597,7 @@ const hardcodedGraphics: Record<
       />
     </svg>
   ),
-  malaysiaNationalQrText: (style) => (
+  malaysiaNationalQrText: (style, attributes = {}) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="209"
@@ -588,6 +605,7 @@ const hardcodedGraphics: Record<
       fill="none"
       viewBox="0 0 209 19"
       style={style}
+      {...attributes}
     >
       <title>Malaysia National QR</title>
       <path
@@ -596,7 +614,7 @@ const hardcodedGraphics: Record<
       />
     </svg>
   ),
-  qrph: (style) => (
+  qrph: (style, attributes = {}) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="44"
@@ -604,6 +622,7 @@ const hardcodedGraphics: Record<
       viewBox="0 0 44 44"
       fill="none"
       style={style}
+      {...attributes}
     >
       <path
         fill="#f4ea11"
@@ -623,7 +642,7 @@ const hardcodedGraphics: Record<
       />
     </svg>
   ),
-  qris: (style) => (
+  qris: (style, attributes = {}) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="312"
@@ -631,6 +650,7 @@ const hardcodedGraphics: Record<
       fill="none"
       viewBox="0 0 312 50"
       style={style}
+      {...attributes}
     >
       <g fill="#000" mask="url(#c)">
         <path d="M43.2 8.2h34v20.4H63l14.2 13h-12l-14-13v13h-8V21h25v-5h-25zm37.6 33.4H89V8.1h-8.3zm-66.6-8V8.1H7.7a2 2 0 0 0-2 2l-.2 29.4c0 1 1 2 2 2H27v-8zm17 16.4h8.5V33.2h-8.5z" />
@@ -640,13 +660,14 @@ const hardcodedGraphics: Record<
       </g>
     </svg>
   ),
-  gpn: (style) => (
+  gpn: (style, attributes = {}) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="3174.8"
       height="4025.2"
       viewBox="0 0 3174.8 4025.2"
       style={style}
+      {...attributes}
     >
       <path
         d="M2202.4 2955v929.5c0 136.3 121.5 130 245.4 117.7 5.5-.4 6.4-1.5 6.5-6.2 0-2.6 5.8-614.6 5.8-629.5 35.5 34 307.7 427.6 364.6 505.3 108.3 147.9 71.5 133.6 297 133.6 39.3 0 40.7-10.8 40.7-48.8v-929.5c0-34.1-7.2-59.4-20.2-77.7-42.5-60.1-154-46.2-213.2-41.3-7.3.7-17.7 6.9-18.3 14.5 0 70.3.5 551 0 655-15.9-12-58-67.2-72-87.3-121.7-175.4-248.9-364.3-377.5-530-54.4-70.1-99.8-54.1-218-54.1-40 0-40.8 9.7-40.8 48.8M1399 3990.2v-1l5.3-321 308.1-3.1c287.8 3.3 423.4-357.7 282.7-598.7-52.6-90.1-143.4-48-307.7-12.3-81.8 17.9-139 14.2-138.3 55.4 68.2 23.5 131.4-16.4 194 43.3 43 40.9 63.8 117.9 43 195-40.3 149.7-227.4 113.9-381.7 113.9 0-400.7 40.6-356.4-146.2-318.7-153.2 31-110.6 27.4-110.6 410 0 111.3-3.6 228.6 0 339.1 4 131.7 115.5 113.3 230 113.3h1.7c16.3.2 19.7-2.6 19.7-15.2M305.3 3272.5l8.6-15.6c26.8-81.5 154-140.2 230.3-186.4 42-25.5 235.8-135.1 256.9-159.7-238-51.7-453.8-18-608.7 103.1-129 101-204.5 330-172.9 566.9C48.8 3800.2 176 3938.2 363 3994c173 51.7 508.9 29.9 628-73.5l3.3-302.6c0-96.3 17.9-213.9-77.1-237.4-102.3-25.3-291.9 75.6-411.2 119.9-32 11.8-37 7.2-34.3 45.9l301.6 4.9.2 160.5c1.2 77.8-1.5 67-84.2 81.3-97.3 16.7-210.7 11-287.8-32.4-134.6-75.9-165.2-313-96.1-488.2"
