@@ -69,7 +69,6 @@ function QrMinicardQris(props: QrArtComponentProps) {
   const qrY = 440;
 
   const logoRowMargin = 80;
-  const logoRowHeight = 120;
   const qrMargin = 33;
 
   const triangle1Size = 350;
@@ -144,27 +143,6 @@ function QrMinicardQris(props: QrArtComponentProps) {
           width: "400",
         },
       )}
-      <foreignObject
-        x={logoRowMargin}
-        y={logoRowY}
-        width={width - logoRowMargin * 2}
-        height={logoRowHeight}
-      >
-        <div
-          style={{
-            height: "100%",
-            position: "relative",
-          }}
-        >
-          {/* {hardcodedGraphics.qris({
-            position: "absolute",
-            left: "0",
-            bottom: "0px",
-            height: "auto",
-            width: "60%",
-          })}*/}
-        </div>
-      </foreignObject>
       {/* merchant name and nmid */}
       <foreignObject
         x={padding}
