@@ -1,3 +1,9 @@
+# 0.0.38
+
+### Bug Fixes
+
+- Fix a layout bug affecting the QRIS QR screen on safari
+
 # 0.0.37
 
 ### Notable
