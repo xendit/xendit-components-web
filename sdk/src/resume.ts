@@ -1,4 +1,4 @@
-import { BffPollResponse } from "./backend-types/common";
+import { BffPollResponse, BffResponse } from "./backend-types/common";
 import {
   BffPaymentEntity,
   BffPaymentEntityType,
@@ -6,22 +6,20 @@ import {
 } from "./backend-types/payment-entity";
 
 /**
- * Given a poll response for a specific token_request_id, decide whether the SDK
+ * Given a session response for a specific token_request_id, decide whether the SDK
  * should resume. Returns the world-state fragment to apply if a payment entity
  * was found, otherwise null (no entity = nothing to resume).
- *
- * If the poll still says REQUIRES_ACTION, the backend hasn't settled yet, so we
- * map the redirect hint (component_status) to a final status:
+ * If the session still says REQUIRES_ACTION, the backend hasn't settled yet, so we map the redirect hint (component_status) to a final status:
  *   FAILED  -> FAILED
  *   SUCCESS -> SUCCEEDED (payment request) / ACTIVE (payment token)
  * Any already-settled status, or a missing hint, is left unchanged.
  */
 export function resolveResumeState(
-  pollResult: BffPollResponse,
+  response: BffPollResponse | BffResponse,
   resumeTokenRequestId: string,
   componentStatus: string | null,
 ): { paymentEntity: BffPaymentEntity; sessionTokenRequestId: string } | null {
-  const entityRaw = pollResult.payment_request ?? pollResult.payment_token;
+  const entityRaw = response.payment_request ?? response.payment_token;
   if (!entityRaw) {
     return null;
   }
