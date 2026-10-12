@@ -238,6 +238,10 @@ export function filterFormFields(
       if (sessionType !== "PAY") return false;
       if (!showBillingDetailsFields) return false;
     }
+    if (field.flags?.hide_on_skip_three_ds) {
+      // filter out fields that are only needed for 3DS (e.g. cardholder email and phone number)
+      return false;
+    }
     if (field.type.name === "installment_plan") {
       // filter out installment plan fields if there are no installment plans AND there is a card number field
       // (if there's no card number, then the installments field would be mandatory so we can't hide it)

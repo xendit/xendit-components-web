@@ -181,6 +181,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "card_details.cardholder_email",
             required: true,
             span: 2,
+            flags: { hide_on_skip_three_ds: true },
           },
           {
             label: "Mobile Number",
@@ -191,6 +192,7 @@ export function makeTestBffData(): BffResponse {
             channel_property: "card_details.cardholder_phone_number",
             required: true,
             span: 2,
+            flags: { hide_on_skip_three_ds: true },
           },
           {
             label: "Installment plan",
