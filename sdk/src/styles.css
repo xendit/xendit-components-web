@@ -302,6 +302,7 @@ xendit-payment-channel select::placeholder {
   border-radius: 4px;
   background-color: white; /* always white, not --xendit-color-background */
   object-fit: contain;
+  box-sizing: content-box;
 }
 
 .xendit-channel-picker-oneclick-group {
