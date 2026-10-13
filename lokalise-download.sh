@@ -21,7 +21,10 @@ fi
 
 echo "Downloading translations from Lokalise..."
 
-RESPONSE=$(curl --fail-with-body --silent --request POST \
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+HTTP_CODE=$(curl --silent --output "$TMPDIR/response.json" --write-out "%{http_code}" --request POST \
   --url "https://api.lokalise.com/api2/projects/${LOKALISE_PROJECT_ID}/files/download" \
   --header "Accept: application/json" \
   --header "Content-Type: application/json" \
@@ -35,6 +38,14 @@ RESPONSE=$(curl --fail-with-body --silent --request POST \
     "json_unescaped_slashes": true
   }')
 
+RESPONSE=$(cat "$TMPDIR/response.json")
+
+if [ "$HTTP_CODE" -ge 400 ]; then
+  echo "Download request failed with HTTP $HTTP_CODE:"
+  echo "$RESPONSE"
+  exit 1
+fi
+
 echo "Download response:"
 echo "$RESPONSE" | jq .
 
@@ -47,8 +58,6 @@ fi
 
 echo "Downloading bundle from: $BUNDLE_URL"
 
-TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
 curl --fail --silent --location "$BUNDLE_URL" --output "$TMPDIR/translations.zip"
 unzip -o "$TMPDIR/translations.zip" -d "$TMPDIR/translations"
 mv "$TMPDIR/translations/"*.json "${LOCALE_PATH}/"
@@ -72,7 +81,7 @@ git push -u origin "${BRANCH_NAME}"
 
 echo "Branch '${BRANCH_NAME}' pushed. Creating PR..."
 
-PR_RESPONSE=$(curl --fail-with-body --silent --request POST \
+HTTP_CODE=$(curl --silent --output "$TMPDIR/pr-response.json" --write-out "%{http_code}" --request POST \
   --url "https://api.github.com/repos/xendit/xendit-components-web/pulls" \
   --header "Accept: application/vnd.github+json" \
   --header "Authorization: Bearer ${GITHUB_TOKEN}" \
@@ -84,12 +93,13 @@ PR_RESPONSE=$(curl --fail-with-body --silent --request POST \
     "base": "main"
   }')
 
-PR_URL=$(echo "$PR_RESPONSE" | jq -r '.html_url')
+PR_RESPONSE=$(cat "$TMPDIR/pr-response.json")
 
-if [ -z "$PR_URL" ] || [ "$PR_URL" = "null" ]; then
-  echo "Failed to create PR. Response:"
-  echo "$PR_RESPONSE" | jq .
+if [ "$HTTP_CODE" -ge 400 ]; then
+  echo "Failed to create PR with HTTP $HTTP_CODE:"
+  echo "$PR_RESPONSE"
   exit 1
 fi
 
+PR_URL=$(echo "$PR_RESPONSE" | jq -r '.html_url')
 echo "PR created: $PR_URL"
