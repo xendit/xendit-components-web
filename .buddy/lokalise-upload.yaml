@@ -1,4 +1,4 @@
-- pipeline: "Sync from Lokalise to Git"
+- pipeline: "Sync Git to Lokalise"
   trigger_mode: "MANUAL"
   ref_name: "main"
   ref_type: "BRANCH"
@@ -6,15 +6,16 @@
   always_from_scratch: true
   trigger_condition: "ALWAYS"
   actions:
-    - action: "Create PR"
+    - action: "Upload translations to Lokalise"
       type: "BUILD"
       working_directory: "/buddy/xendit-components-web"
       docker_image_name: "library/alpine"
       docker_image_tag: "latest"
       execute_commands:
-        - "apk add --no-cache curl"
+        - "apk add --no-cache curl jq"
+        - "export LOKALISE_PROJECT_ID"
         - "export LOKALISE_API_TOKEN"
-        - "./trigger-lokalise-pr.sh"
+        - "./lokalise-upload.sh"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
       shell: "SH"
