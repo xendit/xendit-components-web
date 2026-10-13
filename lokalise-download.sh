@@ -14,8 +14,8 @@ if [ -z "${LOKALISE_API_TOKEN:-}" ]; then
   exit 1
 fi
 
-if [ -z "${GITHUB_TOKEN_WRITE:-}" ]; then
-  echo "Error: GITHUB_TOKEN_WRITE environment variable is required" >&2
+if [ -z "${GITHUB_TOKEN:-}" ]; then
+  echo "Error: GITHUB_TOKEN environment variable is required" >&2
   exit 1
 fi
 
@@ -75,7 +75,7 @@ echo "Branch '${BRANCH_NAME}' pushed. Creating PR..."
 PR_RESPONSE=$(curl --fail-with-body --silent --request POST \
   --url "https://api.github.com/repos/xendit/xendit-components-web/pulls" \
   --header "Accept: application/vnd.github+json" \
-  --header "Authorization: Bearer ${GITHUB_TOKEN_WRITE}" \
+  --header "Authorization: Bearer ${GITHUB_TOKEN}" \
   --header "X-GitHub-Api-Version: 2022-11-28" \
   --data '{
     "title": "chore: update translations from Lokalise",

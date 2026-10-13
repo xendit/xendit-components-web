@@ -15,7 +15,7 @@
         - "apk add --no-cache curl jq unzip git"
         - "export LOKALISE_PROJECT_ID"
         - "export LOKALISE_API_TOKEN"
-        - "export GITHUB_TOKEN_WRITE"
+        - "export GITHUB_TOKEN"
         - "./lokalise-download.sh"
       volume_mappings:
         - "/:/buddy/xendit-components-web"
