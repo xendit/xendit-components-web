@@ -553,6 +553,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-channel-form-field .xendit-credit-card-input input {
   flex: 1;
+  min-width: 0;
   border: none;
   padding: 12px;
   outline: none;

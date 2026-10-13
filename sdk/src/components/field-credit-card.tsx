@@ -141,8 +141,8 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
 
   const handleBlur = useCallback(() => {
     setFocusWithin(false);
-    if (inputRef.current?.value) {
-      inputRef.current.dispatchEvent(new InternalSetFieldTouchedEvent());
+    if (hiddenRef.current?.value) {
+      hiddenRef.current.dispatchEvent(new InternalSetFieldTouchedEvent());
     }
   }, []);
 
