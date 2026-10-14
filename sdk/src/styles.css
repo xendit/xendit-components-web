@@ -13,6 +13,8 @@
   --xendit-color-background: #ffffff;
   --xendit-focus-shadow: 0px 0px 0px 2px
     color-mix(in srgb, var(--xendit-color-primary) 15%, transparent);
+  --xendit-focus-shadow-danger: 0px 0px 0px 2px
+    color-mix(in srgb, var(--xendit-color-danger) 15%, transparent);
   --xendit-card-shadow: 0px 4px 8px 0px #25252514;
   --xendit-dialog-shadow: 8px 8px 12px 8px #25252529;
   --xendit-animation-duration: 0.3s;
@@ -433,10 +435,10 @@ xendit-channel-picker[inert] {
   cursor: pointer;
 }
 
-.xendit-form-field-group.invalid
-  .xendit-channel-form-field
-  .xendit-form-field-inner {
-  border: 1px solid var(--xendit-color-danger);
+.xendit-channel-form-field.invalid .xendit-form-field-inner {
+  border-color: var(--xendit-color-danger);
+  position: relative;
+  z-index: 1;
 }
 
 .xendit-channel-form-field .xendit-form-field-inner {
@@ -539,6 +541,40 @@ xendit-channel-picker[inert] {
   position: relative;
 }
 
+.xendit-channel-form-field.invalid .xendit-form-field-inner:focus,
+.xendit-channel-form-field.invalid .xendit-form-field-inner.xendit-field-focus {
+  border-color: var(--xendit-color-danger);
+  box-shadow: var(--xendit-focus-shadow-danger);
+}
+
+.xendit-channel-form-field.invalid {
+  position: relative;
+}
+
+.xendit-field-error-icon {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: var(--xendit-color-danger);
+  pointer-events: none;
+  z-index: var(--xendit-z-index-focus);
+}
+
+.xendit-channel-form-field.invalid input.xendit-form-field-inner {
+  padding-right: 36px;
+}
+
+.xendit-channel-form-field.invalid .xendit-credit-card-input,
+.xendit-channel-form-field.invalid .xendit-iframe-container,
+.xendit-channel-form-field.invalid .xendit-dropdown {
+  padding-right: 28px;
+}
+
+.xendit-channel-form-field.invalid .xendit-input-phone .xendit-dropdown {
+  padding-right: 0;
+}
+
 .xendit-channel-form-field button.xendit-dropdown-open {
   z-index: var(--xendit-z-index-focus);
 }
@@ -553,6 +589,7 @@ xendit-channel-picker[inert] {
 }
 .xendit-channel-form-field .xendit-credit-card-input input {
   flex: 1;
+  min-width: 0;
   border: none;
   padding: 12px;
   outline: none;

@@ -14,7 +14,8 @@ export type IconName =
   | "online_banking"
   | "copy"
   | "dummy"
-  | "download";
+  | "download"
+  | "exclamation";
 
 type Props = {
   name: IconName;
@@ -250,6 +251,28 @@ const Icon: FunctionComponent<SVGAttributes<SVGSVGElement> & Props> = (
             strokeLinejoin="round"
             strokeWidth={1.5}
           ></path>
+        </>,
+        16 / 24,
+      );
+      break;
+    }
+    case "exclamation": {
+      iconNode = scaleIcon(
+        <>
+          <circle
+            cx="8"
+            cy="8"
+            r="6.25"
+            stroke="currentColor"
+            strokeWidth={1.25}
+          />
+          <path
+            d="M8 4.75V8.5"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth={1.25}
+          />
+          <circle cx="8" cy="11" r="0.75" fill="currentColor" />
         </>,
         16 / 24,
       );

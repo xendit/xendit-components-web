@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useState } from "preact/compat";
 import { CustomerDetails } from "../backend-types/customer";
 import { getLocalizedErrorMessage } from "../localization";
 import { validateCustomerDetails } from "../validation";
+import Icon from "./icon";
 import { useSdk } from "./session-provider";
 
 type Props = {
@@ -62,7 +63,9 @@ export const CustomerForm = forwardRef<CustomerDetailsFormHandle, Props>(
           </div>
 
           <div className={`xendit-form-field-group ${error ? "invalid" : ""}`}>
-            <div className="xendit-channel-form-field xendit-form-field-span-2">
+            <div
+              className={`xendit-channel-form-field xendit-form-field-span-2 ${error ? "invalid" : ""}`}
+            >
               <input
                 id="given_names"
                 name="given_names"
@@ -74,6 +77,13 @@ export const CustomerForm = forwardRef<CustomerDetailsFormHandle, Props>(
                 required
                 autoComplete="given-name"
               />
+              {error ? (
+                <Icon
+                  name="exclamation"
+                  size={16}
+                  className="xendit-field-error-icon"
+                />
+              ) : null}
             </div>
           </div>
 

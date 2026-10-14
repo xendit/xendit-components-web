@@ -125,7 +125,10 @@ const FieldGroup = ({
     };
   }, []);
 
-  const renderError = () => {
+  // returns a map of field name to error message, for each invalid field in the group
+  const getFieldErrors = () => {
+    const errors: Record<string, string> = {};
+
     for (const field of fieldGroup) {
       if (!touchedFields[formFieldName(field)]) {
         // field not touched yet, skip validation
@@ -139,18 +142,15 @@ const FieldGroup = ({
         continue;
       }
 
-      // render first error and ignore the rest
-      return (
-        <span className="xendit-error-message xendit-text-12">
-          {getLocalizedErrorMessage(t, err, field)}
-        </span>
-      );
+      errors[formFieldName(field)] =
+        getLocalizedErrorMessage(t, err, field) ?? "";
     }
 
     // brand mismatch check for credit_card_number
     for (const field of fieldGroup) {
       if (field.type.name !== "credit_card_number") continue;
       if (!touchedFields[formFieldName(field)]) continue;
+      if (errors[formFieldName(field)] !== undefined) continue;
 
       const allowedBrands = channel?.card?.brands;
       const schemes = getCardDetailsForCurrentCardNumber(
@@ -159,23 +159,28 @@ const FieldGroup = ({
       )?.schemes;
       if (allowedBrands?.length && schemes?.length) {
         if (!schemes.some((s) => allowedBrands.some((b) => b.name === s))) {
-          return (
-            <span className="xendit-error-message xendit-text-12">
-              {getLocalizedErrorMessage(
-                t,
-                { localeKey: "validation.card_brand_not_allowed" },
-                field,
-              )}
-            </span>
-          );
+          errors[formFieldName(field)] =
+            getLocalizedErrorMessage(
+              t,
+              { localeKey: "validation.card_brand_not_allowed" },
+              field,
+            ) ?? "";
         }
       }
     }
 
-    return null;
+    return errors;
   };
 
-  const error = renderError();
+  const fieldErrors = getFieldErrors();
+  const hasError = Object.keys(fieldErrors).length > 0;
+
+  // render first error and ignore the rest
+  const error = hasError ? (
+    <span className="xendit-error-message xendit-text-12">
+      {Object.values(fieldErrors)[0]}
+    </span>
+  ) : null;
 
   return (
     <IframeRegistryProvider>
@@ -209,6 +214,7 @@ const FieldGroup = ({
                 key={index}
                 field={field}
                 onChange={handleFieldChanged}
+                invalid={fieldErrors[formFieldName(field)] !== undefined}
               />
             );
           })}

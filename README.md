@@ -401,6 +401,7 @@ The following variables are available:
 | --xendit-color-border | Border color used on accordions, input fields, and logos |
 | --xendit-color-background | Background color of input fields |
 | --xendit-focus-shadow | Box-shadow applied to elements with focus |
+| --xendit-focus-shadow-danger | Box-shadow applied to elements with focus that have validation errors |
 | --xendit-animation-duration | Duration of animations (affects the channel picker accordion) |
 | --xendit-animation-ease | Ease function of animations |
 | --xendit-radius-1 | Border radius applied to the channel picker, buttons and others |

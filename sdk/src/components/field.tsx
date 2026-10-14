@@ -12,6 +12,7 @@ import { PhoneNumberField } from "./field-phone-number";
 import { ProvinceField } from "./field-province";
 import { TextField } from "./field-text";
 import { FieldInstallmentPlan } from "./field-installment-plan";
+import Icon from "./icon";
 import { useSdk } from "./session-provider";
 import { internal } from "../internal";
 
@@ -19,10 +20,11 @@ export interface FieldProps {
   field: ChannelFormField;
   onChange: (isInitial?: boolean) => void;
   className?: string;
+  invalid?: boolean;
 }
 
 const Field: FunctionComponent<FieldProps> = (props) => {
-  const { field, className } = props;
+  const { field, className, invalid } = props;
   const sdk = useSdk();
   const canUseSecureIframe = Boolean(
     sdk[internal].sdkKey.publicKey && sdk[internal].sdkKey.signature,
@@ -63,9 +65,16 @@ const Field: FunctionComponent<FieldProps> = (props) => {
 
   return (
     <div
-      className={`${className} xendit-channel-form-field xendit-form-field-span-${field.span}`}
+      className={`${className} xendit-channel-form-field xendit-form-field-span-${field.span} ${invalid ? "invalid" : ""}`}
     >
       {renderInner()}
+      {invalid ? (
+        <Icon
+          name="exclamation"
+          size={16}
+          className="xendit-field-error-icon"
+        />
+      ) : null}
     </div>
   );
 };
