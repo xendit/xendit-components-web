@@ -12,10 +12,19 @@ import { CustomerDetails } from "./backend-types/customer";
 
 /**
  * Initialization method, returns session, customer, business, and channels.
+ * With a token_request_id (on resume), also returns that attempt's payment entity.
  */
-export const fetchSessionData = endpoint<BffResponse, string>(
+export const fetchSessionData = endpoint<
+  BffResponse,
+  string,
+  { tokenRequestId: string | null }
+>(
   "GET",
   (sessionAuthKey) => `/api/sessions/${sessionAuthKey}`,
+  ({ tokenRequestId }) =>
+    new URLSearchParams(
+      tokenRequestId ? { token_request_id: tokenRequestId } : {},
+    ),
 );
 
 type CreatePaymentTokenRequestBody = {

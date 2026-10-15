@@ -56,7 +56,7 @@ import {
   ChannelRoot,
   InternalChannelPropertiesChangedEvent,
 } from "./components/channel-root";
-import { fetchSessionData, pollSession, validateApplePaySession } from "./api";
+import { fetchSessionData, validateApplePaySession } from "./api";
 import { resolveResumeState, getResumeParams } from "./resume";
 import { ChannelFormHandle } from "./components/channel-form";
 import { BehaviorTree } from "./lifecycle/behavior-tree-runner";
@@ -426,12 +426,30 @@ export class XenditComponents extends EventTarget {
       ? loadLocale(this[internal].options.preloadLocale)
       : null;
 
+    // On resume, it send token_request_id so the response also includes that attempt's payment entity.
+    const resumeParams = this[internal].options.resume
+      ? getResumeParams(window.location.search)
+      : null;
+    if (resumeParams && !resumeParams.tokenRequestId) {
+      // Without an await the fatal-error event can fire inside the constructor, before the caller can add a listener
+      await Promise.resolve();
+      this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
+      this[internal].behaviorTree.bb.sdkFatalErrorMessage =
+        "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
+
+      getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(false));
+
+      this.behaviorTreeUpdate();
+      return;
+    }
+
     let bff: BffResponse;
     try {
       // Fetch session data from the server
       bff = await fetchSessionData(
         this[internal].sdkKey,
         this[internal].sdkKey.sessionAuthKey,
+        { tokenRequestId: resumeParams?.tokenRequestId ?? null },
       );
       const interceptChannelsFn =
         this[internal].options.interceptChannelConfig ?? ((config) => config);
@@ -449,7 +467,11 @@ export class XenditComponents extends EventTarget {
         this[internal].behaviorTree.bb.sdkFatalErrorUserMessage =
           error.errorResponse.error_content ?? null;
       }
-      getTelemetry(this).append(TelemetryEvents.Loaded(false));
+      getTelemetry(this).append(
+        resumeParams
+          ? TelemetryEvents.Resume(false)
+          : TelemetryEvents.Loaded(false),
+      );
 
       this.behaviorTreeUpdate();
       return;
@@ -465,69 +487,23 @@ export class XenditComponents extends EventTarget {
         "The session mode is not COMPONENTS";
     }
 
-    // If asked to resume (user landed on return_url after a redirect payment),
-    // read token_request_id from the URL and poll that attempt. When no token_request_id is present, this is a normal first checkout.
-    // When one is present but cannot be resolved to a payment (e.g. the SDK was re-initialized with a different session than the token_request_id belongs to), there is nothing to resume that is a fatal misconfiguration.
     let resumePaymentEntity: BffPaymentEntity | null = null;
     let resumeSessionTokenRequestId: string | null = null;
-    let resumeSession: BffSession | null = null;
-    let resumeSucceededChannel: BffSucceededChannel | null = null;
-    const resumeParams = this[internal].options.resume
-      ? getResumeParams(window.location.search)
-      : null;
-    if (resumeParams) {
-      if (!resumeParams.tokenRequestId) {
-        // Nothing to resume
-        this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
-        this[internal].behaviorTree.bb.sdkFatalErrorMessage =
-          "The resume flag is set but the expected query string parameters are missing. Ensure the query string parameters are not modified.";
-
-        getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(false));
-
-        this.behaviorTreeUpdate();
-        return;
-      }
-      if (bff.session.status === "ACTIVE") {
-        try {
-          const pollResult = await pollSession(
-            this[internal].sdkKey,
-            this[internal].sdkKey.sessionAuthKey,
-            resumeParams.tokenRequestId,
-          );
-          const resumeState = resolveResumeState(
-            pollResult,
-            resumeParams.tokenRequestId,
-            resumeParams.componentStatus,
-          );
-          if (resumeState) {
-            resumePaymentEntity = resumeState.paymentEntity;
-            resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
-            // Use the one from the poll call since its more recent
-            resumeSession = pollResult.session;
-            // The succeeded channel is only known after the poll
-            resumeSucceededChannel = pollResult.succeeded_channel ?? null;
-            this[internal].behaviorTree.bb.submissionRequested = "resume";
-          } else if (bff.session.status !== pollResult.session.status) {
-            bff.session = pollResult.session;
-            bff.succeeded_channel = pollResult.succeeded_channel;
-          }
-        } catch {
-          // we can't read the error code here, but most likely the token_request_id is from another session
-          this[internal].behaviorTree.bb.sdkStatus = "FATAL_ERROR";
-          this[internal].behaviorTree.bb.sdkFatalErrorMessage =
-            "Failed to resume. This can either be a network error or the query string parameters and the componentsSdkKey might belong to different sessions.";
-
-          getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(false));
-
-          this.behaviorTreeUpdate();
-          return;
-        }
+    if (resumeParams?.tokenRequestId) {
+      const resumeState = resolveResumeState(
+        bff,
+        resumeParams.tokenRequestId,
+        resumeParams.componentStatus,
+      );
+      if (resumeState) {
+        resumePaymentEntity = resumeState.paymentEntity;
+        resumeSessionTokenRequestId = resumeState.sessionTokenRequestId;
+        this[internal].behaviorTree.bb.submissionRequested = "resume";
       }
     }
-    const session = resumeSession ?? bff.session;
 
     // if we didn't already preload the locale, load it now
-    localeDataPromise = localeDataPromise ?? loadLocale(session.locale);
+    localeDataPromise = localeDataPromise ?? loadLocale(bff.session.locale);
 
     // Wait for background loaded js
     try {
@@ -537,18 +513,22 @@ export class XenditComponents extends EventTarget {
       this[internal].behaviorTree.bb.sdkFatalErrorMessage =
         errorToString(error);
 
-      getTelemetry(this).append(TelemetryEvents.Loaded(false));
+      getTelemetry(this).append(
+        resumeParams
+          ? TelemetryEvents.Resume(false)
+          : TelemetryEvents.Loaded(false),
+      );
 
       this.behaviorTreeUpdate();
       return;
     }
 
     // telemetry for successful load
-    if (resumeSession) {
+    if (resumePaymentEntity) {
       getTelemetry(this).appendAndPushScope(TelemetryEvents.Resume(true));
     } else {
       const channelList = getChannelCodesForTelemetry(
-        session,
+        bff.session,
         bff.channels,
         null,
       );
@@ -562,14 +542,13 @@ export class XenditComponents extends EventTarget {
       new InternalUpdateWorldState({
         business: bff.business,
         customer: bff.customer,
-        session: session,
+        session: bff.session,
         channels: bff.channels,
         channelUiGroups: bff.channel_ui_groups,
         digitalWallets: bff.digital_wallets ?? null,
         paymentEntity: resumePaymentEntity,
         sessionTokenRequestId: resumeSessionTokenRequestId,
-        succeededChannel:
-          resumeSucceededChannel ?? bff.succeeded_channel ?? null,
+        succeededChannel: bff.succeeded_channel ?? null,
         experiments: bff.experiments,
       } satisfies WorldState),
     );
