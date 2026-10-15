@@ -40,6 +40,7 @@ export type BffSession = {
   channel_properties?: Record<string, ChannelProperties>;
   allowed_payment_channels?: string[];
   expires_at: string;
+  expires_ttl?: number;
   locale: string;
   description?: string;
   items: BffItem[] | null;
