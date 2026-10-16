@@ -132,6 +132,8 @@ export type ChannelFormField = {
   flags?: {
     /* If true, hide by default, show only for some countries */
     require_billing_information?: boolean;
+    /* If true, the field is hidden */
+    hide_on_skip_three_ds?: boolean;
   };
 };
 
