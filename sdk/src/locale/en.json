@@ -12,11 +12,11 @@
     "action_deeplink.title": "Awaiting payment...",
     "action_empty_list_push_notification.subtext": "Check the notification in your {{channelName}} app to complete your payment.",
     "action_empty_list_push_notification.title": "Awaiting payment...",
-    "action_qr.unable_to_generate": "Unable to generate QR code",
     "action_qr.download_qr": "Download QR",
     "action_qr.make_payment_keep_page_open": "Make payment to continue. Keep this page open, it will update once your payment is received.",
     "action_qr.simulate_success": "Simulate success.",
     "action_qr.simulating": "Simulating",
+    "action_qr.unable_to_generate": "Unable to generate QR code",
     "action_va.amount_to_pay": "Amount to Pay",
     "action_va.copied_to_clipboard": "Copied to clipboard",
     "action_va.copy": "Copy",
@@ -105,6 +105,8 @@
     "payment_token_status.expired.title": "Payment method couldn't be added",
     "payment_token_status.failed.subtext": "Your payment couldn't be processed. Please try a different payment method or submit an inquiry to the seller by sharing your Unique Identifiers.",
     "payment_token_status.failed.title": "Payment method couldn't be added",
+    "session_status.inactive.subtext": "Please try to check out again or contact the seller if the problem persists.",
+    "session_status.inactive.title": "This session is no longer available",
     "simulation.see_all_scenarios": "See the full list here.",
     "simulation.select_scenario": "Select a scenario",
     "simulation.simulate_scenario": "Simulate scenario",
@@ -119,8 +121,6 @@
     "validation.generic_invalid": "{{field}} is not valid. Please check and try again.",
     "validation.required": "{{field}} is required.",
     "validation.text_too_long": "{{field}} is too long",
-    "validation.text_too_short": "{{field}} is too short",
-    "session_status.inactive.title": "This session is no longer available",
-    "session_status.inactive.subtext": "Please try to check out again or contact the seller if the problem persists."
+    "validation.text_too_short": "{{field}} is too short"
   }
 }
