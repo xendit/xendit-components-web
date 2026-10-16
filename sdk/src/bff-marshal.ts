@@ -98,7 +98,7 @@ export function bffBusinessToPublic(
 export function bffCustomerToPublic(
   bffCustomer: BffCustomer | null,
 ): XenditCustomer | null {
-  if (!bffCustomer) {
+  if (!bffCustomer || bffCustomer.type === "BUSINESS") {
     return null;
   }
   assertEquals(bffCustomer.type, "INDIVIDUAL");
