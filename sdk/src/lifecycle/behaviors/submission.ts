@@ -43,6 +43,7 @@ import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
+import { expireSessionLocally } from "./utils/expire-session-locally";
 import { CustomerDetails } from "../../backend-types/customer";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
@@ -347,7 +348,15 @@ export class SubmissionBehavior implements Behavior {
             this.submissionError = error;
           }
 
-          this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+          if (
+            error instanceof NetworkError &&
+            error.errorResponse.error_code === "SESSION_EXPIRED"
+          ) {
+            // the server says the deadline has passed. show the session as expired instead of an error
+            expireSessionLocally(this.bb);
+          } else {
+            this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+          }
         }
       });
 
