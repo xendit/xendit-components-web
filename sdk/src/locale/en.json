@@ -122,5 +122,6 @@
     "validation.required": "{{field}} is required.",
     "validation.text_too_long": "{{field}} is too long",
     "validation.text_too_short": "{{field}} is too short"
-  }
+  },
+  "test_key": "Test string"
 }
