@@ -65,7 +65,7 @@ import {
   BlackboardType,
   SdkStatus,
 } from "./lifecycle/behavior-tree";
-import { BffSession } from "./backend-types/session";
+import { BffSession, BffSessionStatus } from "./backend-types/session";
 import { BffBusiness } from "./backend-types/business";
 import { BffCustomer, CustomerDetails } from "./backend-types/customer";
 import { BffPaymentEntity } from "./backend-types/payment-entity";
@@ -121,6 +121,7 @@ import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
+import { SessionFailedBehavior } from "./lifecycle/behaviors/session-failed";
 import { CustomerDetailsFormHandle } from "./components/customer-form";
 import { getTelemetry, SessionTelemetry } from "./telemetry";
 import { TelemetryEvents } from "./telemetry-events";
@@ -362,6 +363,7 @@ export class XenditComponents extends EventTarget {
         redirectReturnPending: false,
         pollImmediatelyRequested: false,
         prefersRedirectAction: false,
+        sessionRecvTime: 0,
       }),
       telemetry,
       currentChannelCode: null,
@@ -637,6 +639,10 @@ export class XenditComponents extends EventTarget {
    */
   private onUpdateWorldState(event: Event) {
     const data = (event as InternalUpdateWorldState).data;
+    if (data.session) {
+      // the session's expires_ttl counts down from now
+      this[internal].behaviorTree.bb.sessionRecvTime = Date.now();
+    }
     this[internal].worldState = mergeIgnoringUndefined(
       this[internal].worldState ?? ({} as WorldState),
       data,
@@ -759,6 +765,22 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @internal
+   * Return the session status, EXPIRED once the behavior tree finds the TTL has run out.
+   */
+  public getSessionStatus(): BffSessionStatus {
+    this.assertInitialized();
+    const status = this[internal].worldState.session.status;
+    if (
+      status === "ACTIVE" &&
+      this[internal].behaviorTree.findBehavior(SessionFailedBehavior)
+    ) {
+      return "EXPIRED";
+    }
+    return status;
+  }
+
+  /**
+   * @internal
    * Rerender everything.
    */
   private rerenderAllComponents() {
@@ -782,7 +804,10 @@ export class XenditComponents extends EventTarget {
    */
   getSession(): XenditSession {
     this.assertInitialized();
-    return bffSessionToPublic(this[internal].worldState.session);
+    return bffSessionToPublic({
+      ...this[internal].worldState.session,
+      status: this.getSessionStatus(),
+    });
   }
 
   /**
@@ -1729,6 +1754,11 @@ export class XenditComponents extends EventTarget {
   ) {
     this.assertInitialized();
 
+    // the session expired on the client, don't start a payment
+    if (this.getSessionStatus() !== "ACTIVE") {
+      return;
+    }
+
     this.setCurrentChannel(null);
 
     this[internal].currentDigitalWalletSubmission = {
@@ -1867,7 +1897,7 @@ export class XenditComponents extends EventTarget {
   pollImmediately() {
     this.assertInitialized();
 
-    if (this[internal].worldState.session.status !== "ACTIVE") {
+    if (this.getSessionStatus() !== "ACTIVE") {
       throw new Error(
         "Unable to poll immediately; the session is not longer active.",
       );
@@ -1887,7 +1917,7 @@ export class XenditComponents extends EventTarget {
   redirectToReturnUrl() {
     this.assertInitialized();
 
-    const status = this[internal].worldState.session.status;
+    const status = this.getSessionStatus();
     let url: string | undefined;
     switch (status) {
       case "COMPLETED": {

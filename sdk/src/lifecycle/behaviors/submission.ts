@@ -43,7 +43,6 @@ import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
 import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
-import { expireSessionLocally } from "./utils/expire-session-locally";
 import { CustomerDetails } from "../../backend-types/customer";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
@@ -134,6 +133,12 @@ export class SubmissionBehavior implements Behavior {
     if (this.bb.world.session.status !== "ACTIVE") {
       // if status is not active, that's why we ended submission
       reason = `SESSION_${this.bb.world.session.status}`;
+    } else if (
+      this.submissionError &&
+      isSubmissionError(this.submissionError) &&
+      this.submissionError.code === "SESSION_EXPIRED"
+    ) {
+      reason = "SESSION_EXPIRED";
     } else if (
       paymentEntity &&
       (paymentEntity.entity.status === "FAILED" ||
@@ -352,11 +357,10 @@ export class SubmissionBehavior implements Behavior {
             error instanceof NetworkError &&
             error.errorResponse.error_code === "SESSION_EXPIRED"
           ) {
-            // the server says the deadline has passed. show the session as expired instead of an error
-            expireSessionLocally(this.bb);
-          } else {
-            this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+            // the server says the deadline has passed, count the TTL as run out
+            this.bb.sessionRecvTime = 0;
           }
+          this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
         }
       });
 

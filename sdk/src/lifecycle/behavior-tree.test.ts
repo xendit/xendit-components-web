@@ -84,6 +84,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
   redirectReturnPending: false,
   pollImmediatelyRequested: false,
   prefersRedirectAction: false,
+  sessionRecvTime: Date.now(),
 };
 
 function withSessionStatus(
@@ -97,6 +98,24 @@ function withSessionStatus(
       session: {
         ...bb.world.session,
         status,
+      },
+    },
+  };
+}
+
+function withSessionTtl(
+  bb: BlackboardType & { world: object },
+  expiresTtl: number | undefined,
+  receivedMsAgo: number,
+) {
+  return {
+    ...bb,
+    sessionRecvTime: Date.now() - receivedMsAgo,
+    world: {
+      ...bb.world,
+      session: {
+        ...bb.world.session,
+        expires_ttl: expiresTtl,
       },
     },
   };
@@ -208,6 +227,51 @@ describe("Behavior Tree - Submission", () => {
       SdkActiveBehavior,
       SessionActiveBehavior,
       SubmissionBehavior,
+    ]);
+  });
+});
+
+describe("Behavior Tree - Session TTL", () => {
+  it("should give failed behavior once the TTL has run out", () => {
+    const node = behaviorTreeForSdk(
+      withSessionTtl(mockBlackboard, 600, 600_000),
+    );
+    assertHasNodes(node, [SdkActiveBehavior, SessionFailedBehavior]);
+    // the key is the status SessionFailedBehavior reports
+    expect(flattenBehaviors(node)[1].key).toBe("EXPIRED");
+  });
+  it("should keep the session active before the TTL runs out", () => {
+    const node = behaviorTreeForSdk({
+      ...withSessionTtl(mockBlackboard, 600, 599_000),
+      channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      ChannelValidBehavior,
+    ]);
+  });
+  it("should keep the submission when the TTL runs out during it", () => {
+    const node = behaviorTreeForSdk({
+      ...withSessionTtl(mockBlackboard, 0, 0),
+      channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
+      submissionRequested: "normal",
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      SubmissionBehavior,
+    ]);
+  });
+  it("should keep the session active without a TTL", () => {
+    const node = behaviorTreeForSdk({
+      ...withSessionTtl(mockBlackboard, undefined, 0),
+      channel: findChannel(mockBlackboard.world.channels, "MOCK_QR"),
+    });
+    assertHasNodes(node, [
+      SdkActiveBehavior,
+      SessionActiveBehavior,
+      ChannelValidBehavior,
     ]);
   });
 });
