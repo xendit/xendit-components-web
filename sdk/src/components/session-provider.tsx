@@ -119,7 +119,7 @@ export const XenditSessionProvider: FunctionComponent<
 
   const channel = sdk.getCurrentChannel()?.[internal]?.[0] ?? null;
 
-  if (sdk.getSdkStatus() !== "ACTIVE" || session.status !== "ACTIVE") {
+  if (sdk.getSdkStatus() !== "ACTIVE" || sdk.getSessionStatus() !== "ACTIVE") {
     // clear all contents if the sdk is not initialized or crashes, or if the component is still mounted after completion or failure
     return null;
   }
