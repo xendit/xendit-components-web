@@ -7,7 +7,9 @@ export type BffCustomer = {
   email: string | null;
   mobile_number: string | null;
   phone_number: string | null;
-  business_detail: null;
+  business_detail: {
+    business_name: string;
+  } | null;
   individual_detail: {
     given_names: string;
     surname: string | null;

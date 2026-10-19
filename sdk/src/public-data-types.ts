@@ -195,7 +195,7 @@ export interface XenditBusiness {
 /**
  * @public
  */
-export interface XenditCustomer {
+export interface XenditIndividualCustomer {
   id: string;
   type: "INDIVIDUAL";
 
@@ -220,6 +220,36 @@ export interface XenditCustomer {
     surname?: string;
   };
 }
+
+/**
+ * @public
+ */
+export interface XenditBusinessCustomer {
+  id: string;
+  type: "BUSINESS";
+
+  /**
+   * E-mail address of customer.
+   */
+  email?: string;
+
+  /**
+   * Mobile number of customer in E.164 format +(country code)(subscriber number)
+   */
+  mobileNumber?: string;
+
+  businessDetail: {
+    /**
+     * Name of the busines
+     */
+    businessName: string;
+  };
+}
+
+/**
+ * @public
+ */
+export type XenditCustomer = XenditIndividualCustomer | XenditBusinessCustomer;
 
 /**
  * @internal
