@@ -1,8 +1,13 @@
-import { InternalNeedsRerenderEvent } from "../../private-event-types";
+import {
+  InternalBehaviorTreeUpdateEvent,
+  InternalNeedsRerenderEvent,
+} from "../../private-event-types";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
+import { sessionExpiryTime } from "./utils/session-expiry-time";
+import { setTimeoutLong } from "./utils/set-timeout-long";
 
 export class SessionActiveBehavior implements Behavior {
   constructor(private bb: BlackboardType) {}
@@ -11,6 +16,10 @@ export class SessionActiveBehavior implements Behavior {
   currentChannelTelemetryScope: SessionTelemetryScope | null = null;
 
   beforeUnloadHandler: EventListener | null = null;
+
+  cancelExpiryTimeout: (() => void) | null = null;
+  // the expiry time the timeout was set for
+  timedExpiryTime: number | null = null;
 
   enter() {
     this.beforeUnloadHandler = (event: BeforeUnloadEvent) => {
@@ -28,14 +37,23 @@ export class SessionActiveBehavior implements Behavior {
 
     // Schedule rerender (reveals hidden components now that session is active)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
+
+    // wake the behavior tree when the TTL runs out
+    this.syncExpiryTimeout();
   }
 
   updatePreorder() {
     // telemetry - needed on update because this node doesn't change when the current channel changes
     this.telemetryForActiveChannel();
+
+    // the server may have sent the session again with a new TTL
+    this.syncExpiryTimeout();
   }
 
   exit() {
+    // stop waiting, the session is no longer active
+    this.cancelExpiryTimeout?.();
+
     // stop listening to abandon behavior
     window.removeEventListener("beforeunload", this.beforeUnloadHandler!);
 
@@ -44,6 +62,26 @@ export class SessionActiveBehavior implements Behavior {
 
     // Schedule rerender (hides components now that session is inactive)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
+  }
+
+  /**
+   * Wakes the behavior tree up when the TTL runs out, the tree decides whether the session has expired.
+   */
+  syncExpiryTimeout() {
+    const expiryTime = sessionExpiryTime(this.bb);
+    if (expiryTime === this.timedExpiryTime) {
+      return;
+    }
+    this.timedExpiryTime = expiryTime;
+    this.cancelExpiryTimeout?.();
+    this.cancelExpiryTimeout = null;
+    if (expiryTime === null) {
+      return;
+    }
+    this.cancelExpiryTimeout = setTimeoutLong(
+      () => this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent()),
+      expiryTime - Date.now(),
+    );
   }
 
   telemetryForActiveChannel() {

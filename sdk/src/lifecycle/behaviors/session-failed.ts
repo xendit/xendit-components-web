@@ -2,21 +2,24 @@ import { XenditSessionExpiredOrCanceledEvent } from "../../public-event-types";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { TelemetryEvents } from "../../telemetry-events";
-import { assert } from "../../utils";
 
 export class SessionFailedBehavior implements Behavior {
-  constructor(private bb: BlackboardType) {}
+  constructor(
+    private bb: BlackboardType,
+    // EXPIRED or CANCELED (the session itself is still ACTIVE when the TTL ran out on the client)
+    private status: string,
+  ) {}
 
   enter() {
+    if (this.bb.world?.session.status === "ACTIVE") {
+      // the TTL ran out on the client, keep it expired even if the device clock is set back
+      this.bb.sessionRecvTime = 0;
+    }
+
     this.bb.dispatchEvent(new XenditSessionExpiredOrCanceledEvent());
 
-    assert(this.bb.world?.session);
     this.bb.telemetry.append(
-      TelemetryEvents.End(
-        false,
-        this.bb.world.session.status,
-        this.bb.sessionUpdateSummary,
-      ),
+      TelemetryEvents.End(false, this.status, this.bb.sessionUpdateSummary),
     );
   }
 }

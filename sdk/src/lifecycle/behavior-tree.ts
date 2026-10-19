@@ -44,6 +44,7 @@ import { SimulatePaymentBehavior } from "./behaviors/simulate-payment";
 import { SubmissionBehavior, SubmissionError } from "./behaviors/submission";
 import { SessionTelemetry } from "../telemetry";
 import { SessionUpdateSummary } from "./behaviors/utils/session-update-worker";
+import { sessionExpiryTime } from "./behaviors/utils/session-expiry-time";
 import { BffErrorContent } from "../backend-types/common";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
@@ -94,6 +95,8 @@ export type BlackboardType = {
   prefersRedirectAction: boolean;
   // how the latest worker received session updates, sent with CHECKOUT_END
   sessionUpdateSummary?: SessionUpdateSummary;
+  // when the current session was received, its expires_ttl counts down from here
+  sessionRecvTime: number;
 };
 
 export function behaviorTreeForSdk(bb: BlackboardType) {
@@ -123,6 +126,15 @@ export function behaviorTreeForSession(bb: BlackboardType) {
 
   switch (bb.world.session.status) {
     case "ACTIVE": {
+      const expiryTime = sessionExpiryTime(bb);
+      if (
+        !bb.submissionRequested &&
+        expiryTime !== null &&
+        Date.now() >= expiryTime
+      ) {
+        // the TTL ran out, during a submission the server decides instead
+        return behaviorNode(SessionFailedBehavior, "EXPIRED");
+      }
       return behaviorNode(
         SessionActiveBehavior,
         "active",

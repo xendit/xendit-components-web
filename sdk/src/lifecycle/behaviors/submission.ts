@@ -134,6 +134,12 @@ export class SubmissionBehavior implements Behavior {
       // if status is not active, that's why we ended submission
       reason = `SESSION_${this.bb.world.session.status}`;
     } else if (
+      this.submissionError &&
+      isSubmissionError(this.submissionError) &&
+      this.submissionError.code === "SESSION_EXPIRED"
+    ) {
+      reason = "SESSION_EXPIRED";
+    } else if (
       paymentEntity &&
       (paymentEntity.entity.status === "FAILED" ||
         paymentEntity.entity.status === "CANCELED" ||
@@ -347,6 +353,13 @@ export class SubmissionBehavior implements Behavior {
             this.submissionError = error;
           }
 
+          if (
+            error instanceof NetworkError &&
+            error.errorResponse.error_code === "SESSION_EXPIRED"
+          ) {
+            // the server says the deadline has passed, count the TTL as run out
+            this.bb.sessionRecvTime = 0;
+          }
           this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
         }
       });

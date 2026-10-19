@@ -18,6 +18,7 @@ export function makeTestBffData(): BffResponse {
       amount: 10000,
       country: "ID",
       expires_at: mockExpiry,
+      expires_ttl: ONE_MONTH_IN_MS / 1000,
       session_type: "PAY",
       mode: "COMPONENTS",
       locale: "en",
