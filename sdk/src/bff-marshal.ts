@@ -16,7 +16,6 @@ import {
 } from "./public-data-types";
 import {
   assert,
-  assertEquals,
   assertNotEquals,
   lockDownInteralProperty,
   removeUndefinedPropertiesFromObject,
@@ -98,21 +97,38 @@ export function bffBusinessToPublic(
 export function bffCustomerToPublic(
   bffCustomer: BffCustomer | null,
 ): XenditCustomer | null {
-  if (!bffCustomer || bffCustomer.type === "BUSINESS") {
+  if (!bffCustomer) {
     return null;
   }
-  assertEquals(bffCustomer.type, "INDIVIDUAL");
-  assert(bffCustomer.individual_detail);
-  return {
-    id: bffCustomer.id,
-    type: bffCustomer.type,
-    email: bffCustomer.email ?? undefined,
-    mobileNumber: bffCustomer.mobile_number ?? undefined,
-    individualDetail: {
-      givenNames: bffCustomer.individual_detail.given_names ?? undefined,
-      surname: bffCustomer.individual_detail.surname ?? undefined,
-    },
-  };
+
+  if (bffCustomer.type === "INDIVIDUAL") {
+    assert(bffCustomer.individual_detail);
+    return {
+      id: bffCustomer.id,
+      type: bffCustomer.type,
+      email: bffCustomer.email ?? undefined,
+      mobileNumber: bffCustomer.mobile_number ?? undefined,
+      individualDetail: {
+        givenNames: bffCustomer.individual_detail.given_names ?? undefined,
+        surname: bffCustomer.individual_detail.surname ?? undefined,
+      },
+    };
+  }
+
+  if (bffCustomer.type === "BUSINESS") {
+    assert(bffCustomer.business_detail);
+    return {
+      id: bffCustomer.id,
+      type: bffCustomer.type,
+      email: bffCustomer.email ?? undefined,
+      mobileNumber: bffCustomer.mobile_number ?? undefined,
+      businessDetail: {
+        businessName: bffCustomer.business_detail.business_name ?? undefined,
+      },
+    };
+  }
+
+  return null;
 }
 
 export function bffSucceededChannelToPublic(
