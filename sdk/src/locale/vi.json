@@ -122,5 +122,6 @@
     "validation.required": "Vui lòng nhập {{field}}",
     "validation.text_too_long": "{{field}} quá dài",
     "validation.text_too_short": "{{field}} quá ngắn"
-  }
+  },
+  "test_key": "Chuỗi thử nghiệm"
 }
