@@ -1,3 +1,19 @@
+# 0.0.39
+
+### Notable
+
+Added a session expiry timer.
+
+Resume now uses a single session request on init.
+
+Added support for the business customer type.
+
+Added an error icon to field validation errors.
+
+### Bug Fixes
+
+- Fixed channel logo sizing in dropdown lists
+
 # 0.0.38
 
 ### Bug Fixes
