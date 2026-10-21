@@ -27,8 +27,8 @@ export class SessionActiveBehavior implements Behavior {
       // (but not if we initiated the redirect)
       if (!this.bb.telemetry.expectingRedirectAway) {
         this.bb.telemetry.append(TelemetryEvents.Abandon(false));
+        this.bb.telemetry.flush();
       }
-      // we don't need to flush, the visibilitychange event always fires after beforeunload, and it will flush
     };
     window.addEventListener("beforeunload", this.beforeUnloadHandler);
 

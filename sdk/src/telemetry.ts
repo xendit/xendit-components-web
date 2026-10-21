@@ -43,7 +43,6 @@ export class SessionTelemetry extends EventTarget {
 
   timeout: number | null = 0;
   beforeUnloadHandler: (() => void) | null = null;
-  visibilityChangeHandler: (() => void) | null = null;
 
   constructor(
     private sdk: XenditComponents,
@@ -117,7 +116,9 @@ export class SessionTelemetry extends EventTarget {
     const eventId = randomUUID();
     this.queue.push({
       event_id: eventId,
-      timestamp_micros: `${Date.now() * 1000}`,
+      timestamp_micros: String(
+        Math.round((performance.timeOrigin + performance.now()) * 1000),
+      ),
       ...this.scope.inheritedProperties,
       ...event,
       metadata: sanitizeMetadata(event.metadata),
@@ -136,16 +137,11 @@ export class SessionTelemetry extends EventTarget {
       }, TELEMETRY_INTERVAL * SLEEP_MULTIPLIER);
     }
 
-    if (!this.visibilityChangeHandler) {
-      this.visibilityChangeHandler = () => {
-        if (document.visibilityState === "hidden") {
-          this.flush();
-        }
+    if (!this.beforeUnloadHandler) {
+      this.beforeUnloadHandler = () => {
+        this.flush();
       };
-      document.addEventListener(
-        "visibilitychange",
-        this.visibilityChangeHandler,
-      );
+      window.addEventListener("beforeunload", this.beforeUnloadHandler);
     }
 
     if (this.queue.length > 25) {
@@ -160,12 +156,9 @@ export class SessionTelemetry extends EventTarget {
       this.timeout = null;
     }
 
-    if (this.visibilityChangeHandler) {
-      document.removeEventListener(
-        "visibilitychange",
-        this.visibilityChangeHandler,
-      );
-      this.visibilityChangeHandler = null;
+    if (this.beforeUnloadHandler) {
+      window.removeEventListener("beforeunload", this.beforeUnloadHandler);
+      this.beforeUnloadHandler = null;
     }
   }
 
