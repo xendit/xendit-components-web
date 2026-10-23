@@ -43,6 +43,7 @@ export class SessionTelemetry extends EventTarget {
 
   timeout: number | null = 0;
   beforeUnloadHandler: (() => void) | null = null;
+  visibilityChangeHandler: (() => void) | null = null;
 
   constructor(
     private sdk: XenditComponents,
@@ -144,6 +145,18 @@ export class SessionTelemetry extends EventTarget {
       window.addEventListener("beforeunload", this.beforeUnloadHandler);
     }
 
+    if (!this.visibilityChangeHandler) {
+      this.visibilityChangeHandler = () => {
+        if (document.visibilityState === "hidden") {
+          this.flush();
+        }
+      };
+      document.addEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
+    }
+
     if (this.queue.length > 25) {
       // don't let it get too big or it might fail - sendBeacon has a size limit
       this.flush();
@@ -159,6 +172,14 @@ export class SessionTelemetry extends EventTarget {
     if (this.beforeUnloadHandler) {
       window.removeEventListener("beforeunload", this.beforeUnloadHandler);
       this.beforeUnloadHandler = null;
+    }
+
+    if (this.visibilityChangeHandler) {
+      document.removeEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
+      this.visibilityChangeHandler = null;
     }
   }
 
