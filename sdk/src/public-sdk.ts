@@ -85,6 +85,7 @@ import {
   canBeSimulated,
   errorToString,
   findBestAction,
+  getDefaultSavePaymentMethod,
   lockDownInteralProperty,
   mergeIgnoringUndefined,
   MOCK_NETWORK_DELAY_MS,
@@ -1056,7 +1057,7 @@ export class XenditComponents extends EventTarget {
         customerDetailsFormRef: customerDetailsFormRef,
         data: {
           isOneclick: !!options.isOneclick,
-          savePaymentMethod: false,
+          savePaymentMethod: getDefaultSavePaymentMethod(channel[internal][0]),
           cardBin: null,
           cardDetails: null,
           paymentOptions: null,
