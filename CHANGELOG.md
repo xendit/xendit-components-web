@@ -1,3 +1,10 @@
+# 0.0.40
+
+### Bug Fixes
+
+- Fixed support for `allow_pay_without_save` session option
+- Fixed telemetry not firing on page unload
+
 # 0.0.39
 
 ### Notable
