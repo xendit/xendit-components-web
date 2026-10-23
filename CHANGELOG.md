@@ -2,7 +2,7 @@
 
 ### Bug Fixes
 
-- Fixed support for `allow_pay_without_save` session option
+- Fixed bug in payment methods where the save option cannot be disabled
 - Fixed telemetry not firing on page unload
 
 # 0.0.39
