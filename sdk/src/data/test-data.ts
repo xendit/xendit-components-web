@@ -1298,6 +1298,23 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Forced Save Test",
+        channel_code: "UI_FORCED_SAVE_TEST",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "ui_tests",
+        allow_pay_without_save: false,
+        allow_save: true,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        form: [],
+        instructions: [
+          "This channel has allow_pay_without_save: false.",
+          "The save checkbox should be checked and disabled.",
+        ],
+      },
+      {
         brand_name: "Banner Test",
         channel_code: "UI_BANNER_TEST",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",

@@ -64,4 +64,35 @@ describe("channel component save", () => {
 
     expect(getRealValueOfSaveCheckbox()).toBe(true);
   });
+
+  it("should render forced save checkbox as checked and disabled", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+    });
+
+    await waitForEvent(sdk, "init");
+
+    const ch = sdk.getActiveChannels({
+      filter: "UI_FORCED_SAVE_TEST",
+    })[0];
+    assert(ch);
+    document.body.appendChild(sdk.createChannelComponent(ch));
+
+    // save checkbox should exist
+    const checkbox = screen.getByLabelText(
+      "Save this payment method for future payments",
+    );
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).toBeInstanceOf(HTMLInputElement);
+
+    // it should be checked and disabled
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toBeDisabled();
+
+    // internal state should also be true
+    const internalValue = sdk[internal].liveComponents.paymentChannels.get(
+      "UI_FORCED_SAVE_TEST",
+    )?.data.savePaymentMethod;
+    expect(internalValue).toBe(true);
+  });
 });

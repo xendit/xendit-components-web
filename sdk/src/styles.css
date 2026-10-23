@@ -673,6 +673,24 @@ xendit-channel-picker[inert] {
   box-shadow: var(--xendit-focus-shadow);
 }
 
+.xendit-checkbox input:disabled + .xendit-checkbox-graphic {
+  background-color: var(--xendit-color-icon-secondary);
+  border-color: var(--xendit-color-icon-secondary);
+}
+
+.xendit-checkbox input:disabled:checked + .xendit-checkbox-graphic {
+  color: var(--xendit-color-background);
+  background-color: var(--xendit-color-icon-primary);
+  border-color: var(--xendit-color-icon-secondary);
+}
+
+.xendit-checkbox input:disabled,
+.xendit-checkbox input:disabled ~ label,
+.xendit-checkbox:has(input:disabled) label,
+.xendit-checkbox input:disabled + .xendit-checkbox-graphic {
+  cursor: not-allowed;
+}
+
 /* Dialog */
 
 .xendit-dialog-backdrop {

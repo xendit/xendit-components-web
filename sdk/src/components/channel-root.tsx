@@ -225,6 +225,10 @@ export const ChannelRoot: FunctionComponent<Props> = (props) => {
               label={t("payment.save_checkbox_label")}
               onChange={handleCheckboxChange}
               checked={savePaymentMethod}
+              disabled={
+                // user cannot uncheck for forced-save channels, unless a pair is present
+                !resolvedChannel.allow_pay_without_save && !hasPairedChannel
+              }
             />
           )}
           {instructions ? (

@@ -589,3 +589,12 @@ export function formHasFieldOfType(
   }
   return false;
 }
+
+/**
+ * Returns the default value for the save payment method checkbox.
+ * If allow_pay_without_save is false, the user cannot uncheck the save checkbox,
+ * so we default to true (forced save).
+ */
+export function getDefaultSavePaymentMethod(channel: BffChannel): boolean {
+  return !channel.allow_pay_without_save;
+}
