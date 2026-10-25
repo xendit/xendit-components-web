@@ -122,5 +122,6 @@
     "validation.required": "กรุณากรอก {{field}}",
     "validation.text_too_long": "{{field}} ยาวเกินไป",
     "validation.text_too_short": "{{field}} สั้นเกินไป"
-  }
+  },
+  "test_key": "สตริงทดสอบ"
 }

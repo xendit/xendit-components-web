@@ -122,5 +122,6 @@
     "validation.required": "{{field}} wajib diisi.",
     "validation.text_too_long": "{{field}} terlalu panjang",
     "validation.text_too_short": "{{field}} terlalu pendek"
-  }
+  },
+  "test_key": ""
 }
