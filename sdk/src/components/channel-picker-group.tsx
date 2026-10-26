@@ -23,6 +23,8 @@ import {
 import { TFunction } from "../localization";
 import { FunctionComponent } from "preact";
 import { DottedLine } from "./core/dotted-line";
+import { CardBrands } from "./card-brands";
+import { XenditCardBinChangedEvent } from "../public-event-types";
 
 interface ChannelPickerGroupProps {
   group: BffChannelUiGroup;
@@ -59,6 +61,13 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
   // reference to the selected channel element
   const selectedChannelElementRef = useRef<HTMLElement>(null);
 
+  // the card brand detected from the BIN of the card entered in the selected
+  // cards channel, used to collapse the brand list to the single matching logo.
+  // only relevant when the selected channel is a cards channel.
+  const [selectedCardBrand, setSelectedCardBrand] = useState<string | null>(
+    null,
+  );
+
   const pairChannelData = useMemo(() => findChannelPairs(channels), [channels]);
   const marshalConfig = useMemo(
     () => ({
@@ -91,6 +100,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
 
     selectedChannelElementRef.current = sdk.createChannelComponent(
       singleBffChannelToPublic(currentChannel, marshalConfig),
+      { active: true, fromChannelPicker: true },
     );
     if (
       selectedChannelElementRef.current.parentElement !== containerRef.current
@@ -102,6 +112,37 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
       // replaceChildren would cause iframes to reload even if we do a no-op update.
     }
   }, [channelsInGroup, currentChannel, marshalConfig, open, sdk]);
+
+  // the selected channel's card brands, if it is a cards channel. this is the
+  // same source of truth the card number input uses (the resolved channel's
+  // `card.brands`), so the picker row shows exactly the networks the channel
+  // supports.
+  const cardBrands = currentChannel?.card?.brands ?? null;
+
+  // track the detected card brand by subscribing to the SDK's `card-bin-changed`
+  // event for the selected cards channel. the picker group lives in a separate
+  // render tree from the card number input, so it cannot read the per-component
+  // `cardDetails.details.schemes`; the event carries the same `schemes` the input
+  // uses to collapse the brand list to the single matching logo.
+  const selectedChannelCode = currentChannel?.channel_code;
+  useLayoutEffect(() => {
+    if (!cardBrands || !selectedChannelCode || !open) {
+      setSelectedCardBrand(null);
+      return;
+    }
+    // reset whenever the selected cards channel changes or the group (re)opens
+    setSelectedCardBrand(null);
+    const listener = (event: XenditCardBinChangedEvent) => {
+      if (event.channelCode !== selectedChannelCode) return;
+      const matched =
+        event.schemes.find((scheme) =>
+          cardBrands.some((brand) => brand.name === scheme),
+        ) ?? null;
+      setSelectedCardBrand(matched);
+    };
+    sdk.addEventListener("card-bin-changed", listener);
+    return () => sdk.removeEventListener("card-bin-changed", listener);
+  }, [cardBrands, open, sdk, selectedChannelCode]);
 
   // when the group is opened, if the currently selected channel is unset but the fakeDropdownSelection is set,
   // select that channel to restore this group's selection into the sdk state.
@@ -234,6 +275,12 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
           />
         </div>
       )}
+      {containerIsPopulated && cardBrands?.length ? (
+        <CardBrands
+          cardsBrandList={cardBrands}
+          selectedCardBrand={selectedCardBrand}
+        />
+      ) : null}
       {!hideDropdown && containerIsPopulated ? <DottedLine /> : null}
       <div
         style={{ display: containerIsPopulated ? "" : "none" }}

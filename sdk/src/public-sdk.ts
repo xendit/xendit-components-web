@@ -151,6 +151,13 @@ type CachedChannelComponent = {
  */
 export type ChannelComponentData = {
   isOneclick: boolean;
+  /**
+   * @internal
+   * When true, the card brand images are rendered on the channel picker group
+   * instead of inside the card number input. Only set when the component was
+   * created via `createChannelPickerComponent`.
+   */
+  fromChannelPicker?: boolean;
   savePaymentMethod: boolean;
   cardBin: string | null;
   cardDetails: {
@@ -1003,12 +1010,22 @@ export class XenditComponents extends EventTarget {
   /** @internal */
   createChannelComponent(
     channel: XenditPaymentChannel,
-    options: { active?: boolean; noCache?: boolean; isOneclick?: boolean },
+    options: {
+      active?: boolean;
+      noCache?: boolean;
+      isOneclick?: boolean;
+      fromChannelPicker?: boolean;
+    },
   ): HTMLElement;
   /** @internal */
   createChannelComponent(
     channel: XenditPaymentChannel,
-    options: { active?: boolean; noCache?: boolean; isOneclick?: boolean } = {
+    options: {
+      active?: boolean;
+      noCache?: boolean;
+      isOneclick?: boolean;
+      fromChannelPicker?: boolean;
+    } = {
       active: true,
     },
   ): HTMLElement {
@@ -1038,6 +1055,15 @@ export class XenditComponents extends EventTarget {
 
     if (cachedComponent && !options.noCache) {
       container = cachedComponent.element;
+      // The picker selects a channel via `setCurrentChannel`, which creates (and
+      // caches) the component before the picker group re-requests it with
+      // `fromChannelPicker`. Carry the flag onto the cached data so the brand
+      // images are suppressed inside the input only in the picker context. The
+      // option is only ever set by the picker path, so the direct path is
+      // unaffected.
+      if (options.fromChannelPicker !== undefined) {
+        cachedComponent.data.fromChannelPicker = options.fromChannelPicker;
+      }
     } else {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("data-channel-code", channelCode);
@@ -1057,6 +1083,7 @@ export class XenditComponents extends EventTarget {
         customerDetailsFormRef: customerDetailsFormRef,
         data: {
           isOneclick: !!options.isOneclick,
+          fromChannelPicker: !!options.fromChannelPicker,
           savePaymentMethod: getDefaultSavePaymentMethod(channel[internal][0]),
           cardBin: null,
           cardDetails: null,
