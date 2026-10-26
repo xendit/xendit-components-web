@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 describe("channel picker card brands", () => {
-  it("renders card brands on the picker group row, not inside the card number input", async () => {
+  it("renders card brands as the credit card group's row logos, not inside the card number input", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
     });
@@ -27,22 +27,38 @@ describe("channel picker card brands", () => {
     // wait for the card number input to mount inside the picker.
     // with a public key present the card number field renders as a secure
     // iframe (`.xendit-iframe-container`).
-    const pickerGroup = await waitFor(() => {
+    const accordionItem = await waitFor(() => {
       const input = document.querySelector(".xendit-iframe-container");
       assert(input);
-      const group = input.closest(".xendit-channel-picker-group");
-      assert(group);
-      return group as HTMLElement;
+      const item = input.closest(".xendit-accordion-item");
+      assert(item);
+      return item as HTMLElement;
     });
 
-    // brands render on the picker group row
-    const brandsOnRow = pickerGroup.querySelector(".xendit-card-brands-list");
-    expect(brandsOnRow).not.toBeNull();
-    expect(
-      pickerGroup.querySelectorAll(".xendit-card-brand-logo").length,
-    ).toBeGreaterThan(0);
+    // the card brand logos replace the generic card icon as the group-row logos
+    // rendered by GroupLogos in the accordion item header.
+    const rowLogos = accordionItem.querySelectorAll(
+      ".xendit-accordion-item-logos img.xendit-accordion-item-logo-image",
+    );
+    const logoAlts = Array.from(rowLogos).map((img) => img.getAttribute("alt"));
+    const logoSrcs = Array.from(rowLogos).map((img) => img.getAttribute("src"));
+    expect(logoAlts).toEqual(["VISA", "MASTERCARD", "JCB"]);
+    expect(logoSrcs).toEqual([
+      "https://assets.xendit.co/payment-session/logos/VISA.svg",
+      "https://assets.xendit.co/payment-session/logos/MASTERCARD.svg",
+      "https://assets.xendit.co/payment-session/logos/JCB.svg",
+    ]);
+    // the generic card icon is no longer among the group-row logos
+    expect(logoSrcs.some((src) => src?.endsWith("/CARDS.svg"))).toBe(false);
 
-    // and NOT inside the card number input itself
+    // the standalone CardBrands block is gone from the picker group row
+    const pickerGroup = accordionItem.querySelector(
+      ".xendit-channel-picker-group",
+    );
+    assert(pickerGroup);
+    expect(pickerGroup.querySelector(".xendit-card-brands-list")).toBeNull();
+
+    // and the inline brands are NOT inside the card number input itself
     const cardInput = document.querySelector(".xendit-iframe-container");
     assert(cardInput);
     expect(cardInput.querySelector(".xendit-card-brands-list")).toBeNull();
