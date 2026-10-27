@@ -157,7 +157,7 @@ if (savedKey) {
 (window as any).sdk = components;
 
 const channelPicker = components.createChannelPickerComponent({
-  oneClickQr: true,
+  oneClickQr: false,
 });
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 
