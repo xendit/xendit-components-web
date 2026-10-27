@@ -32,6 +32,7 @@ export type XenditEventMap = {
 
   "card-bin-changed": XenditCardBinChangedEvent;
   "channel-properties-changed": XenditChannelPropertiesChangedEvent;
+  "current-channel-changed": XenditCurrentChannelChangedEvent;
 };
 
 /**
@@ -86,6 +87,18 @@ export class XenditChannelPropertiesChangedEvent extends Event {
     public channelProperties: ChannelProperties,
   ) {
     super(XenditChannelPropertiesChangedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Fired whenever the current channel changes. `channelCode` is null when the current channel is cleared.
+ */
+export class XenditCurrentChannelChangedEvent extends Event {
+  static type = "current-channel-changed" as const;
+
+  constructor(public channelCode: string | null) {
+    super(XenditCurrentChannelChangedEvent.type, {});
   }
 }
 

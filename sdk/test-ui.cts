@@ -157,7 +157,7 @@ if (savedKey) {
 (window as any).sdk = components;
 
 const channelPicker = components.createChannelPickerComponent({
-  oneClickQr: false,
+  oneClickQr: true,
 });
 document.getElementById("channel-picker-container")!.appendChild(channelPicker);
 
@@ -209,6 +209,7 @@ components.addEventListener("fatal-error", logEvent);
 
 components.addEventListener("card-bin-changed", logEvent);
 components.addEventListener("channel-properties-changed", logEvent);
+components.addEventListener("current-channel-changed", logEvent);
 
 setInterval(() => {
   const internalState = components.getState();

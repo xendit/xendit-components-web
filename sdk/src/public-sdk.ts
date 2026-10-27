@@ -3,6 +3,7 @@ import {
   XenditActionEndEvent,
   XenditCardBinChangedEvent,
   XenditChannelPropertiesChangedEvent,
+  XenditCurrentChannelChangedEvent,
   XenditFatalErrorEvent,
   XenditEventListener,
   XenditEventMap,
@@ -1023,6 +1024,7 @@ export class XenditComponents extends EventTarget {
     }
 
     const channelCode = channel[internal][0].channel_code;
+    const previousChannelCode = this[internal].currentChannelCode;
 
     if (options.active) {
       // make it active (before creating the component)
@@ -1076,6 +1078,8 @@ export class XenditComponents extends EventTarget {
 
     // rerender other components next tick because we may already be in a render
     this.dispatchEvent(new InternalNeedsRerenderEvent());
+
+    this.dispatchCurrentChannelChangedIfChanged(previousChannelCode);
 
     return container;
   }
@@ -1309,6 +1313,22 @@ export class XenditComponents extends EventTarget {
     this.behaviorTreeUpdate();
     this.syncInertAttribute();
     this.renderChannelPicker();
+
+    this.dispatchCurrentChannelChangedIfChanged(currentChannelCode);
+  }
+
+  /**
+   * @internal
+   * Fires the current-channel-changed event if the current channel is different from the given previous one.
+   * Call this after all other updates, so listeners see a consistent state.
+   */
+  private dispatchCurrentChannelChangedIfChanged(
+    previousChannelCode: string | null,
+  ): void {
+    if (this[internal].currentChannelCode === previousChannelCode) return;
+    this.dispatchEvent(
+      new XenditCurrentChannelChangedEvent(this[internal].currentChannelCode),
+    );
   }
 
   /**
@@ -2177,6 +2197,17 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "channel-properties-changed",
     listener: XenditEventListener<XenditChannelPropertiesChangedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Fired whenever the current channel changes. `channelCode` is null when the current channel is cleared.
+   * Use `getCurrentChannel()` to get the full channel.
+   */
+  addEventListener(
+    name: "current-channel-changed",
+    listener: XenditEventListener<XenditCurrentChannelChangedEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
