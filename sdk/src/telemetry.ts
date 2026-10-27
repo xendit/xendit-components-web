@@ -1,6 +1,9 @@
 import { internal } from "./internal";
 import { XenditComponents } from "./public-sdk";
-import { SessionTelemetryEvent } from "./telemetry-events";
+import {
+  SessionTelemetryEvent,
+  SessionTelemetryMetadata,
+} from "./telemetry-events";
 import { randomUUID, SLEEP_MULTIPLIER, telemetryHostFromHostId } from "./utils";
 
 /**
@@ -33,6 +36,7 @@ const TELEMETRY_INTERVAL = 2000;
 export class SessionTelemetry extends EventTarget {
   queue: SessionTelemetryEventWithExtras[] = [];
 
+  experiments: Record<string, unknown> = {};
   rootScope: SessionTelemetryScope = {
     id: null,
     fromEvent: "ROOT",
@@ -50,6 +54,10 @@ export class SessionTelemetry extends EventTarget {
     private logTelemetryEvents: boolean,
   ) {
     super();
+  }
+
+  setExperiments(experiments: Record<string, unknown>) {
+    this.experiments = experiments;
   }
 
   /**
@@ -122,7 +130,9 @@ export class SessionTelemetry extends EventTarget {
       ),
       ...this.scope.inheritedProperties,
       ...event,
-      metadata: sanitizeMetadata(event.metadata),
+      metadata: sanitizeMetadata(
+        addExperimentsToMetadata(event.metadata, this.experiments),
+      ),
     });
     this.setup();
     return eventId;
@@ -221,15 +231,24 @@ export class SessionTelemetry extends EventTarget {
 }
 
 // copy the object with undefined keys removed, then return it, unless it is empty then return undefined
-function sanitizeMetadata(
-  obj:
-    | Record<string, string | number | boolean | string[] | undefined>
-    | undefined,
-) {
+function sanitizeMetadata(obj: SessionTelemetryMetadata) {
   if (!obj) return undefined;
 
   const entries = Object.entries(obj).filter((entry) => entry[1] !== undefined);
   if (entries.length === 0) return undefined;
+
+  return Object.fromEntries(entries);
+}
+
+// copy experiments into metadata with "experiment_" prefix and in snake case
+function addExperimentsToMetadata(
+  obj: SessionTelemetryMetadata = {},
+  experiments: Record<string, unknown>,
+) {
+  const entries = Object.entries(obj ?? {});
+  for (const exp of Object.entries(experiments)) {
+    entries.push(["experiment_" + exp[0].replace(/-/g, "_"), exp[1]]);
+  }
 
   return Object.fromEntries(entries);
 }

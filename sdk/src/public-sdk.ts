@@ -467,6 +467,7 @@ export class XenditComponents extends EventTarget {
         channels: removeBlockedChannels(bff.channels),
         channel_ui_groups: bff.channel_ui_groups,
       });
+      getTelemetry(this).setExperiments(bff.experiments);
       bff.channels = intercepted.channels;
       bff.channel_ui_groups = intercepted.channel_ui_groups;
     } catch (error) {
