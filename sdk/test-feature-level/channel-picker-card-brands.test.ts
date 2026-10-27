@@ -41,6 +41,17 @@ async function typeCardNumber(iframe: HTMLIFrameElement, ciphertext: string) {
   await sleep(300); // CardInfoBehavior debounce
 }
 
+async function clearCardNumber(iframe: HTMLIFrameElement) {
+  fireIframeEvent(iframe, {
+    type: "xendit-iframe-change",
+    empty: true,
+    valid: false,
+    encrypted: [{ iv: "IV", value: "" }],
+    validationErrorCodes: [],
+  });
+  await sleep(300); // CardInfoBehavior debounce
+}
+
 // open the Mock Cards picker group (auto-selects the CARDS channel), returning
 // the ready-to-drive card number iframe and the accordion item that holds the
 // group-row brand logos.
@@ -197,6 +208,43 @@ describe("channel picker card brands", () => {
         { alt: "JCB", disabled: true },
       ]);
     });
+  });
+
+  it("re-enables all brand logos when the card number is cleared", async () => {
+    const { accordionItem, iframe } = await openCardPicker();
+
+    // a single-scheme lookup disables the non-matching logos
+    await typeCardNumber(
+      iframe,
+      cardInfoCiphertext({ schemes: ["VISA"], bin: "42345678" }),
+    );
+    await waitFor(() => {
+      expect(rowLogoStates(accordionItem)).toEqual([
+        { alt: "VISA", disabled: false },
+        { alt: "MASTERCARD", disabled: true },
+        { alt: "JCB", disabled: true },
+      ]);
+    });
+
+    // clearing the field fires no card-info request, but the behavior clears
+    // the detected card data, which must re-enable every brand logo again
+    await clearCardNumber(iframe);
+    await waitFor(() => {
+      expect(rowLogoStates(accordionItem)).toEqual([
+        { alt: "VISA", disabled: false },
+        { alt: "MASTERCARD", disabled: false },
+        { alt: "JCB", disabled: false },
+      ]);
+    });
+
+    // and the reset must not spuriously fire again once already cleared: a
+    // further postorder tick (another empty change) keeps everything enabled
+    await clearCardNumber(iframe);
+    expect(rowLogoStates(accordionItem)).toEqual([
+      { alt: "VISA", disabled: false },
+      { alt: "MASTERCARD", disabled: false },
+      { alt: "JCB", disabled: false },
+    ]);
   });
 
   it("leaves all brand logos enabled when the schemes carry more than one entry", async () => {

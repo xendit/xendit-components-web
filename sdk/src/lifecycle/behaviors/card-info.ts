@@ -41,10 +41,39 @@ export class CardInfoBehavior implements Behavior {
     }
   }
 
+  private isCardNumberEmpty(cardNumber: string | null): boolean {
+    if (!cardNumber) {
+      return true;
+    }
+    if (this.bb.sdkKey.publicKey) {
+      // an encrypted wrapper with empty cipher text carries no card number
+      try {
+        return parseEncryptedFieldValue(cardNumber).cipherText === "";
+      } catch {
+        // not a well-formed wrapper; treat as a non-empty value
+        return false;
+      }
+    }
+    return false;
+  }
+
   lookupCardDetails() {
     const cardNumber = getCardNumberFromChannelProperties(
       this.bb.channelProperties,
     );
+    if (this.isCardNumberEmpty(cardNumber)) {
+      // the field was cleared. reset card info.
+      this.abortLookupCardDetails();
+      if (this.bb.channelData?.cardDetails || this.bb.channelData?.cardBin) {
+        this.bb.dispatchEvent(
+          new InternalUpdateChannelComponentData(this.channelCode, {
+            cardDetails: null,
+            cardBin: null,
+          }),
+        );
+      }
+      return;
+    }
     if (!cardNumber) {
       return;
     }

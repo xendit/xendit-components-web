@@ -33,7 +33,10 @@ import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wall
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
 import { ChannelPickerOneclick } from "./channel-picker-oneclick";
-import { InternalOneclickSubmissionEndEvent } from "../private-event-types";
+import {
+  InternalOneclickSubmissionEndEvent,
+  InternalUpdateChannelComponentData,
+} from "../private-event-types";
 import { XenditCardBinChangedEvent } from "../public-event-types";
 
 type Props = {
@@ -109,11 +112,10 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   // non-matching brand logos on the card group row.
   const [cardSchemes, setCardSchemes] = useState<string[] | null>(null);
 
-  // the card channel's code (the channel with a `card` payload), used to filter
-  // the card-bin-changed event. null if this picker has no card channel.
+  // the channel code that identifies "the card channel" for filtering the
+  // card-bin-changed / clear events.
   const cardChannelCode = useMemo(() => {
-    const cardChannel = channels.find((channel) => channel.card);
-    return cardChannel?.channel_code ?? null;
+    return channels.find((channel) => channel.card)?.channel_code || null;
   }, [channels]);
 
   // track the detected card schemes by subscribing to the SDK's card-bin-changed
@@ -124,11 +126,33 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
       return;
     }
     const listener = (event: XenditCardBinChangedEvent) => {
-      if (event.channelCode !== cardChannelCode) return;
+      if (cardChannelCode !== event.channelCode) return;
       setCardSchemes(event.schemes);
     };
     sdk.addEventListener("card-bin-changed", listener);
-    return () => sdk.removeEventListener("card-bin-changed", listener);
+
+    // clearing the card number fires no card-bin-changed event. so instead,
+    // listen for null cardDetails via this internal update, to reset the detected
+    // schemes.
+    const clearListener = (_event: Event) => {
+      const event = _event as InternalUpdateChannelComponentData;
+      if (cardChannelCode !== event.channelCode) return;
+      if (event.data.cardDetails === null) {
+        setCardSchemes(null);
+      }
+    };
+    (sdk as EventTarget).addEventListener(
+      InternalUpdateChannelComponentData.type,
+      clearListener,
+    );
+
+    return () => {
+      sdk.removeEventListener("card-bin-changed", listener);
+      (sdk as EventTarget).removeEventListener(
+        InternalUpdateChannelComponentData.type,
+        clearListener,
+      );
+    };
   }, [cardChannelCode, sdk]);
 
   const telemetryScopeForGroup = useRef<SessionTelemetryScope | null>(null);
