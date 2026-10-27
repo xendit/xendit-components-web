@@ -359,7 +359,6 @@ export class XenditComponents extends EventTarget {
         sdkFatalErrorMessage: null,
         sdkFatalErrorUserMessage: null,
         channel: null,
-        channelComponentKey: null,
         channelProperties: null,
         channelData: null,
         channelIsDigitalWallet: false,
@@ -711,7 +710,6 @@ export class XenditComponents extends EventTarget {
       bb.channelData =
         this[internal].currentDigitalWalletSubmission.channelData;
       bb.channelIsDigitalWallet = true;
-      bb.channelComponentKey = null;
       bb.instantSubmissionError =
         this[internal].currentDigitalWalletSubmission.instantSubmissionError;
     } else {
@@ -726,12 +724,6 @@ export class XenditComponents extends EventTarget {
             component.channel[internal],
             component.data.savePaymentMethod,
           )
-        : null;
-      // the live component is keyed by the first pair member's code, which is
-      // also what onUpdateChannelComponentData looks up by; carry it so
-      // card-info updates land on the component for forced-save pairs.
-      bb.channelComponentKey = component
-        ? component.channel[internal][0].channel_code
         : null;
       bb.channelProperties = component ? component.channelProperties : null;
       bb.channelData = component ? component.data : null;

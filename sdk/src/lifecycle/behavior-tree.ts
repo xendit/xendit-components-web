@@ -66,7 +66,6 @@ export type BlackboardType = {
   sdkFatalErrorMessage: string | null;
   sdkFatalErrorUserMessage: BffErrorContent | null;
   channel: BffChannel | null;
-  channelComponentKey: string | null;
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;
   channelIsDigitalWallet: boolean;
@@ -202,10 +201,7 @@ export function behaviorTreeForForm(bb: BlackboardType) {
     bb.channel.form,
     "credit_card_number",
   )
-    ? behaviorNode(
-        CardInfoBehavior,
-        bb.channelComponentKey ?? bb.channel.channel_code,
-      )
+    ? behaviorNode(CardInfoBehavior, bb.channel.channel_code)
     : undefined;
 
   const paymentOptionsBehavior = formHasFieldOfType(
