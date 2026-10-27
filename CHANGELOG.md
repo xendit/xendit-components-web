@@ -1,3 +1,10 @@
+# 0.0.40
+
+### Bug Fixes
+
+- Fixed bug in payment methods where the save option cannot be disabled
+- Fixed telemetry not firing on page unload
+
 # 0.0.39
 
 ### Notable
