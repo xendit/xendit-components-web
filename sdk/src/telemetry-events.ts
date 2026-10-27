@@ -18,13 +18,15 @@ export type TelemetryStage =
   | "CHECKOUT_ABANDON"
   | "CHECKOUT_REDIRECT_AWAY";
 
+export type SessionTelemetryMetadata = Record<string, unknown> | undefined;
+
 export interface SessionTelemetryEvent {
   stage: TelemetryStage;
   success: boolean;
   payment_channel?: string;
   payment_request_id?: string;
   payment_token_id?: string;
-  metadata?: Record<string, string | number | boolean | string[] | undefined>;
+  metadata?: SessionTelemetryMetadata;
 }
 
 export const TelemetryEvents = {

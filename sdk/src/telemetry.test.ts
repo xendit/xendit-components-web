@@ -79,6 +79,55 @@ describe("telemetry", () => {
     ]);
   });
 
+  it("should copy experiments into metadata with experiment_ prefix and snake case", async () => {
+    const mockSdk = new MockSdk({ componentsSdkKey: makeTestSdkKey() });
+    const telemetry = new SessionTelemetry(mockSdk, false);
+    const firedEvents: SessionTelemetryEventWithExtras[] = [];
+    telemetry.addEventListener("events-flushed", () => {
+      while (true) {
+        const next = telemetry.testGetNextEvent();
+        if (next) firedEvents.push(next);
+        else break;
+      }
+    });
+
+    telemetry.setExperiments({
+      "my-experiment": "variant-a",
+      "another-test-flag": true,
+      simple: 123,
+    });
+
+    const e0: SessionTelemetryEvent = {
+      stage: "CHECKOUT_LOADED",
+      success: true,
+      metadata: { existing_key: "value" },
+    };
+    telemetry.append(e0);
+
+    const e1: SessionTelemetryEvent = {
+      stage: "CHECKOUT_ATTEMPT",
+      success: true,
+    };
+    telemetry.append(e1);
+
+    await sleep(3000);
+
+    // experiments should be copied into metadata with "experiment_" prefix and dashes converted to underscores
+    expect(firedEvents[0].metadata).toEqual({
+      existing_key: "value",
+      experiment_my_experiment: "variant-a",
+      experiment_another_test_flag: true,
+      experiment_simple: 123,
+    });
+
+    // experiments should also be added when there's no existing metadata
+    expect(firedEvents[1].metadata).toEqual({
+      experiment_my_experiment: "variant-a",
+      experiment_another_test_flag: true,
+      experiment_simple: 123,
+    });
+  });
+
   it("should push and pop scopes", async () => {
     const mockSdk = new MockSdk({ componentsSdkKey: makeTestSdkKey() });
     const telemetry = new SessionTelemetry(mockSdk, false);
