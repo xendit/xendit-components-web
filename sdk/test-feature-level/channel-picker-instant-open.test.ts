@@ -10,6 +10,68 @@ afterEach(() => {
 });
 
 describe("channel picker instant open", () => {
+  it("should auto-select the first saved payment method channel when available", async () => {
+    const sdk = new XenditComponentsTest({
+      componentsSdkKey: "test-client-key",
+      interceptChannelConfig: ({ channels, channel_ui_groups }) => ({
+        channels: [
+          // Add a saved payment method channel at the start
+          {
+            brand_name: "Visa **** 4242",
+            channel_code: "SAVED_PAYMENT_TOKEN:abc123",
+            brand_logo_url: "https://placehold.co/48x48.png?text=Visa",
+            ui_group: "saved_payment_methods",
+            pm_type: "CARD",
+            allow_pay_without_save: true,
+            allow_save: false,
+            brand_color: "#1A1F71",
+            min_amount: 1000,
+            max_amount: 100000000,
+            requires_customer_details: false,
+            form: [],
+            instructions: ["Use saved payment method", "Pay instantly"],
+            from_saved_payment_token: "pt_mock_visa_001",
+          },
+          // Keep regular channels
+          ...channels,
+        ],
+        channel_ui_groups: [
+          {
+            id: "saved_payment_methods",
+            label: "Saved Payment Methods",
+            icon_url: "",
+          },
+          ...channel_ui_groups,
+        ],
+      }),
+    });
+
+    document.body.appendChild(sdk.createChannelPickerComponent());
+    await waitForEvent(sdk, "init");
+
+    // auto-select happens after one tick
+    await sleep(0);
+
+    // the saved payment method channel should be auto-selected
+    expect(sdk.getCurrentChannel()?.channelCode).toEqual(
+      "SAVED_PAYMENT_TOKEN:abc123",
+    );
+    expect(sdk.getCurrentChannel()?.fromSavedPaymentToken).toBe(
+      "pt_mock_visa_001",
+    );
+
+    // the group should be expanded
+    expect(
+      document.querySelector(".xendit-accordion-item-open"),
+    ).toBeInTheDocument();
+
+    // the channel component should be rendered
+    const channelEl = document.querySelector(
+      'xendit-payment-channel[data-channel-code="SAVED_PAYMENT_TOKEN:abc123"]',
+    );
+    expect(channelEl).toBeInTheDocument();
+  });
+
   it("should auto-select the only channel when there is exactly one group with one channel", async () => {
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
