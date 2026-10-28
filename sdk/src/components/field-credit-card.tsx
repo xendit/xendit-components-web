@@ -7,6 +7,7 @@ import {
 import { formFieldId, formFieldName } from "../utils";
 import { useChannel, useChannelComponentData } from "./channel-root";
 import { FieldProps } from "./field";
+import { CardBrands } from "./card-brands";
 
 export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
   const { field, onChange } = props;
@@ -19,6 +20,7 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
 
   const { card } = useChannel() ?? {};
   const channelData = useChannelComponentData();
+  const fromChannelPicker = channelData?.fromChannelPicker;
   const schemes = channelData?.cardDetails?.details?.schemes;
   const selectedCardBrand =
     schemes?.find((scheme) => card?.brands?.some((b) => b.name === scheme)) ??
@@ -168,12 +170,14 @@ export const CreditCardNumberField: FunctionComponent<FieldProps> = (props) => {
         onBlur={handleBlur}
       />
       <input type="hidden" name={name} ref={hiddenRef} />
-      {field.type.name === "credit_card_number" && card && (
-        <CardBrands
-          cardsBrandList={card.brands}
-          selectedCardBrand={selectedCardBrand}
-        />
-      )}
+      {field.type.name === "credit_card_number" &&
+        card &&
+        !fromChannelPicker && (
+          <CardBrands
+            cardsBrandList={card.brands}
+            selectedCardBrand={selectedCardBrand}
+          />
+        )}
     </div>
   );
 };
@@ -443,42 +447,5 @@ export const CreditCardCvnField: FunctionComponent<FieldProps> = (props) => {
       onFocus={() => setFocusWithin(true)}
       onBlur={handleBlur}
     />
-  );
-};
-
-const CardBrands = ({
-  cardsBrandList,
-  selectedCardBrand,
-}: {
-  cardsBrandList: { name: string; logo_url: string }[];
-  selectedCardBrand: string | null;
-}) => {
-  if (!cardsBrandList) return null;
-
-  const cardBrandLogo = cardsBrandList.find(
-    (b) => b.name === selectedCardBrand,
-  )?.logo_url;
-
-  return (
-    <div className="xendit-card-brands-list">
-      {selectedCardBrand
-        ? cardBrandLogo && (
-            <img
-              className={"xendit-card-brand-logo"}
-              src={cardBrandLogo}
-              alt={selectedCardBrand}
-            />
-          )
-        : cardsBrandList.map(({ name, logo_url }) => {
-            return (
-              <img
-                className={"xendit-card-brand-logo"}
-                src={logo_url}
-                alt={name}
-                key={name}
-              />
-            );
-          })}
-    </div>
   );
 };

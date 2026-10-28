@@ -33,7 +33,11 @@ import { ChannelPickerDigitalWalletSection } from "./channel-picker-digital-wall
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
 import { ChannelPickerOneclick } from "./channel-picker-oneclick";
-import { InternalOneclickSubmissionEndEvent } from "../private-event-types";
+import {
+  InternalOneclickSubmissionEndEvent,
+  InternalUpdateChannelComponentData,
+} from "../private-event-types";
+import { XenditCardBinChangedEvent } from "../public-event-types";
 
 type Props = {
   enableOneClickQr: boolean;
@@ -103,6 +107,53 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   const [oneclickErrorMessage, setOneclickErrorMessage] = useState<
     string[] | null
   >(null);
+
+  // the detected card schemes from the latest BIN lookup, for disabling the
+  // non-matching brand logos on the card group row.
+  const [cardSchemes, setCardSchemes] = useState<string[] | null>(null);
+
+  // the channel code that identifies "the card channel" for filtering the
+  // card-bin-changed / clear events.
+  const cardChannelCode = useMemo(() => {
+    return channels.find((channel) => channel.card)?.channel_code || null;
+  }, [channels]);
+
+  // track the detected card schemes by subscribing to the SDK's card-bin-changed
+  // event for the card channel.
+  useLayoutEffect(() => {
+    if (!cardChannelCode) {
+      setCardSchemes(null);
+      return;
+    }
+    const listener = (event: XenditCardBinChangedEvent) => {
+      if (cardChannelCode !== event.channelCode) return;
+      setCardSchemes(event.schemes);
+    };
+    sdk.addEventListener("card-bin-changed", listener);
+
+    // clearing the card number fires no card-bin-changed event. so instead,
+    // listen for null cardDetails via this internal update, to reset the detected
+    // schemes.
+    const clearListener = (_event: Event) => {
+      const event = _event as InternalUpdateChannelComponentData;
+      if (cardChannelCode !== event.channelCode) return;
+      if (event.data.cardDetails === null) {
+        setCardSchemes(null);
+      }
+    };
+    (sdk as EventTarget).addEventListener(
+      InternalUpdateChannelComponentData.type,
+      clearListener,
+    );
+
+    return () => {
+      sdk.removeEventListener("card-bin-changed", listener);
+      (sdk as EventTarget).removeEventListener(
+        InternalUpdateChannelComponentData.type,
+        clearListener,
+      );
+    };
+  }, [cardChannelCode, sdk]);
 
   const telemetryScopeForGroup = useRef<SessionTelemetryScope | null>(null);
   const telemetryForGroupClear = useCallback(() => {
@@ -314,6 +365,7 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
             const channelLogos = resolveChannelLogosForGroup(
               session,
               channelsByGroup[group.id],
+              cardSchemes,
             );
 
             const enableOneclick = oneclickGroups.has(group.id);
@@ -382,17 +434,41 @@ function groupEnabledChannelStats(
 function resolveChannelLogosForGroup(
   session: BffSession,
   channels: BffChannel[],
+  schemes: string[] | null,
 ): { src: string; alt: string; enabled: boolean }[] {
   const logos: { src: string; alt: string; enabled: boolean }[] = [];
+  // when the card info is known and the schemes carry exactly one brand, dim
+  // every card brand logo except the matching one. empty/unknown schemes or more
+  // than one scheme leave the logos unchanged.
+  const singleScheme = schemes?.length === 1 ? schemes[0] : null;
   for (const channel of channels) {
     const enabled = satisfiesMinMax(session, channel);
     if (channel.card) {
-      // use generic card icon
-      logos.push({
-        src: "https://assets.xendit.co/payment-session/logos/CARDS.svg",
-        alt: channel.brand_name,
-        enabled,
-      });
+      // for a card channel in the picker, show the supported card brand logos
+      // (Visa, Mastercard, …) in place of the single generic card icon.
+      if (channel.card.brands.length > 0) {
+        // only apply the single-scheme filter when the detected scheme actually
+        // matches one of this channel's brands.
+        const applySingleSchemeFilter =
+          singleScheme != null &&
+          channel.card.brands.some((brand) => brand.name === singleScheme);
+        for (const brand of channel.card.brands) {
+          logos.push({
+            src: brand.logo_url,
+            alt: brand.name,
+            enabled:
+              enabled &&
+              (!applySingleSchemeFilter || brand.name === singleScheme),
+          });
+        }
+      } else {
+        // fall back to the generic card icon when no brands are available
+        logos.push({
+          src: "https://assets.xendit.co/payment-session/logos/CARDS.svg",
+          alt: channel.brand_name,
+          enabled,
+        });
+      }
     } else {
       // else use channel brand logo
       logos.push({

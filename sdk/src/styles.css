@@ -221,6 +221,7 @@ xendit-payment-channel select::placeholder {
   max-height: 20px;
   aspect-ratio: 1.4;
   object-fit: contain;
+  transition: filter 0.2s ease;
 }
 .xendit-accordion-item-logo-image-disabled {
   filter: grayscale(100%) opacity(0.5);
