@@ -370,7 +370,12 @@ function QrArtDuitnow(props: QrArtComponentProps) {
       <div className="xendit-text-center xendit-text-16">Scan To Pay</div>
       <div
         className="xendit-text-semibold xendit-text-center"
-        style={{ fontSize: "24px", lineHeight: "24px", marginTop: "12px" }}
+        style={{
+          fontSize: "24px",
+          lineHeight: "24px",
+          marginTop: "12px",
+          marginBottom: "16px",
+        }}
       >
         {amountText}
       </div>
