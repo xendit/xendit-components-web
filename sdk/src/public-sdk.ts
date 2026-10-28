@@ -151,12 +151,6 @@ type CachedChannelComponent = {
  */
 export type ChannelComponentData = {
   isOneclick: boolean;
-  /**
-   * @internal
-   * When true, the card brand images are rendered on the channel picker group
-   * instead of inside the card number input. Only set when the component was
-   * created via `createChannelPickerComponent`.
-   */
   fromChannelPicker?: boolean;
   savePaymentMethod: boolean;
   cardBin: string | null;
@@ -1056,12 +1050,12 @@ export class XenditComponents extends EventTarget {
 
     if (cachedComponent && !options.noCache) {
       container = cachedComponent.element;
-      // The picker selects a channel via `setCurrentChannel`, which creates (and
-      // caches) the component before the picker group re-requests it with
-      // `fromChannelPicker`. Carry the flag onto the cached data so the brand
-      // images are suppressed inside the input only in the picker context. The
-      // option is only ever set by the picker path, so the direct path is
-      // unaffected.
+      // The picker selects a channel via `setCurrentChannel`, which internally
+      // calls `createChannelComponent` (without `fromChannelPicker`) and caches
+      // the component. The picker group then calls `createChannelComponent`
+      // again with `fromChannelPicker: true`, so we carry the flag onto the
+      // cached data only in the picker context. The option is only ever set by
+      // the picker path, so the direct path is unaffected.
       if (options.fromChannelPicker !== undefined) {
         cachedComponent.data.fromChannelPicker = options.fromChannelPicker;
       }
