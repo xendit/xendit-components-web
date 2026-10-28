@@ -29,7 +29,11 @@ export function discardPaymentEntity(
 
   // telemetry for end of payment entity lifecycle
   telemetry.append(
-    TelemetryEvents.AttemptDiscard(false, paymentEntity.entity.failure_code),
+    TelemetryEvents.AttemptDiscard(
+      false,
+      paymentEntity.entity.status,
+      paymentEntity.entity.failure_code,
+    ),
   );
 
   dispatchEvent(

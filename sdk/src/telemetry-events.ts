@@ -142,11 +142,12 @@ export const TelemetryEvents = {
   /**
    * When an attempt fails (payment failure screen), or the user aborts an attempt
    */
-  AttemptDiscard(success: boolean, failure_code?: string) {
+  AttemptDiscard(success: boolean, status: string, failure_code?: string) {
     return {
       stage: "CHECKOUT_ATTEMPT_DISCARD",
       success,
       metadata: {
+        status,
         failure_code,
       },
     };
