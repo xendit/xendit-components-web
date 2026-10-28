@@ -36,6 +36,7 @@ import {
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
+  XenditSettings,
   XenditSucceededChannel,
 } from "./public-data-types";
 import { internal } from "./internal";
@@ -108,6 +109,7 @@ import {
   bffCustomerToPublic,
   bffDigitalWalletsToPublic,
   bffSessionToPublic,
+  bffSettingsToPublic,
   bffSucceededChannelToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
@@ -119,6 +121,7 @@ import { amountFormat as _amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { DigitalWalletContainer } from "./components/digital-wallet-container";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
+import { BffSettings } from "./backend-types/settings";
 import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
@@ -179,6 +182,7 @@ export type WorldState = {
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
   experiments: Record<string, unknown>;
+  settings: BffSettings | null;
 };
 
 /**
@@ -554,6 +558,7 @@ export class XenditComponents extends EventTarget {
         sessionTokenRequestId: resumeSessionTokenRequestId,
         succeededChannel: bff.succeeded_channel ?? null,
         experiments: bff.experiments,
+        settings: bff.settings,
       } satisfies WorldState),
     );
   }
@@ -809,6 +814,15 @@ export class XenditComponents extends EventTarget {
     this.assertInitialized();
     if (!this[internal].worldState.business) return null;
     return bffBusinessToPublic(this[internal].worldState.business);
+  }
+
+  /**
+   * @internal
+   * Retrieve the session settings set by the business.
+   */
+  getSettings(): XenditSettings | null {
+    this.assertInitialized();
+    return bffSettingsToPublic(this[internal].worldState.settings);
   }
 
   /**
@@ -2325,6 +2339,7 @@ export class XenditComponentsTest extends XenditComponents {
         sessionTokenRequestId: null,
         succeededChannel: null,
         experiments: bff.experiments,
+        settings: bff.settings,
       } satisfies WorldState),
     );
   }
