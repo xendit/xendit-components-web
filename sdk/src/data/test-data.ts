@@ -1514,5 +1514,12 @@ export function makeTestBffData(): BffResponse {
       },
     },
     experiments: {},
+    settings: {
+      branding: {
+        brand_colour: "#000000",
+      },
+      privacy_policy_url: "https://example.com",
+      terms_and_conditions_url: "https://example.com",
+    },
   };
 }
