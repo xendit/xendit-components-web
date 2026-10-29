@@ -307,6 +307,10 @@ export interface XenditPaymentChannel {
    */
   maxAmount?: number;
   /**
+   * If this channel represents a saved payment token, this is the original token ID.
+   */
+  fromSavedPaymentToken?: string;
+  /**
    * If this is a cards channel, the supported card brands.
    */
   cardBrands?: {

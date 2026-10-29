@@ -419,6 +419,7 @@ export function enableOneclickForGroup(
 }
 
 // we auto-open a group if there's only one and at least one channel is selectable, and auto-select a channel if there's only one.
+// if there are saved payment methods, auto-open the first one.
 function instantOpenConfig(
   session: BffSession,
   channelsByGroup: Record<string, BffChannel[]>,
@@ -426,6 +427,19 @@ function instantOpenConfig(
 ) {
   if (currentChannel) {
     return null; // channel already selected, unlikely to happen but lets just do nothing here
+  }
+
+  // Check for saved payment methods first - auto-open the first one if available
+  const allChannels = Object.values(channelsByGroup).flat();
+  const firstSavedPaymentMethod = allChannels.find(
+    (channel) =>
+      channel.from_saved_payment_token && satisfiesMinMax(session, channel),
+  );
+  if (firstSavedPaymentMethod) {
+    return {
+      group: firstSavedPaymentMethod.ui_group,
+      channel: firstSavedPaymentMethod,
+    };
   }
 
   const channels = Object.values(channelsByGroup);

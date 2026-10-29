@@ -246,6 +246,7 @@ export function bffChannelToPublic(
     },
     minAmount: bffChannel.min_amount,
     maxAmount: bffChannel.max_amount,
+    fromSavedPaymentToken: bffChannel.from_saved_payment_token,
     cardBrands: bffChannel.card?.brands.map((b) => {
       return {
         name: b.name,
