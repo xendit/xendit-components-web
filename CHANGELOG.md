@@ -1,3 +1,14 @@
+# 0.0.41
+
+### Notable
+
+Added `getSettings()` method.
+
+### Bug Fixes
+
+- Add missing properties to telemetry events
+- Fixed margin on DuitNow QR screen
+
 # 0.0.40
 
 ### Bug Fixes
