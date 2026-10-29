@@ -1,5 +1,9 @@
 # 0.0.41
 
+### Notable
+
+Added `getSettings()` method.
+
 ### Bug Fixes
 
 - Add missing properties to telemetry events
