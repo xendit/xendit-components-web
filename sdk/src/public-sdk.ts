@@ -271,10 +271,6 @@ export class XenditComponents extends EventTarget {
      * This is used as a key into `paymentChannelComponents`.
      */
     currentChannelCode: string | null;
-    /**
-     * The channel code last sent in a current-channel-changed event.
-     */
-    lastDispatchedChannelCode: string | null;
 
     /**
      * The ongoing digital wallet submission, if any.
@@ -357,6 +353,7 @@ export class XenditComponents extends EventTarget {
         sdkFatalErrorMessage: null,
         sdkFatalErrorUserMessage: null,
         channel: null,
+        currentChannelCode: null,
         channelProperties: null,
         channelData: null,
         channelIsDigitalWallet: false,
@@ -373,7 +370,6 @@ export class XenditComponents extends EventTarget {
       }),
       telemetry,
       currentChannelCode: null,
-      lastDispatchedChannelCode: null,
       currentDigitalWalletSubmission: null,
       eventListenersPresent: new Map(),
     };
@@ -691,9 +687,6 @@ export class XenditComponents extends EventTarget {
    * Updates the behavior tree with the latest world state and component state.
    */
   private behaviorTreeUpdate(): void {
-    // before populating the blackboard (a listener may change the channel)
-    this.dispatchCurrentChannelChangedIfChanged();
-
     const bb = this[internal].behaviorTree.bb;
 
     if (bb.sdkStatus === "LOADING" && this[internal].worldState) {
@@ -701,6 +694,7 @@ export class XenditComponents extends EventTarget {
     }
 
     bb.world = this[internal].worldState;
+    bb.currentChannelCode = this[internal].currentChannelCode;
 
     if (this[internal].currentDigitalWalletSubmission) {
       // populate data for digital wallet submission
@@ -1077,9 +1071,6 @@ export class XenditComponents extends EventTarget {
       });
     }
 
-    // before rendering, because a new form reports its initial channel properties during the render
-    this.dispatchCurrentChannelChangedIfChanged();
-
     this.renderPaymentChannel(channelCode);
     if (options.active) {
       this.behaviorTreeUpdate();
@@ -1321,17 +1312,6 @@ export class XenditComponents extends EventTarget {
     this.behaviorTreeUpdate();
     this.syncInertAttribute();
     this.renderChannelPicker();
-  }
-
-  /**
-   * @internal
-   * Fires the current-channel-changed event if the current channel is different from the last one fired.
-   */
-  private dispatchCurrentChannelChangedIfChanged(): void {
-    const channelCode = this[internal].currentChannelCode;
-    if (channelCode === this[internal].lastDispatchedChannelCode) return;
-    this[internal].lastDispatchedChannelCode = channelCode;
-    this.dispatchEvent(new XenditCurrentChannelChangedEvent(channelCode));
   }
 
   /**

@@ -66,6 +66,7 @@ export type BlackboardType = {
   sdkFatalErrorMessage: string | null;
   sdkFatalErrorUserMessage: BffErrorContent | null;
   channel: BffChannel | null;
+  currentChannelCode: string | null;
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;
   channelIsDigitalWallet: boolean;

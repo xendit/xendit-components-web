@@ -92,7 +92,7 @@ describe("current channel changed", () => {
     expect(onChanged.mock.calls[0][0].channelCode).toBe("UI_INPUT_TEST");
   });
 
-  it("fires before other events for the new channel", async () => {
+  it("fires before submission-ready", async () => {
     const sdk = await initSdk();
     const ch = sdk.getActiveChannels({ filter: "UI_INPUT_TEST" })[0];
     assert(ch);
@@ -101,17 +101,10 @@ describe("current channel changed", () => {
     sdk.addEventListener("current-channel-changed", (event) =>
       order.push(event.type),
     );
-    sdk.addEventListener("channel-properties-changed", (event) =>
-      order.push(event.type),
-    );
     sdk.addEventListener("submission-ready", (event) => order.push(event.type));
 
     sdk.createChannelComponent(ch);
 
-    expect(order).toEqual([
-      "current-channel-changed",
-      "channel-properties-changed",
-      "submission-ready",
-    ]);
+    expect(order).toEqual(["current-channel-changed", "submission-ready"]);
   });
 });

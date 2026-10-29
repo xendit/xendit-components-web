@@ -2,6 +2,7 @@ import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
 } from "../../private-event-types";
+import { XenditCurrentChannelChangedEvent } from "../../public-event-types";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
 import { BlackboardType } from "../behavior-tree";
@@ -14,6 +15,8 @@ export class SessionActiveBehavior implements Behavior {
 
   lastTelemetryKey: string | null = null;
   currentChannelTelemetryScope: SessionTelemetryScope | null = null;
+
+  lastChannelCode: string | null = null;
 
   beforeUnloadHandler: EventListener | null = null;
 
@@ -34,6 +37,7 @@ export class SessionActiveBehavior implements Behavior {
 
     // telemetry
     this.telemetryForActiveChannel();
+    this.dispatchCurrentChannelChanged();
 
     // Schedule rerender (reveals hidden components now that session is active)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
@@ -45,6 +49,7 @@ export class SessionActiveBehavior implements Behavior {
   updatePreorder() {
     // telemetry - needed on update because this node doesn't change when the current channel changes
     this.telemetryForActiveChannel();
+    this.dispatchCurrentChannelChanged();
 
     // the server may have sent the session again with a new TTL
     this.syncExpiryTimeout();
@@ -107,5 +112,15 @@ export class SessionActiveBehavior implements Behavior {
       );
       this.lastTelemetryKey = key;
     }
+  }
+
+  dispatchCurrentChannelChanged() {
+    // send the current-channel-changed event if it has changed
+    const channelCode = this.bb.currentChannelCode;
+    if (channelCode === this.lastChannelCode) {
+      return;
+    }
+    this.lastChannelCode = channelCode;
+    this.bb.dispatchEvent(new XenditCurrentChannelChangedEvent(channelCode));
   }
 }
