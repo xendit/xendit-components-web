@@ -30,7 +30,7 @@ describe("channel picker instant open", () => {
             requires_customer_details: false,
             form: [],
             instructions: ["Use saved payment method", "Pay instantly"],
-            from_saved_payment_token: "pt_mock_visa_001",
+            from_saved_payment_token: "pt-mock-card-visa-001",
           },
           // Keep regular channels
           ...channels,
@@ -57,7 +57,7 @@ describe("channel picker instant open", () => {
       "SAVED_PAYMENT_TOKEN:abc123",
     );
     expect(sdk.getCurrentChannel()?.fromSavedPaymentToken).toBe(
-      "pt_mock_visa_001",
+      "pt-mock-card-visa-001",
     );
 
     // the group should be expanded
