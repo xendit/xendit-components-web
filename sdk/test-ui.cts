@@ -209,6 +209,7 @@ components.addEventListener("fatal-error", logEvent);
 
 components.addEventListener("card-bin-changed", logEvent);
 components.addEventListener("channel-properties-changed", logEvent);
+components.addEventListener("current-channel-changed", logEvent);
 
 setInterval(() => {
   const internalState = components.getState();

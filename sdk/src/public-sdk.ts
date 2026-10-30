@@ -3,6 +3,7 @@ import {
   XenditActionEndEvent,
   XenditCardBinChangedEvent,
   XenditChannelPropertiesChangedEvent,
+  XenditCurrentChannelChangedEvent,
   XenditFatalErrorEvent,
   XenditEventListener,
   XenditEventMap,
@@ -356,6 +357,7 @@ export class XenditComponents extends EventTarget {
         sdkFatalErrorMessage: null,
         sdkFatalErrorUserMessage: null,
         channel: null,
+        currentChannelCode: null,
         channelProperties: null,
         channelData: null,
         channelIsDigitalWallet: false,
@@ -698,6 +700,7 @@ export class XenditComponents extends EventTarget {
     }
 
     bb.world = this[internal].worldState;
+    bb.currentChannelCode = this[internal].currentChannelCode;
 
     if (this[internal].currentDigitalWalletSubmission) {
       // populate data for digital wallet submission
@@ -2192,6 +2195,17 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "channel-properties-changed",
     listener: XenditEventListener<XenditChannelPropertiesChangedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Fired whenever the current channel changes. `channelCode` is null when the current channel is cleared.
+   * Use `getCurrentChannel()` to get the full channel.
+   */
+  addEventListener(
+    name: "current-channel-changed",
+    listener: XenditEventListener<XenditCurrentChannelChangedEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 

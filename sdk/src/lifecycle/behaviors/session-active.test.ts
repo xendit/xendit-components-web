@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SessionActiveBehavior } from "./session-active";
 import { BlackboardType } from "../behavior-tree";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import { XenditCurrentChannelChangedEvent } from "../../public-event-types";
 import { makeTestBffData } from "../../data/test-data";
 
 const testData = makeTestBffData();
@@ -14,6 +15,7 @@ function buildBlackboard(events: Event[]): BlackboardType {
     },
     sessionRecvTime: Date.now(),
     channel: null,
+    currentChannelCode: null,
     telemetry: {
       expectingRedirectAway: false,
       appendAndPushScope: vi.fn(),
@@ -81,5 +83,26 @@ describe("SessionActiveBehavior expiry timeout", () => {
     vi.advanceTimersByTime(600_000);
 
     expect(treeUpdates(events)).toHaveLength(0);
+  });
+});
+
+describe("SessionActiveBehavior current-channel-changed", () => {
+  it("fires when the current channel changes", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events);
+    const behavior = new SessionActiveBehavior(bb);
+
+    behavior.enter();
+    bb.currentChannelCode = "MOCK_QR";
+    behavior.updatePreorder();
+    behavior.updatePreorder();
+    bb.currentChannelCode = null;
+    behavior.updatePreorder();
+    behavior.exit();
+
+    const channelCodes = events
+      .filter((event) => event instanceof XenditCurrentChannelChangedEvent)
+      .map((event) => event.channelCode);
+    expect(channelCodes).toEqual(["MOCK_QR", null]);
   });
 });

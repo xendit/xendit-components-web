@@ -65,6 +65,7 @@ const mockBlackboard: BlackboardType & { world: object } = {
   sdkFatalErrorMessage: null,
   sdkFatalErrorUserMessage: null,
   channel: null,
+  currentChannelCode: null,
   channelProperties: null,
   channelData: {
     isOneclick: false,

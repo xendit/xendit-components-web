@@ -340,6 +340,12 @@ Notifies you when the information the user has entered into a channel component 
 
 The event contains the `channelCode` and the complete `channelProperties` of the channel.
 
+### `current-channel-changed`
+
+Notifies you when the current channel changes, whether the user selected it in the channel picker or you called `setCurrentChannel` or `createChannelComponent`. It is also fired when the current channel is cleared. If the channel did not change, the event is not fired.
+
+The event contains the `channelCode` of the new current channel (`null` when cleared).
+
 ## Resuming after a redirect
 
 Some channels redirect the user away from your page to pay (e.g. DANA, OVO). When they return to the `components_configuration.return_url` you set on the session, re-initialize the SDK in the same way, with the same key, but with `resume: true` to continue the payment flow:
