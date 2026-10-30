@@ -346,6 +346,12 @@ Notifies you when the current channel changes, whether the user selected it in t
 
 The event contains the `channelCode` of the new current channel (`null` when cleared).
 
+### `will-save-payment-method`
+
+Notifies you when it changes whether the payment method will be saved on submission. The value is `true` if it will be saved and `false` otherwise, including when there is no current channel. In `SAVE` and `SUBSCRIPTION` sessions it is always `true` once a channel is selected. If the value did not change, the event is not fired.
+
+The event contains `willSavePaymentMethod`.
+
 ## Resuming after a redirect
 
 Some channels redirect the user away from your page to pay (e.g. DANA, OVO). When they return to the `components_configuration.return_url` you set on the session, re-initialize the SDK in the same way, with the same key, but with `resume: true` to continue the payment flow:

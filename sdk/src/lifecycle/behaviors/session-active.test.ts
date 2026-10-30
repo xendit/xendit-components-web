@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SessionActiveBehavior } from "./session-active";
 import { BlackboardType } from "../behavior-tree";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
-import { XenditCurrentChannelChangedEvent } from "../../public-event-types";
+import {
+  XenditCurrentChannelChangedEvent,
+  XenditWillSavePaymentMethodEvent,
+} from "../../public-event-types";
 import { makeTestBffData } from "../../data/test-data";
 
 const testData = makeTestBffData();
@@ -104,5 +107,90 @@ describe("SessionActiveBehavior current-channel-changed", () => {
       .filter((event) => event instanceof XenditCurrentChannelChangedEvent)
       .map((event) => event.channelCode);
     expect(channelCodes).toEqual(["MOCK_QR", null]);
+  });
+});
+
+describe("SessionActiveBehavior will-save-payment-method", () => {
+  const saveOk = testData.channels.find(
+    (ch) => ch.channel_code === "UI_SAVE_PAYMENT_DETAILS_TEST",
+  )!;
+
+  it("fires when the answer changes", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events);
+    const behavior = new SessionActiveBehavior(bb);
+
+    behavior.enter();
+    bb.currentChannelCode = saveOk.channel_code;
+    bb.channel = saveOk;
+    bb.channelData = {
+      savePaymentMethod: false,
+    } as BlackboardType["channelData"];
+    behavior.updatePreorder();
+    bb.channelData = {
+      savePaymentMethod: true,
+    } as BlackboardType["channelData"];
+    behavior.updatePreorder();
+    behavior.updatePreorder();
+    // clearing the channel also clears the blackboard's channel and data
+    bb.currentChannelCode = null;
+    bb.channel = null;
+    bb.channelData = null;
+    behavior.updatePreorder();
+    behavior.exit();
+
+    const values = events
+      .filter((event) => event instanceof XenditWillSavePaymentMethodEvent)
+      .map((event) => event.willSavePaymentMethod);
+    expect(values).toEqual([true, false]);
+  });
+
+  it("reports the digital wallet's value during a wallet submission", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events);
+    const behavior = new SessionActiveBehavior(bb);
+
+    behavior.enter();
+    // a wallet submission has no current channel, but fills the channel and data
+    bb.currentChannelCode = null;
+    bb.channelIsDigitalWallet = true;
+    bb.channel = saveOk;
+    bb.channelData = {
+      savePaymentMethod: true,
+    } as BlackboardType["channelData"];
+    behavior.updatePreorder();
+    behavior.exit();
+
+    const values = events
+      .filter((event) => event instanceof XenditWillSavePaymentMethodEvent)
+      .map((event) => event.willSavePaymentMethod);
+    expect(values).toEqual([true]);
+  });
+
+  it("fires after current-channel-changed", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events);
+    const behavior = new SessionActiveBehavior(bb);
+
+    behavior.enter();
+    bb.currentChannelCode = saveOk.channel_code;
+    bb.channel = saveOk;
+    bb.channelData = {
+      savePaymentMethod: true,
+    } as BlackboardType["channelData"];
+    behavior.updatePreorder();
+    behavior.exit();
+
+    const types = events
+      .filter(
+        (event) =>
+          event instanceof XenditCurrentChannelChangedEvent ||
+          event instanceof XenditWillSavePaymentMethodEvent,
+      )
+      .map((event) => event.type);
+    expect(types).toEqual([
+      "current-channel-changed",
+      "will-save-payment-method",
+    ]);
   });
 });

@@ -21,6 +21,7 @@ import {
   XenditWillRedirectEvent,
   XenditSessionPendingEvent,
   XenditSessionNotPendingEvent,
+  XenditWillSavePaymentMethodEvent,
 } from "./public-event-types";
 import {
   XenditSdkOptions as XenditComponentsOptions,
@@ -2206,6 +2207,16 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "current-channel-changed",
     listener: XenditEventListener<XenditCurrentChannelChangedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Fired whenever `willSavePaymentMethod` changes. True if the payment method will be saved on submission, false otherwise.
+   */
+  addEventListener(
+    name: "will-save-payment-method",
+    listener: XenditEventListener<XenditWillSavePaymentMethodEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 
