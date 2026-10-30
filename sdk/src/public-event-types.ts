@@ -33,6 +33,7 @@ export type XenditEventMap = {
   "card-bin-changed": XenditCardBinChangedEvent;
   "channel-properties-changed": XenditChannelPropertiesChangedEvent;
   "current-channel-changed": XenditCurrentChannelChangedEvent;
+  "will-save-payment-method": XenditWillSavePaymentMethodEvent;
 };
 
 /**
@@ -99,6 +100,18 @@ export class XenditCurrentChannelChangedEvent extends Event {
 
   constructor(public channelCode: string | null) {
     super(XenditCurrentChannelChangedEvent.type, {});
+  }
+}
+
+/**
+ * @public
+ * Fired whenever `willSavePaymentMethod` changes. True if the payment method will be saved on submission, false otherwise.
+ */
+export class XenditWillSavePaymentMethodEvent extends Event {
+  static type = "will-save-payment-method" as const;
+
+  constructor(public willSavePaymentMethod: boolean) {
+    super(XenditWillSavePaymentMethodEvent.type, {});
   }
 }
 

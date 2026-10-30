@@ -18,6 +18,7 @@ import {
   resolvePairedChannel,
   satisfiesMinMax,
   SLEEP_MULTIPLIER,
+  willSavePaymentMethod,
 } from "./utils";
 import { describe, expect, it } from "vitest";
 import { makeTestSdkKey } from "./data/test-data-modifiers";
@@ -156,6 +157,87 @@ describe("utils - resolvePairedChannel", () => {
     expect(resolvePairedChannel([nonpair], false)).toBe(nonpair);
     expect(resolvePairedChannel([pair1, pair2], true)).toBe(pair2);
     expect(resolvePairedChannel([pair1, pair2], false)).toBe(pair1);
+  });
+});
+
+describe("utils - willSavePaymentMethod", () => {
+  function findChannel(channelCode: string) {
+    const channel = makeTestBffData().channels.find(
+      (ch) => ch.channel_code === channelCode,
+    );
+    assert(channel);
+    return channel;
+  }
+  const saveOk = findChannel("UI_SAVE_PAYMENT_DETAILS_TEST");
+  const noSave = findChannel("MOCK_QR");
+
+  const payOptional = {
+    session_type: "PAY",
+    allow_save_payment_method: "OPTIONAL",
+  } as const;
+
+  it("is false without a current channel", () => {
+    expect(willSavePaymentMethod(payOptional, null, true)).toBe(false);
+    expect(
+      willSavePaymentMethod(
+        { session_type: "SAVE", allow_save_payment_method: undefined },
+        null,
+        false,
+      ),
+    ).toBe(false);
+  });
+
+  it("is true for SAVE and SUBSCRIPTION sessions", () => {
+    expect(
+      willSavePaymentMethod(
+        { session_type: "SAVE", allow_save_payment_method: undefined },
+        noSave,
+        false,
+      ),
+    ).toBe(true);
+    expect(
+      willSavePaymentMethod(
+        { session_type: "SUBSCRIPTION", allow_save_payment_method: undefined },
+        noSave,
+        false,
+      ),
+    ).toBe(true);
+  });
+
+  it("is true for FORCED pay sessions", () => {
+    expect(
+      willSavePaymentMethod(
+        { session_type: "PAY", allow_save_payment_method: "FORCED" },
+        noSave,
+        false,
+      ),
+    ).toBe(true);
+  });
+
+  it("is false for DISABLED or unset pay sessions", () => {
+    expect(
+      willSavePaymentMethod(
+        { session_type: "PAY", allow_save_payment_method: "DISABLED" },
+        saveOk,
+        true,
+      ),
+    ).toBe(false);
+    expect(
+      willSavePaymentMethod(
+        { session_type: "PAY", allow_save_payment_method: undefined },
+        saveOk,
+        true,
+      ),
+    ).toBe(false);
+  });
+
+  it("follows the checkbox for OPTIONAL pay sessions", () => {
+    expect(willSavePaymentMethod(payOptional, saveOk, true)).toBe(true);
+    expect(willSavePaymentMethod(payOptional, saveOk, false)).toBe(false);
+  });
+
+  it("is false for OPTIONAL when the channel cannot be saved", () => {
+    expect(willSavePaymentMethod(payOptional, noSave, true)).toBe(false);
   });
 });
 
