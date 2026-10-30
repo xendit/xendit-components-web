@@ -598,3 +598,32 @@ export function formHasFieldOfType(
 export function getDefaultSavePaymentMethod(channel: BffChannel): boolean {
   return !channel.allow_pay_without_save;
 }
+
+/**
+ * Returns true if submitting this channel will save the payment method, false othewise.
+ */
+export function willSavePaymentMethod(
+  session: Pick<BffSession, "session_type" | "allow_save_payment_method">,
+  channel: BffChannel | null,
+  savePaymentMethod: boolean,
+): boolean {
+  if (!channel) {
+    return false;
+  }
+
+  if (
+    session.session_type === "SAVE" ||
+    session.session_type === "SUBSCRIPTION"
+  ) {
+    return true;
+  }
+
+  switch (session.allow_save_payment_method) {
+    case "FORCED":
+      return true;
+    case "OPTIONAL":
+      return channel.allow_save && savePaymentMethod;
+    default:
+      return false;
+  }
+}
