@@ -25,9 +25,6 @@ const WATCHDOG_MS = 15_000;
 // Drops in a row, with no heartbeat in between, before we stop streaming.
 const MAX_DROPS = 3;
 
-// Sent by the server when the stream reaches its maximum duration.
-const STREAM_TIMEOUT_CODE = "SESSION_STREAM_TIMEOUT";
-
 type StreamErrorData = Extract<BffStreamEvent, { event: "error" }>["data"];
 
 /**
@@ -147,10 +144,9 @@ export class StreamWorker implements SessionUpdateWorker {
 
   private handleServerError(data: string) {
     const error = parseJson<StreamErrorData>(data);
-    // a timeout is expected: the server ends the stream and EventSource reconnects
-    if (error?.error_code !== STREAM_TIMEOUT_CODE) {
-      this.switchToFallback("server_error");
-    }
+    console.error("Error from Session status stream", error);
+    // we don't care why it failed, even if it was a regular timeout, fallback for safety
+    this.switchToFallback("server_error");
   }
 
   private handleDrop(source: EventSource) {
