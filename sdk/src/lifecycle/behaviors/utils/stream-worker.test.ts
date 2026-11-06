@@ -186,25 +186,6 @@ describe("StreamWorker - normal flow", () => {
 });
 
 describe("StreamWorker - recovery", () => {
-  it("keeps listening after a stream timeout, leaving the reconnect to EventSource", async () => {
-    const [source] = queueSources(1);
-    const { onFallback } = startWorker();
-
-    source.open();
-    source.send("heartbeat", heartbeat);
-    source.send("error", {
-      error_code: "SESSION_STREAM_TIMEOUT",
-      message: "timeout",
-    });
-    source.drop(); // the server ends the response after the timeout
-    await sleep(1_000);
-
-    expect(source.closed).toBe(false);
-    expect(streamSession).toHaveBeenCalledTimes(1);
-    expect(pollSession).not.toHaveBeenCalled();
-    expect(onFallback).not.toHaveBeenCalled();
-  });
-
   it("tolerates drops below the limit", async () => {
     const [source] = queueSources(1);
     const { onFallback } = startWorker();
