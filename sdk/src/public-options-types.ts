@@ -35,6 +35,15 @@ export interface XenditSdkOptions {
   enablePaylinks?: boolean;
 
   /**
+   * For ewallet payment methods, when submitting, attempt to use a digital wallet to pay instead, if the digital wallet SDK is loaded and the user has a linked account with that ewallet.
+   *
+   * If the user doesn't have a linked account or the user cancels, the submission proceeds as normal.
+   *
+   * Default `false`.
+   */
+  enableDigitalWalletProbe?: "GOOGLE_PAY";
+
+  /**
    * If set, loads the specified locale file at the same time as session initialization.
    * This saves a round-trip if not using english. English is always loaded.
    * If the preloaded locale doesn't match `session.locale`, english is used (but strings from the server remain localized).

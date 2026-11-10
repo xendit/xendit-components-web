@@ -371,25 +371,6 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
-        brand_name: "Mock E-Wallet Channel (Redirect and Paylink actions)",
-        channel_code: "MOCK_EWALLET_PAYLINK",
-        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
-        ui_group: "other",
-        pm_type: "EWALLET",
-        allow_pay_without_save: false,
-        allow_save: false,
-        brand_color: "#000000",
-        min_amount: 1000,
-        max_amount: 100000000,
-        requires_customer_details: false,
-        _mock_action_type: ["REDIRECT", "PAYLINK"],
-        form: [],
-        instructions: [
-          "Mock E-Wallet channel",
-          "This mock channel has a redirect and a paylink action.",
-        ],
-      },
-      {
         brand_name: "Mock E-Wallet Channel (Iframe action)",
         channel_code: "MOCK_EWALLET_IFRAME",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
@@ -535,6 +516,25 @@ export function makeTestBffData(): BffResponse {
         ],
       },
       {
+        brand_name: "Mock QR Channel (with paylink action)",
+        channel_code: "MOCK_QR_PAYLINK",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        pm_type: "QR_CODE",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        _mock_action_type: ["QR", "PAYLINK"],
+        form: [],
+        instructions: [
+          "Mock QR channel with paylink",
+          "This mock channel has a QR and a paylink action.",
+        ],
+      },
+      {
         brand_name: "Mock Direct Debit Channel",
         channel_code: "MOCK_DIRECT_DEBIT",
         brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
@@ -658,6 +658,24 @@ export function makeTestBffData(): BffResponse {
         instructions: [
           "Mock Installments channel",
           "This mock channel behaves similarly to production installment channels in Thailand.",
+        ],
+      },
+      {
+        brand_name: "Mock Google Pay Ewallet Channel",
+        channel_code: "MOCK_GOOGLE_PAY_EWALLET",
+        brand_logo_url: "https://placehold.co/48x48.png?text=Logo",
+        ui_group: "other",
+        pm_type: "EWALLET",
+        allow_pay_without_save: false,
+        allow_save: false,
+        brand_color: "#000000",
+        min_amount: 1000,
+        max_amount: 100000000,
+        requires_customer_details: false,
+        form: [],
+        instructions: [
+          "This channel will try a googlepay transaction before making a submission",
+          "It falls back to a regular submission when it fails",
         ],
       },
       {
@@ -1467,7 +1485,7 @@ export function makeTestBffData(): BffResponse {
         allowed_payment_methods: [
           {
             channel_code: "CARDS",
-            payment_request_id: `pr-${randomHexString(32)}`,
+            payment_request_id: null,
             payment_method_specification: {
               type: "CARD",
               parameters: {
@@ -1483,6 +1501,16 @@ export function makeTestBffData(): BffResponse {
                 },
               },
             },
+          },
+        ],
+        mock_ewallet_allowed_payment_methods: [
+          {
+            channel_code: "MOCK_GOOGLE_PAY_EWALLET",
+            payment_request_id: `pr-${randomHexString(32)}`,
+            payment_method_specification: {
+              type: "TOUCHNGO",
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any,
           },
         ],
       },

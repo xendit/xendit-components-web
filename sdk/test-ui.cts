@@ -143,6 +143,7 @@ if (savedKey) {
     enablePaylinks: true,
     resume: savedResume,
     logTelemetryEvents: true,
+    enableDigitalWalletProbe: "GOOGLE_PAY",
     // preloadLocale: "id",
   });
 } else {
@@ -150,6 +151,7 @@ if (savedKey) {
     iframeFieldAppearance,
     enablePaylinks: true,
     logTelemetryEvents: true,
+    enableDigitalWalletProbe: "GOOGLE_PAY",
   });
 }
 
