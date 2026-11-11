@@ -16,7 +16,7 @@ describe("sdk submit with paylink action", () => {
 
     await waitForEvent(sdk, "init");
 
-    const ch = sdk.getActiveChannels({ filter: "MOCK_EWALLET_PAYLINK" })[0];
+    const ch = sdk.getActiveChannels({ filter: "MOCK_QR_PAYLINK" })[0];
     assert(ch);
     document.body.appendChild(sdk.createChannelComponent(ch));
 

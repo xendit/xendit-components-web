@@ -143,6 +143,10 @@ if (savedKey) {
     enablePaylinks: true,
     resume: savedResume,
     logTelemetryEvents: true,
+    enableDigitalWalletProbe: {
+      digitalWallet: "GOOGLE_PAY",
+      channels: ["MOCK_GOOGLE_PAY_EWALLET"],
+    },
     // preloadLocale: "id",
   });
 } else {
@@ -150,6 +154,10 @@ if (savedKey) {
     iframeFieldAppearance,
     enablePaylinks: true,
     logTelemetryEvents: true,
+    enableDigitalWalletProbe: {
+      digitalWallet: "GOOGLE_PAY",
+      channels: ["MOCK_GOOGLE_PAY_EWALLET"],
+    },
   });
 }
 

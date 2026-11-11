@@ -101,10 +101,7 @@ import {
 } from "./utils";
 import { makeTestSdkKey } from "./data/test-data-modifiers";
 import { PaymentEntityRequiresActionBehavior } from "./lifecycle/behaviors/payment-entity-requires-action";
-import {
-  SubmissionBehavior,
-  SubmissionError,
-} from "./lifecycle/behaviors/submission";
+import { SubmissionError } from "./lifecycle/behaviors/submission";
 import {
   bffBusinessToPublic,
   bffChannelsToPublic,
@@ -286,6 +283,7 @@ export class XenditComponents extends EventTarget {
       channelProperties: ChannelProperties;
       channelData: ChannelComponentData;
       instantSubmissionError: SubmissionError | null;
+      useFakeSubmissionFlow: boolean;
     } | null;
 
     /**
@@ -367,6 +365,8 @@ export class XenditComponents extends EventTarget {
         world: null,
         submissionRequested: false,
         simulatePaymentRequested: false,
+        digitalWalletProbeAvailable: true,
+        useFakeSubmissionFlow: false,
         actionCompleted: false,
         redirectReturnPending: false,
         pollImmediatelyRequested: false,
@@ -1713,6 +1713,12 @@ export class XenditComponents extends EventTarget {
       );
     }
 
+    if (this[internal].behaviorTree.bb.submissionRequested !== false) {
+      throw new Error(
+        "Unable to submit; a submission is already in progress. Listen to the `submission-ready` and `submission-not-ready` events, do not allow submission while in the not-ready state.",
+      );
+    }
+
     const channelValidBehavior =
       this[internal].behaviorTree.findBehavior(ChannelValidBehavior);
     if (!channelValidBehavior) {
@@ -1749,7 +1755,10 @@ export class XenditComponents extends EventTarget {
     channel: XenditPaymentChannel,
     channelProperties: ChannelProperties,
     savePaymentMethod: boolean,
+    /** Just before submission, immediently fail with this error */
     instantSubmissionError: SubmissionError | null = null,
+    /** For gpay ewallets, don't actually submit, just wait for an update */
+    useFakeSubmissionFlow: boolean = false,
   ) {
     this.assertInitialized();
 
@@ -1773,6 +1782,7 @@ export class XenditComponents extends EventTarget {
         cardBin: null,
       },
       instantSubmissionError,
+      useFakeSubmissionFlow,
     };
 
     this.addEventListener(
@@ -1804,9 +1814,7 @@ export class XenditComponents extends EventTarget {
       return; // don't throw on useless abort, users might abort to cleanup regardless of current status
     }
 
-    const submissionBehavior =
-      this[internal].behaviorTree.findBehavior(SubmissionBehavior);
-    if (!submissionBehavior) {
+    if (this[internal].behaviorTree.bb.submissionRequested === false) {
       return; // no submission in progress
     }
 

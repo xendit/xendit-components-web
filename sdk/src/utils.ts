@@ -191,11 +191,20 @@ export function findPaylinkAction(
   sdk: XenditComponents,
   actions: BffAction[],
 ): BffAction | undefined {
-  if (sdk[internal].options.enablePaylinks) {
-    return actions.find(
-      (a) =>
-        a.type === "REDIRECT_CUSTOMER" && a.descriptor === "WEB_GOOGLE_PAYLINK",
-    );
+  if (!sdk[internal].options.enablePaylinks) return undefined;
+
+  const qrAction = actions.find(
+    (a) => a.type === "PRESENT_TO_CUSTOMER" && a.descriptor === "QR_STRING",
+  );
+
+  const paylinkAction = actions.find(
+    (a) =>
+      a.type === "REDIRECT_CUSTOMER" && a.descriptor === "WEB_GOOGLE_PAYLINK",
+  );
+
+  // ignore paylink unless a qr action is also present
+  if (qrAction && paylinkAction) {
+    return paylinkAction;
   }
 }
 

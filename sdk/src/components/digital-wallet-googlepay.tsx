@@ -73,6 +73,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         totalPriceStatus: "FINAL",
         totalPrice: String(session.amount),
         currencyCode: session.currency,
+        countryCode: session.country,
       },
     }),
     [
@@ -80,6 +81,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       digitalWalletsGooglePay.merchant_id,
       googlePayChannels,
       session.amount,
+      session.country,
       session.currency,
       session.payment_session_id,
     ],
@@ -151,14 +153,15 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         assert(targetChannel);
 
         let channelProperties: ChannelProperties = {};
-        if (targetChannel.channelCode === "CARDS") {
+        const useFakeSubmissionFlow = targetChannel.channelCode !== "CARDS";
+        if (useFakeSubmissionFlow) {
           // for cards, pass the whole paymentData to backend in channel properties
           channelProperties = {
             google_pay: JSON.stringify(paymentData),
           };
         }
 
-        // telemetry for googlepay error
+        // telemetry for googlepay end
         getTelemetry(sdk).append(TelemetryEvents.DigitalWalletClose(true));
 
         // also clear telemetry scope (before submitting - otherwise event order is weird)
@@ -172,6 +175,8 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           targetChannel,
           channelProperties,
           true, // always try to save for googlepay
+          null,
+          useFakeSubmissionFlow,
         );
       })
       .catch(function (err) {
@@ -233,8 +238,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           "GOOGLE_PAY",
           targetChannel,
           {},
-          false,
-          submissionError,
+          false, // no save
+          submissionError, // forced error
+          false, // regular flow
         );
       })
       .finally(() => {
