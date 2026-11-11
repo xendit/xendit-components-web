@@ -132,6 +132,29 @@ describe("SessionActiveBehavior will-save-payment-method", () => {
     } as BlackboardType["channelData"];
     behavior.updatePreorder();
     behavior.updatePreorder();
+    behavior.exit();
+
+    const values = events
+      .filter((event) => event instanceof XenditWillSavePaymentMethodEvent)
+      .map((event) => event.willSavePaymentMethod);
+    // Fires for each value change: false when channel is set, true when checkbox changes
+    expect(values).toEqual([false, true]);
+  });
+
+  it("does not fire when the channel is cleared", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events);
+    const behavior = new SessionActiveBehavior(bb);
+
+    behavior.enter();
+    bb.currentChannelCode = saveOk.channel_code;
+    bb.channel = saveOk;
+    bb.channelData = {
+      savePaymentMethod: true,
+    } as BlackboardType["channelData"];
+    behavior.updatePreorder();
+    events.length = 0; // clear events from setup
+
     // clearing the channel also clears the blackboard's channel and data
     bb.currentChannelCode = null;
     bb.channel = null;
@@ -142,7 +165,37 @@ describe("SessionActiveBehavior will-save-payment-method", () => {
     const values = events
       .filter((event) => event instanceof XenditWillSavePaymentMethodEvent)
       .map((event) => event.willSavePaymentMethod);
-    expect(values).toEqual([true, false]);
+    expect(values).toEqual([]);
+  });
+
+  it("clears the memorized value when the channel changes", () => {
+    const events: Event[] = [];
+    const bb = buildBlackboard(events);
+    const behavior = new SessionActiveBehavior(bb);
+
+    behavior.enter();
+    bb.currentChannelCode = saveOk.channel_code;
+    bb.channel = saveOk;
+    bb.channelData = {
+      savePaymentMethod: true,
+    } as BlackboardType["channelData"];
+    behavior.updatePreorder();
+    events.length = 0; // clear events from setup
+
+    // change to a different channel (memorized value should be cleared)
+    bb.currentChannelCode = "MOCK_QR";
+    bb.channel = testData.channels.find((ch) => ch.channel_code === "MOCK_QR")!;
+    bb.channelData = {
+      savePaymentMethod: false,
+    } as BlackboardType["channelData"];
+    behavior.updatePreorder();
+    behavior.exit();
+
+    // should fire false because memorized value was cleared on channel change
+    const values = events
+      .filter((event) => event instanceof XenditWillSavePaymentMethodEvent)
+      .map((event) => event.willSavePaymentMethod);
+    expect(values).toEqual([false]);
   });
 
   it("reports the digital wallet's value during a wallet submission", () => {

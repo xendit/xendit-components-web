@@ -21,7 +21,7 @@ export class SessionActiveBehavior implements Behavior {
   currentChannelTelemetryScope: SessionTelemetryScope | null = null;
 
   lastChannelCode: string | null = null;
-  lastWillSavePaymentMethod = false;
+  lastWillSavePaymentMethod: boolean | null = null;
 
   beforeUnloadHandler: EventListener | null = null;
 
@@ -128,10 +128,13 @@ export class SessionActiveBehavior implements Behavior {
       return;
     }
     this.lastChannelCode = channelCode;
+    this.lastWillSavePaymentMethod = null;
     this.bb.dispatchEvent(new XenditCurrentChannelChangedEvent(channelCode));
   }
 
   dispatchWillSavePaymentMethod() {
+    if (!this.bb.channel) return;
+
     // send the will-save-payment-method event if it has changed
     assert(this.bb.world?.session);
     const value = willSavePaymentMethod(
@@ -142,6 +145,7 @@ export class SessionActiveBehavior implements Behavior {
     if (value === this.lastWillSavePaymentMethod) {
       return;
     }
+
     this.lastWillSavePaymentMethod = value;
     this.bb.dispatchEvent(new XenditWillSavePaymentMethodEvent(value));
   }
