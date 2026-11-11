@@ -348,9 +348,7 @@ The event contains the `channelCode` of the new current channel (`null` when cle
 
 ### `will-save-payment-method`
 
-Notifies you when it changes whether the payment method will be saved on submission. The value is `true` if it will be saved and `false` otherwise, including when there is no current channel. In `SAVE` and `SUBSCRIPTION` sessions it is always `true` once a channel is selected. If the value did not change, the event is not fired.
-
-The event contains `willSavePaymentMethod`.
+Notifies you whether the payment method will be saved on submission. Has a property `willSavePaymentMethod`. Fires when the value changes or the current channel changes. In `SAVE` and `SUBSCRIPTION` sessions it is always `true` once a channel is selected.
 
 ## Resuming after a redirect
 
