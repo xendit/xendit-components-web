@@ -73,8 +73,8 @@ importers:
         specifier: ^14.0.9
         version: 14.0.9
       '@types/googlepay':
-        specifier: ^0.7.10
-        version: 0.7.10
+        specifier: ^0.7.13
+        version: 0.7.13
       '@types/mime-types':
         specifier: ^3.0.1
         version: 3.0.1
@@ -915,8 +915,8 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
-  '@types/googlepay@0.7.10':
-    resolution: {integrity: sha512-ByXjDfxEp87zsjw5cVsNKEeA+AIJYcWwJvRqPu85jO0Lp/FeG67csnf4mqbPaIxmdI6+Khp3v5I0yyjq9MrGhw==}
+  '@types/googlepay@0.7.13':
+    resolution: {integrity: sha512-Tj9Y/UfYxUHepJe84AXeLLeBaNHySq9NorRTQ0M2uzqEBS+mmzdJYJeK2Z4XhO58gtkndC0915DM7eIn90DCPA==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -3017,7 +3017,7 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
-  '@types/googlepay@0.7.10': {}
+  '@types/googlepay@0.7.13': {}
 
   '@types/json-schema@7.0.15': {}
 

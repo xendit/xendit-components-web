@@ -235,7 +235,7 @@ export function behaviorTreeForSubmission(bb: BlackboardType) {
   if (
     bb.digitalWalletProbeAvailable &&
     !bb.channelIsDigitalWallet &&
-    bb.sdk[internal].options.enableDigitalWalletProbe === "GOOGLE_PAY"
+    bb.sdk[internal].options.enableDigitalWalletProbe
   ) {
     // before submitting, try digital wallet
     return behaviorNode(DigitalWalletProbeGooglePayBehavior, "");

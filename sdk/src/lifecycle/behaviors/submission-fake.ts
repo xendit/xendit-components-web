@@ -8,8 +8,10 @@ import {
   XenditSubmissionBeginEvent,
   XenditSubmissionEndEvent,
 } from "../../public-event-types";
+import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
+import { inferSubmissionEndReason } from "./digital-wallet-probe-googlepay";
 import {
   createSessionUpdateWorker,
   SessionUpdateWorker,
@@ -32,11 +34,29 @@ export class SubmissionFakeBehavior implements Behavior {
   exit() {
     this.updateWorker.stop();
 
+    assert(this.bb.world);
+
+    const inferredEndReason = inferSubmissionEndReason(
+      this.bb.world.session,
+      this.bb.world.paymentEntity,
+      null,
+      this.bb.sdk.t,
+    );
+    let reason = inferredEndReason.reason;
+    const { userErrorMessage, developerErrorMessage } = inferredEndReason;
+    if (reason) {
+      // ok, we got a reason from the infer function
+    } else {
+      // the only reason left is that the user bailed out
+      reason = "ACTION_ABORTED";
+    }
+
     this.bb.dispatchEvent(
-      new XenditSubmissionEndEvent("TEMP", [""], {
-        type: "ERROR",
-        code: "",
-      }),
+      new XenditSubmissionEndEvent(
+        reason,
+        userErrorMessage,
+        developerErrorMessage,
+      ),
     );
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
   }

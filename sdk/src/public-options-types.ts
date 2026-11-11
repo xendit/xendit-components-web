@@ -41,7 +41,16 @@ export interface XenditSdkOptions {
    *
    * Default `false`.
    */
-  enableDigitalWalletProbe?: "GOOGLE_PAY";
+  enableDigitalWalletProbe?: {
+    /**
+     * Which digital wallet to try.
+     */
+    digitalWallet: "GOOGLE_PAY";
+    /**
+     * Which channels to enable this feature for.
+     */
+    channels: null | string[];
+  };
 
   /**
    * If set, loads the specified locale file at the same time as session initialization.

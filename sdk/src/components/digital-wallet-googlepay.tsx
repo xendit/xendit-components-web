@@ -73,6 +73,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         totalPriceStatus: "FINAL",
         totalPrice: String(session.amount),
         currencyCode: session.currency,
+        countryCode: session.country,
       },
     }),
     [
@@ -80,6 +81,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       digitalWalletsGooglePay.merchant_id,
       googlePayChannels,
       session.amount,
+      session.country,
       session.currency,
       session.payment_session_id,
     ],

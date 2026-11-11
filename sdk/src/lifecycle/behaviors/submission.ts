@@ -4,11 +4,7 @@ import {
   BffPaymentEntity,
   BffPaymentEntityType,
   BffPaymentRequest,
-  BffPaymentRequestFailureCode,
   BffPaymentToken,
-  BffPaymentTokenFailureCode,
-  getFailureCodeCopyKey,
-  getPaymentEntityStatusCopyKey,
   toPaymentEntity,
 } from "../../backend-types/payment-entity";
 import { BffSessionType } from "../../backend-types/session";
@@ -41,11 +37,11 @@ import {
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { NetworkError } from "../../networking";
-import { TFunction } from "../../localization";
 import { discardPaymentEntity } from "./utils/discard";
 import { CustomerDetails } from "../../backend-types/customer";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
+import { inferSubmissionEndReason } from "./digital-wallet-probe-googlepay";
 
 export type SubmissionError = {
   text: string[];
@@ -121,72 +117,21 @@ export class SubmissionBehavior implements Behavior {
     }
 
     // Determine reason for submission end
-    let reason: string;
-    let userErrorMessage: string[] | undefined = undefined;
-    let developerErrorMessage:
-      | {
-          type: "NETWORK_ERROR" | "ERROR" | "FAILURE";
-          code: string;
-        }
-      | undefined = undefined;
-
-    if (this.bb.world.session.status !== "ACTIVE") {
-      // if status is not active, that's why we ended submission
-      reason = `SESSION_${this.bb.world.session.status}`;
-    } else if (
-      this.submissionError &&
-      isSubmissionError(this.submissionError) &&
-      this.submissionError.code === "SESSION_EXPIRED"
-    ) {
-      reason = "SESSION_EXPIRED";
-    } else if (
-      paymentEntity &&
-      (paymentEntity.entity.status === "FAILED" ||
-        paymentEntity.entity.status === "CANCELED" ||
-        paymentEntity.entity.status === "EXPIRED")
-    ) {
-      // the payment entity failed, was canceled or expired
-      reason = `PAYMENT_${paymentEntity.type}_${paymentEntity.entity.status}`;
-      userErrorMessage = failureCodeUserErrorMessage(
-        t,
-        paymentEntity.type,
-        paymentEntity.entity.status,
-        paymentEntity.entity.failure_code,
-      );
-      developerErrorMessage = {
-        type: "FAILURE",
-        code: paymentEntity.entity.failure_code ?? "UNKNOWN",
-      };
-    } else if (this.submissionError) {
-      // there was an error during submission
-      reason = "REQUEST_FAILED";
-      if (isSubmissionError(this.submissionError)) {
-        // explicit error message from the server
-        userErrorMessage = this.submissionError.text;
-
-        if (this.submissionError.code === "SESSION_NOT_ACTIVE") {
-          userErrorMessage = [
-            t("session_status.inactive.title"),
-            t("session_status.inactive.subtext"),
-          ];
-        }
-        developerErrorMessage = {
-          type: "ERROR",
-          code: this.submissionError.code,
-        };
-      } else {
-        // unknown or network error
-        userErrorMessage = defaultUserErrorMessage(t);
-        developerErrorMessage = {
-          type: "NETWORK_ERROR",
-          code: "NETWORK_ERROR",
-        };
-      }
+    const inferredEndReason = inferSubmissionEndReason(
+      this.bb.world.session,
+      this.bb.world.paymentEntity,
+      this.submissionError,
+      t,
+    );
+    let reason = inferredEndReason.reason;
+    const { userErrorMessage, developerErrorMessage } = inferredEndReason;
+    if (reason) {
+      // ok, we got a reason from the infer function
     } else if (this.submission) {
-      // the submission is canceled during the request
+      // we didn't get a reason from the infer function but the request was sent and never finished
       reason = "REQUEST_ABORTED";
     } else {
-      // the submission was canceled during an action
+      // the only reason left is that the user bailed out
       reason = "ACTION_ABORTED";
     }
 
@@ -442,39 +387,6 @@ async function asyncSubmit(
   }
 
   return toPaymentEntity(result);
-}
-
-function defaultUserErrorMessage(t: TFunction): string[] {
-  return [
-    t("default_error.title"),
-    t("default_error.message_1"),
-    t("default_error.message_2"),
-  ];
-}
-
-function failureCodeUserErrorMessage(
-  t: TFunction,
-  type: BffPaymentEntityType,
-  status: "FAILED" | "EXPIRED" | "CANCELED",
-  failureCode:
-    | BffPaymentTokenFailureCode
-    | BffPaymentRequestFailureCode
-    | undefined,
-): string[] {
-  const title = t(getPaymentEntityStatusCopyKey(type, status, "title"));
-  const subtext = failureCode
-    ? t(
-        getFailureCodeCopyKey(failureCode),
-        t("failure_code_unknown", { failureCode }),
-      )
-    : t(getPaymentEntityStatusCopyKey(type, status, "subtext"));
-  return [title, subtext];
-}
-
-function isSubmissionError(
-  error: Error | SubmissionError,
-): error is SubmissionError {
-  return !("message" in error) && "text" in error && "code" in error;
 }
 
 function getMockActionType(bb: BlackboardType) {
