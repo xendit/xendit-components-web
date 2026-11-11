@@ -119,7 +119,7 @@ export class SubmissionBehavior implements Behavior {
     // Determine reason for submission end
     const inferredEndReason = inferSubmissionEndReason(
       this.bb.world.session,
-      this.bb.world.paymentEntity,
+      paymentEntity,
       this.submissionError,
       t,
     );
