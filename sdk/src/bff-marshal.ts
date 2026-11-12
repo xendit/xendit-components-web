@@ -4,6 +4,7 @@ import { BffSucceededChannel } from "./backend-types/common";
 import { BffCustomer } from "./backend-types/customer";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { BffSession } from "./backend-types/session";
+import { BffSettings } from "./backend-types/settings";
 import { internal } from "./internal";
 import {
   XenditBusiness,
@@ -12,6 +13,7 @@ import {
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
+  XenditSettings,
   XenditSucceededChannel,
 } from "./public-data-types";
 import {
@@ -129,6 +131,22 @@ export function bffCustomerToPublic(
   }
 
   return null;
+}
+
+export function bffSettingsToPublic(
+  bffSettings: BffSettings | null,
+): XenditSettings | null {
+  if (!bffSettings) {
+    return null;
+  }
+
+  return {
+    branding: {
+      brandColour: bffSettings.branding.brand_colour,
+    },
+    privacyPolicyUrl: bffSettings.privacy_policy_url,
+    termsAndConditionsUrl: bffSettings.terms_and_conditions_url,
+  };
 }
 
 export function bffSucceededChannelToPublic(

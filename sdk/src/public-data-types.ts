@@ -254,6 +254,26 @@ export type XenditCustomer = XenditIndividualCustomer | XenditBusinessCustomer;
 /**
  * @internal
  */
+export interface XenditSettings {
+  branding: {
+    /**
+     * Primary brand colour set by business
+     */
+    brandColour: string | null;
+  };
+  /**
+   * The URL of the business' privacy policy page
+   */
+  privacyPolicyUrl: string | null;
+  /**
+   * The URL of the business' terms and conditions page
+   */
+  termsAndConditionsUrl: string | null;
+}
+
+/**
+ * @internal
+ */
 export interface XenditSucceededChannel {
   /**
    * The channel_code used to refer to this payment channel.

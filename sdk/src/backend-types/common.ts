@@ -4,6 +4,7 @@ import { BffCustomer } from "./customer";
 import { BffDigitalWallets } from "./digital-wallets";
 import { BffPaymentRequest, BffPaymentToken } from "./payment-entity";
 import { BffSession } from "./session";
+import { BffSettings } from "./settings";
 
 export type BffSucceededChannel = {
   channel_code: string;
@@ -28,6 +29,7 @@ export type BffResponse = {
   payment_request?: BffPaymentRequest;
   allow_payment_link_mode_embed?: boolean;
   experiments: Record<string, unknown>;
+  settings: BffSettings | null;
 };
 
 export type BffPollResponse = {

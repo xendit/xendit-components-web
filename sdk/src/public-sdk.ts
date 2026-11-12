@@ -3,6 +3,7 @@ import {
   XenditActionEndEvent,
   XenditCardBinChangedEvent,
   XenditChannelPropertiesChangedEvent,
+  XenditCurrentChannelChangedEvent,
   XenditFatalErrorEvent,
   XenditEventListener,
   XenditEventMap,
@@ -20,6 +21,7 @@ import {
   XenditWillRedirectEvent,
   XenditSessionPendingEvent,
   XenditSessionNotPendingEvent,
+  XenditWillSavePaymentMethodEvent,
 } from "./public-event-types";
 import {
   XenditSdkOptions as XenditComponentsOptions,
@@ -36,6 +38,7 @@ import {
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
+  XenditSettings,
   XenditSucceededChannel,
 } from "./public-data-types";
 import { internal } from "./internal";
@@ -108,6 +111,7 @@ import {
   bffCustomerToPublic,
   bffDigitalWalletsToPublic,
   bffSessionToPublic,
+  bffSettingsToPublic,
   bffSucceededChannelToPublic,
   bffUiGroupsToPublic,
   findChannelPairs,
@@ -119,6 +123,7 @@ import { amountFormat as _amountFormat } from "./amount-format";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { DigitalWalletContainer } from "./components/digital-wallet-container";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
+import { BffSettings } from "./backend-types/settings";
 import { ChannelInvalidBehavior } from "./lifecycle/behaviors/channel-invalid";
 import { SessionActiveBehavior } from "./lifecycle/behaviors/session-active";
 import { ChannelValidBehavior } from "./lifecycle/behaviors/channel-valid";
@@ -180,6 +185,7 @@ export type WorldState = {
   sessionTokenRequestId: string | null;
   succeededChannel: BffSucceededChannel | null;
   experiments: Record<string, unknown>;
+  settings: BffSettings | null;
 };
 
 /**
@@ -353,6 +359,7 @@ export class XenditComponents extends EventTarget {
         sdkFatalErrorMessage: null,
         sdkFatalErrorUserMessage: null,
         channel: null,
+        currentChannelCode: null,
         channelProperties: null,
         channelData: null,
         channelIsDigitalWallet: false,
@@ -555,6 +562,7 @@ export class XenditComponents extends EventTarget {
         sessionTokenRequestId: resumeSessionTokenRequestId,
         succeededChannel: bff.succeeded_channel ?? null,
         experiments: bff.experiments,
+        settings: bff.settings,
       } satisfies WorldState),
     );
   }
@@ -694,6 +702,7 @@ export class XenditComponents extends EventTarget {
     }
 
     bb.world = this[internal].worldState;
+    bb.currentChannelCode = this[internal].currentChannelCode;
 
     if (this[internal].currentDigitalWalletSubmission) {
       // populate data for digital wallet submission
@@ -810,6 +819,15 @@ export class XenditComponents extends EventTarget {
     this.assertInitialized();
     if (!this[internal].worldState.business) return null;
     return bffBusinessToPublic(this[internal].worldState.business);
+  }
+
+  /**
+   * @internal
+   * Retrieve the session settings set by the business.
+   */
+  getSettings(): XenditSettings | null {
+    this.assertInitialized();
+    return bffSettingsToPublic(this[internal].worldState.settings);
   }
 
   /**
@@ -2204,6 +2222,27 @@ export class XenditComponents extends EventTarget {
 
   /**
    * @public
+   * Fired whenever the current channel changes. `channelCode` is null when the current channel is cleared.
+   * Use `getCurrentChannel()` to get the full channel.
+   */
+  addEventListener(
+    name: "current-channel-changed",
+    listener: XenditEventListener<XenditCurrentChannelChangedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Fired whenever `willSavePaymentMethod` changes. True if the payment method will be saved on submission, false otherwise.
+   */
+  addEventListener(
+    name: "will-save-payment-method",
+    listener: XenditEventListener<XenditWillSavePaymentMethodEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
    * Fallback overload.
    */
   addEventListener<K extends keyof XenditEventMap>(
@@ -2346,6 +2385,7 @@ export class XenditComponentsTest extends XenditComponents {
         sessionTokenRequestId: null,
         succeededChannel: null,
         experiments: bff.experiments,
+        settings: bff.settings,
       } satisfies WorldState),
     );
   }
