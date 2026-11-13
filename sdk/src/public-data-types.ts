@@ -103,7 +103,7 @@ export interface XenditSession {
       /**
        * The anchor date for the subscription. This determines when the subscription payments will be made.
        */
-      anchorDate: Date;
+      anchorDate?: Date;
       /**
        * The interval for the subscription payments.
        */
