@@ -149,6 +149,31 @@ export const GroupLogos = (props: GroupLogosProps) => {
   if (logos.length > MAX_LOGO_COUNT) {
     const excessLogos = logos.length - MAX_LOGO_COUNT + 1;
     logoNodes.splice(MAX_LOGO_COUNT - 1, excessLogos, `+${excessLogos}`);
+
+    // when exactly one brand is enabled (the single-scheme case) and that brand
+    // falls into the truncated/+N portion (index >= MAX_LOGO_COUNT - 1), show its
+    // image in place of the +N text so the detected brand is always visible.
+    // brands already shown as images (index < MAX_LOGO_COUNT - 1) need no override.
+    const enabledEntries = logos
+      .map((logo, index) => ({ logo, index }))
+      .filter((entry) => entry.logo.enabled);
+    if (
+      enabledEntries.length === 1 &&
+      enabledEntries[0].index >= MAX_LOGO_COUNT - 1
+    ) {
+      const { logo } = enabledEntries[0];
+      logoNodes.splice(
+        MAX_LOGO_COUNT - 1,
+        1,
+        <img
+          key={logoIndex++}
+          src={logo.src}
+          alt={logo.alt}
+          onError={hideOnError}
+          className="xendit-accordion-item-logo-image"
+        />,
+      );
+    }
   }
 
   if (logos.length === 0) {

@@ -3,6 +3,7 @@ import { XenditComponentsTest } from "../src";
 import { waitForEvent, Writable } from "./utils";
 import { assert, sleep } from "../src/utils";
 import { IframeEvent } from "../../shared/types";
+import { waitFor } from "@testing-library/dom";
 
 afterEach(() => {
   document.body.replaceChildren();
@@ -147,6 +148,16 @@ describe("channel component card bin", () => {
     );
     expect(onCardBinChanged).toHaveBeenCalledTimes(1);
 
+    // a single detected scheme collapses the inline brand display down to the
+    // one matching logo
+    const brandsList = document.querySelector(".xendit-card-brands-list");
+    assert(brandsList);
+    await waitFor(() => {
+      expect(
+        brandsList.querySelectorAll(".xendit-card-brand-logo").length,
+      ).toBe(1);
+    });
+
     // clear the field -> card_info has no bin -> merchant keeps the last bin, no event
     fireIframeEvent(iframeElement, {
       type: "xendit-iframe-change",
@@ -156,7 +167,15 @@ describe("channel component card bin", () => {
       validationErrorCodes: [],
     });
     await sleep(300);
+    // still no public card-bin-changed on clear (contract preserved)
     expect(onCardBinChanged).toHaveBeenCalledTimes(1);
+
+    // but clearing nulls cardDetails, so the inline display reverts to all brands
+    await waitFor(() => {
+      expect(
+        brandsList.querySelectorAll(".xendit-card-brand-logo").length,
+      ).toBeGreaterThan(1);
+    });
   });
 });
 
