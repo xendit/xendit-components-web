@@ -53,7 +53,7 @@ export type BffChannel = {
   requires_customer_details?: boolean;
 
   /** If this channel represents a saved payment token, this is the original token ID */
-  from_saved_payment_token?: string;
+  from_saved_payment_token?: boolean;
 
   /** Special properties for cards */
   card?: {
