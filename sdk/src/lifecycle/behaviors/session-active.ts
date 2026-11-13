@@ -2,8 +2,13 @@ import {
   InternalBehaviorTreeUpdateEvent,
   InternalNeedsRerenderEvent,
 } from "../../private-event-types";
+import {
+  XenditCurrentChannelChangedEvent,
+  XenditWillSavePaymentMethodEvent,
+} from "../../public-event-types";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
+import { assert, willSavePaymentMethod } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 import { sessionExpiryTime } from "./utils/session-expiry-time";
@@ -14,6 +19,9 @@ export class SessionActiveBehavior implements Behavior {
 
   lastTelemetryKey: string | null = null;
   currentChannelTelemetryScope: SessionTelemetryScope | null = null;
+
+  lastChannelCode: string | null = null;
+  lastWillSavePaymentMethod: boolean | null = null;
 
   beforeUnloadHandler: EventListener | null = null;
 
@@ -34,6 +42,8 @@ export class SessionActiveBehavior implements Behavior {
 
     // telemetry
     this.telemetryForActiveChannel();
+    this.dispatchCurrentChannelChanged();
+    this.dispatchWillSavePaymentMethod();
 
     // Schedule rerender (reveals hidden components now that session is active)
     this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
@@ -45,6 +55,8 @@ export class SessionActiveBehavior implements Behavior {
   updatePreorder() {
     // telemetry - needed on update because this node doesn't change when the current channel changes
     this.telemetryForActiveChannel();
+    this.dispatchCurrentChannelChanged();
+    this.dispatchWillSavePaymentMethod();
 
     // the server may have sent the session again with a new TTL
     this.syncExpiryTimeout();
@@ -107,5 +119,34 @@ export class SessionActiveBehavior implements Behavior {
       );
       this.lastTelemetryKey = key;
     }
+  }
+
+  dispatchCurrentChannelChanged() {
+    // send the current-channel-changed event if it has changed
+    const channelCode = this.bb.currentChannelCode;
+    if (channelCode === this.lastChannelCode) {
+      return;
+    }
+    this.lastChannelCode = channelCode;
+    this.lastWillSavePaymentMethod = null;
+    this.bb.dispatchEvent(new XenditCurrentChannelChangedEvent(channelCode));
+  }
+
+  dispatchWillSavePaymentMethod() {
+    if (!this.bb.channel) return;
+
+    // send the will-save-payment-method event if it has changed
+    assert(this.bb.world?.session);
+    const value = willSavePaymentMethod(
+      this.bb.world.session,
+      this.bb.channel,
+      this.bb.channelData?.savePaymentMethod ?? false,
+    );
+    if (value === this.lastWillSavePaymentMethod) {
+      return;
+    }
+
+    this.lastWillSavePaymentMethod = value;
+    this.bb.dispatchEvent(new XenditWillSavePaymentMethodEvent(value));
   }
 }

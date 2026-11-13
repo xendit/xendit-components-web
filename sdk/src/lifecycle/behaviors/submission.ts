@@ -46,6 +46,7 @@ import { discardPaymentEntity } from "./utils/discard";
 import { CustomerDetails } from "../../backend-types/customer";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
+import { BffSubscription } from "../../backend-types/subscription";
 
 export type SubmissionError = {
   text: string[];
@@ -258,6 +259,7 @@ export class SubmissionBehavior implements Behavior {
 
     const sessionType = this.bb.world?.session?.session_type;
     const channelCode = this.bb.channel.channel_code;
+    const subscription = this.bb.world?.session?.subscription;
     const mockActionType = getMockActionType(this.bb);
     const channelProperties = this.bb.channelProperties ?? {};
     const abortController = new AbortController();
@@ -286,6 +288,7 @@ export class SubmissionBehavior implements Behavior {
       abortController,
       savePaymentMethod,
       customerDetails,
+      subscription,
     )
       .then((paymentEntity: BffPaymentEntity) => {
         // clear abort controller since the request is complete
@@ -381,6 +384,7 @@ async function asyncSubmit(
   abortController: AbortController,
   savePaymentMethod: boolean | undefined,
   customerDetails: CustomerDetails | undefined,
+  subscription: BffSubscription | undefined,
 ): Promise<BffPaymentEntity> {
   let result: BffPaymentToken | BffPaymentRequest;
   if (mock) {
@@ -391,10 +395,19 @@ async function asyncSubmit(
         result = makeTestPaymentRequest(channelCode, mockActionType);
         break;
       }
-      case "SAVE":
-      case "SUBSCRIPTION": {
+      case "SAVE": {
         await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
         result = makeTestPaymentToken(channelCode, mockActionType);
+        break;
+      }
+      case "SUBSCRIPTION": {
+        assert<BffSubscription>(subscription);
+        await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
+        if (subscription.require_payment_to_activate) {
+          result = makeTestPaymentRequest(channelCode, mockActionType);
+        } else {
+          result = makeTestPaymentToken(channelCode, mockActionType);
+        }
         break;
       }
       default: {
@@ -420,8 +433,7 @@ async function asyncSubmit(
         );
         break;
       }
-      case "SAVE":
-      case "SUBSCRIPTION": {
+      case "SAVE": {
         result = await createPaymentToken(
           sdkKey,
           {
@@ -433,6 +445,37 @@ async function asyncSubmit(
           null,
           abortController.signal,
         );
+        break;
+      }
+      case "SUBSCRIPTION": {
+        assert<BffSubscription>(subscription);
+        if (subscription.require_payment_to_activate) {
+          result = await createPaymentRequest(
+            sdkKey,
+            {
+              session_id: sdkKey.sessionAuthKey,
+              channel_code: channelCode,
+              channel_properties: channelProperties,
+              save_payment_method: savePaymentMethod,
+              customer: customerDetails,
+            },
+            null,
+            null,
+            abortController.signal,
+          );
+        } else {
+          result = await createPaymentToken(
+            sdkKey,
+            {
+              session_id: sdkKey.sessionAuthKey,
+              channel_code: channelCode,
+              channel_properties: channelProperties,
+            },
+            null,
+            null,
+            abortController.signal,
+          );
+        }
         break;
       }
       default: {

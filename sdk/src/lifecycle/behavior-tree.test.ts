@@ -59,11 +59,13 @@ const mockBlackboard: BlackboardType & { world: object } = {
     sessionTokenRequestId: null,
     succeededChannel: null,
     experiments: testData.experiments,
+    settings: testData.settings,
   },
   sdkStatus: "ACTIVE",
   sdkFatalErrorMessage: null,
   sdkFatalErrorUserMessage: null,
   channel: null,
+  currentChannelCode: null,
   channelProperties: null,
   channelData: {
     isOneclick: false,
