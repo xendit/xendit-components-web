@@ -1,3 +1,7 @@
+import {
+  createGooglePaySubmissionError,
+  GooglePayErrorCode,
+} from "../../components/digital-wallet-googlepay";
 import { internal } from "../../internal";
 import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
 import { assert } from "../../utils";
@@ -123,14 +127,30 @@ export class DigitalWalletProbeGooglePayBehavior implements Behavior {
         this.bb.useFakeSubmissionFlow = true;
         this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
       })
-      .catch((reason) => {
-        // don't care what the error is, just bail
-        this.bailOut();
+      .catch((error) => {
+        // need to be VERY CAREFUL here or there will be doublepayment
+        const statusCode = (error.statusCode ??
+          "UNKNOWN_ERROR") as GooglePayErrorCode & "CANCELED";
+        if (statusCode === "CANCELED") {
+          this.bailOut();
+        } else {
+          this.bailOutThenError(error.statusCode);
+        }
       });
   }
 
   bailOut() {
     this.bb.digitalWalletProbeAvailable = false;
+    this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
+  }
+
+  bailOutThenError(statusCode: GooglePayErrorCode) {
+    this.bb.digitalWalletProbeAvailable = false;
+    this.bb.instantSubmissionError = createGooglePaySubmissionError(
+      statusCode,
+      this.bb.sdk.t,
+    );
+
     this.bb.dispatchEvent(new InternalBehaviorTreeUpdateEvent());
   }
 

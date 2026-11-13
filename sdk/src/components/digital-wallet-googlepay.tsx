@@ -13,6 +13,7 @@ import { assert, satisfiesMinMax } from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
 import { getTelemetry, SessionTelemetryScope } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
+import { TFunction } from "../localization";
 
 type Props = {
   options?: DigitalWalletOptions<"GOOGLE_PAY">;
@@ -180,15 +181,9 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         );
       })
       .catch(function (err) {
-        type GooglePayErrorCode =
-          | "CANCELED"
-          | "DEVELOPER_ERROR"
-          | "BUYER_ACCOUNT_ERROR"
-          | "MERCHANT_ACCOUNT_ERROR"
-          | "INTERNAL_ERROR"
-          | "UNKNOWN_ERROR";
         const statusCode =
-          (err.statusCode as GooglePayErrorCode) ?? "UNKNOWN_ERROR";
+          (err.statusCode as GooglePayErrorCode & "CANCELED") ??
+          "UNKNOWN_ERROR";
 
         if (statusCode === "CANCELED") {
           // telemetry for cancel
@@ -198,26 +193,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           return;
         }
 
-        function localeKeyForGooglePayError<
-          T extends GooglePayErrorCode,
-          U extends "title" | "message",
-        >(errorCode: T, suffix: U) {
-          return `google_pay_errors.${errorCode.toLowerCase() as Lowercase<T>}.${suffix}` as const;
-        }
-
-        const submissionError = {
-          code: `GOOGLE_PAY_${statusCode}` as const,
-          text: [
-            t(
-              localeKeyForGooglePayError(statusCode, "title"),
-              t("google_pay_errors.unknown_error.title"),
-            ),
-            t(
-              localeKeyForGooglePayError(statusCode, "message"),
-              t("google_pay_errors.unknown_error.message", { statusCode }),
-            ),
-          ],
-        };
+        const submissionError = createGooglePaySubmissionError(statusCode, t);
 
         // there is no target channel on errors, pick the channel used for the first allowed payment method
         const firstGooglePayChannel =
@@ -324,4 +300,37 @@ function findChannel(
     throw new Error(`Channel not found for code: ${targetChannelCode}`);
   }
   return ch;
+}
+
+export function createGooglePaySubmissionError(
+  statusCode: GooglePayErrorCode,
+  t: TFunction,
+) {
+  return {
+    code: `GOOGLE_PAY_${statusCode}` as const,
+    text: [
+      t(
+        localeKeyForGooglePayError(statusCode, "title"),
+        t("google_pay_errors.unknown_error.title"),
+      ),
+      t(
+        localeKeyForGooglePayError(statusCode, "message"),
+        t("google_pay_errors.unknown_error.message", { statusCode }),
+      ),
+    ],
+  };
+}
+
+export type GooglePayErrorCode =
+  | "DEVELOPER_ERROR"
+  | "BUYER_ACCOUNT_ERROR"
+  | "MERCHANT_ACCOUNT_ERROR"
+  | "INTERNAL_ERROR"
+  | "UNKNOWN_ERROR";
+
+export function localeKeyForGooglePayError<
+  T extends GooglePayErrorCode,
+  U extends "title" | "message",
+>(errorCode: T, suffix: U) {
+  return `google_pay_errors.${errorCode.toLowerCase() as Lowercase<T>}.${suffix}` as const;
 }
