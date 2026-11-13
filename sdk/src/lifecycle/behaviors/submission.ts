@@ -395,10 +395,19 @@ async function asyncSubmit(
         result = makeTestPaymentRequest(channelCode, mockActionType);
         break;
       }
-      case "SAVE":
-      case "SUBSCRIPTION": {
+      case "SAVE": {
         await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
         result = makeTestPaymentToken(channelCode, mockActionType);
+        break;
+      }
+      case "SUBSCRIPTION": {
+        assert<BffSubscription>(subscription);
+        await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortController.signal);
+        if (subscription.require_payment_to_activate) {
+          result = makeTestPaymentRequest(channelCode, mockActionType);
+        } else {
+          result = makeTestPaymentToken(channelCode, mockActionType);
+        }
         break;
       }
       default: {
