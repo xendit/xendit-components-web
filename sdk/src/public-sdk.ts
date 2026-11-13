@@ -714,6 +714,8 @@ export class XenditComponents extends EventTarget {
       bb.channelIsDigitalWallet = true;
       bb.instantSubmissionError =
         this[internal].currentDigitalWalletSubmission.instantSubmissionError;
+      bb.useFakeSubmissionFlow =
+        this[internal].currentDigitalWalletSubmission.useFakeSubmissionFlow;
     } else {
       // populate data for normal channel component
       const component = this[internal].currentChannelCode
