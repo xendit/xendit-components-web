@@ -1,3 +1,13 @@
+# 0.0.42
+
+### Notable
+
+Added `current-channel-changed` event.
+
+Added `will-save-payment-method` event.
+
+Use pay-and-save flow for `require_payment_to_activate` subscriptions.
+
 # 0.0.41
 
 ### Notable
