@@ -4,6 +4,7 @@ import { BffSucceededChannel } from "./backend-types/common";
 import { BffCustomer } from "./backend-types/customer";
 import { BffDigitalWallets } from "./backend-types/digital-wallets";
 import { BffSession } from "./backend-types/session";
+import { BffSettings } from "./backend-types/settings";
 import { internal } from "./internal";
 import {
   XenditBusiness,
@@ -12,6 +13,7 @@ import {
   XenditPaymentChannel,
   XenditPaymentChannelGroup,
   XenditSession,
+  XenditSettings,
   XenditSucceededChannel,
 } from "./public-data-types";
 import {
@@ -50,7 +52,9 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
       ? {
           immediatePayment: bffSession.subscription.immediate_payment,
           schedule: {
-            anchorDate: new Date(bffSession.subscription.schedule.anchor_date),
+            anchorDate: bffSession.subscription.schedule.anchor_date
+              ? new Date(bffSession.subscription.schedule.anchor_date)
+              : undefined,
             interval: bffSession.subscription.schedule.interval,
             intervalCount: bffSession.subscription.schedule.interval_count,
             retryInterval: bffSession.subscription.schedule.retry_interval,
@@ -129,6 +133,22 @@ export function bffCustomerToPublic(
   }
 
   return null;
+}
+
+export function bffSettingsToPublic(
+  bffSettings: BffSettings | null,
+): XenditSettings | null {
+  if (!bffSettings) {
+    return null;
+  }
+
+  return {
+    branding: {
+      brandColour: bffSettings.branding.brand_colour,
+    },
+    privacyPolicyUrl: bffSettings.privacy_policy_url,
+    termsAndConditionsUrl: bffSettings.terms_and_conditions_url,
+  };
 }
 
 export function bffSucceededChannelToPublic(

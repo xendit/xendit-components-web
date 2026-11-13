@@ -103,7 +103,7 @@ export interface XenditSession {
       /**
        * The anchor date for the subscription. This determines when the subscription payments will be made.
        */
-      anchorDate: Date;
+      anchorDate?: Date;
       /**
        * The interval for the subscription payments.
        */
@@ -250,6 +250,26 @@ export interface XenditBusinessCustomer {
  * @public
  */
 export type XenditCustomer = XenditIndividualCustomer | XenditBusinessCustomer;
+
+/**
+ * @internal
+ */
+export interface XenditSettings {
+  branding: {
+    /**
+     * Primary brand colour set by business
+     */
+    brandColour: string | null;
+  };
+  /**
+   * The URL of the business' privacy policy page
+   */
+  privacyPolicyUrl: string | null;
+  /**
+   * The URL of the business' terms and conditions page
+   */
+  termsAndConditionsUrl: string | null;
+}
 
 /**
  * @internal
