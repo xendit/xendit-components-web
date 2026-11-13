@@ -1,7 +1,9 @@
 import { BffPollResponse } from "../../backend-types/common";
 import { BffPaymentEntity } from "../../backend-types/payment-entity";
+import { makeTestPollResponse } from "../../data/test-data-modifiers";
 import {
   InternalNeedsRerenderEvent,
+  InternalScheduleMockUpdateEvent,
   InternalUpdateWorldState,
 } from "../../private-event-types";
 import {
@@ -25,10 +27,24 @@ export class SubmissionFakeBehavior implements Behavior {
   }
 
   enter() {
+    assert(this.bb.world);
+
     this.bb.dispatchEvent(new XenditSubmissionBeginEvent());
 
     // start listening for changes
     this.updateWorker.start();
+
+    if (this.bb.mock) {
+      this.bb.dispatchEvent(
+        new InternalScheduleMockUpdateEvent(
+          makeTestPollResponse(
+            this.bb.world,
+            this.bb.channel,
+            "SESSION_COMPLETED",
+          ),
+        ),
+      );
+    }
   }
 
   exit() {

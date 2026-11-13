@@ -106,9 +106,17 @@ export class DigitalWalletProbeGooglePayBehavior implements Behavior {
       .then((response) => {
         if (this.aborted) return;
 
-        // user has no linked payment method
-        const readyToPay = response.result && response.paymentMethodPresent;
-        if (!readyToPay) {
+        // not ready to pay, usually because ewallet channels aren't available in desktop mode
+        if (!response.result) {
+          this.bailOut();
+          return;
+        }
+
+        // user doens't have this payment method linked
+        if (!response.paymentMethodPresent) {
+          console.warn(
+            "Attempted to trigger GooglePay probe, but paymentMethodPresent was false",
+          );
           this.bailOut();
           return;
         }
