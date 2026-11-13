@@ -13,7 +13,7 @@ import {
 import { assert } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
-import { inferSubmissionEndReason } from "./digital-wallet-probe-googlepay";
+import { inferSubmissionEndReason } from "./utils-submission";
 import {
   createSessionUpdateWorker,
   SessionUpdateWorker,

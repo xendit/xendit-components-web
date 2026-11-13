@@ -41,7 +41,7 @@ import { discardPaymentEntity } from "./utils/discard";
 import { CustomerDetails } from "../../backend-types/customer";
 import { SessionTelemetryScope } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
-import { inferSubmissionEndReason } from "./digital-wallet-probe-googlepay";
+import { inferSubmissionEndReason } from "./utils-submission";
 
 export type SubmissionError = {
   text: string[];
