@@ -327,6 +327,10 @@ export interface XenditPaymentChannel {
    */
   maxAmount?: number;
   /**
+   * True if this channel represents a saved payment token.
+   */
+  fromSavedPaymentToken?: boolean;
+  /**
    * If this is a cards channel, the supported card brands.
    */
   cardBrands?: {
