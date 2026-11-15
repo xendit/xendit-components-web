@@ -138,7 +138,7 @@ if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     componentsSdkKey: savedKey,
-    hostId: "sd",
+    hostId: "pd",
     iframeFieldAppearance,
     enablePaylinks: true,
     resume: savedResume,

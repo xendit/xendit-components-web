@@ -91,6 +91,7 @@ export const ChannelPickerGroup: FunctionComponent<ChannelPickerGroupProps> = (
 
     selectedChannelElementRef.current = sdk.createChannelComponent(
       singleBffChannelToPublic(currentChannel, marshalConfig),
+      { active: true, fromChannelPicker: true },
     );
     if (
       selectedChannelElementRef.current.parentElement !== containerRef.current

@@ -15,6 +15,7 @@ import { assert, cancellableSleep, formFieldId, formFieldName } from "../utils";
 import { FunctionComponent } from "preact";
 import { InternalSetFieldTouchedEvent } from "../private-event-types";
 import { IframeRegistryContext } from "./iframe-registry";
+import { CardBrands } from "./card-brands";
 
 // read iframe data from environment variable
 assert(process.env.XENDIT_COMPONENTS_SECURE_IFRAME_URL);
@@ -50,6 +51,7 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
   const { card } = useChannel() ?? {};
 
   const channelData = useChannelComponentData();
+  const fromChannelPicker = channelData?.fromChannelPicker;
   const schemes = channelData?.cardDetails?.details?.schemes;
   const selectedCardBrand =
     schemes?.find((scheme) => card?.brands?.some((b) => b.name === scheme)) ??
@@ -224,12 +226,14 @@ export const IframeField: FunctionComponent<FieldProps> = (props) => {
           className={status === "ready" ? "" : "xendit-iframe-hidden"}
         />
       </div>
-      {field.type.name === "credit_card_number" && card && (
-        <CardBrands
-          cardsBrandList={card.brands}
-          selectedCardBrand={selectedCardBrand}
-        />
-      )}
+      {field.type.name === "credit_card_number" &&
+        card &&
+        !fromChannelPicker && (
+          <CardBrands
+            cardsBrandList={card.brands}
+            selectedCardBrand={selectedCardBrand}
+          />
+        )}
     </div>
   );
 };
@@ -238,43 +242,6 @@ const IframeFieldError: FunctionComponent = () => {
   return (
     <div className="xendit-iframe-field-error">
       <span className="xendit-error-message">✕ network timeout</span>
-    </div>
-  );
-};
-
-const CardBrands = ({
-  cardsBrandList,
-  selectedCardBrand,
-}: {
-  cardsBrandList: { name: string; logo_url: string }[];
-  selectedCardBrand: string | null;
-}) => {
-  if (!cardsBrandList) return null;
-
-  const cardBrandLogo = cardsBrandList.find(
-    (b) => b.name === selectedCardBrand,
-  )?.logo_url;
-
-  return (
-    <div className="xendit-card-brands-list">
-      {selectedCardBrand
-        ? cardBrandLogo && (
-            <img
-              className={"xendit-card-brand-logo"}
-              src={cardBrandLogo}
-              alt={selectedCardBrand}
-            />
-          )
-        : cardsBrandList.map(({ name, logo_url }) => {
-            return (
-              <img
-                className={"xendit-card-brand-logo"}
-                src={logo_url}
-                alt={name}
-                key={name}
-              />
-            );
-          })}
     </div>
   );
 };
