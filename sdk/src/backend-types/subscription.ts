@@ -1,5 +1,5 @@
 export type BffSubscriptionSchedule = {
-  anchor_date: string;
+  anchor_date?: string;
   interval: "DAY" | "WEEK" | "MONTH";
   interval_count: number;
   retry_interval?: "DAY" | "WEEK" | "MONTH";
@@ -10,5 +10,6 @@ export type BffSubscriptionSchedule = {
 
 export type BffSubscription = {
   immediate_payment?: boolean;
+  require_payment_to_activate?: boolean;
   schedule: BffSubscriptionSchedule;
 };

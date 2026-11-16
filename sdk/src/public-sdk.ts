@@ -21,6 +21,7 @@ import {
   XenditWillRedirectEvent,
   XenditSessionPendingEvent,
   XenditSessionNotPendingEvent,
+  XenditWillSavePaymentMethodEvent,
 } from "./public-event-types";
 import {
   XenditSdkOptions as XenditComponentsOptions,
@@ -152,6 +153,7 @@ type CachedChannelComponent = {
  */
 export type ChannelComponentData = {
   isOneclick: boolean;
+  fromChannelPicker?: boolean;
   savePaymentMethod: boolean;
   cardBin: string | null;
   cardDetails: {
@@ -1023,12 +1025,22 @@ export class XenditComponents extends EventTarget {
   /** @internal */
   createChannelComponent(
     channel: XenditPaymentChannel,
-    options: { active?: boolean; noCache?: boolean; isOneclick?: boolean },
+    options: {
+      active?: boolean;
+      noCache?: boolean;
+      isOneclick?: boolean;
+      fromChannelPicker?: boolean;
+    },
   ): HTMLElement;
   /** @internal */
   createChannelComponent(
     channel: XenditPaymentChannel,
-    options: { active?: boolean; noCache?: boolean; isOneclick?: boolean } = {
+    options: {
+      active?: boolean;
+      noCache?: boolean;
+      isOneclick?: boolean;
+      fromChannelPicker?: boolean;
+    } = {
       active: true,
     },
   ): HTMLElement {
@@ -1058,6 +1070,15 @@ export class XenditComponents extends EventTarget {
 
     if (cachedComponent && !options.noCache) {
       container = cachedComponent.element;
+      // The picker selects a channel via `setCurrentChannel`, which internally
+      // calls `createChannelComponent` (without `fromChannelPicker`) and caches
+      // the component. The picker group then calls `createChannelComponent`
+      // again with `fromChannelPicker: true`, so we carry the flag onto the
+      // cached data only in the picker context. The option is only ever set by
+      // the picker path, so the direct path is unaffected.
+      if (options.fromChannelPicker !== undefined) {
+        cachedComponent.data.fromChannelPicker = options.fromChannelPicker;
+      }
     } else {
       container = document.createElement("xendit-payment-channel");
       container.setAttribute("data-channel-code", channelCode);
@@ -1077,6 +1098,7 @@ export class XenditComponents extends EventTarget {
         customerDetailsFormRef: customerDetailsFormRef,
         data: {
           isOneclick: !!options.isOneclick,
+          fromChannelPicker: !!options.fromChannelPicker,
           savePaymentMethod: getDefaultSavePaymentMethod(channel[internal][0]),
           cardBin: null,
           cardDetails: null,
@@ -2216,6 +2238,16 @@ export class XenditComponents extends EventTarget {
   addEventListener(
     name: "current-channel-changed",
     listener: XenditEventListener<XenditCurrentChannelChangedEvent>,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /**
+   * @public
+   * Fired whenever `willSavePaymentMethod` changes. True if the payment method will be saved on submission, false otherwise.
+   */
+  addEventListener(
+    name: "will-save-payment-method",
+    listener: XenditEventListener<XenditWillSavePaymentMethodEvent>,
     options?: boolean | AddEventListenerOptions,
   ): void;
 

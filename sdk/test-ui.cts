@@ -138,7 +138,7 @@ if (savedKey) {
   sdkKeyInput.value = savedKey;
   components = new XenditComponents({
     componentsSdkKey: savedKey,
-    hostId: "sd",
+    hostId: "pd",
     iframeFieldAppearance,
     enablePaylinks: true,
     resume: savedResume,
@@ -218,6 +218,7 @@ components.addEventListener("fatal-error", logEvent);
 components.addEventListener("card-bin-changed", logEvent);
 components.addEventListener("channel-properties-changed", logEvent);
 components.addEventListener("current-channel-changed", logEvent);
+components.addEventListener("will-save-payment-method", logEvent);
 
 setInterval(() => {
   const internalState = components.getState();

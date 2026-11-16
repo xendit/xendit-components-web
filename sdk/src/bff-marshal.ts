@@ -52,7 +52,9 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
       ? {
           immediatePayment: bffSession.subscription.immediate_payment,
           schedule: {
-            anchorDate: new Date(bffSession.subscription.schedule.anchor_date),
+            anchorDate: bffSession.subscription.schedule.anchor_date
+              ? new Date(bffSession.subscription.schedule.anchor_date)
+              : undefined,
             interval: bffSession.subscription.schedule.interval,
             intervalCount: bffSession.subscription.schedule.interval_count,
             retryInterval: bffSession.subscription.schedule.retry_interval,
