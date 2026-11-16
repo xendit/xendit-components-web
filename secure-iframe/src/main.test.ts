@@ -13,29 +13,32 @@ import userEvent from "@testing-library/user-event";
 import { arrayBufferToBase64, base64ToArrayBuffer } from "./utils";
 import {
   decryptText,
+  exportPublicJwk,
   exportPublicKey,
   generateKeys,
-  importPinningKeyForSigning,
+  generatePinningKeyPair,
   signPublicKey,
 } from "./crypto-test-utils";
 import { IframeChangeEvent, IframeReadyEvent } from "../../shared/types";
 import { screen } from "@testing-library/dom";
 
-// @ts-expect-error This macro is replaced with a JSON array by the build script
-const pinningPrivateKey: JsonWebKey = PRIVATE_PINNING_KEY_MACRO;
-
 let pinningKey: CryptoKey;
+let pinningPublicJwk: JsonWebKey;
 let ecdhKeyPair: CryptoKeyPair;
 beforeEach(async () => {
-  pinningKey = await importPinningKeyForSigning(pinningPrivateKey);
+  const pinningKeyPair = await generatePinningKeyPair();
+  pinningKey = pinningKeyPair.privateKey;
+  pinningPublicJwk = await exportPublicJwk(pinningKeyPair);
   ecdhKeyPair = await generateKeys();
 });
 
 beforeEach(async () => {
+  setJwksResponse([pinningPublicJwk]);
   await setQueryParams({});
 });
 
 afterEach(() => {
+  vitest.unstubAllGlobals();
   document.body.replaceChildren();
 });
 
@@ -186,6 +189,126 @@ describe("secure iframe ui - main - basics", () => {
   });
 });
 
+describe("secure iframe ui - main - jwks", () => {
+  it("should initialize with one of multiple fetched keys", async () => {
+    const unrelatedKeyPair = await generatePinningKeyPair();
+    setJwksResponse([
+      await exportPublicJwk(unrelatedKeyPair),
+      pinningPublicJwk,
+    ]);
+
+    await expectPostMessage(
+      { type: "xendit-iframe-ready", ecdhPublicKey: expect.any(String) },
+      async () => {
+        await main();
+      },
+    );
+  });
+
+  it("should fail initialization on a non-2xx JWKS response", async () => {
+    const fetchMock = setJwksResponse([pinningPublicJwk], { status: 503 });
+
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should fail initialization on malformed JWKS JSON", async () => {
+    const fetchMock = setJwksRawResponse("{not-json");
+
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should fail initialization on an empty JWKS key array", async () => {
+    const fetchMock = setJwksResponse([]);
+
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should fail initialization on a JWKS entry with private d material", async () => {
+    const fetchMock = setJwksResponse([
+      { ...pinningPublicJwk, d: "private-key-material" },
+    ]);
+
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should fail initialization when the JWKS request itself fails", async () => {
+    const fetchMock = vitest
+      .fn()
+      .mockRejectedValue(new TypeError("Failed to fetch"));
+    vitest.stubGlobal("fetch", fetchMock);
+
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should refresh once and retry verification after a mismatch", async () => {
+    const unrelatedKeyPair = await generatePinningKeyPair();
+    const fetchMock = vitest
+      .fn()
+      .mockResolvedValueOnce(
+        jwksResponse([await exportPublicJwk(unrelatedKeyPair)]),
+      )
+      .mockResolvedValueOnce(jwksResponse([pinningPublicJwk]));
+    vitest.stubGlobal("fetch", fetchMock);
+
+    await expectPostMessage(
+      { type: "xendit-iframe-ready", ecdhPublicKey: expect.any(String) },
+      async () => {
+        await main();
+      },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ cache: "default" });
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({ cache: "reload" });
+  });
+
+  it("should fail after the refreshed key set also does not verify", async () => {
+    const unrelatedKeyPair = await generatePinningKeyPair();
+    const unrelatedPublicJwk = await exportPublicJwk(unrelatedKeyPair);
+    const fetchMock = vitest
+      .fn()
+      .mockResolvedValueOnce(jwksResponse([unrelatedPublicJwk]))
+      .mockResolvedValueOnce(jwksResponse([unrelatedPublicJwk]));
+    vitest.stubGlobal("fetch", fetchMock);
+
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("should not fall back to embedded build-time keys", async () => {
+    const unrelatedKeyPair = await generatePinningKeyPair();
+    const fetchMock = vitest
+      .fn()
+      .mockResolvedValue(
+        jwksResponse([await exportPublicJwk(unrelatedKeyPair)]),
+      );
+    vitest.stubGlobal("fetch", fetchMock);
+
+    await expectPostMessage({ type: "xendit-iframe-failed-init" }, async () => {
+      await main().catch(fatalError);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("secure iframe ui - main - null origin", () => {
   it("should fail if embedder origin is null", async () => {
     await setQueryParams({ embedder: "null" });
@@ -211,6 +334,36 @@ describe("secure iframe ui - fatalError", () => {
     expect(screen.getByText("✕ test error")).toBeInTheDocument();
   });
 });
+
+function jwksResponse(keys: unknown[], init?: { status?: number }) {
+  return new Response(JSON.stringify({ keys }), {
+    status: init?.status ?? 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+function setJwksResponse(keys: unknown[], init?: { status?: number }) {
+  const fetchMock = vitest
+    .fn()
+    .mockImplementation(() => Promise.resolve(jwksResponse(keys, init)));
+  vitest.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function setJwksRawResponse(body: string) {
+  const fetchMock = vitest.fn().mockImplementation(() =>
+    Promise.resolve(
+      new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    ),
+  );
+  vitest.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
 
 /**
  * Change the query string.

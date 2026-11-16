@@ -19,11 +19,9 @@ import {
   createInputElement,
   createWrapperDiv,
 } from "./ui";
+import { loadPinningKeys } from "./jwks";
 import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
 import { validate } from "./validation";
-
-// @ts-expect-error This macro is replaced with a JSON array by the build script
-const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
 function insecurePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, "*");
@@ -59,7 +57,8 @@ function getQueryInputs() {
 export async function main() {
   document.body.style.margin = "0";
 
-  assert(masterPinningKeys.length > 0, "missing pinning keys");
+  const jwksUrl = process.env.XENDIT_COMPONENTS_JWKS_URL;
+  assert(jwksUrl, "missing jwks url");
   assert(origin !== "null", "null origin");
   assert(window.crypto?.subtle, "crypto unsupported");
 
@@ -76,12 +75,18 @@ export async function main() {
     queryInputs.serverPublicKeySignatureBase64,
   );
 
-  // pin public key
-  await pin(
-    masterPinningKeys,
-    serverPublicKeySignatureBytes,
-    serverPublicKeyBytes,
-  );
+  // pin public key, retrying once with a fresh JWKS after a verification failure
+  const pinningKeys = await loadPinningKeys(jwksUrl);
+  try {
+    await pin(pinningKeys, serverPublicKeySignatureBytes, serverPublicKeyBytes);
+  } catch {
+    const refreshedPinningKeys = await loadPinningKeys(jwksUrl, "refresh");
+    await pin(
+      refreshedPinningKeys,
+      serverPublicKeySignatureBytes,
+      serverPublicKeyBytes,
+    );
+  }
 
   // create keys
   const ownKeyPair = await generateOwnKeys();

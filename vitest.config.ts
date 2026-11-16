@@ -2,23 +2,11 @@ import { defineConfig } from "vitest/config";
 import preact from "@preact/preset-vite";
 import path from "path";
 import { readFileSync } from "fs";
+import { ENVIRONMENT_JWKS_URLS } from "./secure-iframe/build-config";
 
 const packageJson = JSON.parse(
   readFileSync(path.join(import.meta.dirname, "./package.json"), "utf-8"),
 ) as typeof import("./package.json");
-
-const pinningKeys: JsonWebKey[] = JSON.parse(
-  readFileSync(
-    path.join(import.meta.dirname, "./test-pinning-keys.json"),
-    "utf-8",
-  ),
-);
-
-const PINNING_KEYS_MACRO = pinningKeys.map((key) => ({
-  ...key,
-  d: undefined,
-}));
-const PRIVATE_PINNING_KEY_MACRO = pinningKeys[0];
 
 export default defineConfig({
   plugins: [preact()],
@@ -29,8 +17,9 @@ export default defineConfig({
     "process.env.XENDIT_COMPONENTS_VERSION": JSON.stringify(
       `v${packageJson.version}`,
     ),
-    PINNING_KEYS_MACRO,
-    PRIVATE_PINNING_KEY_MACRO,
+    "process.env.XENDIT_COMPONENTS_JWKS_URL": JSON.stringify(
+      ENVIRONMENT_JWKS_URLS.test,
+    ),
   },
   test: {
     globals: true,

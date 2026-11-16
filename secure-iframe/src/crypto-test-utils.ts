@@ -3,17 +3,19 @@ import { base64ToArrayBuffer } from "./utils";
 
 /* v8 ignore start */
 
-export async function importPinningKeyForSigning(pinningKey: JsonWebKey) {
-  return await crypto.subtle.importKey(
-    "jwk",
-    pinningKey,
+export async function generatePinningKeyPair() {
+  return await crypto.subtle.generateKey(
     {
       name: "ECDSA",
       namedCurve: "P-384",
     },
     true,
-    ["sign"],
+    ["sign", "verify"],
   );
+}
+
+export async function exportPublicJwk(keyPair: CryptoKeyPair) {
+  return await crypto.subtle.exportKey("jwk", keyPair.publicKey);
 }
 
 export async function exportPublicKey(keyPair: CryptoKeyPair) {

@@ -6,7 +6,7 @@ import {
   hashText,
   pin,
 } from "./crypto";
-import testPinningKeys from "../../test-pinning-keys.json";
+import { exportPublicJwk, generatePinningKeyPair } from "./crypto-test-utils";
 
 function bufferToHex(buffer: ArrayBuffer) {
   return [...new Uint8Array(buffer)]
@@ -87,38 +87,22 @@ describe("secure iframe crypto - deriveSharedKey", () => {
 describe("secure iframe crypto - pin", () => {
   const signee = crypto.getRandomValues(new Uint8Array(64)).buffer;
   it("should not throw if signature does match ", async () => {
-    const signingKey = await crypto.subtle.importKey(
-      "jwk",
-      testPinningKeys[0],
-      {
-        name: "ECDSA",
-        namedCurve: "P-384",
-      },
-      false,
-      ["sign"],
-    );
+    const pinningKeyPair = await generatePinningKeyPair();
     const signature = await crypto.subtle.sign(
       {
         name: "ECDSA",
         hash: "SHA-256",
       },
-      signingKey,
+      pinningKeyPair.privateKey,
       signee,
     );
-    await pin(
-      testPinningKeys.map((k) => {
-        return { ...k, d: undefined };
-      }),
-      signature,
-      signee,
-    );
+    await pin([await exportPublicJwk(pinningKeyPair)], signature, signee);
   });
   it("should throw if signature doesn't match ", async () => {
+    const pinningKeyPair = await generatePinningKeyPair();
     await expect(async () => {
       await pin(
-        testPinningKeys.map((k) => {
-          return { ...k, d: undefined };
-        }),
+        [await exportPublicJwk(pinningKeyPair)],
         crypto.getRandomValues(new Uint8Array(96)).buffer,
         signee,
       );

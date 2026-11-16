@@ -14,7 +14,7 @@
       docker_image_name: "library/node"
       docker_image_tag: "22"
       execute_commands:
-        - export XENDIT_COMPONENTS_PINNING_KEYS="$IFRAME_PINNING_KEYS"
+        - export XENDIT_COMPONENTS_JWKS_URL="https://checkout-ui-gateway.xendit.co/.well-known/jwks.json"
         - export XENDIT_COMPONENTS_SECURE_IFRAME_URL="https://assets.xendit.co/components/secure-iframe-$BUDDY_EXECUTION_TAG.html"
         - export XENDIT_COMPONENTS_VERSION="$BUDDY_EXECUTION_TAG"
         - "npm install -g pnpm"
@@ -49,7 +49,9 @@
       input_type: "BUILD_ARTIFACTS"
       execute_commands:
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
-        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets/prod-live/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --acl private"
+        - "export DYNAMIC_CSP_CONNECT_SRC=$(cat secure-iframe/dist/csp-connect-src.txt)"
+        - "export JWKS_URL=$(cat secure-iframe/dist/jwks-url.txt)"
+        - 'aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets/prod-live/components/ --metadata "csp-hash=$DYNAMIC_CSP_HASH,csp-connect-src=$DYNAMIC_CSP_CONNECT_SRC,jwks-url=$JWKS_URL" --acl private'
       integration_hash: "5e85761fc5f225000f97dd99"
       deletion_disabled: true
     - action: "Upload landing iframe file to Amazon S3"

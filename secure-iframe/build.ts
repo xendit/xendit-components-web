@@ -13,71 +13,73 @@ import { stripTypeScriptTypes } from "module";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
+import { fileURLToPath } from "node:url";
+import {
+  assertJwksUrl,
+  buildConnectSrcDirective,
+  DEFAULT_LOCAL_JWKS_URL,
+} from "./build-config.ts";
 
 const PORT = 4444;
-const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
 
 // environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
-const envs = {
-  NODE_ENV: "production",
-};
+function buildEnvs(jwksUrl: string) {
+  return {
+    NODE_ENV: "production",
+    XENDIT_COMPONENTS_JWKS_URL: jwksUrl,
+  };
+}
+
+function resolveJwksUrl() {
+  const configured = process.env.XENDIT_COMPONENTS_JWKS_URL;
+  if (configured) {
+    return assertJwksUrl(configured);
+  }
+  if (process.env.CI) {
+    throw new Error("XENDIT_COMPONENTS_JWKS_URL is missing");
+  }
+  return assertJwksUrl(DEFAULT_LOCAL_JWKS_URL);
+}
 
 let lastSeenBuildOutput: string | null = null;
-async function generateIframeHtml(js: string) {
-  let pinningKeysRaw: JsonWebKey[];
+let devSigningJwk: JsonWebKey | null = null;
 
-  if (XENDIT_COMPONENTS_PINNING_KEYS) {
-    // CI - use provided keys for all environments
-    pinningKeysRaw = JSON.parse(
-      Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8"),
+async function getDevSigningJwk() {
+  if (!devSigningJwk) {
+    const keyPair = await crypto.subtle.generateKey(
+      {
+        name: "ECDSA",
+        namedCurve: "P-384",
+      },
+      true,
+      ["sign", "verify"],
     );
-    // double check these are not private keys
-    for (const key of pinningKeysRaw) {
-      if (key.d) {
-        throw new Error(
-          "Private keys are not allowed in XENDIT_COMPONENTS_PINNING_KEYS",
-        );
-      }
-    }
-  } else {
-    // Development - use test keys
-    pinningKeysRaw = JSON.parse(
-      await fs.readFile(
-        path.join(import.meta.dirname, "../test-pinning-keys.json"),
-        "utf-8",
-      ),
-    );
+    devSigningJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
   }
+  return devSigningJwk;
+}
 
-  // Parse and process pinning keys
-  const pinningKeys = pinningKeysRaw.map((key: JsonWebKey) => {
-    // convert private keys to public keys (keep only public key parts)
-    return {
-      kty: key.kty,
-      crv: key.crv,
-      x: key.x,
-      y: key.y,
-    };
-  });
-  const jsWithPinningKeys = js.replace(
-    /PINNING_KEYS_MACRO/,
-    JSON.stringify(pinningKeys),
-  );
-  if (js === jsWithPinningKeys) {
-    throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
-  }
+function publicJwk(key: JsonWebKey): JsonWebKey {
+  return {
+    kty: key.kty,
+    crv: key.crv,
+    x: key.x,
+    y: key.y,
+  };
+}
 
-  // Calculate hash of the jsWithPinningKeys for CSP
-  const jsHash = crypto
-    .createHash("sha256")
-    .update(jsWithPinningKeys)
-    .digest("base64");
+export function generateIframeHtml(js: string, jwksUrl: string) {
+  const connectSrcDirective = buildConnectSrcDirective(jwksUrl);
+
+  // Calculate hash of the js for CSP
+  const jsHash = crypto.createHash("sha256").update(js).digest("base64");
 
   // generate html
   const html = `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8"/>
+    <meta http-equiv="Content-Security-Policy" content="${connectSrcDirective}"/>
     <title>Xendit Secure Iframe</title>
     <style>
       :root { --xendit-iframe-placeholder-color: #7d7d7d; }
@@ -85,15 +87,18 @@ async function generateIframeHtml(js: string) {
     </style>
   </head>
   <body>
-    <script type="application/javascript">${jsWithPinningKeys}</script>
+    <script type="application/javascript">${js}</script>
   </body>
 </html>
 `;
 
-  return { html, jsHash };
+  return { html, jsHash, connectSrcDirective };
 }
 
-function rollupConfig(production: boolean): rollup.RollupOptions {
+function rollupConfig(
+  production: boolean,
+  jwksUrl: string,
+): rollup.RollupOptions {
   return {
     input: path.join(import.meta.dirname, "src/entry.ts"),
     output: {
@@ -113,7 +118,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       replace({
         preventAssignment: true,
         ...Object.fromEntries(
-          Object.entries(envs).map(([key, value]) => [
+          Object.entries(buildEnvs(jwksUrl)).map(([key, value]) => [
             `process.env.${key}`,
             JSON.stringify(value),
           ]),
@@ -131,7 +136,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
   };
 }
 
-async function completeRollupBuild(build: rollup.RollupBuild) {
+async function completeRollupBuild(build: rollup.RollupBuild, jwksUrl: string) {
   const bundleSource = await build.generate({});
   if (bundleSource.output.length !== 1) {
     throw new Error(
@@ -139,13 +144,13 @@ async function completeRollupBuild(build: rollup.RollupBuild) {
     );
   }
   const code = bundleSource.output[0].code;
-  return await generateIframeHtml(code);
+  return await generateIframeHtml(code, jwksUrl);
 }
 
-async function rollupProductionBuild() {
-  const options = rollupConfig(true);
+async function rollupProductionBuild(jwksUrl: string) {
+  const options = rollupConfig(true, jwksUrl);
   const build = await rollup.rollup(options);
-  const result = await completeRollupBuild(build);
+  const result = await completeRollupBuild(build, jwksUrl);
 
   mkdirSync(path.join(import.meta.dirname, "dist"), { recursive: true });
   await fs.writeFile(
@@ -158,17 +163,27 @@ async function rollupProductionBuild() {
     path.join(import.meta.dirname, "dist/js-hash.txt"),
     result.jsHash,
   );
+
+  // Write CSP metadata for the response-header/CDN configuration owner
+  await fs.writeFile(
+    path.join(import.meta.dirname, "dist/csp-connect-src.txt"),
+    result.connectSrcDirective,
+  );
+  await fs.writeFile(
+    path.join(import.meta.dirname, "dist/jwks-url.txt"),
+    assertJwksUrl(jwksUrl),
+  );
 }
 
-async function rollupWatch() {
-  const options = rollupConfig(false);
+async function rollupWatch(jwksUrl: string) {
+  const options = rollupConfig(false, jwksUrl);
   const watcher = rollup.watch(options);
 
   watcher.on("event", async (event) => {
     switch (event.code) {
       case "BUNDLE_END": {
         if (event.result) {
-          const result = await completeRollupBuild(event.result);
+          const result = await completeRollupBuild(event.result, jwksUrl);
           lastSeenBuildOutput = result.html;
           await event.result.close();
         }
@@ -209,12 +224,6 @@ async function handleDevServerRequest(
 ) {
   const pathname = new URL(`http://example.com${req.url}`).pathname;
 
-  async function serveFileFromDisk(filename: string, mime: string) {
-    const file = await fs.readFile(path.join(import.meta.dirname, filename));
-    res.writeHead(200, { "Content-Type": mime });
-    res.end(file);
-  }
-
   switch (`${req.method} ${pathname}`) {
     case "GET /": {
       res
@@ -234,11 +243,25 @@ async function handleDevServerRequest(
         .end(lastSeenBuildOutput);
       return;
     }
+    case "GET /jwks.json": {
+      const signingJwk = await getDevSigningJwk();
+      res
+        .writeHead(200, {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=300",
+        })
+        .end(JSON.stringify({ keys: [publicJwk(signingJwk)] }));
+      return;
+    }
     case "GET /pinning-keys.json": {
-      return await serveFileFromDisk(
-        "../test-pinning-keys.json",
-        "application/json",
-      );
+      const signingJwk = await getDevSigningJwk();
+      res
+        .writeHead(200, {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        })
+        .end(JSON.stringify([signingJwk]));
+      return;
     }
     case "GET /favicon.ico": {
       res.writeHead(201, {}).end();
@@ -271,27 +294,39 @@ async function startDevServer() {
   });
 }
 
-switch (process.argv[2]) {
-  case "dev": {
-    await Promise.all([rollupWatch(), startDevServer()]).catch((err) => {
-      console.error("Error in dev mode:", err);
+const rootBuildScript = path.resolve(import.meta.dirname, "../build.ts");
+const isCliEntrypoint =
+  process.argv[1] !== undefined &&
+  (path.resolve(process.argv[1]) === fileURLToPath(import.meta.url) ||
+    path.resolve(process.argv[1]) === rootBuildScript);
+
+if (isCliEntrypoint) {
+  const jwksUrl = resolveJwksUrl();
+
+  switch (process.argv[2]) {
+    case "dev": {
+      await Promise.all([rollupWatch(jwksUrl), startDevServer()]).catch(
+        (err) => {
+          console.error("Error in dev mode:", err);
+          process.exit(1);
+        },
+      );
+      break;
+    }
+    case "prod": {
+      await rollupProductionBuild(jwksUrl).catch((err) => {
+        console.error("Error in production build:", err);
+        process.exit(1);
+      });
+      break;
+    }
+    default: {
+      console.error(
+        `Usage: ${process.argv[1]} dev|prod\n` +
+          "  dev - start development server (rebuilds when you change any file)\n" +
+          "  prod - build production version",
+      );
       process.exit(1);
-    });
-    break;
-  }
-  case "prod": {
-    await rollupProductionBuild().catch((err) => {
-      console.error("Error in production build:", err);
-      process.exit(1);
-    });
-    break;
-  }
-  default: {
-    console.error(
-      `Usage: ${process.argv[1]} dev|prod\n` +
-        "  dev - start development server (rebuilds when you change any file)\n" +
-        "  prod - build production version",
-    );
-    process.exit(1);
+    }
   }
 }
