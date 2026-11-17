@@ -610,7 +610,7 @@ export function makeMockGooglepayConfig(): BffDigitalWallets {
             processingSpecification: {
               // change this to TOUCH_N_GO to test with gpay test mode
               // but the countryCode and currency need to be changed to MY and MRY
-              type: "TOUCH_N_GO",
+              type: "DANA",
               parameters: {
                 ewalletMerchantAccount: "MOCK_MERCHANT_001",
                 ewalletMerchantName: "MockMerchant",
