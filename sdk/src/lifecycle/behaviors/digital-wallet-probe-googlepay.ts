@@ -214,6 +214,7 @@ async function googlepayProbeAsync(
   try {
     // we don't care about the response body
     await paymentsClient.loadPaymentData(googlePayPayload);
+    getTelemetry(sdk).append(TelemetryEvents.DigitalWalletClose(true));
   } catch (err) {
     const statusCode =
       ((err as { statusCode?: string }).statusCode as
@@ -223,7 +224,6 @@ async function googlepayProbeAsync(
     getTelemetry(sdk).append(
       TelemetryEvents.DigitalWalletClose(false, statusCode),
     );
-    getTelemetry(sdk).popScope(telemetryScope);
 
     // need to be VERY CAREFUL here or there will be doublepayment
     // We don't know if the request was sent or not, so try to cancel.
@@ -239,10 +239,9 @@ async function googlepayProbeAsync(
     }
 
     return { type: "error", statusCode };
+  } finally {
+    getTelemetry(sdk).popScope(telemetryScope);
   }
-
-  getTelemetry(sdk).append(TelemetryEvents.DigitalWalletClose(true));
-  getTelemetry(sdk).popScope(telemetryScope);
 
   return { type: "success" };
 }

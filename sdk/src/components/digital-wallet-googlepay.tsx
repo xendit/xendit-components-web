@@ -377,7 +377,6 @@ async function googlepayAsync(
     const paymentData = await paymentsClient.loadPaymentData(googlepayPayload);
 
     getTelemetry(sdk).append(TelemetryEvents.DigitalWalletClose(true));
-    getTelemetry(sdk).popScope(telemetryScope);
 
     return { type: "success", paymentData };
   } catch (err) {
@@ -389,7 +388,6 @@ async function googlepayAsync(
     getTelemetry(sdk).append(
       TelemetryEvents.DigitalWalletClose(false, statusCode),
     );
-    getTelemetry(sdk).popScope(telemetryScope);
 
     // cancel the PRs created by googlepayGetConfigWrapper
     // We don't know if the request was sent or not, so try to cancel.
@@ -405,6 +403,8 @@ async function googlepayAsync(
     }
 
     return { type: "error", statusCode };
+  } finally {
+    getTelemetry(sdk).popScope(telemetryScope);
   }
 }
 
