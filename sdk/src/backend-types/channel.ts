@@ -52,6 +52,9 @@ export type BffChannel = {
   /** If true, user must provide customer details if not provided */
   requires_customer_details?: boolean;
 
+  /** True if this channel represents a saved payment token */
+  from_saved_payment_token?: boolean;
+
   /** Special properties for cards */
   card?: {
     brands: {
