@@ -97,11 +97,18 @@ export interface XenditSession {
      */
     immediatePayment?: boolean;
     /**
+     * When true, the subscription is activated by making an initial payment (PAY_AND_SAVE) rather than by saving a payment method alone.
+     * The resulting payment token is used for subsequent subscription charges.
+     */
+    requirePaymentToActivate?: boolean;
+    /**
      * The subscription schedule. This includes the anchor date, which determines when the subscription payments will be made, as well as the interval and count for both the regular payments and the retries.
      */
     schedule: {
       /**
-       * The anchor date for the subscription. This determines when the subscription payments will be made.
+       * The date on which subscription payments are anchored. When present, payment cycles align to this date.
+       * Absent when the subscription uses an initial payment to activate (`requirePaymentToActivate: true`),
+       * in which case the anchor date is determined after the initial payment succeeds.
        */
       anchorDate?: Date;
       /**
