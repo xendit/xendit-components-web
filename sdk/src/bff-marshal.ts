@@ -51,6 +51,8 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
     subscription: bffSession.subscription
       ? {
           immediatePayment: bffSession.subscription.immediate_payment,
+          requirePaymentToActivate:
+            bffSession.subscription.require_payment_to_activate,
           schedule: {
             anchorDate: bffSession.subscription.schedule.anchor_date
               ? new Date(bffSession.subscription.schedule.anchor_date)
