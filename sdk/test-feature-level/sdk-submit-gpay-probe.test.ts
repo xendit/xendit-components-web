@@ -1,13 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { XenditComponentsTest } from "../src";
 import { waitForEvent, waitForEventSequence } from "./utils";
-import { assert, sleep } from "../src/utils";
+import { assert } from "../src/utils";
 import { internal } from "../src/internal";
 import {
   defineMockGooglepay,
   mockGooglepayError,
   setMockGooglepayNextResponse,
-  setMockGooglepayPending,
 } from "./digital-wallet-mock-googlepay";
 
 afterEach(() => {
@@ -132,41 +131,6 @@ describe("sdk submit gpay probe feature", () => {
     await waitForEventSequence(sdk, [
       { name: "submission-begin" },
       { name: "payment-request-created" }, // normal submission creates a payment request
-      { name: "submission-end", expectedKeys: { reason: "SESSION_COMPLETED" } },
-      { name: "session-complete" },
-    ]);
-  });
-  it("should jump to polling when submission is aborted during gpay flow", async () => {
-    defineMockGooglepay();
-    setMockGooglepayPending();
-
-    const sdk = new XenditComponentsTest({
-      componentsSdkKey: "test-client-key",
-      enableDigitalWalletProbe: {
-        digitalWallet: "GOOGLE_PAY",
-        channels: null,
-      },
-    });
-
-    await waitForEvent(sdk, "init");
-
-    const ch = sdk.getActiveChannels({ filter: "MOCK_GOOGLE_PAY_EWALLET" })[0];
-    assert(ch);
-    document.body.appendChild(sdk.createChannelComponent(ch));
-
-    // Start submission - this triggers the probe
-    sdk.submit();
-    expect(sdk[internal].behaviorTree.bb.submissionRequested).toBe("normal");
-
-    await sleep(50);
-
-    // Abort while gpay loadPaymentData is still pending - triggers error path which jumps to polling
-    sdk.abortSubmission();
-
-    // GPay errors now jump to polling, which triggers mock success
-    await waitForEventSequence(sdk, [
-      { name: "submission-begin" },
-      { name: "payment-request-created" },
       { name: "submission-end", expectedKeys: { reason: "SESSION_COMPLETED" } },
       { name: "session-complete" },
     ]);

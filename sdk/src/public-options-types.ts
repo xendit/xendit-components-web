@@ -39,6 +39,8 @@ export interface XenditSdkOptions {
    *
    * If the user doesn't have a linked account or the user cancels, the submission proceeds as normal.
    *
+   * This happens before the submission-begin event.
+   *
    * Default `false`.
    */
   enableDigitalWalletProbe?: {
