@@ -1,3 +1,11 @@
+# 0.0.43
+
+### Notable
+
+Expose requirePaymentToActivate field on XenditSession.subscription
+
+Auto-open saved payment method
+
 # 0.0.42
 
 ### Notable
