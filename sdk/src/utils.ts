@@ -70,28 +70,28 @@ export function isAbortError(error: unknown): error is AbortError {
  */
 export function cancellableSleep(
   ms: number,
-  signal: AbortSignal,
+  signal?: AbortSignal,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     function onAbort() {
-      signal.removeEventListener("abort", onAbort);
+      signal?.removeEventListener("abort", onAbort);
       clearTimeout(timeoutId);
       reject(new AbortError());
     }
 
     const timeoutId = setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
+      signal?.removeEventListener("abort", onAbort);
       resolve();
     }, ms * SLEEP_MULTIPLIER);
 
     // already aborted
-    if (signal.aborted) {
+    if (signal?.aborted) {
       onAbort();
       return;
     }
 
     // abort on signal
-    signal.addEventListener("abort", onAbort);
+    signal?.addEventListener("abort", onAbort);
   });
 }
 

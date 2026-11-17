@@ -1510,30 +1510,7 @@ export function makeTestBffData(): BffResponse {
               processingSpecification: {
                 // change this to TOUCH_N_GO to test with gpay test mode
                 // but the countryCode and currency need to be changed to MY and MRY
-                type: "DANA",
-                parameters: {
-                  ewalletMerchantAccount: "MOCK_MERCHANT_001",
-                  ewalletMerchantName: "MockMerchant",
-                  pspCallbackUrl:
-                    "https://mock.xendit.co/callbacks/payment_callbacks",
-                  pspOrderExpiration: "2099-01-01T00:00:00+08:00",
-                  pspOrderMcc: "MOCK_PRODUCT_CODE",
-                  pspOrderTimestamp: "2027-01-01T00:00:00+08:00",
-                  pspTransactionReference: "xpr_dacjgthm0dec738i2atg",
-                },
-              },
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any,
-          },
-        ],
-        mock_ewallet_allowed_payment_methods: [
-          {
-            channel_code: "MOCK_GOOGLE_PAY_EWALLET",
-            payment_request_id: `pr-${randomHexString(32)}`,
-            payment_method_specification: {
-              type: "EWALLET",
-              processingSpecification: {
-                type: "DANA",
+                type: "TOUCH_N_GO",
                 parameters: {
                   ewalletMerchantAccount: "MOCK_MERCHANT_001",
                   ewalletMerchantName: "MockMerchant",

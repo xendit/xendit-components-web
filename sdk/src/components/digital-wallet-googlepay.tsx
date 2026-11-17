@@ -9,11 +9,24 @@ import {
 } from "./session-provider";
 import { ChannelProperties } from "../backend-types/channel";
 import { XenditPaymentChannel } from "../public-data-types";
-import { assert, satisfiesMinMax } from "../utils";
+import {
+  assert,
+  cancellableSleep,
+  MOCK_NETWORK_DELAY_MS,
+  satisfiesMinMax,
+} from "../utils";
 import { DigitalWalletOptions } from "../public-options-types";
-import { getTelemetry, SessionTelemetryScope } from "../telemetry";
+import { getTelemetry } from "../telemetry";
 import { TelemetryEvents } from "../telemetry-events";
 import { TFunction } from "../localization";
+import { XenditComponents } from "../public-sdk";
+import { BffDigitalWallets } from "../backend-types/digital-wallets";
+import { BffPollResponse } from "../backend-types/common";
+import { googlepayCancel, googlepayGetConfig } from "../api";
+import { makeMockGooglepayConfig } from "../data/test-data-modifiers";
+import { internal } from "../internal";
+import { BffSession } from "../backend-types/session";
+import { BffBusiness } from "../backend-types/business";
 
 type Props = {
   options?: DigitalWalletOptions<"GOOGLE_PAY">;
@@ -40,7 +53,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     null,
   );
 
-  const googlePayChannels = useMemo(() => {
+  const allowedChannelCodes = useMemo(() => {
     return digitalWalletsGooglePay.allowed_payment_methods
       .filter((gpayMethod) => {
         const ch = channels.find(
@@ -53,40 +66,11 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
         }
         return satisfiesMinMax(session, ch);
       })
-      .map((obj) => obj.payment_method_specification);
+      .map((obj) => obj.channel_code);
 
     // assume the session min/max and channels list won't change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [digitalWalletsGooglePay.allowed_payment_methods]);
-
-  const googlePayConfig: google.payments.api.PaymentDataRequest = useMemo(
-    () => ({
-      apiVersion: 2,
-      apiVersionMinor: 0,
-      allowedPaymentMethods: googlePayChannels,
-      emailRequired: true,
-      merchantInfo: {
-        merchantId: digitalWalletsGooglePay.merchant_id,
-        merchantName: business.name ?? "",
-      },
-      transactionInfo: {
-        transactionId: session.payment_session_id,
-        totalPriceStatus: "FINAL",
-        totalPrice: String(session.amount),
-        currencyCode: session.currency,
-        countryCode: session.country,
-      },
-    }),
-    [
-      business.name,
-      digitalWalletsGooglePay.merchant_id,
-      googlePayChannels,
-      session.amount,
-      session.country,
-      session.currency,
-      session.payment_session_id,
-    ],
-  );
 
   const buttonConfigWithDefaults: Omit<
     google.payments.api.ButtonOptions,
@@ -117,9 +101,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     });
   }, [sdk]);
 
-  const telemetryScope = useRef<SessionTelemetryScope | null>(null);
-
-  const onClick = useCallback(() => {
+  const onClick = useCallback(async () => {
     assert(paymentsClient.current);
 
     // return the channel corresponding to the selected payment method in google pay
@@ -141,57 +123,29 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       );
     }
 
-    // telemetry for begin digital wallet flow
-    telemetryScope.current = getTelemetry(sdk).appendAndPushScope(
-      TelemetryEvents.DigitalWalletBegin(true, "GOOGLE_PAY"),
-    );
+    let googlepayResult: GooglepayResult;
+    try {
+      // begin googlepay request
+      googlepayResult = await googlepayAsync(
+        sdk,
+        session,
+        business,
+        paymentsClient.current,
+        digitalWalletsGooglePay,
+        allowedChannelCodes,
+      );
+    } catch {
+      // error from xendit api not gpay
+      googlepayResult = { type: "error", statusCode: "UNKNOWN_ERROR" };
+    }
 
-    // begin googlepay request
-    paymentsClient.current
-      .loadPaymentData(googlePayConfig)
-      .then(function (paymentData) {
-        const targetChannel = findTargetChannel(paymentData);
-        assert(targetChannel);
+    switch (googlepayResult.type) {
+      case "canceled":
+        // do nothing
+        return;
 
-        let channelProperties: ChannelProperties = {};
-        const useFakeSubmissionFlow = targetChannel.channelCode !== "CARDS";
-        if (useFakeSubmissionFlow) {
-          // for cards, pass the whole paymentData to backend in channel properties
-          channelProperties = {
-            google_pay: JSON.stringify(paymentData),
-          };
-        }
-
-        // telemetry for googlepay end
-        getTelemetry(sdk).append(TelemetryEvents.DigitalWalletClose(true));
-
-        // also clear telemetry scope (before submitting - otherwise event order is weird)
-        if (telemetryScope.current) {
-          getTelemetry(sdk).popScope(telemetryScope.current);
-          telemetryScope.current = null;
-        }
-
-        sdk.submitDigitalWallet(
-          "GOOGLE_PAY",
-          targetChannel,
-          channelProperties,
-          true, // always try to save for googlepay
-          null,
-          useFakeSubmissionFlow,
-        );
-      })
-      .catch(function (err) {
-        const statusCode =
-          (err.statusCode as GooglePayErrorCode & "CANCELED") ??
-          "UNKNOWN_ERROR";
-
-        if (statusCode === "CANCELED") {
-          // telemetry for cancel
-          getTelemetry(sdk).append(
-            TelemetryEvents.DigitalWalletClose(false, statusCode),
-          );
-          return;
-        }
+      case "error": {
+        const statusCode = googlepayResult.statusCode;
 
         const submissionError = createGooglePaySubmissionError(statusCode, t);
 
@@ -204,11 +158,6 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           firstGooglePayChannel.channel_code,
         );
 
-        // telemetry for googlepay error
-        getTelemetry(sdk).append(
-          TelemetryEvents.DigitalWalletClose(false, statusCode),
-        );
-
         // submit and force an error
         sdk.submitDigitalWallet(
           "GOOGLE_PAY",
@@ -218,15 +167,41 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           submissionError, // forced error
           false, // regular flow
         );
-      })
-      .finally(() => {
-        // clear telemetry scope
-        if (telemetryScope.current) {
-          getTelemetry(sdk).popScope(telemetryScope.current);
-          telemetryScope.current = null;
+        return;
+      }
+
+      case "success": {
+        let targetChannel: XenditPaymentChannel | null;
+        if (googlepayResult.paymentData) {
+          // this is the channel the user used
+          targetChannel = findTargetChannel(googlepayResult.paymentData);
+        } else {
+          // something went wrong, we have to submit because there might have been a payment
+          // but we don't know the channel
+          targetChannel = null;
         }
-      });
-  }, [digitalWalletsGooglePay, googlePayConfig, sdk, t]);
+        assert(targetChannel);
+
+        let channelProperties: ChannelProperties = {};
+        const useFakeSubmissionFlow = targetChannel.channelCode !== "CARDS";
+        if (!useFakeSubmissionFlow) {
+          // for cards, pass the whole paymentData to backend in channel properties
+          channelProperties = {
+            google_pay: JSON.stringify(googlepayResult.paymentData),
+          };
+        }
+
+        sdk.submitDigitalWallet(
+          "GOOGLE_PAY",
+          targetChannel,
+          channelProperties,
+          true, // always try to save for googlepay
+          null,
+          useFakeSubmissionFlow,
+        );
+      }
+    }
+  }, [allowedChannelCodes, business, digitalWalletsGooglePay, sdk, session, t]);
 
   // call onready if the googlepay sdk is ready
   useLayoutEffect(() => {
@@ -236,7 +211,7 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
     if (didCallReady.current) {
       return;
     }
-    if (googlePayChannels.length === 0) {
+    if (allowedChannelCodes.length === 0) {
       return;
     }
 
@@ -244,7 +219,13 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
       .isReadyToPay({
         apiVersion: 2,
         apiVersionMinor: 0,
-        allowedPaymentMethods: googlePayChannels,
+        allowedPaymentMethods: digitalWalletsGooglePay.allowed_payment_methods
+          .filter((method) => {
+            return allowedChannelCodes.includes(method.channel_code);
+          })
+          .map((method) => {
+            return method.payment_method_specification;
+          }),
       })
       .then(function (response) {
         if (!response.result) {
@@ -261,27 +242,43 @@ export const DigitalWalletGooglepay: FunctionComponent<Props> = (props) => {
           err,
         );
       });
-  }, [googlePayChannels, onReady]);
+  }, [
+    allowedChannelCodes,
+    digitalWalletsGooglePay.allowed_payment_methods,
+    onReady,
+  ]);
 
   // create the button
   useLayoutEffect(() => {
     if (!paymentsClient.current) {
       return;
     }
-    if (googlePayChannels.length === 0) {
+    if (allowedChannelCodes.length === 0) {
       return;
     }
 
     const button = paymentsClient.current.createButton({
       ...buttonConfigWithDefaults,
       buttonLocale: session.locale,
-      allowedPaymentMethods: googlePayChannels,
+      allowedPaymentMethods: digitalWalletsGooglePay.allowed_payment_methods
+        .filter((method) => {
+          return allowedChannelCodes.includes(method.channel_code);
+        })
+        .map((method) => {
+          return method.payment_method_specification;
+        }),
       onClick,
     });
     if (containerRef.current) {
       containerRef.current.replaceChildren(button);
     }
-  }, [buttonConfigWithDefaults, googlePayChannels, onClick, session.locale]);
+  }, [
+    allowedChannelCodes,
+    buttonConfigWithDefaults,
+    digitalWalletsGooglePay.allowed_payment_methods,
+    onClick,
+    session.locale,
+  ]);
 
   return <div ref={containerRef}></div>;
 };
@@ -321,6 +318,96 @@ export function createGooglePaySubmissionError(
   };
 }
 
+type GooglepayResult =
+  | { type: "success"; paymentData: google.payments.api.PaymentData | null }
+  | { type: "canceled" }
+  | { type: "error"; statusCode: GooglePayErrorCode };
+
+async function googlepayAsync(
+  sdk: XenditComponents,
+  session: BffSession,
+  business: BffBusiness,
+  paymentsClient: google.payments.api.PaymentsClient,
+  googlePayDataFromInit: NonNullable<BffDigitalWallets["google_pay"]>,
+  allowedChannelCodes: string[],
+): Promise<GooglepayResult> {
+  let googlePayData = googlePayDataFromInit;
+
+  // if the config has a non-cards channel we need to populate it from the server
+  const hasNonCardsChannel = googlePayDataFromInit.allowed_payment_methods.find(
+    (method) => {
+      return method.payment_method_specification.type !== "CARD";
+    },
+  );
+  if (hasNonCardsChannel) {
+    const newDigitalWalletData = await googlepayGetConfigWrapper(sdk);
+    assert(newDigitalWalletData?.google_pay);
+    googlePayData = newDigitalWalletData.google_pay;
+  }
+
+  const googlepayPayload: google.payments.api.PaymentDataRequest = {
+    apiVersion: 2,
+    apiVersionMinor: 0,
+    allowedPaymentMethods: googlePayData.allowed_payment_methods
+      .filter((method) => {
+        return allowedChannelCodes.includes(method.channel_code);
+      })
+      .map((method) => {
+        return method.payment_method_specification;
+      }),
+    emailRequired: true,
+    merchantInfo: {
+      merchantId: googlePayData.merchant_id,
+      merchantName: business.name ?? "",
+    },
+    transactionInfo: {
+      transactionId: session.payment_session_id,
+      totalPriceStatus: "FINAL",
+      totalPrice: String(session.amount),
+      currencyCode: session.currency,
+      countryCode: session.country,
+    },
+  };
+
+  const telemetryScope = getTelemetry(sdk).appendAndPushScope(
+    TelemetryEvents.DigitalWalletBegin(true, "GOOGLE_PAY"),
+  );
+
+  try {
+    const paymentData = await paymentsClient.loadPaymentData(googlepayPayload);
+
+    getTelemetry(sdk).append(TelemetryEvents.DigitalWalletClose(true));
+    getTelemetry(sdk).popScope(telemetryScope);
+
+    return { type: "success", paymentData };
+  } catch (err) {
+    const statusCode =
+      ((err as { statusCode?: string }).statusCode as
+        | GooglePayErrorCode
+        | "CANCELED") ?? "UNKNOWN_ERROR";
+
+    getTelemetry(sdk).append(
+      TelemetryEvents.DigitalWalletClose(false, statusCode),
+    );
+    getTelemetry(sdk).popScope(telemetryScope);
+
+    // cancel the PRs created by googlepayGetConfigWrapper
+    // We don't know if the request was sent or not, so try to cancel.
+    // If the cancel endpoint returns a poll response, the payment succeeded or is pending.
+    const cancelResponse = await googlepayCancelWrapper(sdk);
+    if (cancelResponse) {
+      return { type: "success", paymentData: null };
+    }
+
+    // the user canceled the gpay sheet and also we successfully canceled the PRs, so we can fall back to the normal flow
+    if (statusCode === "CANCELED") {
+      return { type: "canceled" };
+    }
+
+    return { type: "error", statusCode };
+  }
+}
+
 export type GooglePayErrorCode =
   | "DEVELOPER_ERROR"
   | "BUYER_ACCOUNT_ERROR"
@@ -333,4 +420,38 @@ export function localeKeyForGooglePayError<
   U extends "title" | "message",
 >(errorCode: T, suffix: U) {
   return `google_pay_errors.${errorCode.toLowerCase() as Lowercase<T>}.${suffix}` as const;
+}
+
+export async function googlepayGetConfigWrapper(
+  sdk: XenditComponents,
+  abortSignal?: AbortSignal,
+): Promise<BffDigitalWallets> {
+  if (sdk.isMock()) {
+    await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortSignal);
+    return makeMockGooglepayConfig();
+  } else {
+    return await googlepayGetConfig(
+      sdk[internal].sdkKey,
+      undefined,
+      undefined,
+      abortSignal,
+    );
+  }
+}
+
+export async function googlepayCancelWrapper(
+  sdk: XenditComponents,
+  abortSignal?: AbortSignal,
+): Promise<BffPollResponse | undefined> {
+  if (sdk.isMock()) {
+    await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortSignal);
+    return undefined;
+  } else {
+    return await googlepayCancel(
+      sdk[internal].sdkKey,
+      undefined,
+      undefined,
+      abortSignal,
+    );
+  }
 }

@@ -4,6 +4,7 @@ import {
   MockActionTypeSingle,
 } from "../backend-types/channel";
 import { BffPollResponse } from "../backend-types/common";
+import { BffDigitalWallets } from "../backend-types/digital-wallets";
 import {
   BffAction,
   BffPaymentEntity,
@@ -574,5 +575,57 @@ export function makeMockPaymentOptions(
         code: undefined, // this item has no code (like TH installment channels)
       },
     ],
+  };
+}
+
+export function makeMockGooglepayConfig(): BffDigitalWallets {
+  return {
+    google_pay: {
+      merchant_id: "mock-googlepay-merchant-id",
+      allowed_payment_methods: [
+        {
+          channel_code: "CARDS",
+          payment_request_id: null,
+          payment_method_specification: {
+            type: "CARD",
+            parameters: {
+              billingAddressRequired: true,
+              allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+              allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"],
+            } satisfies google.payments.api.CardParameters,
+            tokenizationSpecification: {
+              type: "PAYMENT_GATEWAY",
+              parameters: {
+                gateway: "xendit",
+                gatewayMerchantId: "exampleGatewayMerchantId",
+              },
+            },
+          },
+        },
+        {
+          channel_code: "MOCK_GOOGLE_PAY_EWALLET",
+          payment_request_id: "pr-mock-payment-request-id",
+          payment_method_specification: {
+            type: "EWALLET",
+            processingSpecification: {
+              // change this to TOUCH_N_GO to test with gpay test mode
+              // but the countryCode and currency need to be changed to MY and MRY
+              type: "TOUCH_N_GO",
+              parameters: {
+                ewalletMerchantAccount: "MOCK_MERCHANT_001",
+                ewalletMerchantName: "MockMerchant",
+                pspCallbackUrl:
+                  "https://mock.xendit.co/callbacks/payment_callbacks",
+                pspOrderExpiration: "2099-01-01T00:00:00+08:00",
+                pspOrderMcc: "MOCK_PRODUCT_CODE",
+                pspOrderTimestamp: "2027-01-01T00:00:00+08:00",
+                pspTransactionReference: "xpr_dacjgthm0dec738i2atg",
+              },
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any,
+        },
+      ],
+    },
   };
 }
