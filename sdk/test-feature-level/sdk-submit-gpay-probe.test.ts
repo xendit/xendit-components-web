@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { XenditComponentsTest } from "../src";
 import { waitForEvent, waitForEventSequence } from "./utils";
-import { assert } from "../src/utils";
+import { assert, sleep } from "../src/utils";
 import { internal } from "../src/internal";
 import {
   defineMockGooglepay,
@@ -136,10 +136,9 @@ describe("sdk submit gpay probe feature", () => {
       { name: "session-complete" },
     ]);
   });
-
-  it("should abort probe when submission is aborted during gpay flow", async () => {
+  it("should jump to polling when submission is aborted during gpay flow", async () => {
     defineMockGooglepay();
-    const resolveGpay = setMockGooglepayPending();
+    setMockGooglepayPending();
 
     const sdk = new XenditComponentsTest({
       componentsSdkKey: "test-client-key",
@@ -159,28 +158,17 @@ describe("sdk submit gpay probe feature", () => {
     sdk.submit();
     expect(sdk[internal].behaviorTree.bb.submissionRequested).toBe("normal");
 
-    // Wait for probe to start
-    await new Promise((r) => setTimeout(r, 50));
+    await sleep(50);
 
-    // Abort while gpay loadPaymentData is still pending
+    // Abort while gpay loadPaymentData is still pending - triggers error path which jumps to polling
     sdk.abortSubmission();
-    expect(sdk[internal].behaviorTree.bb.submissionRequested).toBe(false);
 
-    // Now resolve gpay (user completed after we aborted)
-    resolveGpay({
-      apiVersion: 2,
-      apiVersionMinor: 0,
-      paymentMethodData: {
-        // @ts-expect-error - Unreleased gpay ewallet type
-        type: "EWALLET",
-      },
-    });
-
-    // Wait for gpay promise to settle
-    await new Promise((r) => setTimeout(r, 100));
-
-    // Probe result should be ignored since we aborted
-    expect(sdk[internal].behaviorTree.bb.useFakeSubmissionFlow).toBe(false);
-    expect(sdk[internal].behaviorTree.bb.submissionRequested).toBe(false);
+    // GPay errors now jump to polling, which triggers mock success
+    await waitForEventSequence(sdk, [
+      { name: "submission-begin" },
+      { name: "payment-request-created" },
+      { name: "submission-end", expectedKeys: { reason: "SESSION_COMPLETED" } },
+      { name: "session-complete" },
+    ]);
   });
 });

@@ -7,7 +7,10 @@ import {
   googlepayGetConfigWrapper,
 } from "../../components/digital-wallet-googlepay";
 import { internal } from "../../internal";
-import { InternalBehaviorTreeUpdateEvent } from "../../private-event-types";
+import {
+  InternalBehaviorTreeUpdateEvent,
+  InternalNeedsRerenderEvent,
+} from "../../private-event-types";
 import { XenditComponents } from "../../public-sdk";
 import { getTelemetry } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
@@ -86,6 +89,11 @@ export class DigitalWalletProbeGooglePayBehavior implements Behavior {
       this.abortController.signal,
     )
       .then((result) => {
+        if (this.abortController?.signal.aborted) {
+          // dont touch anything if we already aborted
+          return;
+        }
+
         switch (result.type) {
           case "success":
             this.goToFakeSubmissionFlow();
@@ -102,6 +110,11 @@ export class DigitalWalletProbeGooglePayBehavior implements Behavior {
         }
       })
       .catch(() => {
+        if (this.abortController?.signal.aborted) {
+          // dont touch anything if we already aborted
+          return;
+        }
+
         // can happen on network calls to xendit, but not on gpay errors
         this.bailOutThenError("UNKNOWN_ERROR");
       });
@@ -130,6 +143,7 @@ export class DigitalWalletProbeGooglePayBehavior implements Behavior {
 
   exit() {
     this.abortController?.abort();
+    this.bb.dispatchEvent(new InternalNeedsRerenderEvent());
   }
 }
 
