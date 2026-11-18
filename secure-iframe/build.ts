@@ -14,174 +14,61 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 
-const { XENDIT_COMPONENTS_JWK_URL, XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS } =
-  process.env;
 const PORT = 4444;
-const PINNING_KEYS_FETCH_ATTEMPTS = 3;
-const PINNING_KEYS_FETCH_TIMEOUT_MS = 10_000;
-const MAX_PINNING_KEYS = 100;
-const USE_TEST_PINNING_KEYS =
-  process.argv[2] === "dev" ||
-  (typeof XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "string" &&
-    XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "1");
+const DEFAULT_JWK_URL = "https://assets.xendit.co/components/jwk.json";
+const DEFAULT_LOCAL_JWK_URL = "https://localhost:4444/jwks.json";
 
 // environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
-const envs = {
-  NODE_ENV: "production",
-};
-
-let lastSeenBuildOutput: string | null = null;
-
-function validatePinningKeys(
-  value: unknown,
-  allowPrivateKeys = false,
-): JsonWebKey[] {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    !Array.isArray((value as { keys?: unknown }).keys)
-  ) {
-    throw new Error("Pinning keys response must contain a keys array");
+function resolveJwkUrl() {
+  const configuredUrl = process.env.XENDIT_COMPONENTS_JWK_URL;
+  if (!configuredUrl && process.argv[2] === "dev") {
+    return DEFAULT_LOCAL_JWK_URL;
   }
 
-  const keys = (value as { keys: unknown[] }).keys;
-  if (keys.length === 0 || keys.length > MAX_PINNING_KEYS) {
-    throw new Error(
-      `Pinning keys response must contain between 1 and ${MAX_PINNING_KEYS} keys`,
-    );
-  }
-
-  return keys.map((key, index) => {
-    if (typeof key !== "object" || key === null) {
-      throw new Error(`Pinning key at index ${index} is invalid`);
-    }
-
-    const jwk = key as JsonWebKey;
-    if (jwk.d && !allowPrivateKeys) {
-      throw new Error(`Private key found at pinning key index ${index}`);
-    }
-    if (
-      jwk.kty !== "EC" ||
-      jwk.crv !== "P-384" ||
-      typeof jwk.x !== "string" ||
-      typeof jwk.y !== "string"
-    ) {
-      throw new Error(
-        `Pinning key at index ${index} must be an EC P-384 public key`,
-      );
-    }
-
-    return jwk;
-  });
-}
-
-function validateXenditComponentsJwkUrl() {
-  let pinningKeysUrl: URL;
-  const pinningKeysResult = XENDIT_COMPONENTS_JWK_URL;
-
-  if (typeof pinningKeysResult !== "string") {
-    throw new Error(`Unidentified components jwk url: ${pinningKeysResult}`);
-  }
-
+  const jwkUrl = configuredUrl ?? DEFAULT_JWK_URL;
+  let url: URL;
   try {
-    pinningKeysUrl = new URL(pinningKeysResult);
+    url = new URL(jwkUrl);
   } catch {
-    throw new Error(`Invalid components jwk url: ${pinningKeysResult}`);
+    throw new Error(`Invalid components jwk url: ${jwkUrl}`);
   }
 
+  const isLocalUrl = url.hostname === "localhost";
   if (
-    pinningKeysUrl.protocol !== "https:" ||
-    pinningKeysUrl.hostname !== "assets.xendit.co"
+    (isLocalUrl && url.protocol !== "https:") ||
+    (!isLocalUrl &&
+      (url.protocol !== "https:" || url.hostname !== "assets.xendit.co"))
   ) {
     throw new Error(
       "Components jwk url must use HTTPS and the assets.xendit.co hostname",
     );
   }
 
-  return pinningKeysResult;
+  return jwkUrl;
 }
 
-async function fetchPinningKeys() {
-  let lastError: unknown;
-
-  const pinningKeysUrl = validateXenditComponentsJwkUrl();
-
-  for (let attempt = 1; attempt <= PINNING_KEYS_FETCH_ATTEMPTS; attempt++) {
-    try {
-      const response = await fetch(pinningKeysUrl, {
-        signal: AbortSignal.timeout(PINNING_KEYS_FETCH_TIMEOUT_MS),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      return validatePinningKeys(await response.json());
-    } catch (error) {
-      lastError = error;
-      if (attempt < PINNING_KEYS_FETCH_ATTEMPTS) {
-        await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt));
-      }
-    }
-  }
-
-  const message =
-    lastError instanceof Error ? lastError.message : String(lastError);
-  throw new Error(
-    `Failed to fetch pinning keys from ${pinningKeysUrl}: ${message}`,
-  );
+function buildEnvs(jwkUrl: string) {
+  return {
+    NODE_ENV: "production",
+    XENDIT_COMPONENTS_JWK_URL: jwkUrl,
+  };
 }
 
-async function resolvePinningKeys() {
-  if (USE_TEST_PINNING_KEYS) {
-    const testKeys = JSON.parse(
-      await fs.readFile(
-        path.join(import.meta.dirname, "../test-pinning-keys.json"),
-        "utf-8",
-      ),
-    );
-    return validatePinningKeys({ keys: testKeys }, true);
-  }
-
-  return await fetchPinningKeys();
-}
-
-function publicPinningKeys(keys: JsonWebKey[]) {
-  return keys
-    .map((key) => ({
-      kty: key.kty,
-      crv: key.crv,
-      x: key.x,
-      y: key.y,
-    }))
-    .sort((left, right) =>
-      `${left.x}:${left.y}`.localeCompare(`${right.x}:${right.y}`),
-    );
-}
+let lastSeenBuildOutput: string | null = null;
 
 async function generateIframeHtml(js: string) {
-  const pinningKeysRaw = await resolvePinningKeys();
+  const jwkUrl = resolveJwkUrl();
+  const connectSrcDirective = `connect-src ${jwkUrl}`;
 
-  // Parse and process pinning keys
-  const pinningKeys = publicPinningKeys(pinningKeysRaw);
-  const jsWithPinningKeys = js.replace(
-    /PINNING_KEYS_MACRO/,
-    JSON.stringify(pinningKeys),
-  );
-  if (js === jsWithPinningKeys) {
-    throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
-  }
-
-  // Calculate hash of the jsWithPinningKeys for CSP
-  const jsHash = crypto
-    .createHash("sha256")
-    .update(jsWithPinningKeys)
-    .digest("base64");
+  // Calculate hash of the unmodified JS. Keys are loaded at runtime.
+  const jsHash = crypto.createHash("sha256").update(js).digest("base64");
 
   // generate html
   const html = `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8"/>
+    <meta http-equiv="Content-Security-Policy" content="${connectSrcDirective}"/>
     <title>Xendit Secure Iframe</title>
     <style>
       :root { --xendit-iframe-placeholder-color: #7d7d7d; }
@@ -189,15 +76,17 @@ async function generateIframeHtml(js: string) {
     </style>
   </head>
   <body>
-    <script type="application/javascript">${jsWithPinningKeys}</script>
+    <script type="application/javascript">${js}</script>
   </body>
 </html>
 `;
 
-  return { html, jsHash, pinningKeys };
+  return { html, jsHash, connectSrcDirective };
 }
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
+  const jwkUrl = resolveJwkUrl();
+
   return {
     input: path.join(import.meta.dirname, "src/entry.ts"),
     output: {
@@ -217,7 +106,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       replace({
         preventAssignment: true,
         ...Object.fromEntries(
-          Object.entries(envs).map(([key, value]) => [
+          Object.entries(buildEnvs(jwkUrl)).map(([key, value]) => [
             `process.env.${key}`,
             JSON.stringify(value),
           ]),
@@ -263,8 +152,12 @@ async function rollupProductionBuild() {
     result.jsHash,
   );
   await fs.writeFile(
-    path.join(import.meta.dirname, "dist/pinning-keys.resolved.json"),
-    `${JSON.stringify(result.pinningKeys, null, 2)}\n`,
+    path.join(import.meta.dirname, "dist/csp-connect-src.txt"),
+    result.connectSrcDirective,
+  );
+  await fs.writeFile(
+    path.join(import.meta.dirname, "dist/jwk-url.txt"),
+    resolveJwkUrl(),
   );
 }
 
@@ -347,6 +240,27 @@ async function handleDevServerRequest(
         "../test-pinning-keys.json",
         "application/json",
       );
+    }
+    case "GET /jwks.json": {
+      const testKeys = JSON.parse(
+        await fs.readFile(
+          path.join(import.meta.dirname, "../test-pinning-keys.json"),
+          "utf-8",
+        ),
+      ) as JsonWebKey[];
+      const publicKeys = testKeys.map(({ kty, crv, x, y }) => ({
+        kty,
+        crv,
+        x,
+        y,
+      }));
+      res
+        .writeHead(200, {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        })
+        .end(JSON.stringify({ keys: publicKeys }));
+      return;
     }
     case "GET /favicon.ico": {
       res.writeHead(201, {}).end();

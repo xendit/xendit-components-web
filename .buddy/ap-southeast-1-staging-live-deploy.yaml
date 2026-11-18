@@ -49,7 +49,9 @@
       input_type: "BUILD_ARTIFACTS"
       execute_commands:
         - "export DYNAMIC_CSP_HASH=$(cat secure-iframe/dist/js-hash.txt)"
-        - "aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets-staging/components/ --metadata csp-hash=$DYNAMIC_CSP_HASH --acl private"
+        - "export DYNAMIC_CSP_CONNECT_SRC=$(cat secure-iframe/dist/csp-connect-src.txt)"
+        - "export DYNAMIC_JWK_URL=$(cat secure-iframe/dist/jwk-url.txt)"
+        - 'aws s3 cp secure-iframe/dist/secure-iframe-$BUDDY_EXECUTION_TAG.html s3://xendit-checkout-assets-staging/components/ --metadata "csp-hash=$DYNAMIC_CSP_HASH,csp-connect-src=$DYNAMIC_CSP_CONNECT_SRC,jwk-url=$DYNAMIC_JWK_URL" --acl private'
       integration_hash: "5f69e5f01a22366a8e6adfa7"
       deletion_disabled: true
     - action: "Upload landing iframe file to Amazon S3"
