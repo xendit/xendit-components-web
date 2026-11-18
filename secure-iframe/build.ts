@@ -14,16 +14,16 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 
+const { XENDIT_COMPONENTS_JWK_URL, XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS } =
+  process.env;
 const PORT = 4444;
-const PINNING_KEYS_URL =
-  process.env.XENDIT_COMPONENTS_JWK_URL ??
-  "https://assets.xendit.co/components/jwk.json";
 const PINNING_KEYS_FETCH_ATTEMPTS = 3;
 const PINNING_KEYS_FETCH_TIMEOUT_MS = 10_000;
 const MAX_PINNING_KEYS = 100;
 const USE_TEST_PINNING_KEYS =
   process.argv[2] === "dev" ||
-  process.env.XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "1";
+  (typeof XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "string" &&
+    XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "1");
 
 // environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
 const envs = {
@@ -78,9 +78,15 @@ function validatePinningKeys(
 async function fetchPinningKeys() {
   let lastError: unknown;
 
+  if (typeof XENDIT_COMPONENTS_JWK_URL !== "string") {
+    throw new Error(
+      `Unidentified components jwk url: ${XENDIT_COMPONENTS_JWK_URL}`,
+    );
+  }
+
   for (let attempt = 1; attempt <= PINNING_KEYS_FETCH_ATTEMPTS; attempt++) {
     try {
-      const response = await fetch(PINNING_KEYS_URL, {
+      const response = await fetch(XENDIT_COMPONENTS_JWK_URL, {
         signal: AbortSignal.timeout(PINNING_KEYS_FETCH_TIMEOUT_MS),
       });
       if (!response.ok) {
@@ -99,7 +105,7 @@ async function fetchPinningKeys() {
   const message =
     lastError instanceof Error ? lastError.message : String(lastError);
   throw new Error(
-    `Failed to fetch pinning keys from ${PINNING_KEYS_URL}: ${message}`,
+    `Failed to fetch pinning keys from ${XENDIT_COMPONENTS_JWK_URL}: ${message}`,
   );
 }
 
