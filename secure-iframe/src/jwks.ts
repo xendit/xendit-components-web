@@ -13,6 +13,15 @@ const PRIVATE_JWK_FIELDS = [
 
 type JwksFetchMode = "cached" | "refresh";
 
+const JWKS_ERRORS = {
+  missingUrl: "missing jwks url",
+  fetchFailed: "jwks fetch failed",
+  responseInvalid: "jwks response invalid",
+  keyInvalid: "jwks key invalid",
+  privateKey: "jwks private key",
+  keyImportFailed: "jwks key import failed",
+} as const;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -35,8 +44,8 @@ function isPublicEcP384Jwk(key: Record<string, unknown>) {
 }
 
 async function validatePublicJwk(key: Record<string, unknown>) {
-  assert(!containsPrivateJwkMaterial(key), "invalid jwks");
-  assert(isPublicEcP384Jwk(key), "invalid jwks");
+  assert(isPublicEcP384Jwk(key), JWKS_ERRORS.keyInvalid);
+  assert(!containsPrivateJwkMaterial(key), JWKS_ERRORS.privateKey);
 
   try {
     await crypto.subtle.importKey(
@@ -56,8 +65,18 @@ async function validatePublicJwk(key: Record<string, unknown>) {
       ["verify"],
     );
   } catch {
-    assert(false, "invalid jwks");
+    assert(false, JWKS_ERRORS.keyImportFailed);
   }
+}
+
+function getFetchUrl(jwksUrl: string, mode: JwksFetchMode) {
+  if (mode === "cached") {
+    return jwksUrl;
+  }
+
+  const url = new URL(jwksUrl);
+  url.searchParams.set("xendit_jwks_refresh", Date.now().toString());
+  return url.href;
 }
 
 /**
@@ -70,11 +89,11 @@ export async function loadPinningKeys(
   jwksUrl: string,
   mode: JwksFetchMode = "cached",
 ): Promise<JsonWebKey[]> {
-  assert(jwksUrl, "missing jwks url");
+  assert(jwksUrl, JWKS_ERRORS.missingUrl);
 
   let response: Response;
   try {
-    response = await fetch(jwksUrl, {
+    response = await fetch(getFetchUrl(jwksUrl, mode), {
       method: "GET",
       headers: { Accept: "application/json" },
       cache: mode === "refresh" ? "reload" : "default",
@@ -83,25 +102,28 @@ export async function loadPinningKeys(
       referrerPolicy: "no-referrer",
     });
   } catch {
-    assert(false, "jwks fetch failed");
+    assert(false, JWKS_ERRORS.fetchFailed);
   }
 
-  assert(response.ok, "jwks fetch failed");
+  assert(response.ok, JWKS_ERRORS.fetchFailed);
 
   let body: unknown;
   try {
     body = await response.json();
   } catch {
-    assert(false, "invalid jwks");
+    assert(false, JWKS_ERRORS.responseInvalid);
   }
 
-  assert(isRecord(body), "invalid jwks");
-  assert(Array.isArray(body.keys), "invalid jwks");
-  assert(body.keys.length > 0 && body.keys.length <= 100, "invalid jwks");
+  assert(isRecord(body), JWKS_ERRORS.responseInvalid);
+  assert(Array.isArray(body.keys), JWKS_ERRORS.responseInvalid);
+  assert(
+    body.keys.length > 0 && body.keys.length <= 100,
+    JWKS_ERRORS.responseInvalid,
+  );
 
   const publicKeys: JsonWebKey[] = [];
   for (const key of body.keys) {
-    assert(isRecord(key), "invalid jwks");
+    assert(isRecord(key), JWKS_ERRORS.keyInvalid);
     await validatePublicJwk(key);
     publicKeys.push({
       kty: key.kty as string,

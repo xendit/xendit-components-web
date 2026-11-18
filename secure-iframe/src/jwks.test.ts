@@ -45,26 +45,37 @@ describe("secure iframe jwks", () => {
 
     await loadPinningKeys(JWKS_URL, "refresh");
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      JWKS_URL,
-      expect.objectContaining({ cache: "reload" }),
+    const [url, options] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toMatch(
+      /^https:\/\/assets\.xendit\.co\/components\/jwk\.json\?xendit_jwks_refresh=\d+$/,
     );
+    expect(options).toMatchObject({ cache: "reload" });
   });
 
   it.each([
-    ["non-2xx response", {}, 500],
-    ["missing keys", {}, 200],
-    ["empty keys", { keys: [] }, 200],
+    ["non-2xx response", {}, 500, "jwks fetch failed"],
+    ["missing keys", {}, 200, "jwks response invalid"],
+    ["empty keys", { keys: [] }, 200, "jwks response invalid"],
     [
       "private key material",
       { keys: [{ ...publicKeys[0], d: "private" }] },
       200,
+      "jwks private key",
     ],
-  ])("rejects %s", async (_case, body, status) => {
+    [
+      "invalid key shape",
+      { keys: [{ kty: "RSA", n: "not-used", e: "not-used" }] },
+      200,
+      "jwks key invalid",
+    ],
+  ])("rejects %s", async (_case, body, status, errorCode) => {
     stubFetch(body, status);
 
-    await expect(loadPinningKeys(JWKS_URL)).rejects.toThrowError(
-      "Assertion failure",
-    );
+    try {
+      await loadPinningKeys(JWKS_URL);
+      throw new Error("expected loadPinningKeys to fail");
+    } catch (error) {
+      expect(error).toMatchObject({ code: errorCode });
+    }
   });
 });
