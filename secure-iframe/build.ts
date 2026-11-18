@@ -75,18 +75,40 @@ function validatePinningKeys(
   });
 }
 
-async function fetchPinningKeys() {
-  let lastError: unknown;
+function validateXenditComponentsJwkUrl() {
+  let pinningKeysUrl: URL;
+  const pinningKeysResult = XENDIT_COMPONENTS_JWK_URL;
 
-  if (typeof XENDIT_COMPONENTS_JWK_URL !== "string") {
+  if (typeof pinningKeysResult !== "string") {
+    throw new Error(`Unidentified components jwk url: ${pinningKeysResult}`);
+  }
+
+  try {
+    pinningKeysUrl = new URL(pinningKeysResult);
+  } catch {
+    throw new Error(`Invalid components jwk url: ${pinningKeysResult}`);
+  }
+
+  if (
+    pinningKeysUrl.protocol !== "https:" ||
+    pinningKeysUrl.hostname !== "assets.xendit.co"
+  ) {
     throw new Error(
-      `Unidentified components jwk url: ${XENDIT_COMPONENTS_JWK_URL}`,
+      "Components jwk url must use HTTPS and the assets.xendit.co hostname",
     );
   }
 
+  return pinningKeysResult;
+}
+
+async function fetchPinningKeys() {
+  let lastError: unknown;
+
+  const pinningKeysUrl = validateXenditComponentsJwkUrl();
+
   for (let attempt = 1; attempt <= PINNING_KEYS_FETCH_ATTEMPTS; attempt++) {
     try {
-      const response = await fetch(XENDIT_COMPONENTS_JWK_URL, {
+      const response = await fetch(pinningKeysUrl, {
         signal: AbortSignal.timeout(PINNING_KEYS_FETCH_TIMEOUT_MS),
       });
       if (!response.ok) {
@@ -105,7 +127,7 @@ async function fetchPinningKeys() {
   const message =
     lastError instanceof Error ? lastError.message : String(lastError);
   throw new Error(
-    `Failed to fetch pinning keys from ${XENDIT_COMPONENTS_JWK_URL}: ${message}`,
+    `Failed to fetch pinning keys from ${pinningKeysUrl}: ${message}`,
   );
 }
 
