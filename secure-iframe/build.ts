@@ -57,9 +57,6 @@ function buildEnvs(jwkUrl: string) {
 let lastSeenBuildOutput: string | null = null;
 
 async function generateIframeHtml(js: string) {
-  const jwkUrl = resolveJwkUrl();
-  const connectSrcDirective = `connect-src ${jwkUrl}`;
-
   // Calculate hash of the unmodified JS. Keys are loaded at runtime.
   const jsHash = crypto.createHash("sha256").update(js).digest("base64");
 
@@ -68,7 +65,6 @@ async function generateIframeHtml(js: string) {
 <html>
   <head>
     <meta charset="UTF-8"/>
-    <meta http-equiv="Content-Security-Policy" content="${connectSrcDirective}"/>
     <title>Xendit Secure Iframe</title>
     <style>
       :root { --xendit-iframe-placeholder-color: #7d7d7d; }
@@ -81,7 +77,7 @@ async function generateIframeHtml(js: string) {
 </html>
 `;
 
-  return { html, jsHash, connectSrcDirective };
+  return { html, jsHash };
 }
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
@@ -150,14 +146,6 @@ async function rollupProductionBuild() {
   await fs.writeFile(
     path.join(import.meta.dirname, "dist/js-hash.txt"),
     result.jsHash,
-  );
-  await fs.writeFile(
-    path.join(import.meta.dirname, "dist/csp-connect-src.txt"),
-    result.connectSrcDirective,
-  );
-  await fs.writeFile(
-    path.join(import.meta.dirname, "dist/jwk-url.txt"),
-    resolveJwkUrl(),
   );
 }
 
