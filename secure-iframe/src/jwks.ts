@@ -13,7 +13,6 @@ const PRIVATE_JWK_FIELDS = [
 
 type JwksFetchMode = "cached" | "refresh";
 
-const JWKS_FETCH_ATTEMPTS = 3;
 const JWKS_FETCH_TIMEOUT_MS = 10_000;
 
 const JWKS_ERRORS = {
@@ -24,6 +23,10 @@ const JWKS_ERRORS = {
   privateKey: "jwks private key",
   keyImportFailed: "jwks key import failed",
 } as const;
+
+export function isJwksErrorCode(code: unknown) {
+  return Object.values(JWKS_ERRORS).includes(code as never);
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -46,9 +49,10 @@ function isPublicEcP384Jwk(key: Record<string, unknown>) {
   );
 }
 
-async function validatePublicJwk(key: Record<string, unknown>) {
-  assert(isPublicEcP384Jwk(key), JWKS_ERRORS.keyInvalid);
-  assert(!containsPrivateJwkMaterial(key), JWKS_ERRORS.privateKey);
+async function importPublicJwk(key: Record<string, unknown>) {
+  if (!isPublicEcP384Jwk(key) || containsPrivateJwkMaterial(key)) {
+    return null;
+  }
 
   try {
     await crypto.subtle.importKey(
@@ -68,8 +72,15 @@ async function validatePublicJwk(key: Record<string, unknown>) {
       ["verify"],
     );
   } catch {
-    assert(false, JWKS_ERRORS.keyImportFailed);
+    return null;
   }
+
+  return {
+    kty: key.kty as string,
+    crv: key.crv as string,
+    x: key.x as string,
+    y: key.y as string,
+  } as JsonWebKey;
 }
 
 function getFetchUrl(jwksUrl: string, mode: JwksFetchMode) {
@@ -94,61 +105,49 @@ export async function loadPinningKeys(
 ): Promise<JsonWebKey[]> {
   assert(jwksUrl, JWKS_ERRORS.missingUrl);
   const fetchUrl = getFetchUrl(jwksUrl, mode);
-  let lastError: unknown;
+  let response: Response;
+  try {
+    response = await fetch(fetchUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: mode === "refresh" ? "reload" : "default",
+      credentials: "omit",
+      redirect: "error",
+      referrerPolicy: "no-referrer",
+      signal: AbortSignal.timeout(JWKS_FETCH_TIMEOUT_MS),
+    });
+  } catch {
+    assert(false, JWKS_ERRORS.fetchFailed);
+  }
 
-  for (let attempt = 1; attempt <= JWKS_FETCH_ATTEMPTS; attempt++) {
-    try {
-      let response: Response;
-      try {
-        response = await fetch(fetchUrl, {
-          method: "GET",
-          headers: { Accept: "application/json" },
-          cache: mode === "refresh" ? "reload" : "default",
-          credentials: "omit",
-          redirect: "error",
-          referrerPolicy: "no-referrer",
-          signal: AbortSignal.timeout(JWKS_FETCH_TIMEOUT_MS),
-        });
-      } catch {
-        assert(false, JWKS_ERRORS.fetchFailed);
-      }
+  assert(response.ok, JWKS_ERRORS.fetchFailed);
 
-      assert(response.ok, JWKS_ERRORS.fetchFailed);
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    assert(false, JWKS_ERRORS.responseInvalid);
+  }
 
-      let body: unknown;
-      try {
-        body = await response.json();
-      } catch {
-        assert(false, JWKS_ERRORS.responseInvalid);
-      }
+  assert(isRecord(body), JWKS_ERRORS.responseInvalid);
+  assert(Array.isArray(body.keys), JWKS_ERRORS.responseInvalid);
+  assert(
+    body.keys.length > 0 && body.keys.length <= 100,
+    JWKS_ERRORS.responseInvalid,
+  );
 
-      assert(isRecord(body), JWKS_ERRORS.responseInvalid);
-      assert(Array.isArray(body.keys), JWKS_ERRORS.responseInvalid);
-      assert(
-        body.keys.length > 0 && body.keys.length <= 100,
-        JWKS_ERRORS.responseInvalid,
-      );
+  const publicKeys: JsonWebKey[] = [];
+  for (const key of body.keys) {
+    if (!isRecord(key)) {
+      continue;
+    }
 
-      const publicKeys: JsonWebKey[] = [];
-      for (const key of body.keys) {
-        assert(isRecord(key), JWKS_ERRORS.keyInvalid);
-        await validatePublicJwk(key);
-        publicKeys.push({
-          kty: key.kty as string,
-          crv: key.crv as string,
-          x: key.x as string,
-          y: key.y as string,
-        });
-      }
-
-      return publicKeys;
-    } catch (error) {
-      lastError = error;
-      if (attempt < JWKS_FETCH_ATTEMPTS) {
-        await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt));
-      }
+    const publicKey = await importPublicJwk(key);
+    if (publicKey) {
+      publicKeys.push(publicKey);
     }
   }
 
-  throw lastError;
+  assert(publicKeys.length > 0, JWKS_ERRORS.keyInvalid);
+  return publicKeys;
 }
