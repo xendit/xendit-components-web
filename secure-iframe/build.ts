@@ -15,7 +15,15 @@ import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 
 const PORT = 4444;
-const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
+const PINNING_KEYS_URL =
+  process.env.XENDIT_COMPONENTS_JWK_URL ??
+  "https://assets.xendit.co/components/jwk.json";
+const PINNING_KEYS_FETCH_ATTEMPTS = 3;
+const PINNING_KEYS_FETCH_TIMEOUT_MS = 10_000;
+const MAX_PINNING_KEYS = 100;
+const USE_TEST_PINNING_KEYS =
+  process.argv[2] === "dev" ||
+  process.env.XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "1";
 
 // environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
 const envs = {
@@ -23,42 +31,110 @@ const envs = {
 };
 
 let lastSeenBuildOutput: string | null = null;
-async function generateIframeHtml(js: string) {
-  let pinningKeysRaw: JsonWebKey[];
 
-  if (XENDIT_COMPONENTS_PINNING_KEYS) {
-    // CI - use provided keys for all environments
-    pinningKeysRaw = JSON.parse(
-      Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8"),
+function validatePinningKeys(
+  value: unknown,
+  allowPrivateKeys = false,
+): JsonWebKey[] {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !Array.isArray((value as { keys?: unknown }).keys)
+  ) {
+    throw new Error("Pinning keys response must contain a keys array");
+  }
+
+  const keys = (value as { keys: unknown[] }).keys;
+  if (keys.length === 0 || keys.length > MAX_PINNING_KEYS) {
+    throw new Error(
+      `Pinning keys response must contain between 1 and ${MAX_PINNING_KEYS} keys`,
     );
-    // double check these are not private keys
-    for (const key of pinningKeysRaw) {
-      if (key.d) {
-        throw new Error(
-          "Private keys are not allowed in XENDIT_COMPONENTS_PINNING_KEYS",
-        );
+  }
+
+  return keys.map((key, index) => {
+    if (typeof key !== "object" || key === null) {
+      throw new Error(`Pinning key at index ${index} is invalid`);
+    }
+
+    const jwk = key as JsonWebKey;
+    if (jwk.d && !allowPrivateKeys) {
+      throw new Error(`Private key found at pinning key index ${index}`);
+    }
+    if (
+      jwk.kty !== "EC" ||
+      jwk.crv !== "P-384" ||
+      typeof jwk.x !== "string" ||
+      typeof jwk.y !== "string"
+    ) {
+      throw new Error(
+        `Pinning key at index ${index} must be an EC P-384 public key`,
+      );
+    }
+
+    return jwk;
+  });
+}
+
+async function fetchPinningKeys() {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= PINNING_KEYS_FETCH_ATTEMPTS; attempt++) {
+    try {
+      const response = await fetch(PINNING_KEYS_URL, {
+        signal: AbortSignal.timeout(PINNING_KEYS_FETCH_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return validatePinningKeys(await response.json());
+    } catch (error) {
+      lastError = error;
+      if (attempt < PINNING_KEYS_FETCH_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt));
       }
     }
-  } else {
-    // Development - use test keys
-    pinningKeysRaw = JSON.parse(
+  }
+
+  const message =
+    lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(
+    `Failed to fetch pinning keys from ${PINNING_KEYS_URL}: ${message}`,
+  );
+}
+
+async function resolvePinningKeys() {
+  if (USE_TEST_PINNING_KEYS) {
+    const testKeys = JSON.parse(
       await fs.readFile(
         path.join(import.meta.dirname, "../test-pinning-keys.json"),
         "utf-8",
       ),
     );
+    return validatePinningKeys({ keys: testKeys }, true);
   }
 
-  // Parse and process pinning keys
-  const pinningKeys = pinningKeysRaw.map((key: JsonWebKey) => {
-    // convert private keys to public keys (keep only public key parts)
-    return {
+  return await fetchPinningKeys();
+}
+
+function publicPinningKeys(keys: JsonWebKey[]) {
+  return keys
+    .map((key) => ({
       kty: key.kty,
       crv: key.crv,
       x: key.x,
       y: key.y,
-    };
-  });
+    }))
+    .sort((left, right) =>
+      `${left.x}:${left.y}`.localeCompare(`${right.x}:${right.y}`),
+    );
+}
+
+async function generateIframeHtml(js: string) {
+  const pinningKeysRaw = await resolvePinningKeys();
+
+  // Parse and process pinning keys
+  const pinningKeys = publicPinningKeys(pinningKeysRaw);
   const jsWithPinningKeys = js.replace(
     /PINNING_KEYS_MACRO/,
     JSON.stringify(pinningKeys),
@@ -90,7 +166,7 @@ async function generateIframeHtml(js: string) {
 </html>
 `;
 
-  return { html, jsHash };
+  return { html, jsHash, pinningKeys };
 }
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
@@ -157,6 +233,10 @@ async function rollupProductionBuild() {
   await fs.writeFile(
     path.join(import.meta.dirname, "dist/js-hash.txt"),
     result.jsHash,
+  );
+  await fs.writeFile(
+    path.join(import.meta.dirname, "dist/pinning-keys.resolved.json"),
+    `${JSON.stringify(result.pinningKeys, null, 2)}\n`,
   );
 }
 
