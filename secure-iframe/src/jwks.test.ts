@@ -15,11 +15,12 @@ afterEach(() => {
 });
 
 function stubFetch(body: unknown, status = 200) {
-  const fetchMock = vi.fn().mockResolvedValue(
-    new Response(JSON.stringify(body), {
-      status,
-      headers: { "Content-Type": "application/json" },
-    }),
+  const fetchMock = vi.fn().mockImplementation(
+    () =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      }),
   );
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
@@ -50,6 +51,26 @@ describe("secure iframe jwks", () => {
       /^https:\/\/assets\.xendit\.co\/components\/jwk\.json\?xendit_jwks_refresh=\d+$/,
     );
     expect(options).toMatchObject({ cache: "reload" });
+  });
+
+  it("retries transient fetch failures", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("network error"))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ keys: publicKeys }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(loadPinningKeys(JWKS_URL)).resolves.toEqual(publicKeys);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+      signal: expect.any(AbortSignal),
+    });
   });
 
   it.each([

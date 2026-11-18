@@ -13,6 +13,9 @@ const PRIVATE_JWK_FIELDS = [
 
 type JwksFetchMode = "cached" | "refresh";
 
+const JWKS_FETCH_ATTEMPTS = 3;
+const JWKS_FETCH_TIMEOUT_MS = 10_000;
+
 const JWKS_ERRORS = {
   missingUrl: "missing jwks url",
   fetchFailed: "jwks fetch failed",
@@ -90,48 +93,62 @@ export async function loadPinningKeys(
   mode: JwksFetchMode = "cached",
 ): Promise<JsonWebKey[]> {
   assert(jwksUrl, JWKS_ERRORS.missingUrl);
+  const fetchUrl = getFetchUrl(jwksUrl, mode);
+  let lastError: unknown;
 
-  let response: Response;
-  try {
-    response = await fetch(getFetchUrl(jwksUrl, mode), {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      cache: mode === "refresh" ? "reload" : "default",
-      credentials: "omit",
-      redirect: "error",
-      referrerPolicy: "no-referrer",
-    });
-  } catch {
-    assert(false, JWKS_ERRORS.fetchFailed);
+  for (let attempt = 1; attempt <= JWKS_FETCH_ATTEMPTS; attempt++) {
+    try {
+      let response: Response;
+      try {
+        response = await fetch(fetchUrl, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: mode === "refresh" ? "reload" : "default",
+          credentials: "omit",
+          redirect: "error",
+          referrerPolicy: "no-referrer",
+          signal: AbortSignal.timeout(JWKS_FETCH_TIMEOUT_MS),
+        });
+      } catch {
+        assert(false, JWKS_ERRORS.fetchFailed);
+      }
+
+      assert(response.ok, JWKS_ERRORS.fetchFailed);
+
+      let body: unknown;
+      try {
+        body = await response.json();
+      } catch {
+        assert(false, JWKS_ERRORS.responseInvalid);
+      }
+
+      assert(isRecord(body), JWKS_ERRORS.responseInvalid);
+      assert(Array.isArray(body.keys), JWKS_ERRORS.responseInvalid);
+      assert(
+        body.keys.length > 0 && body.keys.length <= 100,
+        JWKS_ERRORS.responseInvalid,
+      );
+
+      const publicKeys: JsonWebKey[] = [];
+      for (const key of body.keys) {
+        assert(isRecord(key), JWKS_ERRORS.keyInvalid);
+        await validatePublicJwk(key);
+        publicKeys.push({
+          kty: key.kty as string,
+          crv: key.crv as string,
+          x: key.x as string,
+          y: key.y as string,
+        });
+      }
+
+      return publicKeys;
+    } catch (error) {
+      lastError = error;
+      if (attempt < JWKS_FETCH_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt));
+      }
+    }
   }
 
-  assert(response.ok, JWKS_ERRORS.fetchFailed);
-
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    assert(false, JWKS_ERRORS.responseInvalid);
-  }
-
-  assert(isRecord(body), JWKS_ERRORS.responseInvalid);
-  assert(Array.isArray(body.keys), JWKS_ERRORS.responseInvalid);
-  assert(
-    body.keys.length > 0 && body.keys.length <= 100,
-    JWKS_ERRORS.responseInvalid,
-  );
-
-  const publicKeys: JsonWebKey[] = [];
-  for (const key of body.keys) {
-    assert(isRecord(key), JWKS_ERRORS.keyInvalid);
-    await validatePublicJwk(key);
-    publicKeys.push({
-      kty: key.kty as string,
-      crv: key.crv as string,
-      x: key.x as string,
-      y: key.y as string,
-    });
-  }
-
-  return publicKeys;
+  throw lastError;
 }

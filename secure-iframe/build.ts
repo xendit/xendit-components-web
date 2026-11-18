@@ -15,17 +15,22 @@ import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 
 const PORT = 4444;
-const DEFAULT_JWK_URL = "https://assets.xendit.co/components/jwk.json";
 const DEFAULT_LOCAL_JWK_URL = "https://localhost:4444/jwks.json";
+const USE_TEST_PINNING_KEYS =
+  process.env.XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "1";
 
 // environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
 function resolveJwkUrl() {
   const configuredUrl = process.env.XENDIT_COMPONENTS_JWK_URL;
-  if (!configuredUrl && process.argv[2] === "dev") {
+  if (USE_TEST_PINNING_KEYS || (!configuredUrl && process.argv[2] === "dev")) {
     return DEFAULT_LOCAL_JWK_URL;
   }
 
-  const jwkUrl = configuredUrl ?? DEFAULT_JWK_URL;
+  if (!configuredUrl) {
+    throw new Error("XENDIT_COMPONENTS_JWK_URL is required");
+  }
+
+  const jwkUrl = configuredUrl;
   let url: URL;
   try {
     url = new URL(jwkUrl);
