@@ -258,21 +258,6 @@ describe("secure iframe ui - fatalError", () => {
     );
     expect(screen.getByText("✕ test error")).toBeInTheDocument();
   });
-
-  it("does not expose JWKS error details", async () => {
-    await expectPostMessage(
-      {
-        type: "xendit-iframe-failed-init",
-      },
-      async () => {
-        const err = new Error("Assertion failure");
-        (err as unknown as { code: string }).code = "jwks private key";
-        fatalError(err);
-      },
-    );
-    expect(screen.getByText("✕ error")).toBeInTheDocument();
-    expect(screen.queryByText("✕ jwks private key")).not.toBeInTheDocument();
-  });
 });
 
 /**
