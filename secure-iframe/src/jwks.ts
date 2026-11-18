@@ -20,7 +20,6 @@ const JWKS_ERRORS = {
   fetchFailed: "jwks fetch failed",
   responseInvalid: "jwks response invalid",
   keyInvalid: "jwks key invalid",
-  privateKey: "jwks private key",
   keyImportFailed: "jwks key import failed",
 } as const;
 
