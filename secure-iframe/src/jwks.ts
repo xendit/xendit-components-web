@@ -23,10 +23,6 @@ const JWKS_ERRORS = {
   keyImportFailed: "jwks key import failed",
 } as const;
 
-export function isJwksErrorCode(code: unknown) {
-  return Object.values(JWKS_ERRORS).includes(code as never);
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

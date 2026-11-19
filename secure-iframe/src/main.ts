@@ -7,7 +7,7 @@ import {
   hashText,
   pin,
 } from "./crypto";
-import { isJwksErrorCode, loadPinningKeys } from "./jwks";
+import { loadPinningKeys } from "./jwks";
 import {
   applyFontFace,
   applyInputStyles,
@@ -245,11 +245,9 @@ export function fatalError(err: Error) {
   if (process.env.NODE_ENV !== "test") {
     console.error(`Xendit secure iframe`, err);
   }
-  const errorCode = (err as unknown as { code?: string }).code;
-  const userFacingErrorCode = isJwksErrorCode(errorCode)
-    ? "error"
-    : (errorCode ?? "error");
-  const errorComponent = createFatalErrorComponent(userFacingErrorCode);
+  const errorComponent = createFatalErrorComponent(
+    (err as unknown as { code?: string }).code ?? "error",
+  );
   document.body.replaceChildren(errorComponent);
   insecurePostMessage({
     type: "xendit-iframe-failed-init",
