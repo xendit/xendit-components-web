@@ -48,12 +48,14 @@ export class DigitalWalletProbeGooglePayBehavior implements Behavior {
     const business = this.bb.world?.business;
     const isEwallet = this.bb.channel?.pm_type === "EWALLET";
     const publicChannel = this.bb.sdk.getCurrentChannel();
+    const isChromeMobile = isChromeMobileBrowser();
 
     // is the gpay probe possible?
     if (
       !enabledForGpay ||
       !enabledForChannel ||
       !isEwallet ||
+      !isChromeMobile ||
       !PaymentsClient ||
       !gpayMerchantId ||
       !businessName ||
@@ -258,4 +260,25 @@ async function googlepayProbeAsync(
   }
 
   return { type: "success" };
+}
+
+/**
+ * Google Pay probe only works on Chrome mobile (Android).
+ * Other browsers don't support the Google Pay API in the same way.
+ */
+function isChromeMobileBrowser(): boolean {
+  type UserAgentData =
+    | { platform: string; brands: { brand: string }[] }
+    | undefined;
+  const userAgentData = (
+    navigator as unknown as { userAgentData: UserAgentData }
+  ).userAgentData;
+  if (!userAgentData) return false;
+
+  const isAndroid = userAgentData.platform === "Android";
+  const isChrome = userAgentData.brands.some(
+    (brand) => brand.brand === "Google Chrome" || brand.brand === "Chromium",
+  );
+
+  return isAndroid && isChrome;
 }
