@@ -70,28 +70,28 @@ export function isAbortError(error: unknown): error is AbortError {
  */
 export function cancellableSleep(
   ms: number,
-  signal: AbortSignal,
+  signal?: AbortSignal,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     function onAbort() {
-      signal.removeEventListener("abort", onAbort);
+      signal?.removeEventListener("abort", onAbort);
       clearTimeout(timeoutId);
       reject(new AbortError());
     }
 
     const timeoutId = setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
+      signal?.removeEventListener("abort", onAbort);
       resolve();
     }, ms * SLEEP_MULTIPLIER);
 
     // already aborted
-    if (signal.aborted) {
+    if (signal?.aborted) {
       onAbort();
       return;
     }
 
     // abort on signal
-    signal.addEventListener("abort", onAbort);
+    signal?.addEventListener("abort", onAbort);
   });
 }
 
@@ -191,11 +191,20 @@ export function findPaylinkAction(
   sdk: XenditComponents,
   actions: BffAction[],
 ): BffAction | undefined {
-  if (sdk[internal].options.enablePaylinks) {
-    return actions.find(
-      (a) =>
-        a.type === "REDIRECT_CUSTOMER" && a.descriptor === "WEB_GOOGLE_PAYLINK",
-    );
+  if (!sdk[internal].options.enablePaylinks) return undefined;
+
+  const qrAction = actions.find(
+    (a) => a.type === "PRESENT_TO_CUSTOMER" && a.descriptor === "QR_STRING",
+  );
+
+  const paylinkAction = actions.find(
+    (a) =>
+      a.type === "REDIRECT_CUSTOMER" && a.descriptor === "WEB_GOOGLE_PAYLINK",
+  );
+
+  // ignore paylink unless a qr action is also present
+  if (qrAction && paylinkAction) {
+    return paylinkAction;
   }
 }
 
