@@ -6,6 +6,7 @@ import {
   expect,
   it,
   vitest,
+  vi,
 } from "vitest";
 import { fatalError, main } from "./main";
 import { randomHexString, sleep } from "../../sdk/src/utils";
@@ -20,6 +21,7 @@ import {
 } from "./crypto-test-utils";
 import { IframeChangeEvent, IframeReadyEvent } from "../../shared/types";
 import { screen } from "@testing-library/dom";
+import testPinningKeys from "../../test-pinning-keys.json";
 
 // @ts-expect-error This macro is replaced with a JSON array by the build script
 const pinningPrivateKey: JsonWebKey = PRIVATE_PINNING_KEY_MACRO;
@@ -29,6 +31,22 @@ let ecdhKeyPair: CryptoKeyPair;
 beforeEach(async () => {
   pinningKey = await importPinningKeyForSigning(pinningPrivateKey);
   ecdhKeyPair = await generateKeys();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          keys: testPinningKeys.map(({ kty, crv, x, y }) => ({
+            kty,
+            crv,
+            x,
+            y,
+          })),
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    ),
+  );
 });
 
 beforeEach(async () => {
@@ -37,9 +55,39 @@ beforeEach(async () => {
 
 afterEach(() => {
   document.body.replaceChildren();
+  vi.unstubAllGlobals();
 });
 
 describe("secure iframe ui - main - basics", () => {
+  it("refreshes JWKS once after a pinning failure", async () => {
+    const fetchMock = vi.mocked(fetch);
+    const publicKeys = testPinningKeys.map(({ kty, crv, x, y }) => ({
+      kty,
+      crv,
+      x,
+      y,
+    }));
+    fetchMock
+      .mockReset()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ keys: publicKeys.slice(1) }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ keys: publicKeys }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+    await main();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ cache: "reload" });
+  });
+
   it("should send ready event", async () => {
     await expectPostMessage(
       { type: "xendit-iframe-ready", ecdhPublicKey: expect.any(String) },
