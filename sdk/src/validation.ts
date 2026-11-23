@@ -57,7 +57,7 @@ export function validatePlaintextCardNumber(
   if (!/^\d*$/.test(value)) {
     return { localeKey: "validation.card_number_invalid" };
   }
-  if (value.length < 12 || value.length > 19) {
+  if (value.length < 14 || value.length > 19) {
     return { localeKey: "validation.card_number_invalid" };
   }
   if (!luhnCheck(value)) {
