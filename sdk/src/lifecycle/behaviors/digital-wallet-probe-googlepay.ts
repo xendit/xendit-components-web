@@ -167,6 +167,9 @@ async function googlepayProbeAsync(
     sdk,
     abortSignal,
   );
+  if (!googlePayDataWithEwallets) {
+    return { type: "bail" };
+  }
   assert(googlePayDataWithEwallets.google_pay);
 
   const selectedPaymentMethod =

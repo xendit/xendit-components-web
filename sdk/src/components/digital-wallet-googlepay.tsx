@@ -341,8 +341,10 @@ async function googlepayAsync(
   );
   if (hasNonCardsChannel) {
     const newDigitalWalletData = await googlepayGetConfigWrapper(sdk);
-    assert(newDigitalWalletData?.google_pay);
-    googlePayData = newDigitalWalletData.google_pay;
+    if (newDigitalWalletData) {
+      assert(newDigitalWalletData?.google_pay);
+      googlePayData = newDigitalWalletData.google_pay;
+    }
   }
 
   const googlepayPayload: google.payments.api.PaymentDataRequest = {
@@ -425,7 +427,10 @@ export function localeKeyForGooglePayError<
 export async function googlepayGetConfigWrapper(
   sdk: XenditComponents,
   abortSignal?: AbortSignal,
-): Promise<BffDigitalWallets> {
+): Promise<BffDigitalWallets | undefined> {
+  if (!sdk.getExperiments()["enable-gpay-lazy"]) {
+    return Promise.resolve(undefined);
+  }
   if (sdk.isMock()) {
     await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortSignal);
     return makeMockGooglepayConfig();
@@ -443,6 +448,9 @@ export async function googlepayCancelWrapper(
   sdk: XenditComponents,
   abortSignal?: AbortSignal,
 ): Promise<BffPollResponse | undefined> {
+  if (!sdk.getExperiments()["enable-gpay-lazy"]) {
+    return Promise.resolve(undefined);
+  }
   if (sdk.isMock()) {
     await cancellableSleep(MOCK_NETWORK_DELAY_MS, abortSignal);
     return undefined;
