@@ -143,6 +143,7 @@ if (savedKey) {
     enablePaylinks: true,
     resume: savedResume,
     logTelemetryEvents: true,
+    showSavedPaymentMethods: true,
     // preloadLocale: "id",
   });
 } else {
@@ -150,6 +151,7 @@ if (savedKey) {
     iframeFieldAppearance,
     enablePaylinks: true,
     logTelemetryEvents: true,
+    showSavedPaymentMethods: true,
   });
 }
 

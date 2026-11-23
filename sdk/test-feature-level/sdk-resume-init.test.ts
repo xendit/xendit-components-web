@@ -74,7 +74,7 @@ describe("sdk resume initialization", () => {
     expect(vi.mocked(fetchSessionData)).toHaveBeenCalledWith(
       expect.anything(),
       expect.anything(),
-      { tokenRequestId: "resume-123" },
+      { tokenRequestId: "resume-123", showSavedPaymentMethods: undefined },
     );
     expect(vi.mocked(pollSession)).not.toHaveBeenCalled();
     expect(drainTelemetry(sdk)).toContainEqual({
