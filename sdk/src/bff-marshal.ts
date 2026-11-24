@@ -51,6 +51,8 @@ export function bffSessionToPublic(bffSession: BffSession): XenditSession {
     subscription: bffSession.subscription
       ? {
           immediatePayment: bffSession.subscription.immediate_payment,
+          requirePaymentToActivate:
+            bffSession.subscription.require_payment_to_activate,
           schedule: {
             anchorDate: bffSession.subscription.schedule.anchor_date
               ? new Date(bffSession.subscription.schedule.anchor_date)
@@ -266,6 +268,7 @@ export function bffChannelToPublic(
     },
     minAmount: bffChannel.min_amount,
     maxAmount: bffChannel.max_amount,
+    fromSavedPaymentToken: bffChannel.from_saved_payment_token,
     cardBrands: bffChannel.card?.brands.map((b) => {
       return {
         name: b.name,

@@ -129,6 +129,7 @@ jobs:
           ./publish-test.sh
         env:
           XENDIT_COMPONENTS_SECURE_IFRAME_URL: https://assets.xendit.co/components/secure-iframe-${{ github.event.inputs.tag }}.html
+          XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS: "1"
 
   test:
     needs: install-dependencies

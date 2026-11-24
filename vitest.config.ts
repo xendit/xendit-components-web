@@ -14,10 +14,6 @@ const pinningKeys: JsonWebKey[] = JSON.parse(
   ),
 );
 
-const PINNING_KEYS_MACRO = pinningKeys.map((key) => ({
-  ...key,
-  d: undefined,
-}));
 const PRIVATE_PINNING_KEY_MACRO = pinningKeys[0];
 
 export default defineConfig({
@@ -29,7 +25,9 @@ export default defineConfig({
     "process.env.XENDIT_COMPONENTS_VERSION": JSON.stringify(
       `v${packageJson.version}`,
     ),
-    PINNING_KEYS_MACRO,
+    "process.env.XENDIT_COMPONENTS_JWK_URL": JSON.stringify(
+      "https://xendit-secure-iframe/jwks.json",
+    ),
     PRIVATE_PINNING_KEY_MACRO,
   },
   test: {

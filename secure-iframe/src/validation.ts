@@ -31,7 +31,7 @@ export const validateCreditCardNumber = (value: string): ValidationResult => {
   if (!/^\d*$/.test(value)) {
     // non-numeric input
     errorCodes.push({ localeKey: "validation.card_number_invalid" });
-  } else if (value.length < 12 || value.length > 19) {
+  } else if (value.length < 14 || value.length > 19) {
     // too short or too long for any card brand
     errorCodes.push({ localeKey: "validation.card_number_invalid" });
   } else if (!luhnCheck(value)) {

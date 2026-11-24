@@ -24,6 +24,54 @@ describe("BFF Marshal - bffSessionToPublic", () => {
   });
 });
 
+describe("BFF Marshal - bffSessionToPublic subscription", () => {
+  const baseSchedule = {
+    interval: "MONTH" as const,
+    interval_count: 1,
+  };
+
+  it("should map anchor_date to a Date when present", () => {
+    const bffSession = {
+      ...makeTestBffData().session,
+      session_type: "SUBSCRIPTION" as const,
+      subscription: {
+        schedule: {
+          ...baseSchedule,
+          anchor_date: "2026-01-01T00:00:00.000Z",
+        },
+      },
+    };
+
+    const publicSession = bffSessionToPublic(bffSession);
+
+    expect(publicSession.subscription?.schedule.anchorDate).toEqual(
+      new Date("2026-01-01T00:00:00.000Z"),
+    );
+    expect(
+      publicSession.subscription?.requirePaymentToActivate,
+    ).toBeUndefined();
+  });
+
+  it("should set anchorDate to undefined when anchor_date is absent (requirePaymentToActivate case)", () => {
+    const bffSession = {
+      ...makeTestBffData().session,
+      session_type: "SUBSCRIPTION" as const,
+      subscription: {
+        require_payment_to_activate: true,
+        schedule: {
+          ...baseSchedule,
+          // anchor_date is absent — determined after the initial payment succeeds
+        },
+      },
+    };
+
+    const publicSession = bffSessionToPublic(bffSession);
+
+    expect(publicSession.subscription?.schedule.anchorDate).toBeUndefined();
+    expect(publicSession.subscription?.requirePaymentToActivate).toEqual(true);
+  });
+});
+
 describe("BFF Marshal - bffCustomerToPublic", () => {
   it("should generate a public customer object", () => {
     const bffCustomer = makeTestBffData().customer!;

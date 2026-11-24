@@ -1,3 +1,23 @@
+# 0.0.43
+
+### Notable
+
+Expose requirePaymentToActivate field on XenditSession.subscription
+
+Auto-open saved payment method
+
+# 0.0.42
+
+### Notable
+
+Added `current-channel-changed` event that fires when the active payment channel changes.
+
+Added `will-save-payment-method` event that indicates whether the upcoming submission will save the payment method.
+
+Added `require_payment_to_activate` support for subscription sessions. When set, the submission uses a payment request (charge) to activate the subscription instead of a payment token.
+
+Dynamic card brand images now render in the channel picker group row when using `createChannelPickerComponent`. The direct `createChannelComponent` path is unchanged.
+
 # 0.0.41
 
 ### Notable

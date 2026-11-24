@@ -15,63 +15,55 @@ import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 
 const PORT = 4444;
-const { XENDIT_COMPONENTS_PINNING_KEYS } = process.env;
+const DEFAULT_LOCAL_JWK_URL = "https://localhost:4444/jwks.json";
+const USE_TEST_PINNING_KEYS =
+  process.env.XENDIT_COMPONENTS_USE_TEST_PINNING_KEYS === "1";
 
 // environment variables to be replaced e.g. process.env.XENDIT_COMPONENTS_VERSION -> "v1.2.3"
-const envs = {
-  NODE_ENV: "production",
-};
+function resolveJwkUrl() {
+  const configuredUrl = process.env.XENDIT_COMPONENTS_JWK_URL;
+  if (USE_TEST_PINNING_KEYS || (!configuredUrl && process.argv[2] === "dev")) {
+    return DEFAULT_LOCAL_JWK_URL;
+  }
+
+  if (!configuredUrl) {
+    throw new Error("XENDIT_COMPONENTS_JWK_URL is required");
+  }
+
+  const jwkUrl = configuredUrl;
+  let url: URL;
+  try {
+    url = new URL(jwkUrl);
+  } catch {
+    throw new Error(`Invalid components jwk url: ${jwkUrl}`);
+  }
+
+  const isLocalUrl = url.hostname === "localhost";
+  if (
+    (isLocalUrl && url.protocol !== "https:") ||
+    (!isLocalUrl &&
+      (url.protocol !== "https:" || url.hostname !== "assets.xendit.co"))
+  ) {
+    throw new Error(
+      "Components jwk url must use HTTPS and the assets.xendit.co hostname",
+    );
+  }
+
+  return jwkUrl;
+}
+
+function buildEnvs(jwkUrl: string) {
+  return {
+    NODE_ENV: "production",
+    XENDIT_COMPONENTS_JWK_URL: jwkUrl,
+  };
+}
 
 let lastSeenBuildOutput: string | null = null;
+
 async function generateIframeHtml(js: string) {
-  let pinningKeysRaw: JsonWebKey[];
-
-  if (XENDIT_COMPONENTS_PINNING_KEYS) {
-    // CI - use provided keys for all environments
-    pinningKeysRaw = JSON.parse(
-      Buffer.from(XENDIT_COMPONENTS_PINNING_KEYS, "base64").toString("utf-8"),
-    );
-    // double check these are not private keys
-    for (const key of pinningKeysRaw) {
-      if (key.d) {
-        throw new Error(
-          "Private keys are not allowed in XENDIT_COMPONENTS_PINNING_KEYS",
-        );
-      }
-    }
-  } else {
-    // Development - use test keys
-    pinningKeysRaw = JSON.parse(
-      await fs.readFile(
-        path.join(import.meta.dirname, "../test-pinning-keys.json"),
-        "utf-8",
-      ),
-    );
-  }
-
-  // Parse and process pinning keys
-  const pinningKeys = pinningKeysRaw.map((key: JsonWebKey) => {
-    // convert private keys to public keys (keep only public key parts)
-    return {
-      kty: key.kty,
-      crv: key.crv,
-      x: key.x,
-      y: key.y,
-    };
-  });
-  const jsWithPinningKeys = js.replace(
-    /PINNING_KEYS_MACRO/,
-    JSON.stringify(pinningKeys),
-  );
-  if (js === jsWithPinningKeys) {
-    throw new Error("Failed to replace PINNING_KEYS_MACRO in JS code");
-  }
-
-  // Calculate hash of the jsWithPinningKeys for CSP
-  const jsHash = crypto
-    .createHash("sha256")
-    .update(jsWithPinningKeys)
-    .digest("base64");
+  // Calculate hash of the unmodified JS. Keys are loaded at runtime.
+  const jsHash = crypto.createHash("sha256").update(js).digest("base64");
 
   // generate html
   const html = `<!DOCTYPE html>
@@ -85,7 +77,7 @@ async function generateIframeHtml(js: string) {
     </style>
   </head>
   <body>
-    <script type="application/javascript">${jsWithPinningKeys}</script>
+    <script type="application/javascript">${js}</script>
   </body>
 </html>
 `;
@@ -94,6 +86,8 @@ async function generateIframeHtml(js: string) {
 }
 
 function rollupConfig(production: boolean): rollup.RollupOptions {
+  const jwkUrl = resolveJwkUrl();
+
   return {
     input: path.join(import.meta.dirname, "src/entry.ts"),
     output: {
@@ -113,7 +107,7 @@ function rollupConfig(production: boolean): rollup.RollupOptions {
       replace({
         preventAssignment: true,
         ...Object.fromEntries(
-          Object.entries(envs).map(([key, value]) => [
+          Object.entries(buildEnvs(jwkUrl)).map(([key, value]) => [
             `process.env.${key}`,
             JSON.stringify(value),
           ]),
@@ -239,6 +233,27 @@ async function handleDevServerRequest(
         "../test-pinning-keys.json",
         "application/json",
       );
+    }
+    case "GET /jwks.json": {
+      const testKeys = JSON.parse(
+        await fs.readFile(
+          path.join(import.meta.dirname, "../test-pinning-keys.json"),
+          "utf-8",
+        ),
+      ) as JsonWebKey[];
+      const publicKeys = testKeys.map(({ kty, crv, x, y }) => ({
+        kty,
+        crv,
+        x,
+        y,
+      }));
+      res
+        .writeHead(200, {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        })
+        .end(JSON.stringify({ keys: publicKeys }));
+      return;
     }
     case "GET /favicon.ico": {
       res.writeHead(201, {}).end();

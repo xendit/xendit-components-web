@@ -7,6 +7,7 @@ import {
   hashText,
   pin,
 } from "./crypto";
+import { loadPinningKeys } from "./jwks";
 import {
   applyFontFace,
   applyInputStyles,
@@ -21,9 +22,6 @@ import {
 } from "./ui";
 import { arrayBufferToBase64, assert, base64ToArrayBuffer } from "./utils";
 import { validate } from "./validation";
-
-// @ts-expect-error This macro is replaced with a JSON array by the build script
-const masterPinningKeys: JsonWebKey[] = PINNING_KEYS_MACRO;
 
 function insecurePostMessage<T extends IframeEvent>(message: T) {
   window.parent.postMessage(message, "*");
@@ -59,9 +57,10 @@ function getQueryInputs() {
 export async function main() {
   document.body.style.margin = "0";
 
-  assert(masterPinningKeys.length > 0, "missing pinning keys");
   assert(origin !== "null", "null origin");
   assert(window.crypto?.subtle, "crypto unsupported");
+  const jwksUrl = process.env.XENDIT_COMPONENTS_JWK_URL;
+  assert(jwksUrl, "missing jwks url");
 
   const queryInputs = getQueryInputs();
 
@@ -76,12 +75,18 @@ export async function main() {
     queryInputs.serverPublicKeySignatureBase64,
   );
 
-  // pin public key
-  await pin(
-    masterPinningKeys,
-    serverPublicKeySignatureBytes,
-    serverPublicKeyBytes,
-  );
+  // Fetch the current keys and refresh once if rotation caused a mismatch.
+  const pinningKeys = await loadPinningKeys(jwksUrl);
+  try {
+    await pin(pinningKeys, serverPublicKeySignatureBytes, serverPublicKeyBytes);
+  } catch {
+    const refreshedPinningKeys = await loadPinningKeys(jwksUrl, "refresh");
+    await pin(
+      refreshedPinningKeys,
+      serverPublicKeySignatureBytes,
+      serverPublicKeyBytes,
+    );
+  }
 
   // create keys
   const ownKeyPair = await generateOwnKeys();
