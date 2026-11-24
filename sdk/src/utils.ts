@@ -185,27 +185,31 @@ export function findBestAction(
 }
 
 /**
- * Find the paylink action, if it exists and the feature is enabled.
+ * Find the paylink action, if it exists and the feature is enabled. Paylinks are disabled if the current channel code uses gpay probe.
  */
 export function findPaylinkAction(
   sdk: XenditComponents,
   actions: BffAction[],
+  currentChannelCode?: string | null,
 ): BffAction | undefined {
   if (!sdk[internal].options.enablePaylinks) return undefined;
 
-  const qrAction = actions.find(
-    (a) => a.type === "PRESENT_TO_CUSTOMER" && a.descriptor === "QR_STRING",
-  );
+  // Block paylinks if the current channel is in enableDigitalWalletProbe.channels
+  const digitalWalletProbeChannels =
+    sdk[internal].options.enableDigitalWalletProbe?.channels;
+  if (
+    currentChannelCode &&
+    digitalWalletProbeChannels?.includes(currentChannelCode)
+  ) {
+    return undefined;
+  }
 
   const paylinkAction = actions.find(
     (a) =>
       a.type === "REDIRECT_CUSTOMER" && a.descriptor === "WEB_GOOGLE_PAYLINK",
   );
 
-  // ignore paylink unless a qr action is also present
-  if (qrAction && paylinkAction) {
-    return paylinkAction;
-  }
+  return paylinkAction;
 }
 
 function isAndroidOrIos() {

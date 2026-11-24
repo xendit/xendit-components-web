@@ -262,7 +262,11 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
   function maybePaylinkAction() {
     assert(bb.world?.paymentEntity);
     if (bb.submissionRequested === "resume") return undefined; // no paylinks on resume, we've already paid
-    return findPaylinkAction(bb.sdk, bb.world.paymentEntity.entity.actions)
+    return findPaylinkAction(
+      bb.sdk,
+      bb.world.paymentEntity.entity.actions,
+      bb.currentChannelCode,
+    )
       ? behaviorTreeForPaylink(bb)
       : undefined;
   }
@@ -343,6 +347,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   const hasPaylink = !!findPaylinkAction(
     bb.sdk,
     bb.world.paymentEntity.entity.actions,
+    bb.currentChannelCode,
   );
 
   // adds simulate payment behavior as a child of the action behavior so that when
@@ -437,6 +442,7 @@ function behaviorTreeForPaylink(bb: BlackboardType) {
   const paylinkAction = findPaylinkAction(
     bb.sdk,
     bb.world.paymentEntity.entity.actions,
+    bb.currentChannelCode,
   );
   assert(paylinkAction);
 
