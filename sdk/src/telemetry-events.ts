@@ -187,11 +187,15 @@ export const TelemetryEvents = {
   /**
    * When a user clicks a digital wallet button
    */
-  DigitalWalletBegin(success: boolean, digital_wallet: string) {
+  DigitalWalletBegin(
+    success: boolean,
+    digital_wallet: string,
+    probe?: boolean,
+  ) {
     return {
       stage: "CHECKOUT_DIGITAL_WALLET_BEGIN",
       success,
-      metadata: { digital_wallet },
+      metadata: { digital_wallet, probe },
     };
   },
 

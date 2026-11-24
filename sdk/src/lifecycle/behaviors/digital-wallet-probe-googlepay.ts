@@ -227,7 +227,7 @@ async function googlepayProbeAsync(
   }
 
   const telemetryScope = getTelemetry(sdk).appendAndPushScope(
-    TelemetryEvents.DigitalWalletBegin(true, "GOOGLE_PAY"),
+    TelemetryEvents.DigitalWalletBegin(true, "GOOGLE_PAY", true),
   );
 
   try {
