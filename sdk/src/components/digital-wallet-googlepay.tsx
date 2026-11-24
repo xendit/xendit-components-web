@@ -339,11 +339,13 @@ async function googlepayAsync(
       return method.payment_method_specification.type !== "CARD";
     },
   );
+  let needsCancel = false;
   if (hasNonCardsChannel) {
     const newDigitalWalletData = await googlepayGetConfigWrapper(sdk);
     if (newDigitalWalletData) {
       assert(newDigitalWalletData?.google_pay);
       googlePayData = newDigitalWalletData.google_pay;
+      needsCancel = true;
     }
   }
 
@@ -394,9 +396,17 @@ async function googlepayAsync(
     // cancel the PRs created by googlepayGetConfigWrapper
     // We don't know if the request was sent or not, so try to cancel.
     // If the cancel endpoint returns a poll response, the payment succeeded or is pending.
-    const cancelResponse = await googlepayCancelWrapper(sdk);
-    if (cancelResponse) {
-      return { type: "success", paymentData: null };
+    if (needsCancel) {
+      let cancelResponse;
+      try {
+        cancelResponse = await googlepayCancelWrapper(sdk);
+      } catch (err) {
+        console.error("Failed to cancel googlepay", err);
+        return { type: "error", statusCode: "UNKNOWN_ERROR" };
+      }
+      if (cancelResponse) {
+        return { type: "success", paymentData: null };
+      }
     }
 
     // the user canceled the gpay sheet and also we successfully canceled the PRs, so we can fall back to the normal flow
@@ -458,6 +468,7 @@ export async function googlepayCancelWrapper(
     return await googlepayCancel(
       sdk[internal].sdkKey,
       undefined,
+      sdk[internal].sdkKey.sessionAuthKey,
       undefined,
       abortSignal,
     );

@@ -170,7 +170,11 @@ export const googlepayGetConfig = endpoint<BffDigitalWallets, undefined>(
 /**
  * Cancels all googlepay PRs, but if any is successful or pending, returns a poll response instead.
  */
-export const googlepayCancel = endpoint<BffPollResponse | undefined, undefined>(
-  "GET",
+export const googlepayCancel = endpoint<
+  undefined,
+  BffPollResponse | undefined,
+  string
+>(
+  "POST",
   (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/google_pay_cancel`,
 );
