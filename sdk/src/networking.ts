@@ -194,6 +194,7 @@ export function endpoint(
         "Content-Type": "application/x-www-form-urlencoded",
       },
       signal: abortSignal as AbortSignal | undefined,
+      credentials: "include", // not required for business logic, but improves accuracy of bot detection
     };
 
     // Retry GETs on connection errors since they're safe to repeat.
