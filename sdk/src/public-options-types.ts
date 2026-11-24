@@ -42,6 +42,12 @@ export interface XenditSdkOptions {
   preloadLocale?: Locale;
 
   /**
+   * Opt-in to show saved payment methods for returning customers.
+   * Requires the feature to be enabled on Xendit Dashboard settings page.
+   */
+  showSavedPaymentMethods?: boolean;
+
+  /**
    * @internal
    * If set, the SDK will connect to the specified host ID, when the provded SDK key only contains session auth ID.
    */

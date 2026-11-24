@@ -460,7 +460,11 @@ export class XenditComponents extends EventTarget {
       bff = await fetchSessionData(
         this[internal].sdkKey,
         this[internal].sdkKey.sessionAuthKey,
-        { tokenRequestId: resumeParams?.tokenRequestId ?? null },
+        {
+          tokenRequestId: resumeParams?.tokenRequestId ?? null,
+          showSavedPaymentMethods:
+            this[internal].options.showSavedPaymentMethods,
+        },
       );
       const interceptChannelsFn =
         this[internal].options.interceptChannelConfig ?? ((config) => config);

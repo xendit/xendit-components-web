@@ -17,14 +17,20 @@ import { CustomerDetails } from "./backend-types/customer";
 export const fetchSessionData = endpoint<
   BffResponse,
   string,
-  { tokenRequestId: string | null }
+  { tokenRequestId: string | null; showSavedPaymentMethods?: boolean }
 >(
   "GET",
   (sessionAuthKey) => `/api/sessions/${sessionAuthKey}`,
-  ({ tokenRequestId }) =>
-    new URLSearchParams(
-      tokenRequestId ? { token_request_id: tokenRequestId } : {},
-    ),
+  ({ tokenRequestId, showSavedPaymentMethods }) => {
+    const params: Record<string, string> = {};
+    if (tokenRequestId) {
+      params.token_request_id = tokenRequestId;
+    }
+    if (showSavedPaymentMethods) {
+      params.show_saved_payment_methods = "1";
+    }
+    return new URLSearchParams(params);
+  },
 );
 
 type CreatePaymentTokenRequestBody = {
