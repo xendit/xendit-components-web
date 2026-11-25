@@ -1,3 +1,15 @@
+# 0.0.44
+
+### Notable
+
+Added option to trigger Google Pay eagarly when submitting with a channel that the user has linked in Google Pay.
+
+Make secure iframe pinning keys easier to rotate without disruption
+
+### Bug Fixes
+
+- Fixed minimum card length validation
+
 # 0.0.43
 
 ### Notable
