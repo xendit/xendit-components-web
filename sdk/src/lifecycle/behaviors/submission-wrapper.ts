@@ -17,6 +17,7 @@ export class SubmissionWrapperBehavior implements Behavior {
     this.bb.pollImmediatelyRequested = false;
     this.bb.hackyOvoActionLatch = false;
     this.bb.prefersRedirectAction = false;
+    this.bb.instantSubmissionError = null;
     // this.bb.sessionUpdateSummary = undefined;
   }
 }

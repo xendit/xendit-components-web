@@ -162,7 +162,7 @@ export const validateApplePaySession = endpoint<
 /**
  * Gets a googlepay payload
  */
-export const googlepayGetConfig = endpoint<BffDigitalWallets, undefined>(
+export const googlepayGetConfig = endpoint<BffDigitalWallets, string>(
   "GET",
   (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/google_pay_config`,
 );

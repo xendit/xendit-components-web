@@ -447,7 +447,7 @@ export async function googlepayGetConfigWrapper(
   } else {
     return await googlepayGetConfig(
       sdk[internal].sdkKey,
-      undefined,
+      sdk[internal].sdkKey.sessionAuthKey,
       undefined,
       abortSignal,
     );
