@@ -51,3 +51,4 @@ jobs:
         env:
           XENDIT_COMPONENTS_SECURE_IFRAME_URL: https://assets.xendit.co/components/secure-iframe-${{ github.event.inputs.tag }}.html
           XENDIT_COMPONENTS_VERSION: ${{ github.event.inputs.tag }}
+          XENDIT_COMPONENTS_JWK_URL: https://assets.xendit.co/components/jwk.json
