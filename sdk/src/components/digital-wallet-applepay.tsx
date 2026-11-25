@@ -11,9 +11,7 @@ import { TelemetryEvents } from "../telemetry-events";
 export const APPLE_PAY_VERSION = 14;
 
 type ApplePayErrorCode =
-  | "MERCHANT_VALIDATION_FAILED"
-  | "NETWORK_ERROR"
-  | "UNKNOWN_ERROR";
+  "MERCHANT_VALIDATION_FAILED" | "NETWORK_ERROR" | "UNKNOWN_ERROR";
 
 type Props = {
   options?: DigitalWalletOptions<"APPLE_PAY">;

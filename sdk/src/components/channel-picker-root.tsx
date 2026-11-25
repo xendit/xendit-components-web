@@ -277,12 +277,10 @@ export const ChannelPickerRoot: FunctionComponent<Props> = (props) => {
   // did this render trigger a oneclick group to open? if so begin oneclick flow
   useLayoutEffect(() => {
     if (!openGroupId) return;
-    if (
-      !(
-        oneclickGroups.has(openGroupId) &&
-        !oneclickGroups.has(previousOpenGroupId)
-      )
-    ) {
+    if (!(
+      oneclickGroups.has(openGroupId) &&
+      !oneclickGroups.has(previousOpenGroupId)
+    )) {
       return;
     }
 

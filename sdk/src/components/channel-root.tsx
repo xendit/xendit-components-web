@@ -50,8 +50,8 @@ interface Props {
   channelOrPair: BffChannel[];
   channelData: ChannelComponentData;
   savePaymentMethod: boolean;
-  formRef: RefObject<ChannelFormHandle>;
-  customerDetailsFormRef: RefObject<CustomerDetailsFormHandle>;
+  formRef: RefObject<ChannelFormHandle | null>;
+  customerDetailsFormRef: RefObject<CustomerDetailsFormHandle | null>;
 }
 
 export const ChannelRoot: FunctionComponent<Props> = (props) => {

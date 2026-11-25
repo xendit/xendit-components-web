@@ -11,8 +11,7 @@ export type BehaviorNodeSingle<BB extends object> = {
 };
 
 export type BehaviorNode<BB extends object> =
-  | BehaviorNodeSingle<BB>
-  | (BehaviorNodeSingle<BB> | undefined)[];
+  BehaviorNodeSingle<BB> | (BehaviorNodeSingle<BB> | undefined)[];
 
 /**
  * Creates a behavior tree node.

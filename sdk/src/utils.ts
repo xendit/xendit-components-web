@@ -340,7 +340,7 @@ export function mergeIgnoringUndefined<T>(
 }
 
 export function usePrevious<T>(value: T) {
-  const ref = useRef<T>(); // Create a ref to store the previous value
+  const ref = useRef<T | undefined>(undefined); // Create a ref to store the previous value
 
   useLayoutEffect(() => {
     ref.current = value; // Update the ref's current value after each render

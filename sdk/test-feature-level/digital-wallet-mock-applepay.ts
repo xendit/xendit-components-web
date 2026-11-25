@@ -3,11 +3,9 @@ const MockApplePayDoNothing = class ApplePaySession {
   static canMakePayments = () => true;
   static STATUS_SUCCESS = 0;
   onvalidatemerchant:
-    | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
-    | null = null;
+    ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void) | null = null;
   onpaymentauthorized:
-    | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
-    | null = null;
+    ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void) | null = null;
   oncancel: ((event: Event) => void) | null = null;
   begin() {
     Promise.resolve().then(() => {
@@ -26,11 +24,9 @@ const MockApplePaySuccess = class ApplePaySession {
   static canMakePayments = () => true;
   static STATUS_SUCCESS = 0;
   onvalidatemerchant:
-    | ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void)
-    | null = null;
+    ((event: ApplePayJS.ApplePayValidateMerchantEvent) => void) | null = null;
   onpaymentauthorized:
-    | ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void)
-    | null = null;
+    ((event: ApplePayJS.ApplePayPaymentAuthorizedEvent) => void) | null = null;
   oncancel: ((event: Event) => void) | null = null;
   begin() {
     Promise.resolve().then(() => {

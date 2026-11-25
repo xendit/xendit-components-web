@@ -28,12 +28,7 @@ export type BffAction =
     };
 
 export type BffPaymentTokenStatus =
-  | "REQUIRES_ACTION"
-  | "PENDING"
-  | "ACTIVE"
-  | "FAILED"
-  | "EXPIRED"
-  | "CANCELED";
+  "REQUIRES_ACTION" | "PENDING" | "ACTIVE" | "FAILED" | "EXPIRED" | "CANCELED";
 
 export type BffPaymentTokenFailureCode =
   | "ACCOUNT_ALREADY_LINKED"
@@ -154,8 +149,7 @@ export function getFailureCodeCopyKey<
 
 export function getPaymentEntityStatusCopyKey<
   T extends
-    | BffPaymentEntityType.PaymentRequest
-    | BffPaymentEntityType.PaymentToken,
+    BffPaymentEntityType.PaymentRequest | BffPaymentEntityType.PaymentToken,
   S extends "FAILED" | "EXPIRED" | "CANCELED",
   const Suffix extends string,
 >(entityType: T, status: S, suffix: Suffix) {

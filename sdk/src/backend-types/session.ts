@@ -9,16 +9,10 @@ export type BffSessionMode = "PAYMENT_LINK" | "COMPONENTS" | "CARDS_SESSION_JS";
 export type BffSessionType = "SAVE" | "PAY" | "AUTHORIZATION" | "SUBSCRIPTION";
 
 export type BffSessionStatus =
-  | "ACTIVE"
-  | "COMPLETED"
-  | "PENDING"
-  | "EXPIRED"
-  | "CANCELED";
+  "ACTIVE" | "COMPLETED" | "PENDING" | "EXPIRED" | "CANCELED";
 
 export type BffSessionAllowSavePaymentMethod =
-  | "DISABLED"
-  | "FORCED"
-  | "OPTIONAL";
+  "DISABLED" | "FORCED" | "OPTIONAL";
 
 export type BffSession = {
   payment_session_id: string;

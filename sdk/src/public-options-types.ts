@@ -187,14 +187,7 @@ export type IframeAppearanceOptions = {
 export type GooglePayButtonOptions = {
   buttonColor?: "default" | "black" | "white";
   buttonType?:
-    | "pay"
-    | "book"
-    | "buy"
-    | "checkout"
-    | "order"
-    | "plain"
-    | "long"
-    | "short";
+    "pay" | "book" | "buy" | "checkout" | "order" | "plain" | "long" | "short";
   buttonRadius?: number;
   buttonSizeMode?: "fill" | "static";
   buttonBorderType?: "no_border" | "default_border";
@@ -206,13 +199,7 @@ export type GooglePayButtonOptions = {
 export type ApplePayButtonOptions = {
   buttonStyle?: "black" | "white" | "white-outline";
   buttonType?:
-    | "plain"
-    | "buy"
-    | "check-out"
-    | "book"
-    | "order"
-    | "donate"
-    | "subscribe";
+    "plain" | "buy" | "check-out" | "book" | "order" | "donate" | "subscribe";
 };
 
 /**
