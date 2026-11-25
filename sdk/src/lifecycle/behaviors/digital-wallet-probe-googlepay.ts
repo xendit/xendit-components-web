@@ -247,9 +247,14 @@ async function googlepayProbeAsync(
     // need to be VERY CAREFUL here or there will be doublepayment
     // We don't know if the request was sent or not, so try to cancel.
     // If the cancel endpoint returns a poll response, the payment succeeded or is pending.
-    const cancelResponse = await googlepayCancelWrapper(sdk, abortSignal);
-    if (cancelResponse) {
-      return { type: "success" };
+    try {
+      const cancelResponse = await googlepayCancelWrapper(sdk, abortSignal);
+      if (cancelResponse) {
+        return { type: "success" };
+      }
+    } catch (err) {
+      console.error("Failed to cancel googlepay", err);
+      return { type: "error", statusCode: "UNKNOWN_ERROR" };
     }
 
     // the user canceled the gpay sheet and also we successfully canceled the PRs, so we can fall back to the normal flow
