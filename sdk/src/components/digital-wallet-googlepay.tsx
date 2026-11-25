@@ -313,6 +313,7 @@ export function createGooglePaySubmissionError(
       t(
         localeKeyForGooglePayError(statusCode, "message"),
         t("google_pay_errors.unknown_error.message", { statusCode }),
+        { statusCode },
       ),
     ],
   };

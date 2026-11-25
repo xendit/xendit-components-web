@@ -77,6 +77,8 @@ export type BlackboardType = {
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;
   channelIsDigitalWallet: boolean;
+
+  // trigger this submission error on submission enter
   instantSubmissionError: SubmissionError | null;
 
   // dispatch event on the SDK instance
