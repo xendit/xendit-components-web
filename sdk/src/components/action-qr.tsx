@@ -220,6 +220,7 @@ export function ActionQr(props: Props) {
   if (QrArtComponent) {
     return (
       <>
+        {/* eslint-disable-next-line react-hooks/static-components */}
         <QrArtComponent
           channelLogo={inActionCard ? undefined : channelLogo}
           channelName={channelName}

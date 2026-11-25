@@ -142,8 +142,8 @@ type CachedChannelComponent = {
   element: HTMLElement;
   channel: XenditPaymentChannel;
   channelProperties: ChannelProperties | null;
-  channelFormRef: RefObject<ChannelFormHandle>;
-  customerDetailsFormRef: RefObject<ChannelFormHandle>;
+  channelFormRef: RefObject<ChannelFormHandle | null>;
+  customerDetailsFormRef: RefObject<ChannelFormHandle | null>;
   data: ChannelComponentData;
 };
 
@@ -190,11 +190,10 @@ export type WorldState = {
  * Updatable parts of the world state. Nulls are written, undefineds are ignored.
  */
 export type UpdatableWorldState = {
-  [K in
-    | "session"
-    | "paymentEntity"
-    | "sessionTokenRequestId"
-    | "succeededChannel"]?: WorldState[K] | undefined;
+  [
+    K in
+      "session" | "paymentEntity" | "sessionTokenRequestId" | "succeededChannel"
+  ]?: WorldState[K] | undefined;
 };
 
 /**

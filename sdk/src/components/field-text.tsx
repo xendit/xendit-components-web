@@ -39,12 +39,17 @@ export const TextField: FunctionComponent<FieldProps> = (props) => {
   );
 };
 
-type TypeDerivedInputAttributes = {
-  type: "text" | "email";
-  minLength?: number;
-  maxLength?: number;
-  autoComplete?: string;
-};
+type TypeDerivedInputAttributes =
+  | {
+      type: "text";
+      minLength?: number;
+      maxLength?: number;
+      autoComplete?: string;
+    }
+  | {
+      type: "email";
+      autoComplete?: string;
+    };
 
 function inputAttributesFor(
   field: ChannelFormField,

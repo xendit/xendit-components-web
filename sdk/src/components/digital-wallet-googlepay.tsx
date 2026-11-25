@@ -387,8 +387,7 @@ async function googlepayAsync(
   } catch (err) {
     const statusCode =
       ((err as { statusCode?: string }).statusCode as
-        | GooglePayErrorCode
-        | "CANCELED") ?? "UNKNOWN_ERROR";
+        GooglePayErrorCode | "CANCELED") ?? "UNKNOWN_ERROR";
 
     getTelemetry(sdk).append(
       TelemetryEvents.DigitalWalletClose(false, statusCode),

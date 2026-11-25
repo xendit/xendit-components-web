@@ -101,9 +101,7 @@ function failureCodeUserErrorMessage(
   type: BffPaymentEntityType,
   status: "FAILED" | "EXPIRED" | "CANCELED",
   failureCode:
-    | BffPaymentTokenFailureCode
-    | BffPaymentRequestFailureCode
-    | undefined,
+    BffPaymentTokenFailureCode | BffPaymentRequestFailureCode | undefined,
 ): string[] {
   const title = t(getPaymentEntityStatusCopyKey(type, status, "title"));
   const subtext = failureCode

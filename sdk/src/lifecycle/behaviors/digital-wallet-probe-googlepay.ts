@@ -237,8 +237,7 @@ async function googlepayProbeAsync(
   } catch (err) {
     const statusCode =
       ((err as { statusCode?: string }).statusCode as
-        | GooglePayErrorCode
-        | "CANCELED") ?? "UNKNOWN_ERROR";
+        GooglePayErrorCode | "CANCELED") ?? "UNKNOWN_ERROR";
 
     getTelemetry(sdk).append(
       TelemetryEvents.DigitalWalletClose(false, statusCode),
@@ -276,8 +275,7 @@ async function googlepayProbeAsync(
  */
 function isChromeMobileBrowser(): boolean {
   type UserAgentData =
-    | { platform: string; brands: { brand: string }[] }
-    | undefined;
+    { platform: string; brands: { brand: string }[] } | undefined;
   const userAgentData = (
     navigator as unknown as { userAgentData: UserAgentData }
   ).userAgentData;

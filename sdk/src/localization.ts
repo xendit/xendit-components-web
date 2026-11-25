@@ -22,7 +22,7 @@ function isLocale(locale: string): locale is Locale {
 }
 
 export async function loadLocale(locale: string) {
-  let data: Partial<typeof en.session> | null = null;
+  let data: Partial<typeof en.session> | null;
   switch (locale) {
     case "en":
       return;

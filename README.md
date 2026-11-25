@@ -399,34 +399,36 @@ Refer to [styles.css](https://github.com/xendit/xendit-components-web/blob/main/
 Some CSS variables are provided to allow for easy customization. These are defined on `:root` and can be overridden by your own CSS.
 
 The following variables are available:
-| Variable | Description |
-| :- | :- |
-| --xendit-font-family | Font applied to all xendit components |
-| --xendit-color-primary | Accent color |
-| --xendit-color-text | Base text color |
-| --xendit-color-text-secondary | Lighter text color |
-| --xendit-color-text-placeholder | Placeholder color |
-| --xendit-color-disabled | Background color of disabled elements |
-| --xendit-color-danger | Border color of elements with validation errors and text color of validation errors |
-| --xendit-color-border | Border color used on accordions, input fields, and logos |
-| --xendit-color-background | Background color of input fields |
-| --xendit-focus-shadow | Box-shadow applied to elements with focus |
-| --xendit-focus-shadow-danger | Box-shadow applied to elements with focus that have validation errors |
-| --xendit-animation-duration | Duration of animations (affects the channel picker accordion) |
-| --xendit-animation-ease | Ease function of animations |
-| --xendit-radius-1 | Border radius applied to the channel picker, buttons and others |
-| --xendit-radius-2 | Border radius applied to dropdowns and inputs |
-| --xendit-radius-3 | Border radius applied to action cards |
-| --xendit-z-index-focus | Z-index applied to focused fields |
-| --xendit-qr-foreground-color | The color used for QR codes (the black pixels). |
-| --xendit-qr-background-color | The color used as the background of QR codes (the white pixels). |
-| --xendit-font-weight-regular | Regular font weight |
-| --xendit-font-weight-semibold | Semibold font weight, for labels and buttons |
-| --xendit-font-weight-bold | Bold font weight, for headings |
+
+| Variable                        | Description                                                                         |
+| :------------------------------ | :---------------------------------------------------------------------------------- |
+| --xendit-font-family            | Font applied to all xendit components                                               |
+| --xendit-color-primary          | Accent color                                                                        |
+| --xendit-color-text             | Base text color                                                                     |
+| --xendit-color-text-secondary   | Lighter text color                                                                  |
+| --xendit-color-text-placeholder | Placeholder color                                                                   |
+| --xendit-color-disabled         | Background color of disabled elements                                               |
+| --xendit-color-danger           | Border color of elements with validation errors and text color of validation errors |
+| --xendit-color-border           | Border color used on accordions, input fields, and logos                            |
+| --xendit-color-background       | Background color of input fields                                                    |
+| --xendit-focus-shadow           | Box-shadow applied to elements with focus                                           |
+| --xendit-focus-shadow-danger    | Box-shadow applied to elements with focus that have validation errors               |
+| --xendit-animation-duration     | Duration of animations (affects the channel picker accordion)                       |
+| --xendit-animation-ease         | Ease function of animations                                                         |
+| --xendit-radius-1               | Border radius applied to the channel picker, buttons and others                     |
+| --xendit-radius-2               | Border radius applied to dropdowns and inputs                                       |
+| --xendit-radius-3               | Border radius applied to action cards                                               |
+| --xendit-z-index-focus          | Z-index applied to focused fields                                                   |
+| --xendit-qr-foreground-color    | The color used for QR codes (the black pixels).                                     |
+| --xendit-qr-background-color    | The color used as the background of QR codes (the white pixels).                    |
+| --xendit-font-weight-regular    | Regular font weight                                                                 |
+| --xendit-font-weight-semibold   | Semibold font weight, for labels and buttons                                        |
+| --xendit-font-weight-bold       | Bold font weight, for headings                                                      |
 
 Additionally, the following variables are set at component scope, where applicable:
-| Variable | Description |
-| :- | :- |
+
+| Variable                     | Description                                                                                                                                                            |
+| :--------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | --xendit-channel-brand-color | A brand color. Varies depending on the channel or action component where it's used. Will always be a dark color appropriate for use as a background behind white text. |
 
 ### CSS In Iframe Fields

@@ -191,7 +191,5 @@ export type ChannelPropertyPrimative = string | number | boolean | undefined;
  */
 export interface ChannelProperties {
   [key: string]:
-    | ChannelPropertyPrimative
-    | ChannelPropertyPrimative[]
-    | ChannelProperties;
+    ChannelPropertyPrimative | ChannelPropertyPrimative[] | ChannelProperties;
 }

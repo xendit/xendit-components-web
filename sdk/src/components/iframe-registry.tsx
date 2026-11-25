@@ -11,7 +11,7 @@ import { assert } from "../utils";
 interface IframeRegistry {
   registerIframe: (
     fieldName: string,
-    iframeRef: RefObject<HTMLIFrameElement>,
+    iframeRef: RefObject<HTMLIFrameElement | null>,
   ) => void;
   unregisterIframe: (fieldName: string) => void;
   postMessageToIframe: (fieldName: string, message: IframeEvent) => void;

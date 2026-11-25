@@ -166,7 +166,7 @@ export const GroupLogos = (props: GroupLogosProps) => {
         MAX_LOGO_COUNT - 1,
         1,
         <img
-          key={logoIndex++}
+          key={logoIndex}
           src={logo.src}
           alt={logo.alt}
           onError={hideOnError}

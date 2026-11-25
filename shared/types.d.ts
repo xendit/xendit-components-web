@@ -51,6 +51,4 @@ export type IframeEvent =
   | IframePopulateForSimulationEvent;
 
 export type IframeFieldType =
-  | "credit_card_number"
-  | "credit_card_cvn"
-  | "credit_card_expiry";
+  "credit_card_number" | "credit_card_cvn" | "credit_card_expiry";
