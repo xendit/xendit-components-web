@@ -46,6 +46,10 @@ import { SessionTelemetry } from "../telemetry";
 import { SessionUpdateSummary } from "./behaviors/utils/session-update-worker";
 import { sessionExpiryTime } from "./behaviors/utils/session-expiry-time";
 import { BffErrorContent } from "../backend-types/common";
+import { internal } from "../internal";
+import { DigitalWalletProbeGooglePayBehavior } from "./behaviors/digital-wallet-probe-googlepay";
+import { SubmissionFakeBehavior } from "./behaviors/submission-fake";
+import { SubmissionWrapperBehavior } from "./behaviors/submission-wrapper";
 
 export type SdkStatus = "ACTIVE" | "LOADING" | "FATAL_ERROR";
 
@@ -61,6 +65,9 @@ export type BlackboardType = {
   // backend state
   world: WorldState | null;
 
+  // when the current session was received, its expires_ttl counts down from here
+  sessionRecvTime: number;
+
   // current UI state
   sdkStatus: SdkStatus;
   sdkFatalErrorMessage: string | null;
@@ -70,12 +77,15 @@ export type BlackboardType = {
   channelProperties: ChannelProperties | null;
   channelData: ChannelComponentData | null;
   channelIsDigitalWallet: boolean;
+
+  // trigger this submission error on submission enter
   instantSubmissionError: SubmissionError | null;
 
   // dispatch event on the SDK instance
   dispatchEvent(event: Event): boolean;
 
-  // flags
+  // submission flags
+
   // if set, triggers a submission, if false aborts the submission
   // there are different kinds of submission:
   //  - normal: usual submission flow
@@ -84,6 +94,10 @@ export type BlackboardType = {
   submissionRequested: "normal" | "resume" | "oneclick" | false;
   // if true, start simulate payment, if false abort simulate payment
   simulatePaymentRequested: boolean;
+  // if true, allow digital wallet probe before submission
+  digitalWalletProbeAvailable: boolean;
+  // if true, submission should pretend to submit but don't actually do anything
+  useFakeSubmissionFlow: boolean;
   // if true, do not show the current action UI
   actionCompleted: boolean;
   // if true, the buyer just returned from a redirect via the browser's back (bfcache restore)
@@ -96,8 +110,6 @@ export type BlackboardType = {
   prefersRedirectAction: boolean;
   // how the latest worker received session updates, sent with CHECKOUT_END
   sessionUpdateSummary?: SessionUpdateSummary;
-  // when the current session was received, its expires_ttl counts down from here
-  sessionRecvTime: number;
 };
 
 export function behaviorTreeForSdk(bb: BlackboardType) {
@@ -140,7 +152,11 @@ export function behaviorTreeForSession(bb: BlackboardType) {
         SessionActiveBehavior,
         "active",
         bb.submissionRequested
-          ? behaviorTreeForSubmission(bb)
+          ? behaviorNode(
+              SubmissionWrapperBehavior,
+              "",
+              behaviorTreeForSubmission(bb),
+            )
           : behaviorTreeForForm(bb),
       );
     }
@@ -218,6 +234,21 @@ export function behaviorTreeForForm(bb: BlackboardType) {
 export function behaviorTreeForSubmission(bb: BlackboardType) {
   assert(bb.world);
 
+  if (
+    bb.digitalWalletProbeAvailable &&
+    !bb.channelIsDigitalWallet &&
+    bb.sdk[internal].options.enableDigitalWalletProbe
+  ) {
+    // before submitting, try digital wallet
+    return behaviorNode(DigitalWalletProbeGooglePayBehavior, "");
+  }
+
+  if (bb.useFakeSubmissionFlow) {
+    // for gpay ewallet, we mimic the submission events but don't actually submit
+    return behaviorNode(SubmissionFakeBehavior, "");
+  }
+
+  // main submission flow
   return behaviorNode(
     SubmissionBehavior,
     "submission",
@@ -233,7 +264,11 @@ export function behaviorTreeForPaymentEntity(bb: BlackboardType) {
   function maybePaylinkAction() {
     assert(bb.world?.paymentEntity);
     if (bb.submissionRequested === "resume") return undefined; // no paylinks on resume, we've already paid
-    return findPaylinkAction(bb.sdk, bb.world.paymentEntity.entity.actions)
+    return findPaylinkAction(
+      bb.sdk,
+      bb.world.paymentEntity.entity.actions,
+      bb.currentChannelCode,
+    )
       ? behaviorTreeForPaylink(bb)
       : undefined;
   }
@@ -314,6 +349,7 @@ export function behaviorTreeForAction(bb: BlackboardType) {
   const hasPaylink = !!findPaylinkAction(
     bb.sdk,
     bb.world.paymentEntity.entity.actions,
+    bb.currentChannelCode,
   );
 
   // adds simulate payment behavior as a child of the action behavior so that when
@@ -408,6 +444,7 @@ function behaviorTreeForPaylink(bb: BlackboardType) {
   const paylinkAction = findPaylinkAction(
     bb.sdk,
     bb.world.paymentEntity.entity.actions,
+    bb.currentChannelCode,
   );
   assert(paylinkAction);
 

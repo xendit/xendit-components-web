@@ -9,6 +9,7 @@ import { buildEndpointUrl, endpoint } from "./networking";
 import { ParsedSdkKey } from "./utils";
 import { BffPaymentOptions } from "./backend-types/payment-options";
 import { CustomerDetails } from "./backend-types/customer";
+import { BffDigitalWallets } from "./backend-types/digital-wallets";
 
 /**
  * Initialization method, returns session, customer, business, and channels.
@@ -156,4 +157,24 @@ export const validateApplePaySession = endpoint<
   "POST",
   (sessionAuthKey) =>
     `/api/sessions/${sessionAuthKey}/validate_apple_pay_session`,
+);
+
+/**
+ * Gets a googlepay payload
+ */
+export const googlepayGetConfig = endpoint<BffDigitalWallets, string>(
+  "GET",
+  (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/google_pay_config`,
+);
+
+/**
+ * Cancels all googlepay PRs, but if any is successful or pending, returns a poll response instead.
+ */
+export const googlepayCancel = endpoint<
+  undefined,
+  BffPollResponse | undefined,
+  string
+>(
+  "POST",
+  (sessionAuthKey) => `/api/sessions/${sessionAuthKey}/google_pay_cancel`,
 );

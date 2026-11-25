@@ -30,11 +30,11 @@ import { PaymentEntityRequiresActionBehavior } from "./behaviors/payment-entity-
 import { ActionCompletedBehavior } from "./behaviors/action-completed";
 import { ActionQrBehavior } from "./behaviors/action-qr";
 import { ActionIframeBehavior } from "./behaviors/action-iframe";
-import { ActionDeepLinkBehavior } from "./behaviors/action-deep-link";
 import { ActionBarcodeBehavior } from "./behaviors/action-barcode";
 import { PaymentEntityFailedBehavior } from "./behaviors/payment-entity-failed";
 import { PaymentEntityPendingBehavior } from "./behaviors/payment-entity-pending";
 import { MockSdk } from "../utils-test";
+import { SubmissionWrapperBehavior } from "./behaviors/submission-wrapper";
 
 const testData = makeTestBffData();
 
@@ -82,6 +82,8 @@ const mockBlackboard: BlackboardType & { world: object } = {
   },
   submissionRequested: false,
   simulatePaymentRequested: false,
+  digitalWalletProbeAvailable: false,
+  useFakeSubmissionFlow: false,
   actionCompleted: false,
   redirectReturnPending: false,
   pollImmediatelyRequested: false,
@@ -228,6 +230,7 @@ describe("Behavior Tree - Submission", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
     ]);
   });
@@ -262,6 +265,7 @@ describe("Behavior Tree - Session TTL", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
     ]);
   });
@@ -298,6 +302,7 @@ describe("Behavior Tree - Payment Entity", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityPendingBehavior,
     ]);
@@ -321,6 +326,7 @@ describe("Behavior Tree - Payment Entity", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityFailedBehavior,
     ]);
@@ -344,6 +350,7 @@ describe("Behavior Tree - Payment Entity", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityPendingBehavior,
     ]);
@@ -368,6 +375,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
       ActionCompletedBehavior,
@@ -388,6 +396,7 @@ describe("Behavior Tree - Actions (edge cases)", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
       ActionQrBehavior,
@@ -413,6 +422,7 @@ describe("Behavior Tree - Actions", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
       ActionIframeBehavior,
@@ -422,18 +432,12 @@ describe("Behavior Tree - Actions", () => {
   it("should give redirect and paylink actions", () => {
     const node = behaviorTreeForSdk({
       ...mockBlackboard,
-      channel: findChannel(
-        mockBlackboard.world.channels,
-        "MOCK_EWALLET_PAYLINK",
-      ),
+      channel: findChannel(mockBlackboard.world.channels, "MOCK_QR_PAYLINK"),
       submissionRequested: "normal",
       world: {
         ...mockBlackboard.world,
         paymentEntity: toPaymentEntity(
-          makeTestPaymentRequest("MOCK_EWALLET_PAYLINK", [
-            "REDIRECT",
-            "PAYLINK",
-          ]),
+          makeTestPaymentRequest("MOCK_QR_PAYLINK", ["QR", "PAYLINK"]),
         ),
         sessionTokenRequestId: randomUUID(),
       },
@@ -441,9 +445,10 @@ describe("Behavior Tree - Actions", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
-      ActionDeepLinkBehavior,
+      ActionQrBehavior,
       ActionPaylinkBehavior,
     ]);
   });
@@ -464,6 +469,7 @@ describe("Behavior Tree - Actions", () => {
     assertHasNodes(node, [
       SdkActiveBehavior,
       SessionActiveBehavior,
+      SubmissionWrapperBehavior,
       SubmissionBehavior,
       PaymentEntityRequiresActionBehavior,
       ActionBarcodeBehavior,
