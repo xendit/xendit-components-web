@@ -1,3 +1,9 @@
+# 0.0.46
+
+### Bug Fixes
+
+- Fixed an error on the post-redirect resume flow.
+
 # 0.0.45
 
 ### Bug Fixes
