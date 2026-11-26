@@ -1,3 +1,9 @@
+# 0.0.45
+
+### Bug Fixes
+
+- Fixed Google Pay on non-Chrome browsers
+
 # 0.0.44
 
 ### Notable
