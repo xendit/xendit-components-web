@@ -14,7 +14,7 @@ import {
 import { XenditComponents } from "../../public-sdk";
 import { getTelemetry } from "../../telemetry";
 import { TelemetryEvents } from "../../telemetry-events";
-import { assert } from "../../utils";
+import { assert, isChromeMobileBrowser } from "../../utils";
 import { BlackboardType } from "../behavior-tree";
 import { Behavior } from "../behavior-tree-runner";
 
@@ -268,25 +268,4 @@ async function googlepayProbeAsync(
   }
 
   return { type: "success" };
-}
-
-/**
- * Google Pay probe only works on Chrome mobile (Android).
- * Other browsers don't support the Google Pay API in the same way.
- */
-function isChromeMobileBrowser(): boolean {
-  type UserAgentData =
-    | { platform: string; brands: { brand: string }[] }
-    | undefined;
-  const userAgentData = (
-    navigator as unknown as { userAgentData: UserAgentData }
-  ).userAgentData;
-  if (!userAgentData) return false;
-
-  const isAndroid = userAgentData.platform === "Android";
-  const isChrome = userAgentData.brands.some(
-    (brand) => brand.brand === "Google Chrome" || brand.brand === "Chromium",
-  );
-
-  return isAndroid && isChrome;
 }

@@ -12,6 +12,7 @@ import { XenditPaymentChannel } from "../public-data-types";
 import {
   assert,
   cancellableSleep,
+  isChromeMobileBrowser,
   MOCK_NETWORK_DELAY_MS,
   satisfiesMinMax,
 } from "../utils";
@@ -341,7 +342,7 @@ async function googlepayAsync(
     },
   );
   let needsCancel = false;
-  if (hasNonCardsChannel) {
+  if (hasNonCardsChannel && isChromeMobileBrowser()) {
     const newDigitalWalletData = await googlepayGetConfigWrapper(sdk);
     if (newDigitalWalletData) {
       assert(newDigitalWalletData?.google_pay);
