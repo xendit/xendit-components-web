@@ -235,6 +235,7 @@ export function behaviorTreeForSubmission(bb: BlackboardType) {
   assert(bb.world);
 
   if (
+    bb.submissionRequested === "normal" &&
     bb.digitalWalletProbeAvailable &&
     !bb.channelIsDigitalWallet &&
     bb.sdk[internal].options.enableDigitalWalletProbe
