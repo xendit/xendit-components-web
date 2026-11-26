@@ -640,3 +640,23 @@ export function willSavePaymentMethod(
       return false;
   }
 }
+
+/**
+ * Return true if a browser is chrome mobile (recent version only - requires navigator.userAgentData)
+ */
+export function isChromeMobileBrowser(): boolean {
+  type UserAgentData =
+    | { platform: string; brands: { brand: string }[] }
+    | undefined;
+  const userAgentData = (
+    navigator as unknown as { userAgentData: UserAgentData }
+  ).userAgentData;
+  if (!userAgentData) return false;
+
+  const isAndroid = userAgentData.platform === "Android";
+  const isChrome = userAgentData.brands.some(
+    (brand) => brand.brand === "Google Chrome" || brand.brand === "Chromium",
+  );
+
+  return isAndroid && isChrome;
+}

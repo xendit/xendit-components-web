@@ -12,6 +12,7 @@ import { XenditPaymentChannel } from "../public-data-types";
 import {
   assert,
   cancellableSleep,
+  isChromeMobileBrowser,
   MOCK_NETWORK_DELAY_MS,
   satisfiesMinMax,
 } from "../utils";
@@ -342,11 +343,22 @@ async function googlepayAsync(
   );
   let needsCancel = false;
   if (hasNonCardsChannel) {
-    const newDigitalWalletData = await googlepayGetConfigWrapper(sdk);
-    if (newDigitalWalletData) {
-      assert(newDigitalWalletData?.google_pay);
-      googlePayData = newDigitalWalletData.google_pay;
-      needsCancel = true;
+    if (isChromeMobileBrowser()) {
+      // chrome mobile - fetch gpay ewallet parameters
+      const newDigitalWalletData = await googlepayGetConfigWrapper(sdk);
+      if (newDigitalWalletData) {
+        assert(newDigitalWalletData?.google_pay);
+        googlePayData = newDigitalWalletData.google_pay;
+        needsCancel = true;
+      }
+    } else {
+      // nonchrome - only allow cards
+      googlePayData = {
+        ...googlePayData,
+        allowed_payment_methods: googlePayData.allowed_payment_methods.filter(
+          (method) => method.channel_code === "CARDS",
+        ),
+      };
     }
   }
 
